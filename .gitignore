@@ -18,6 +18,8 @@ Packages/
 .build/
 .swiftpm/xcode/package.xcworkspace/
 
+!Package.resolved
+
 # CocoaPods
 #
 Pods/
