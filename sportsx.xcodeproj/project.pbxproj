@@ -17,8 +17,10 @@
 		A9406EB62D1CB3A40096DE80 /* MagicCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9406EB52D1CB39A0096DE80 /* MagicCardView.swift */; };
 		A9415AED2D176A5A00AD4A85 /* MNISTClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = A9415AEC2D176A5A00AD4A85 /* MNISTClassifier.mlmodel */; };
 		A95064892D0239B600998E30 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95064882D0239AE00998E30 /* LocationManager.swift */; };
+		A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A9697C1F2D23CEC60053E4DC /* SDWebImageSwiftUI */; };
 		A984DCC92D09616C005EF835 /* CardSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCC82D09615D005EF835 /* CardSelectionView.swift */; };
 		A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */; };
+		A9908DF62D27B6930019C4B4 /* AdsBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9908DF52D27B6880019C4B4 /* AdsBannerView.swift */; };
 		A99A6ADE2C89F83900FAC86D /* SportCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A6ADD2C89F83900FAC86D /* SportCenterView.swift */; };
 		A99A6AE02C8C2AE700FAC86D /* RVRCompetitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A6ADF2C8C2AE700FAC86D /* RVRCompetitionView.swift */; };
 		A99A6AE42C93A9D100FAC86D /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A6AE32C93A9D100FAC86D /* Tools.swift */; };
@@ -66,6 +68,7 @@
 		A95064882D0239AE00998E30 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		A984DCC82D09615D005EF835 /* CardSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardSelectionView.swift; sourceTree = "<group>"; };
 		A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionWidget.swift; sourceTree = "<group>"; };
+		A9908DF52D27B6880019C4B4 /* AdsBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdsBannerView.swift; sourceTree = "<group>"; };
 		A99A6ADD2C89F83900FAC86D /* SportCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportCenterView.swift; sourceTree = "<group>"; };
 		A99A6ADF2C8C2AE700FAC86D /* RVRCompetitionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RVRCompetitionView.swift; sourceTree = "<group>"; };
 		A99A6AE32C93A9D100FAC86D /* Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
@@ -89,6 +92,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,6 +136,7 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9908DF52D27B6880019C4B4 /* AdsBannerView.swift */,
 				A9B219CE2D1F28EB00C84B66 /* SportCenterViewModel.swift */,
 				A9406EB52D1CB39A0096DE80 /* MagicCardView.swift */,
 				A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */,
@@ -275,6 +280,9 @@
 				Base,
 			);
 			mainGroup = A911DB962C47024D0033D809;
+			packageReferences = (
+				A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+			);
 			productRefGroup = A911DBA02C47024D0033D809 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -327,6 +335,7 @@
 				A9AF3A6A2C762CDC00E9DE5D /* LeaderboadEntryView.swift in Sources */,
 				A95064892D0239B600998E30 /* LocationManager.swift in Sources */,
 				A911DBA32C47024D0033D809 /* sportsxApp.swift in Sources */,
+				A9908DF62D27B6930019C4B4 /* AdsBannerView.swift in Sources */,
 				A99A6AE02C8C2AE700FAC86D /* RVRCompetitionView.swift in Sources */,
 				A9DAC1222C65148D006C47B1 /* UserView.swift in Sources */,
 				A99A6ADE2C89F83900FAC86D /* SportCenterView.swift in Sources */,
@@ -672,6 +681,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI";
+			requirement = {
+				kind = exactVersion;
+				version = 3.1.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A9697C1F2D23CEC60053E4DC /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A911DB972C47024D0033D809 /* Project object */;
 }

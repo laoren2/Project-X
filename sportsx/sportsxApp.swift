@@ -15,7 +15,7 @@ class AppState: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        // 当 testvm 有变化时，让 AppStateTest 也发出变化通知
+        // 当 competitionManager 有变化时，让 AppState 也发出变化通知
         competitionManager.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
@@ -38,7 +38,7 @@ struct sportsxApp: App {
         WindowGroup {
             NaviView()
                 .environmentObject(appState)
-            //test2()
+            //test()
             //    .environmentObject(appStateTest)
             //CompetitionView()
         }

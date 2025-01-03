@@ -81,9 +81,6 @@ struct SportCenterView: View {
             Spacer()
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
-        .navigationDestination(isPresented: $appState.competitionManager.navigateToCompetition) {
-            CompetitionDetailView()
-        }
     }
 }
 

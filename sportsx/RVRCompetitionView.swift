@@ -16,8 +16,8 @@ struct RVRCompetitionView: View {
     @State private var startLongitude: String = ""
     @State private var endLatitude: String = ""
     @State private var endLongitude: String = ""
-    @State private var isActive = false
     @State private var showCardSelection = false
+    
     
     
     var body: some View {
@@ -112,7 +112,7 @@ struct RVRCompetitionView: View {
                     .foregroundColor(Color.gray)
             }
             
-            Button(action: {isActive = true}) {
+            Button(action: {appState.competitionManager.navigateToCompetition = true}) {
                 Text("我准备好了")
                     .frame(minWidth: 150)
                     .padding()
@@ -121,10 +121,6 @@ struct RVRCompetitionView: View {
                     .foregroundColor(.white)
             }
             .disabled(!appState.competitionManager.canStartCompetition)
-            //.onAppear() {
-            //    print("我准备好了Btn onAppear")
-            //}
-            
             
             Spacer()
             
@@ -180,9 +176,6 @@ struct RVRCompetitionView: View {
             print("CompetitionView onDisappear")
             appState.competitionManager.deleteSelectedViewLocationSubscription()
         }
-        .navigationDestination(isPresented: $isActive) {
-            CompetitionDetailView()
-        }
     }
     
     // 更新坐标的逻辑
@@ -203,7 +196,7 @@ struct RVRCompetitionView: View {
 
 struct CompetitionDetailView: View {
     @EnvironmentObject var appState: AppState
-    @Environment(\.presentationMode) var presentationMode
+    @State private var navigateToDetail = false
     
     var body: some View {
         // 显示比赛数据或其他内容

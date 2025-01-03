@@ -49,100 +49,95 @@ struct NaviView: View {
 
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationStack {
+        NavigationStack {
+            TabView(selection: $selectedTab) {
                 HomeView()
-            }
-            .tabItem {
-                Image(systemName: appState.sport.iconName)
-                Text("首页")
-            }
-            .tag(0)
-            
-            NavigationStack {
+                    .tabItem {
+                        Image(systemName: appState.sport.iconName)
+                        Text("首页")
+                    }
+                    .tag(0)
+                
                 PlaceholderView(title: "消息")
-            }
-            .tabItem {
-                Image(systemName: "message")
-                Text("消息")
-            }
-            .tag(1)
-            
-            NavigationStack {
+                    .tabItem {
+                        Image(systemName: "message")
+                        Text("消息")
+                    }
+                    .tag(1)
+                
                 SportCenterView()
-            }
-            .tabItem {
-                Image(systemName: "sportscourt")
-                Text("运动中心")
-            }
-            .tag(2)
-            
-            NavigationStack {
+                    .tabItem {
+                        Image(systemName: "sportscourt")
+                        Text("运动中心")
+                    }
+                    .tag(2)
+                
                 PlaceholderView(title: "钱包")
-            }
-            .tabItem {
-                Image(systemName: "storefront")
-                Text("商店")
-            }
-            .tag(3)
-            
-            NavigationStack {
+                    .tabItem {
+                        Image(systemName: "storefront")
+                        Text("商店")
+                    }
+                    .tag(3)
+                
                 UserView(showingLogin: $showingLogin)
+                    .tabItem {
+                        Image(systemName: "person")
+                        Text("我的")
+                    }
+                    .tag(4)
             }
-            .tabItem {
-                Image(systemName: "person")
-                Text("我的")
+            .navigationDestination(isPresented: $appState.competitionManager.navigateToCompetition) {
+                CompetitionDetailView()
             }
-            .tag(4)
-        }
-        .overlay(
-            CompetitionWidget()
-                .padding(), alignment: .bottomTrailing // 右下角对齐
-        )
-        .fullScreenCover(isPresented: $showingLogin) {
-            LoginView(showingLogin: $showingLogin)
-        }
-        .onAppear {
-            // 从持久存储中读取登录状态/tab状态
-            // 可以在这里添加持久化逻辑，例如 UserDefaults
-            if !userManager.isLoggedIn {
-                if let savedPhoneNumber = UserDefaults.standard.string(forKey: "savedPhoneNumber") {
-                    //print("read UserDefaults success")
-                    userManager.loginUser(phoneNumber: savedPhoneNumber)
-                } else {
-                    print("read UserDefaults unsuccess")
-                    showingLogin = true
+            .overlay(
+                CompetitionWidget()
+                    .padding(), alignment: .bottomTrailing // 右下角对齐
+            )
+            .fullScreenCover(isPresented: $showingLogin) {
+                LoginView(showingLogin: $showingLogin)
+            }
+            .onAppear {
+                // 从持久存储中读取登录状态/tab状态
+                // 可以在这里添加持久化逻辑，例如 UserDefaults
+                if !userManager.isLoggedIn {
+                    if let savedPhoneNumber = UserDefaults.standard.string(forKey: "savedPhoneNumber") {
+                        //print("read UserDefaults success")
+                        userManager.loginUser(phoneNumber: savedPhoneNumber)
+                    } else {
+                        print("read UserDefaults unsuccess")
+                        showingLogin = true
+                    }
+                }
+                /*if isAppLaunching {
+                 // 如果是冷启动，设置为默认首页
+                 selectedTab = 0
+                 isAppLaunching = false
+                 print("冷启动")
+                 } else {
+                 // 如果是从后台恢复，读取上次选中的 tab
+                 selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
+                 print("后台恢复")
+                 }
+                 print("onAppear tab: ",selectedTab)*/
+            }
+            .onChange(of: userManager.isLoggedIn) {
+                if userManager.isLoggedIn {
+                    // 模拟将登录状态保存到持久存储
+                    // 可以在这里添加你的持久化逻辑，例如 UserDefaults
+                    print("set Key: savedPhoneNumber Value: ",userManager.user?.phoneNumber ?? "nil")
+                    UserDefaults.standard.set(userManager.user?.phoneNumber, forKey: "savedPhoneNumber")
                 }
             }
-            /*if isAppLaunching {
-             // 如果是冷启动，设置为默认首页
-             selectedTab = 0
-             isAppLaunching = false
-             print("冷启动")
-             } else {
-             // 如果是从后台恢复，读取上次选中的 tab
-             selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
-             print("后台恢复")
-             }
-             print("onAppear tab: ",selectedTab)*/
-        }
-        .onChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn {
-                // 模拟将登录状态保存到持久存储
-                // 可以在这里添加你的持久化逻辑，例如 UserDefaults
-                print("set Key: savedPhoneNumber Value: ",userManager.user?.phoneNumber ?? "nil")
-                UserDefaults.standard.set(userManager.user?.phoneNumber, forKey: "savedPhoneNumber")
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                // 应用从后台恢复时，加载之前的 Tab 状态
+                selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
+                print("后台恢复 Tab: ",selectedTab)
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            // 应用从后台恢复时，加载之前的 Tab 状态
-            selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
-            print("后台恢复 Tab: ",selectedTab)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
-            // 当应用进入后台时，保存当前选中的 Tab
-            UserDefaults.standard.set(selectedTab, forKey: "SelectedTab")
-            print("set key: SelectedTab value: ",selectedTab)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                // 当应用进入后台时，保存当前选中的 Tab
+                UserDefaults.standard.set(selectedTab, forKey: "SelectedTab")
+                print("set key: SelectedTab value: ",selectedTab)
+            }
         }
     }
 }
@@ -155,9 +150,6 @@ struct PlaceholderView: View {
             .font(.largeTitle)
             .fontWeight(.bold)
             .padding()
-            .navigationDestination(isPresented: $appState.competitionManager.navigateToCompetition) {
-                CompetitionDetailView()
-            }
     }
 }
 

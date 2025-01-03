@@ -7,12 +7,14 @@
 
 import SwiftUI
 import MapKit
+import Combine
+import SDWebImage
+import SDWebImageSwiftUI
+
 
 struct HomeView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedTab = 0
-    //@State private var selectedSport = "自行车" // 默认运动
-    //@State private var selectedSportUI = "figure.outdoor.cycle"
     @State private var showSportPicker = false
     @Namespace private var animationNamespace
 
@@ -77,9 +79,6 @@ struct HomeView: View {
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
-        .navigationDestination(isPresented: $appState.competitionManager.navigateToCompetition) {
-            CompetitionDetailView()
-        }
     }
 }
 
@@ -142,11 +141,14 @@ struct RVRCompetitionInfoView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject private var userManager = UserManager.shared
     @StateObject private var viewModel = HomeViewModel()
+    
     @State private var selectedPage = 0
     @State private var showingCitySelection = false
     @State private var scrollOffset: CGFloat = 0
     @State private var isFloatingViewVisible = false
     @State private var adHeight: CGFloat = 200.0
+    @State private var cancellable: AnyCancellable? = nil
+    
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -175,27 +177,8 @@ struct RVRCompetitionInfoView: View {
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        TabView(selection: $selectedPage) {
-                            ForEach(viewModel.ads.indices, id: \.self) { index in
-                                AsyncImage(url: URL(string: viewModel.ads[index].imageURL)) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                } placeholder: {
-                                    Image("Ads") // 使用本地图片
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                .frame(width: UIScreen.main.bounds.width, height: 200)
-                                .clipped()
-                                .tag(index)
-                            }
-                        }
-                        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-                        .frame(height: 200)
-                        .onAppear {
-                            startAutoScroll()
-                        }
+                        
+                        AdsBannerView(width: UIScreen.main.bounds.width - 20, height: adHeight, ads: viewModel.ads)
                         
                         Map(interactionModes: []) {
                             Annotation("From", coordinate: viewModel.tracks[viewModel.selectedTrackIndex].from) {
@@ -326,47 +309,13 @@ struct RVRCompetitionInfoView: View {
             viewModel.deleteLocationSubscription()
         }
     }
-    
-    func startAutoScroll() {
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
-            withAnimation {
-                selectedPage = (selectedPage + 1) % viewModel.ads.count
-                //print(isFloatingViewVisible)
-            }
-        }
-    }
 }
 
 struct SportPickerView: View {
-    //@Binding var selectedSport: String
-    //@Binding var selectedSportUI: String
-    //@Binding var isPresented: Bool
     @Binding var selectedSport: SportName
     @Environment(\.presentationMode) var presentationMode
-    
 
     var body: some View {
-        /*VStack {
-            Button("羽毛球") {
-                selectedSport = "羽毛球"
-                selectedSportUI = "figure.badminton"
-                isPresented = false
-            }
-            .padding()
-            
-            Button("自行车") {
-                selectedSport = "自行车"
-                selectedSportUI = "figure.outdoor.cycle"
-                isPresented = false
-            }
-            .padding()
-            
-            // 其他运动项目...
-        }
-        .background(Color.white)
-        .cornerRadius(10)
-        .shadow(radius: 5)
-        .padding()*/
         NavigationView {
             List(SportName.allCases) { sport in
                 Button(action: {

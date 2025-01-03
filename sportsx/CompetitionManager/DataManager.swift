@@ -10,8 +10,11 @@ import Combine
 
 
 class DataManager: ObservableObject {
-    @Published var dataWindow: [CompetitionData] = []
+    var dataWindow: [CompetitionData] = []
     private var dataLock = NSLock()
+    
+    // 使用 PassthroughSubject 发布数据变化
+    let dataWindowPublisher = PassthroughSubject<[CompetitionData], Never>()
     
     func addData(_ data: CompetitionData) {
         dataLock.lock()
@@ -21,6 +24,7 @@ class DataManager: ObservableObject {
         if dataWindow.count > 1200 { // 假设最多保留1200条数据（60秒 / 0.05秒 = 1200条）
             dataWindow.removeFirst(dataWindow.count - 1200)
         }
+        dataWindowPublisher.send(dataWindow)
         dataLock.unlock()
     }
     
