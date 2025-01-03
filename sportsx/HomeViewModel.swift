@@ -26,9 +26,11 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var currentPage = 0 // 当前排行榜分页页码
 
     var ads: [Ad] = [
-        Ad(imageURL: "https://example.com/ad1.jpg"),
-        Ad(imageURL: "https://example.com/ad2.jpg"),
-        Ad(imageURL: "https://example.com/ad3.jpg")
+        Ad(imageURL: "https://example.com/ad3.jpg"),
+        Ad(imageURL: "https://example.com/ad3.jpg"),
+        Ad(imageURL: "https://s2.loli.net/2024/12/31/ZqR3uWdXTtUELsB.jpg"),
+        Ad(imageURL: "https://s2.loli.net/2024/12/31/ZqR3uWdXTtUELsB.jpg"),
+        Ad(imageURL: "https://s2.loli.net/2024/12/31/ZqR3uWdXTtUELsB.jpg")
     ]
 
     @Published var tracks: [Track] = [
@@ -53,8 +55,8 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     func setupLocationSubscription() {
         // 订阅位置更新
         locationCancellable = LocationManager.shared.locationPublisher()
-            .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理数据发送
-            .receive(on: DispatchQueue.main) // 主线程更新UI或快速响应
+            .subscribe(on: DispatchQueue.global(qos: .background)) // 后台处理数据发送
+            .receive(on: DispatchQueue.global(qos: .background)) // 后台处理数据计算
             .sink { location in
                 self.handleLocationUpdate(location)
             }
@@ -73,15 +75,14 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     private func handleLocationUpdate(_ location: CLLocation) {
-        // 在这里处理位置更新，比如后台计算、数据存储或UI响应
-        // 已经在主线程上，将耗时操作转入后台
-        // todo
-        //DispatchQueue.global(qos: .background).async {
-            if self.shouldUseAutoLocation {
+        // 更新UI转到主线程上
+        // 比赛开始后位置更新频率变高，停止位置更新回调
+        if !CompetitionManagerData.shared.isRecording && shouldUseAutoLocation {
+            DispatchQueue.main.async {
                 self.fetchCityName(from: location)
                 self.updateTracks()
             }
-        //}
+        }
     }
         
     private func handleAuthorizationStatusChange(_ status: CLAuthorizationStatus) {

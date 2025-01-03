@@ -14,10 +14,9 @@ import CoreML
 
 
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    
+    let managerData = CompetitionManagerData.shared
     let dataManager = DataManager()
-    //let modelManager = ModelManager.shared
-    
+    let modelManager = ModelManager.shared
     
     // 导航管理
     @Published var navigateToCompetition: Bool = false // 导航至比赛详情页
@@ -48,13 +47,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var competitionData: [CompetitionData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
     
-    private let dataQueue = DispatchQueue(label: "com.sportsx.competitionDataQueue", qos: .userInitiated) // 串行队列
+    private let dataQueue = DispatchQueue(label: "com.sportsx.competitionDataQueue", qos: .userInitiated) // 串行队列，用于收集数据
+    private let dataHandleQueue = DispatchQueue(label: "com.sportsx.competitionDataHandleQueue", qos: .userInitiated) // 串行队列，用于处理数据
     private var modelRemainingSamples: [String: Int] = [:] // 记录每个模型的剩余预测条数
-    
-    
-    // 模型列表
-    //@Published var availableModels: [String] = ["PedalModel1", "PedalModel2", "PedalModel3"]
-    //@Published var selectedModels: [String] = [] // 用户选择的模型名称
     
     // Combine
     private var locationSelectedViewCancellable: AnyCancellable?
@@ -75,10 +70,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             self?.objectWillChange.send()
         }
         .store(in: &dataCancellables)
-        /*modelManager.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
-        .store(in: &dataCancellables)*/
     }
     
     
@@ -114,44 +105,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     private func setupDataBindings() {
         // 监听比赛进行时dataWindow的每次数据更新
-        dataManager.$dataWindow
-            .receive(on: dataQueue)
+        dataManager.dataWindowPublisher
+            .receive(on: dataHandleQueue)
             .sink { [weak self] _ in
                 self?.checkModelsForPrediction()
             }
             .store(in: &dataCancellables)
-        
-        // 监听模型预测结果的通知
-        /*NotificationCenter.default.publisher(for: .modelDidPredict)
-            .receive(on: dataQueue)
-            .sink { [weak self] notification in
-                guard let self = self,
-                      let userInfo = notification.userInfo,
-                      let modelName = userInfo["modelName"] as? String,
-                      let result = userInfo["result"] else { return }
-                
-                self.handleModelPrediction(modelName: modelName, result: result)
-            }
-            .store(in: &dataCancellables)*/
-        
     }
     
     // 收到通知的回调
     private func handleLocationUpdate(_ location: CLLocation) {
         // 在这里处理位置更新，比如后台计算、数据存储或UI响应
         // 已经在主线程上，将耗时操作转入后台
-        userLocation = location.coordinate
+        //userLocation = location.coordinate
         DispatchQueue.global(qos: .background).async { [self] in
             let startCoordinate_WGS = CoordinateConverter.gcj02ToWgs84(lat: startCoordinate.latitude, lon: startCoordinate.longitude)
             let endCoordinate_WGS = CoordinateConverter.gcj02ToWgs84(lat: endCoordinate.latitude, lon: endCoordinate.longitude)
-            // 检查用户是否在出发点的安全区域内
-            let distance = location.distance(from: CLLocation(latitude: startCoordinate_WGS.latitude, longitude: startCoordinate_WGS.longitude))
-            DispatchQueue.main.async {
-                self.canStartCompetition = distance <= self.safetyRadius
-            }
-            //print("是否在出发点: ",canStartCompetition,"距离: \(distance)")
-            //print("isRecording: ",isRecording)
-            
             if isRecording {
                 // 比赛进行中，检查用户是否在终点的安全区域内
                 let dis = location.distance(from: CLLocation(latitude: endCoordinate_WGS.latitude, longitude: endCoordinate_WGS.longitude))
@@ -161,6 +130,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     DispatchQueue.main.async {
                         self.stopCompetition()
                     }
+                }
+            } else {
+                // 比赛开始前，检查用户是否在出发点的安全区域内
+                let distance = location.distance(from: CLLocation(latitude: startCoordinate_WGS.latitude, longitude: startCoordinate_WGS.longitude))
+                
+                DispatchQueue.main.async {
+                    self.canStartCompetition = distance <= self.safetyRadius
                 }
             }
         }
@@ -176,7 +152,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         guard isRecording else { return }
         guard (dataManager.dataWindow.count != 0) else { return }
         print("checkModelsForPrediction ",dataManager.dataWindow.count)
-        for model in ModelManager.shared.selectedModelInfos {
+        for model in modelManager.selectedModelInfos {
             let modelName = model.modelName
             print(modelName)
             if var remaining = modelRemainingSamples[modelName] {
@@ -194,9 +170,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
     private func performPrediction(for model: AnyPredictionModel) {
         // 获取模型需要的输入数据(最近model.inputWindowInSamples条数据)
-        
         let inputData = dataManager.getLastSamples(count: model.inputWindowInSamples)
-        print("performPrediction")
+        //print("performPrediction")
         
         model.predict(inputData: inputData) { [weak self] result in
             guard let self = self else { return }
@@ -209,7 +184,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             // 处理预测结果，确保在主线程上更新
             DispatchQueue.main.async {
                 //self.modelResults[model.modelName] = result
-                self.compensationTime += model.compensationValue
+                //self.compensationTime += model.compensationValue
             }
             //self.handleModelPrediction(modelName: model.modelName, result: result)
             //NotificationCenter.default.post(name: .modelDidPredict, object: nil, userInfo: ["modelName": model.modelName, "result": result])
@@ -292,6 +267,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     func stopCompetition() {
         isRecording = false
+        managerData.isRecording = false
         modelRemainingSamples.removeAll()
         
         // Stop location updates
@@ -313,18 +289,20 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         saveCompetitionResult()
         elapsedTime = 0
         
-        ModelManager.shared.selectedModelInfos.removeAll()
-        ModelManager.shared.selectedMLModels.removeAll()
+        dataManager.dataWindow.removeAll()
+        modelManager.selectedModelInfos.removeAll()
+        modelManager.selectedMLModels.removeAll()
         MagicCardManager.shared.selectedCards.removeAll()
     }
     
     func startRecordingSession() {
         startTime = Date()
         isRecording = true
+        managerData.isRecording = true
         competitionData = []
         
         // 初始化模型剩余样本数
-        for model in ModelManager.shared.selectedModelInfos {
+        for model in modelManager.selectedModelInfos {
             modelRemainingSamples[model.modelName] = model.predictionIntervalInSamples
         }
         
@@ -416,11 +394,11 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             magZ: magneticField.z,
             audioSample: audioSample
         )
-        DispatchQueue.main.async {
-            self.dataManager.addData(dataPoint)
-        }
+        
+        self.dataManager.addData(dataPoint)
+        
         competitionData.append(dataPoint)
-        print("Data Window length: \(dataManager.dataWindow.count)")
+        //print("Data Window length: \(dataManager.dataWindow.count)")
         
         // 检查是否达到批量保存条件
         if competitionData.count >= batchSize {

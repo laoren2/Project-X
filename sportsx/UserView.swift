@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct UserView: View {
+    @EnvironmentObject var appState: AppState
     @ObservedObject private var userManager = UserManager.shared
     @Binding var showingLogin: Bool
     
