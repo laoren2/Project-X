@@ -86,9 +86,6 @@ struct NaviView: View {
                     }
                     .tag(4)
             }
-            .navigationDestination(isPresented: $appState.competitionManager.navigateToCompetition) {
-                CompetitionDetailView()
-            }
             .overlay(
                 CompetitionWidget()
                     .padding(), alignment: .bottomTrailing // 右下角对齐
@@ -137,6 +134,12 @@ struct NaviView: View {
                 // 当应用进入后台时，保存当前选中的 Tab
                 UserDefaults.standard.set(selectedTab, forKey: "SelectedTab")
                 print("set key: SelectedTab value: ",selectedTab)
+            }
+            .navigationDestination(isPresented: $appState.navigationManager.navigateToCompetition) {
+                CompetitionDetailView()
+            }
+            .navigationDestination(isPresented: $appState.navigationManager.navigateToSensorBindView) {
+                SensorBindView()
             }
         }
     }

@@ -75,7 +75,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             // 第一个订阅者出现，开始位置更新（如果权限允许）
             startUpdatingLocationIfNeeded()
         }
-        print("count: ",count)
+        //print("count: ",count)
     }
     
     private func decrementSubscribers() {
@@ -88,7 +88,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             // 没有订阅者了，停止位置更新以节省资源
             stopUpdatingLocation()
         }
-        print("count: ",count)
+        //print("count: ",count)
     }
     
     func startUpdatingLocationIfNeeded() {

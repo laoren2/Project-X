@@ -11,15 +11,21 @@ import CoreMotion
 import AVFoundation
 import Combine
 import CoreML
+import os
+
+#if DEBUG
+let SAVEPHONEDATA = false // phone数据保存到本地
+let SAVESENSORDATA = false // sensor数据保存到本地
+#endif
 
 
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     let managerData = CompetitionManagerData.shared
-    let dataManager = DataManager()
+    let dataFusionManager = DataFusionManager()
     let modelManager = ModelManager.shared
+    let deviceManager = DeviceManager.shared
     
-    // 导航管理
-    @Published var navigateToCompetition: Bool = false // 导航至比赛详情页
+    @Published var predictResultCnt: Int = 0
     
     @Published var isRecording: Bool = false // 当前比赛状态
     @Published var isShowWidget: Bool = false // 是否显示Widget
@@ -40,22 +46,24 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     private var motionManager: CMMotionManager = CMMotionManager()
     private var audioRecorder: AVAudioRecorder!
-    private var timer: DispatchSourceTimer? //定时器
     private var startTime: Date?
     
     // 仅用于保存传感器数据到本地调试
-    private var competitionData: [CompetitionData] = []
+    private var competitionData: [PhoneData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
     
-    private let dataQueue = DispatchQueue(label: "com.sportsx.competitionDataQueue", qos: .userInitiated) // 串行队列，用于收集数据
-    private let dataHandleQueue = DispatchQueue(label: "com.sportsx.competitionDataHandleQueue", qos: .userInitiated) // 串行队列，用于处理数据
+    private var timer: DispatchSourceTimer? //定时器
+    private var collectionTimer: Timer?
+
+    private let dataHandleQueue = DispatchQueue(label: "com.sportsx.competition.dataHandleQueue", qos: .userInitiated) // 串行队列，用于处理数据
+    private let timerQueue = DispatchQueue(label: "com.sportsx.competition.timerQueue", qos: .userInitiated) // 串行队列，用于处理手机端高频计时器的回调
     private var modelRemainingSamples: [String: Int] = [:] // 记录每个模型的剩余预测条数
     
     // Combine
     private var locationSelectedViewCancellable: AnyCancellable?
     private var locationDetailViewCancellable: AnyCancellable?
     private var dataCancellables = Set<AnyCancellable>()
-    //private let dataSubject = PassthroughSubject<[CompetitionData], Never>()
+
 
     override init() {
         super.init()
@@ -66,13 +74,11 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         setupDataBindings()
         
         // 嵌套的ObservableObject逐层订阅通知
-        dataManager.objectWillChange.sink { [weak self] _ in
+        dataFusionManager.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
         .store(in: &dataCancellables)
     }
-    
-    
     
     // 设置 Combine 订阅
     func setupSelectedViewLocationSubscription() {
@@ -105,10 +111,11 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     private func setupDataBindings() {
         // 监听比赛进行时dataWindow的每次数据更新
-        dataManager.dataWindowPublisher
+        dataFusionManager.predictionSubject
             .receive(on: dataHandleQueue)
-            .sink { [weak self] _ in
-                self?.checkModelsForPrediction()
+            .sink { [weak self] snapshot in
+                Logger.competition.notice_public("predict time: \(snapshot.predictTime)")
+                self?.checkModelsForPrediction(with: snapshot)
             }
             .store(in: &dataCancellables)
     }
@@ -148,47 +155,136 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 这里可以根据需要更新UI或执行其他逻辑
     }*/
     
-    private func checkModelsForPrediction() {
+    private func checkModelsForPrediction(with data: DataSnapshot) {
         guard isRecording else { return }
-        guard (dataManager.dataWindow.count != 0) else { return }
-        print("checkModelsForPrediction ",dataManager.dataWindow.count)
-        for model in modelManager.selectedModelInfos {
-            let modelName = model.modelName
-            print(modelName)
-            if var remaining = modelRemainingSamples[modelName] {
-                print(remaining)
-                remaining -= 1
-                if remaining <= 0 {
-                    // 到达预测时机
-                    performPrediction(for: model)
-                } else {
-                    modelRemainingSamples[modelName] = remaining
+
+        for i in 0..<data.predictTime {
+            //let dataPerTime =
+            for model in modelManager.selectedModelInfos {
+                let modelName = model.modelName
+                //print(modelName)
+                if var remaining = modelRemainingSamples[modelName] {
+                    //print(remaining)
+                    remaining -= 1
+                    if remaining <= 0 {
+                        // 到达预测时机
+                        let lastToEnd = data.predictTime - i - 1
+                        let total = data.phoneSlice.count - lastToEnd
+                        // 数据不足时跳过此次预测
+                        if total >= model.inputWindowInSamples {
+                            performPrediction(for: model, with: data, atLast: lastToEnd)
+                        }
+                    } else {
+                        modelRemainingSamples[modelName] = remaining
+                    }
                 }
             }
         }
     }
         
-    private func performPrediction(for model: AnyPredictionModel) {
+    private func performPrediction(for model: AnyPredictionModel, with data: DataSnapshot, atLast lastToEnd: Int) {
         // 获取模型需要的输入数据(最近model.inputWindowInSamples条数据)
-        let inputData = dataManager.getLastSamples(count: model.inputWindowInSamples)
-        //print("performPrediction")
+        let inputData = model.isPhoneData
+        ? getLastPhoneSamples(count: model.inputWindowInSamples, data: data.phoneSlice, before: lastToEnd)
+        : getLastSensorSamples(sensorLocation: model.sensorLocation, count: model.inputWindowInSamples, data: data.sensorSlice, before: lastToEnd)
         
         model.predict(inputData: inputData) { [weak self] result in
             guard let self = self else { return }
             // 根据结果调整下次预测的时机
             if model.requiresDecisionBasedInterval {
-                model.adjustPredictionInterval(basedOn: result)
+                self.modelRemainingSamples[model.modelName] = model.adjustPredictionInterval(basedOn: result)
+            } else {
+                self.modelRemainingSamples[model.modelName] = model.predictionIntervalInSamples
             }
-            // 重置该模型的剩余样本数为新的间隔
-            self.modelRemainingSamples[model.modelName] = model.predictionIntervalInSamples
             // 处理预测结果，确保在主线程上更新
-            DispatchQueue.main.async {
-                //self.modelResults[model.modelName] = result
-                //self.compensationTime += model.compensationValue
+            if let resultBool = result as? Bool, resultBool == true {
+                DispatchQueue.main.async {
+                    self.predictResultCnt += 1
+                    //self.modelResults[model.modelName] = result
+                    //self.compensationTime += model.compensationValue
+                }
             }
             //self.handleModelPrediction(modelName: model.modelName, result: result)
-            //NotificationCenter.default.post(name: .modelDidPredict, object: nil, userInfo: ["modelName": model.modelName, "result": result])
         }
+    }
+    
+    // 返回手机端原始最新待预测数据
+    func getLastPhoneSamples(count: Int, data: [PhoneData?], before: Int) -> [Float] {
+        let total = data.count - before
+        let startIndex = max(total - count, 0)
+        let recentData = Array(data[startIndex..<total])
+        let recentDataFloat = convertPhoneToFloatArray(phoneData: recentData)
+        
+        return recentDataFloat
+    }
+    
+    // 返回多设备端传感器最新待预测数据并预处理
+    func getLastSensorSamples(sensorLocation: Int, count: Int, data: [[SensorTrainingData?]], before: Int) -> [Float] {
+        var result: [SensorTrainingData?] = []
+        let deviceNum = dataFusionManager.sensorDeviceCount
+        // 依次检查 sensorLocation 的 bit0 ~ bit5
+        for i in 0..<deviceNum + 1 {
+            // (1 << i) 表示第 i 位的掩码(1,2,4,8,16)，与 sensorLocation 做与运算检查是否为 1
+            if (sensorLocation & (1 << i)) != 0 {
+                let sourceArray = data[i]
+                // 若 sourceArray 数量不足 count，则直接全部取；否则取后 count 个
+                let total = sourceArray.count - before
+                let startIndex = max(0, total - count)
+                let lastPart = sourceArray[startIndex..<total]
+                result.append(contentsOf: lastPart)
+            }
+        }
+        let resultFloat = convertSensorToFloatArray(sensorData: result)
+        
+        return resultFloat
+    }
+    
+    func convertPhoneToFloatArray(phoneData: [PhoneData?]) -> [Float] {
+        var result: [Float] = []
+        
+        for data in phoneData {
+            if let data = data {
+                // 如果数据不为 nil，则将其值转换为 Float 并加入结果数组
+                result.append(contentsOf: [
+                    Float(data.accX),
+                    Float(data.accY),
+                    Float(data.accZ),
+                    Float(data.gyroX),
+                    Float(data.gyroY),
+                    Float(data.gyroZ),
+                    Float(data.magX),
+                    Float(data.magY),
+                    Float(data.magZ)
+                ])
+            } else {
+                // 如果数据为 nil，则用 0 来占位
+                result.append(contentsOf: [0, 0, 0, 0, 0, 0, 0, 0, 0])
+            }
+        }
+        return result
+    }
+    
+    func convertSensorToFloatArray(sensorData: [SensorTrainingData?]) -> [Float] {
+        var result: [Float] = []
+        
+        for data in sensorData {
+            if let data = data {
+                // 如果数据不为 nil，则将其值转换为 Float 并加入结果数组
+                result.append(contentsOf: [
+                    Float(data.accX),
+                    Float(data.accY),
+                    Float(data.accZ),
+                    Float(data.gyroX),
+                    Float(data.gyroY),
+                    Float(data.gyroZ)
+                ])
+            } else {
+                // 如果数据为 nil，则用 0 来占位
+                result.append(contentsOf: [0, 0, 0, 0, 0, 0])
+            }
+        }
+        
+        return result
     }
     
     // Request microphone access
@@ -197,7 +293,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             if granted {
                 self?.setupAudioRecorder()
             } else {
-                print("Microphone access denied.")
+                Logger.competition.notice_public("Microphone access denied.")
             }
         })
     }
@@ -225,7 +321,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             audioRecorder.prepareToRecord()
         } catch {
-            print("Failed to setup audio recorder: \(error.localizedDescription)")
+            Logger.competition.notice_public("Failed to setup audio recorder: \(error.localizedDescription)")
         }
     }
     
@@ -236,6 +332,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
 
     func startCompetition() {
+        Logger.competition.notice_public("competition start")
         // 检查 Always Location 权限
         let status = LocationManager.shared.authorizationStatus
         if status != .authorizedAlways {
@@ -281,18 +378,33 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // Stop audio recording if applicable
         stopRecordingAudio()
         
-        // 停止定时器
-        dataQueue.async { [weak self] in
-            self?.stopTimer()
-            self?.finalizeCompetitionData()
+        // 停止手机和传感器设备的数据收集
+        self.stopTimer()
+        for (pos, dev) in deviceManager.deviceMap {
+            if let device = dev {
+                stopCollecting(device: device)
+                /*device.connect { success in
+                    if success {
+                        device.stopCollection()
+                    } else {
+                        print("Failed to connect to device at position \(pos) when stop")
+                    }
+                }*/
+            }
         }
+        
+        if SAVEPHONEDATA {
+            self.finalizeCompetitionData()
+        }
+        
         saveCompetitionResult()
         elapsedTime = 0
+        predictResultCnt = 0
         
-        dataManager.dataWindow.removeAll()
-        modelManager.selectedModelInfos.removeAll()
-        modelManager.selectedMLModels.removeAll()
-        MagicCardManager.shared.selectedCards.removeAll()
+        dataFusionManager.resetAll()
+        modelManager.resetAll()
+        MagicCardManager.shared.resetAll()
+        Logger.competition.notice_public("competition stop")
     }
     
     func startRecordingSession() {
@@ -306,8 +418,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             modelRemainingSamples[model.modelName] = model.predictionIntervalInSamples
         }
         
-        print(modelRemainingSamples)
-        
         // Start location updates
         LocationManager.shared.startCompetition()
         setupDetailViewLocationSubscription()
@@ -317,19 +427,64 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         motionManager.startGyroUpdates()
         motionManager.startMagnetometerUpdates()
         
-        // Start audio recording
-        startRecordingAudio()
+        // 开始音频录制
+        //startRecordingAudio()
         
         // 使用定时器每0.05秒记录一次数据
-        dataQueue.async { [weak self] in
-            self?.startTimer()
+        self.startTimer()
+        
+        let isNeedPhoneData = MagicCardManager.shared.sensorRequest & 0b000001 != 0
+        let sensorRequest = MagicCardManager.shared.sensorRequest >> 1
+        dataFusionManager.setPredictWindow(maxWindow: modelManager.maxInputWindow)
+        
+        // 所有设备开始收集数据
+        if isNeedPhoneData {
+            dataFusionManager.deviceNeedToWork |= 0b000001
+        }
+        for (pos, dev) in deviceManager.deviceMap {
+            if let device = dev, (sensorRequest & (1 << pos.rawValue)) != 0 {
+                dataFusionManager.deviceNeedToWork |= (1 << (pos.rawValue + 1))
+                startCollecting(device: device)
+            }
+        }
+    }
+    
+    func startCollecting(device: SensorDeviceProtocol) {
+        // 每秒检查一次连接状态
+        collectionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            // 检查是否连接成功
+            if device.connect() {
+                Logger.competition.notice_public("watch data start collecting")
+                device.startCollection()  // 开始数据收集
+                self.collectionTimer?.invalidate()  // 停止定时器
+            } else {
+                Logger.competition.notice_public("watch not connected, retrying...")
+            }
+        }
+    }
+    
+    func stopCollecting(device: SensorDeviceProtocol) {
+        // 每秒检查一次连接状态
+        collectionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            // 检查是否连接成功
+            if device.connect() {
+                Logger.competition.notice_public("watch data stop collecting")
+                device.stopCollection()  // 停止数据收集
+                self.collectionTimer?.invalidate()  // 停止定时器
+            } else {
+                Logger.competition.notice_public("watch not connected, retrying...")
+            }
         }
     }
     
     // 启动定时器
     private func startTimer() {
         // 在比赛开始时已记录下 startTime = Date()
-        let timer = DispatchSource.makeTimerSource(queue: dataQueue)
+        let timer = DispatchSource.makeTimerSource(queue: timerQueue)
         timer.schedule(deadline: .now(), repeating: 0.05) // 每0.05秒触发一次
         var counter = 0 // 用于计数，每次事件触发加1
         
@@ -353,14 +508,16 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         self.timer = timer
         timer.resume()
-        print("Competition started.")
+        Logger.competition.notice_public("phone data start collecting.")
     }
     
     // 停止定时器
     private func stopTimer() {
+        collectionTimer?.invalidate()
+        collectionTimer = nil
         timer?.cancel()
         timer = nil
-        print("Competition stopped.")
+        Logger.competition.notice_public("phone data stop collecting.")
     }
     
     // 记录运动数据
@@ -378,9 +535,12 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         let gyro = motionManager.gyroData?.rotationRate ?? CMRotationRate(x: 0, y: 0, z: 0)
         let magneticField = motionManager.magnetometerData?.magneticField ?? CMMagneticField(x: 0, y: 0, z: 0)
         let audioSample: Bool = false // 根据需要处理音频数据
+        let zone = NSTimeZone.system
+        let timeInterval = zone.secondsFromGMT()
+        let dateNow = Date().addingTimeInterval(TimeInterval(timeInterval))
         
-        let dataPoint = CompetitionData(
-            timestamp: Date(),
+        let dataPoint = PhoneData(
+            timestamp: dateNow,
             altitude: altitude,
             speed: speed,
             accX: acceleration.x,
@@ -395,25 +555,26 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             audioSample: audioSample
         )
         
-        self.dataManager.addData(dataPoint)
+        // 暂时默认都使用dataFusionManager管理phone data
+        self.dataFusionManager.addPhoneData(dataPoint)
         
-        competitionData.append(dataPoint)
-        //print("Data Window length: \(dataManager.dataWindow.count)")
-        
-        // 检查是否达到批量保存条件
-        if competitionData.count >= batchSize {
-            let batch = competitionData
-            competitionData.removeAll()
-            saveBatchAsCSV(dataBatch: batch)
+        if SAVEPHONEDATA {
+            competitionData.append(dataPoint)
+            // 检查是否达到批量保存条件
+            if competitionData.count >= batchSize {
+                let batch = competitionData
+                competitionData.removeAll()
+                saveBatchAsCSV(dataBatch: batch)
+            }
         }
     }
     
     // 保存批次数据为CSV
-    private func saveBatchAsCSV(dataBatch: [CompetitionData]) {
+    private func saveBatchAsCSV(dataBatch: [PhoneData]) {
         // 定义CSV文件路径
         let fileManager = FileManager.default
         let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileURL = documentsDirectory.appendingPathComponent("competitionData.csv")
+        let fileURL = documentsDirectory.appendingPathComponent("competitionData_phone.csv")
         
         // 如果文件不存在，创建并写入头部
         if !fileManager.fileExists(atPath: fileURL.path) {
@@ -421,7 +582,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             do {
                 try csvHeader.write(to: fileURL, atomically: true, encoding: .utf8)
             } catch {
-                print("Failed to write CSV header: \(error)")
+                Logger.competition.notice_public("Failed to write CSV header: \(error)")
                 return
             }
         }
@@ -456,9 +617,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 fileHandle.seekToEndOfFile()
                 fileHandle.write(dataToAppend)
                 fileHandle.closeFile()
-                print("Batch saved as CSV.")
+                Logger.competition.notice_public("phone batch saved as CSV.")
             } catch {
-                print("Failed to append CSV: \(error)")
+                Logger.competition.notice_public("phone failed to append CSV: \(error)")
             }
         }
     }
@@ -470,8 +631,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         let batch = competitionData
         competitionData.removeAll()
         saveBatchAsCSV(dataBatch: batch)
-        
-        print("Competition data finalized.")
+        Logger.competition.notice_public("phone data finalized.")
     }
     
     private func startRecordingAudio() {
@@ -487,12 +647,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
 }
 
-extension Notification.Name {
-    //static let navigateToCompetition = Notification.Name("navigateToCompetition")
-    //static let modelDidPredict = Notification.Name("modelDidPredict")
-}
 
-struct CompetitionData {
+// phone端完整数据格式
+struct PhoneData {
     let timestamp: Date
     let altitude: CLLocationDistance
     let speed: CLLocationSpeed
@@ -506,4 +663,116 @@ struct CompetitionData {
     let magY: Double
     let magZ: Double
     let audioSample: Bool // 简化为布尔值，表示是否有音频数据
+    
+    init() {
+        timestamp = .now
+        altitude = 0
+        speed = 0
+        accX = 0
+        accY = 0
+        accZ = 0
+        gyroX = 0
+        gyroY = 0
+        gyroZ = 0
+        magX = 0
+        magY = 0
+        magZ = 0
+        audioSample = false
+    }
+    
+    init(timestamp: Date, altitude: CLLocationDistance, speed: CLLocationSpeed, accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double, magX: Double, magY: Double, magZ: Double, audioSample: Bool) {
+        self.timestamp = timestamp
+        self.altitude = altitude
+        self.speed = speed
+        self.accX = accX
+        self.accY = accY
+        self.accZ = accZ
+        self.gyroX = gyroX
+        self.gyroY = gyroY
+        self.gyroZ = gyroZ
+        self.magX = magX
+        self.magY = magY
+        self.magZ = magZ
+        self.audioSample = audioSample
+    }
+}
+
+// todo
+struct PhoneTrainingData {}
+
+// 传感器数据格式（ watch端/phone端 ）
+struct SensorData {
+    let timestamp: Date
+    let accX: Double
+    let accY: Double
+    let accZ: Double
+    let gyroX: Double
+    let gyroY: Double
+    let gyroZ: Double
+    //let magX: Double
+    //let magY: Double
+    //let magZ: Double
+    
+    init() {
+        timestamp = .now
+        accX = 0
+        accY = 0
+        accZ = 0
+        gyroX = 0
+        gyroY = 0
+        gyroZ = 0
+        //magX = 0
+        //magY = 0
+        //magZ = 0
+    }
+    
+    init(timestamp: Date, accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double/*, magX: Double, magY: Double, magZ: Double*/) {
+        self.timestamp = timestamp
+        self.accX = accX
+        self.accY = accY
+        self.accZ = accZ
+        self.gyroX = gyroX
+        self.gyroY = gyroY
+        self.gyroZ = gyroZ
+        //self.magX = magX
+        //self.magY = magY
+        //self.magZ = magZ
+    }
+}
+
+// 用于预测的传感器数据格式
+struct SensorTrainingData {
+    let accX: Double
+    let accY: Double
+    let accZ: Double
+    let gyroX: Double
+    let gyroY: Double
+    let gyroZ: Double
+    //let magX: Double
+    //let magY: Double
+    //let magZ: Double
+    
+    init() {
+        accX = 0
+        accY = 0
+        accZ = 0
+        gyroX = 0
+        gyroY = 0
+        gyroZ = 0
+        //magX = 0
+        //magY = 0
+        //magZ = 0
+    }
+    
+    init(accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double/*, magX: Double, magY: Double, magZ: Double*/) {
+        self.accX = accX
+        self.accY = accY
+        self.accZ = accZ
+        self.gyroX = gyroX
+        self.gyroY = gyroY
+        self.gyroZ = gyroZ
+        //self.magX = magX
+        //self.magY = magY
+        //self.magZ = magZ
+    }
 }

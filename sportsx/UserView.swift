@@ -26,6 +26,10 @@ struct UserView: View {
             .frame(width: UIScreen.main.bounds.width, height: 200)
             .clipped()
             
+            Button("设备绑定") {
+                appState.navigationManager.navigateToSensorBindView = true
+            }
+            
             Text(userManager.user?.nickname ?? "Default_nickname")
                 .font(.largeTitle)
                 .fontWeight(.bold)
@@ -80,6 +84,9 @@ struct UserView: View {
     }
 }
 
-//#Preview {
-//    UserView()
-//}
+#Preview {
+    @Previewable @State var showingLogin = false
+    let appState = AppState()
+    UserView(showingLogin: $showingLogin)
+        .environmentObject(appState)
+}
