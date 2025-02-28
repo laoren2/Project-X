@@ -7,65 +7,6 @@
 
 import SwiftUI
 
-/*struct CardSelectionView: View {
-    @EnvironmentObject var appState: AppState
-    @Environment(\.presentationMode) var presentationMode
-
-    // 使用临时变量存储用户在本视图中的选择
-    @State private var tempSelectedCards: [MagicCard] = []
-
-    var body: some View {
-        NavigationView {
-            List(MagicCardManager.shared.availableCards) { card in
-                HStack {
-                    Text(card.name)
-                    Spacer()
-                    if tempSelectedCards.contains(card) {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.green)
-                    }
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    toggleSelection(for: card)
-                }
-            }
-            .navigationBarTitle("选择卡片", displayMode: .inline)
-            .navigationBarItems(
-                leading: Button("取消") {
-                    presentationMode.wrappedValue.dismiss()
-                },
-                trailing: Button("确认") {
-                    // 写入选择结果
-                    MagicCardManager.shared.SelectedCards(tempSelectedCards)
-                    // 加载对应PredictionModel
-                    ModelManager.shared.selectModels(tempSelectedCards)
-                    // 异步加载已选择的MLModel
-                    Task {
-                        await ModelManager.shared.loadSelectedModels()
-                    }
-                    presentationMode.wrappedValue.dismiss()
-                }
-                //.disabled(tempSelectedModels.isEmpty)
-            )
-            .onAppear {
-                // 进入视图时，将当前的已选模型拷贝到临时列表中
-                tempSelectedCards = MagicCardManager.shared.selectedCards
-            }
-        }
-    }
-
-    private func toggleSelection(for card: MagicCard) {
-        if let index = tempSelectedCards.firstIndex(of: card) {
-            tempSelectedCards.remove(at: index)
-        } else {
-            if tempSelectedCards.count < 3 {
-                tempSelectedCards.append(card)
-            }
-        }
-    }
-}*/
-
 struct CardSelectionView: View {
     @Binding var isPresented: Bool
     @ObservedObject var cardManager = MagicCardManager.shared

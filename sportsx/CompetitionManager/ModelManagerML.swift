@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import CryptoKit
 import CoreML
+import os
 
 class ModelManager: ObservableObject {
     static let shared = ModelManager()
@@ -16,6 +17,8 @@ class ModelManager: ObservableObject {
     var availableModelInfos: [String: AnyPredictionModel] = [:]
     var selectedModelInfos: [AnyPredictionModel] = []
     var selectedMLModels: [String: MLModel] = [:]
+    
+    var maxInputWindow: Int = 0
     
     // 仅用于调试
     @Published var isUpdating: Bool = false
@@ -266,6 +269,8 @@ class ModelManager: ObservableObject {
             inputWindowInSamples: 60,
             predictionIntervalInSamples: 1,
             requiresDecisionBasedInterval: true,
+            sensorLocation: 0b000001,
+            isPhoneData: true,
             outputType: "bool"
         )
 
@@ -278,6 +283,8 @@ class ModelManager: ObservableObject {
             inputWindowInSamples: 60,
             predictionIntervalInSamples: 1,
             requiresDecisionBasedInterval: true,
+            sensorLocation: 0b000010,
+            isPhoneData: false,
             outputType: "bool"
         )
 
@@ -290,8 +297,18 @@ class ModelManager: ObservableObject {
             inputWindowInSamples: 200,
             predictionIntervalInSamples: 200,
             requiresDecisionBasedInterval: false,
+            sensorLocation: 0b000101,
+            isPhoneData: false,
             outputType: "int"
         )
+        
+        // 调试用模型，对应上面model2配置
+        if let resourceBundle = Bundle(path: Bundle.main.bundlePath + "/resources.bundle"),
+           let modelURL = resourceBundle.url(forResource: "xpose_tcn_model", withExtension: "mlpackage") {
+            copyModelToApplicationSupportDirectory(from: modelURL)
+        } else {
+            Logger.competition.notice_public("xpose_tcn_model not found")
+        }
 
         // 将实例添加到数组中
         let serverModels = [model1, model2, model3]
@@ -323,28 +340,52 @@ class ModelManager: ObservableObject {
         }
     }
 
-
+    // 测试使用
+    func copyModelToApplicationSupportDirectory(from myURL: URL) {
+        // 获取应用的 applicationSupportDirectory
+        let fileManager = FileManager.default
+        do {
+            // 获取目标文件的 URL
+            let destinationURL = modelsDirectory.appendingPathComponent("model_002.mlpackage")
+            
+            // 检查目标文件是否已经存在，避免覆盖
+            if fileManager.fileExists(atPath: destinationURL.path) {
+                Logger.competition.notice_public("model has existed, skipping copy...")
+            } else {
+                // 将文件从自定义 bundle 复制到 Models 文件夹
+                try fileManager.copyItem(at: myURL, to: destinationURL)
+                Logger.competition.notice_public("model has copied to: \(destinationURL.path)")
+            }
+        } catch {
+            Logger.competition.notice_public("model copy error: \(error.localizedDescription)")
+        }
+    }
     
     // 加载 CoreML 模型
     func loadModel(modelID: String) -> MLModel? {
         guard let modelURL = getLocalModelURL(modelID: modelID) else {
-            print("模型未找到")
+            Logger.competition.notice_public("original model not found")
             return nil
         }
         
         do {
             let compiledURL = try MLModel.compileModel(at: modelURL)
-            let model = try MLModel(contentsOf: compiledURL)
-            return model
+            do {
+                let model = try MLModel(contentsOf: compiledURL)
+                return model
+            } catch {
+                Logger.competition.notice_public("model load error: \(error)")
+                return nil
+            }
         } catch {
-            print("加载模型失败: \(error)")
+            print("model compile error: \(error)")
             return nil
         }
     }
         
     // 获取本地模型URL
     func getLocalModelURL(modelID: String) -> URL? {
-        let modelURL = modelsDirectory.appendingPathComponent("\(modelID).mlmodel")
+        let modelURL = modelsDirectory.appendingPathComponent("\(modelID).mlpackage")
         return FileManager.default.fileExists(atPath: modelURL.path) ? modelURL : nil
     }
     
@@ -358,10 +399,12 @@ class ModelManager: ObservableObject {
         }
         
         // 将magiccard对应的Model加入SelectedModel
+        // todo: 去重
         for card in cards {
             if let model = availableModelInfos[card.modelID] {
                 model.compensationValue = card.compensationValue
                 selectedModelInfos.append(model)
+                maxInputWindow = max(maxInputWindow, model.inputWindowInSamples)
             }
             else {
                 print("model of \(card.name) card is not found!")
@@ -376,27 +419,33 @@ class ModelManager: ObservableObject {
         }
         
         for model in selectedModelInfos {
-            let mlModel = ModelManager.shared.loadModel(modelID: model.id)
+            let mlModel = loadModel(modelID: model.id)
             // 添加到 selectedMLModels
             await MainActor.run {
                 self.selectedMLModels[model.id] = mlModel
             }
         }
     }
+    
+    func resetAll() {
+        maxInputWindow = 0
+        selectedModelInfos.removeAll()
+        selectedMLModels.removeAll()
+    }
 }
 
 struct ModelInfo: Codable, Identifiable {
-    let id: String // 对应 model_id
-    let version: String
+    let id: String // 对应唯一的 model_id
+    let version: String // 当前版本号
     let downloadURL: URL
-    let checksum: String // SHA256 哈希值
-    
-    // 新增的属性
+    let checksum: String // 用于验证模型合法性的 SHA256 哈希值
     let modelName: String
-    let inputWindowInSamples: Int
-    var predictionIntervalInSamples: Int
-    var requiresDecisionBasedInterval: Bool
-    let outputType: String
+    let inputWindowInSamples: Int // 模型的输入长度，单位是一次的采集样本
+    var predictionIntervalInSamples: Int // 模型的初始预测间隔，单位是一次的采集样本
+    var requiresDecisionBasedInterval: Bool // 模型是否需要动态调整预测间隔
+    let sensorLocation: Int // 模型需要的传感器配置，当前允许5+1个传感器
+    var isPhoneData: Bool // 为true时代表输入仅为原始phone数据，同时sensorLocation必须为0b000001，为false时phone位置使用其sensor数据
+    let outputType: String // 模型的输出类型，当前支持Bool和Int
     
     enum CodingKeys: String, CodingKey {
         case id = "model_id"
@@ -407,6 +456,8 @@ struct ModelInfo: Codable, Identifiable {
         case inputWindowInSamples = "input_window_in_samples"
         case predictionIntervalInSamples = "prediction_interval_in_samples"
         case requiresDecisionBasedInterval = "requires_decision_based_interval"
+        case sensorLocation = "sensor_location"
+        case isPhoneData = "is_phone_data"
         case outputType = "output_type"
     }
 }

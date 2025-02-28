@@ -75,6 +75,7 @@ struct AdsBannerView: View {
                 }
             }
             // 拖动事件
+            // todo: 考虑拖动速度优化交互
             .gesture(
                 DragGesture()
                     .updating(self.$dragOffset, body: { value, state, transaction in

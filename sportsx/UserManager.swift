@@ -30,8 +30,8 @@ class UserManager: ObservableObject {
         user?.avatarImageURL = "https://example.com/avatar.jpg"
         
         Task {
-            await MagicCardManager.shared.fetchUserCards()
-            await ModelManager.shared.updateModels()
+            await MagicCardManager.shared.fetchUserCards() // 获取MagicCard
+            await ModelManager.shared.updateModels() // 更新本地MLModel
         }
     }
         

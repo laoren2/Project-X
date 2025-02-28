@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A90618992D6EFF1E0050B872 /* resources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = A90618982D6EFF0B0050B872 /* resources.bundle */; };
 		A911DBA32C47024D0033D809 /* sportsxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBA22C47024D0033D809 /* sportsxApp.swift */; };
 		A911DBA52C47024D0033D809 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBA42C47024D0033D809 /* HomeView.swift */; };
 		A911DBA72C47024E0033D809 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A911DBA62C47024E0033D809 /* Assets.xcassets */; };
@@ -14,9 +15,10 @@
 		A911DBB42C47024E0033D809 /* sportsxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBB32C47024E0033D809 /* sportsxTests.swift */; };
 		A911DBBE2C47024E0033D809 /* sportsxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBD2C47024E0033D809 /* sportsxUITests.swift */; };
 		A911DBC02C47024E0033D809 /* sportsxUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */; };
+		A92E6D6E2D688FC500400000 /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92E6D6D2D688FC100400000 /* OSLog.swift */; };
 		A9406EB62D1CB3A40096DE80 /* MagicCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9406EB52D1CB39A0096DE80 /* MagicCardView.swift */; };
-		A9415AED2D176A5A00AD4A85 /* MNISTClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = A9415AEC2D176A5A00AD4A85 /* MNISTClassifier.mlmodel */; };
 		A95064892D0239B600998E30 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95064882D0239AE00998E30 /* LocationManager.swift */; };
+		A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95721702D2FBCE300286592 /* NavigationManager.swift */; };
 		A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A9697C1F2D23CEC60053E4DC /* SDWebImageSwiftUI */; };
 		A984DCC92D09616C005EF835 /* CardSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCC82D09615D005EF835 /* CardSelectionView.swift */; };
 		A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */; };
@@ -29,6 +31,8 @@
 		A99D9A982C4B028D004F72BF /* NaviView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99D9A972C4B028D004F72BF /* NaviView.swift */; };
 		A9AF3A6A2C762CDC00E9DE5D /* LeaderboadEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9AF3A692C762CDC00E9DE5D /* LeaderboadEntryView.swift */; };
 		A9B219CF2D1F28F500C84B66 /* SportCenterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B219CE2D1F28EB00C84B66 /* SportCenterViewModel.swift */; };
+		A9B9A54E2D2BFDE800B357C2 /* sportsx_Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A9D812782D2F06C100185548 /* SensorBindView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D812772D2F06A900185548 /* SensorBindView.swift */; };
 		A9DAC1222C65148D006C47B1 /* UserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1212C65148D006C47B1 /* UserView.swift */; };
 		A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1232C6514C0006C47B1 /* LoginView.swift */; };
 		A9DAC1262C6514D0006C47B1 /* UserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1252C6514D0006C47B1 /* UserManager.swift */; };
@@ -49,9 +53,45 @@
 			remoteGlobalIDString = A911DB9E2C47024D0033D809;
 			remoteInfo = sportsx;
 		};
+		A9B9A53B2D2BFDE800B357C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A911DB972C47024D0033D809 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A9B9A52A2D2BFDE700B357C2;
+			remoteInfo = "sportsx_Watch Watch App";
+		};
+		A9B9A5452D2BFDE800B357C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A911DB972C47024D0033D809 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A9B9A52A2D2BFDE700B357C2;
+			remoteInfo = "sportsx_Watch Watch App";
+		};
+		A9B9A54C2D2BFDE800B357C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A911DB972C47024D0033D809 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A9B9A52A2D2BFDE700B357C2;
+			remoteInfo = "sportsx_Watch Watch App";
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A9B9A54F2D2BFDE800B357C2 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				A9B9A54E2D2BFDE800B357C2 /* sportsx_Watch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		A90618982D6EFF0B0050B872 /* resources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = resources.bundle; sourceTree = "<group>"; };
 		A911DB9F2C47024D0033D809 /* sportsx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sportsx.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A911DBA22C47024D0033D809 /* sportsxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxApp.swift; sourceTree = "<group>"; };
 		A911DBA42C47024D0033D809 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -62,10 +102,11 @@
 		A911DBB92C47024E0033D809 /* sportsxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sportsxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A911DBBD2C47024E0033D809 /* sportsxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITests.swift; sourceTree = "<group>"; };
 		A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		A92E6D6D2D688FC100400000 /* OSLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSLog.swift; sourceTree = "<group>"; };
 		A9406EB52D1CB39A0096DE80 /* MagicCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicCardView.swift; sourceTree = "<group>"; };
-		A9415AEC2D176A5A00AD4A85 /* MNISTClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = MNISTClassifier.mlmodel; sourceTree = "<group>"; };
 		A95064872D0133C400998E30 /* sportsx.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = sportsx.entitlements; sourceTree = "<group>"; };
 		A95064882D0239AE00998E30 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		A95721702D2FBCE300286592 /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
 		A984DCC82D09615D005EF835 /* CardSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardSelectionView.swift; sourceTree = "<group>"; };
 		A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionWidget.swift; sourceTree = "<group>"; };
 		A9908DF52D27B6880019C4B4 /* AdsBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdsBannerView.swift; sourceTree = "<group>"; };
@@ -78,6 +119,10 @@
 		A99D9A992C4D7768004F72BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A9AF3A692C762CDC00E9DE5D /* LeaderboadEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboadEntryView.swift; sourceTree = "<group>"; };
 		A9B219CE2D1F28EB00C84B66 /* SportCenterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportCenterViewModel.swift; sourceTree = "<group>"; };
+		A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sportsx_Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9B9A53A2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sportsx_Watch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9B9A5442D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sportsx_Watch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9D812772D2F06A900185548 /* SensorBindView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorBindView.swift; sourceTree = "<group>"; };
 		A9DAC1212C65148D006C47B1 /* UserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserView.swift; sourceTree = "<group>"; };
 		A9DAC1232C6514C0006C47B1 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		A9DAC1252C6514D0006C47B1 /* UserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManager.swift; sourceTree = "<group>"; };
@@ -85,6 +130,10 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A984DCB92D084B2E005EF835 /* CompetitionManager */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CompetitionManager; sourceTree = "<group>"; };
+		A9B9A52C2D2BFDE700B357C2 /* sportsx_Watch Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch App"; sourceTree = "<group>"; };
+		A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppTests"; sourceTree = "<group>"; };
+		A9B9A5472D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppUITests"; sourceTree = "<group>"; };
+		A9D812762D2EEF6600185548 /* SensorManager */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SensorManager; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +159,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A9B9A5282D2BFDE700B357C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5372D2BFDE800B357C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5412D2BFDE800B357C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -119,6 +189,9 @@
 				A911DBA12C47024D0033D809 /* sportsx */,
 				A911DBB22C47024E0033D809 /* sportsxTests */,
 				A911DBBC2C47024E0033D809 /* sportsxUITests */,
+				A9B9A52C2D2BFDE700B357C2 /* sportsx_Watch Watch App */,
+				A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */,
+				A9B9A5472D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */,
 				A911DBA02C47024D0033D809 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,6 +202,9 @@
 				A911DB9F2C47024D0033D809 /* sportsx.app */,
 				A911DBAF2C47024E0033D809 /* sportsxTests.xctest */,
 				A911DBB92C47024E0033D809 /* sportsxUITests.xctest */,
+				A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */,
+				A9B9A53A2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests.xctest */,
+				A9B9A5442D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,6 +212,10 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A92E6D6D2D688FC100400000 /* OSLog.swift */,
+				A95721702D2FBCE300286592 /* NavigationManager.swift */,
+				A9D812772D2F06A900185548 /* SensorBindView.swift */,
+				A9D812762D2EEF6600185548 /* SensorManager */,
 				A9908DF52D27B6880019C4B4 /* AdsBannerView.swift */,
 				A9B219CE2D1F28EB00C84B66 /* SportCenterViewModel.swift */,
 				A9406EB52D1CB39A0096DE80 /* MagicCardView.swift */,
@@ -159,7 +239,7 @@
 				A99A6ADF2C8C2AE700FAC86D /* RVRCompetitionView.swift */,
 				A99A6AE32C93A9D100FAC86D /* Tools.swift */,
 				A99A6AE52C9CB01900FAC86D /* test.swift */,
-				A9415AEC2D176A5A00AD4A85 /* MNISTClassifier.mlmodel */,
+				A90618982D6EFF0B0050B872 /* resources.bundle */,
 			);
 			path = sportsx;
 			sourceTree = "<group>";
@@ -199,13 +279,16 @@
 				A911DB9B2C47024D0033D809 /* Sources */,
 				A911DB9C2C47024D0033D809 /* Frameworks */,
 				A911DB9D2C47024D0033D809 /* Resources */,
+				A9B9A54F2D2BFDE800B357C2 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A9B9A54D2D2BFDE800B357C2 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A984DCB92D084B2E005EF835 /* CompetitionManager */,
+				A9D812762D2EEF6600185548 /* SensorManager */,
 			);
 			name = sportsx;
 			productName = sportsx;
@@ -248,6 +331,74 @@
 			productReference = A911DBB92C47024E0033D809 /* sportsxUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		A9B9A52A2D2BFDE700B357C2 /* sportsx_Watch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9B9A5562D2BFDE800B357C2 /* Build configuration list for PBXNativeTarget "sportsx_Watch Watch App" */;
+			buildPhases = (
+				A9B9A5272D2BFDE700B357C2 /* Sources */,
+				A9B9A5282D2BFDE700B357C2 /* Frameworks */,
+				A9B9A5292D2BFDE700B357C2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A9B9A52C2D2BFDE700B357C2 /* sportsx_Watch Watch App */,
+			);
+			name = "sportsx_Watch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "sportsx_Watch Watch App";
+			productReference = A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A9B9A5392D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9B9A5572D2BFDE800B357C2 /* Build configuration list for PBXNativeTarget "sportsx_Watch Watch AppTests" */;
+			buildPhases = (
+				A9B9A5362D2BFDE800B357C2 /* Sources */,
+				A9B9A5372D2BFDE800B357C2 /* Frameworks */,
+				A9B9A5382D2BFDE800B357C2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9B9A53C2D2BFDE800B357C2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */,
+			);
+			name = "sportsx_Watch Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "sportsx_Watch Watch AppTests";
+			productReference = A9B9A53A2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A9B9A5432D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9B9A5582D2BFDE800B357C2 /* Build configuration list for PBXNativeTarget "sportsx_Watch Watch AppUITests" */;
+			buildPhases = (
+				A9B9A5402D2BFDE800B357C2 /* Sources */,
+				A9B9A5412D2BFDE800B357C2 /* Frameworks */,
+				A9B9A5422D2BFDE800B357C2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9B9A5462D2BFDE800B357C2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A9B9A5472D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */,
+			);
+			name = "sportsx_Watch Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "sportsx_Watch Watch AppUITests";
+			productReference = A9B9A5442D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -255,7 +406,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1540;
+				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					A911DB9E2C47024D0033D809 = {
@@ -268,6 +419,17 @@
 					A911DBB82C47024E0033D809 = {
 						CreatedOnToolsVersion = 15.4;
 						TestTargetID = A911DB9E2C47024D0033D809;
+					};
+					A9B9A52A2D2BFDE700B357C2 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A9B9A5392D2BFDE800B357C2 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A9B9A52A2D2BFDE700B357C2;
+					};
+					A9B9A5432D2BFDE800B357C2 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A9B9A52A2D2BFDE700B357C2;
 					};
 				};
 			};
@@ -290,6 +452,9 @@
 				A911DB9E2C47024D0033D809 /* sportsx */,
 				A911DBAE2C47024E0033D809 /* sportsxTests */,
 				A911DBB82C47024E0033D809 /* sportsxUITests */,
+				A9B9A52A2D2BFDE700B357C2 /* sportsx_Watch Watch App */,
+				A9B9A5392D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */,
+				A9B9A5432D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -299,6 +464,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A90618992D6EFF1E0050B872 /* resources.bundle in Resources */,
 				A911DBAA2C47024E0033D809 /* Preview Assets.xcassets in Resources */,
 				A911DBA72C47024E0033D809 /* Assets.xcassets in Resources */,
 			);
@@ -312,6 +478,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A911DBB72C47024E0033D809 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5292D2BFDE700B357C2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5382D2BFDE800B357C2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5422D2BFDE800B357C2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -339,11 +526,13 @@
 				A99A6AE02C8C2AE700FAC86D /* RVRCompetitionView.swift in Sources */,
 				A9DAC1222C65148D006C47B1 /* UserView.swift in Sources */,
 				A99A6ADE2C89F83900FAC86D /* SportCenterView.swift in Sources */,
+				A92E6D6E2D688FC500400000 /* OSLog.swift in Sources */,
 				A9DAC1262C6514D0006C47B1 /* UserManager.swift in Sources */,
 				A9B219CF2D1F28F500C84B66 /* SportCenterViewModel.swift in Sources */,
+				A9D812782D2F06C100185548 /* SensorBindView.swift in Sources */,
 				A984DCC92D09616C005EF835 /* CardSelectionView.swift in Sources */,
 				A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */,
-				A9415AED2D176A5A00AD4A85 /* MNISTClassifier.mlmodel in Sources */,
+				A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -364,6 +553,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A9B9A5272D2BFDE700B357C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5362D2BFDE800B357C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9B9A5402D2BFDE800B357C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -376,6 +586,21 @@
 			isa = PBXTargetDependency;
 			target = A911DB9E2C47024D0033D809 /* sportsx */;
 			targetProxy = A911DBBA2C47024E0033D809 /* PBXContainerItemProxy */;
+		};
+		A9B9A53C2D2BFDE800B357C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A9B9A52A2D2BFDE700B357C2 /* sportsx_Watch Watch App */;
+			targetProxy = A9B9A53B2D2BFDE800B357C2 /* PBXContainerItemProxy */;
+		};
+		A9B9A5462D2BFDE800B357C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A9B9A52A2D2BFDE700B357C2 /* sportsx_Watch Watch App */;
+			targetProxy = A9B9A5452D2BFDE800B357C2 /* PBXContainerItemProxy */;
+		};
+		A9B9A54D2D2BFDE800B357C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A9B9A52A2D2BFDE700B357C2 /* sportsx_Watch Watch App */;
+			targetProxy = A9B9A54C2D2BFDE800B357C2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -641,6 +866,148 @@
 			};
 			name = Release;
 		};
+		A9B9A5502D2BFDE800B357C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = A6GB95MUY4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = sportsx_Watch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your workout related data will be used to display your saved workouts in sportsX.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Workouts tracked by sportsX on Apple Watch will be saved to HealthKit.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = renjie.sportsx;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = renjie.sportsx.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		A9B9A5512D2BFDE800B357C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
+				DEVELOPMENT_TEAM = A6GB95MUY4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = sportsx_Watch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your workout related data will be used to display your saved workouts in sportsX.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Workouts tracked by sportsX on Apple Watch will be saved to HealthKit.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = renjie.sportsx;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = renjie.sportsx.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
+		A9B9A5522D2BFDE800B357C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "renjie.sportsx-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/sportsx_Watch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/sportsx_Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		A9B9A5532D2BFDE800B357C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "renjie.sportsx-Watch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/sportsx_Watch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/sportsx_Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
+		A9B9A5542D2BFDE800B357C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "renjie.sportsx-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "sportsx_Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		A9B9A5552D2BFDE800B357C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "renjie.sportsx-Watch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "sportsx_Watch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -676,6 +1043,33 @@
 			buildConfigurations = (
 				A911DBCA2C47024E0033D809 /* Debug */,
 				A911DBCB2C47024E0033D809 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9B9A5562D2BFDE800B357C2 /* Build configuration list for PBXNativeTarget "sportsx_Watch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9B9A5502D2BFDE800B357C2 /* Debug */,
+				A9B9A5512D2BFDE800B357C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9B9A5572D2BFDE800B357C2 /* Build configuration list for PBXNativeTarget "sportsx_Watch Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9B9A5522D2BFDE800B357C2 /* Debug */,
+				A9B9A5532D2BFDE800B357C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9B9A5582D2BFDE800B357C2 /* Build configuration list for PBXNativeTarget "sportsx_Watch Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9B9A5542D2BFDE800B357C2 /* Debug */,
+				A9B9A5552D2BFDE800B357C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

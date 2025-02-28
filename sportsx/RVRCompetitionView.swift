@@ -112,7 +112,7 @@ struct RVRCompetitionView: View {
                     .foregroundColor(Color.gray)
             }
             
-            Button(action: {appState.competitionManager.navigateToCompetition = true}) {
+            Button(action: {appState.navigationManager.navigateToCompetition = true}) {
                 Text("我准备好了")
                     .frame(minWidth: 150)
                     .padding()
@@ -165,7 +165,7 @@ struct RVRCompetitionView: View {
             }
         }
         .onAppear() {
-            print("CompetitionView onAppear")
+            //print("CompetitionView onAppear")
             LocationManager.shared.saveCompetionSelectViewToLast()
             if !appState.competitionManager.isRecording {
                 LocationManager.shared.enterCompetionSelectView()
@@ -173,7 +173,7 @@ struct RVRCompetitionView: View {
             appState.competitionManager.setupSelectedViewLocationSubscription()
         }
         .onDisappear() {
-            print("CompetitionView onDisappear")
+            //print("CompetitionView onDisappear")
             appState.competitionManager.deleteSelectedViewLocationSubscription()
         }
     }
@@ -204,6 +204,9 @@ struct CompetitionDetailView: View {
             // todo 添加时间显示
             Text("已进行时间: \(TimeDisplay.formattedTime(appState.competitionManager.elapsedTime))")
                 .font(.subheadline)
+            Spacer()
+            Text("Xpose: \(appState.competitionManager.predictResultCnt)")
+                .font(.headline)
             Spacer()
             ZStack {
                 Button(action: {
