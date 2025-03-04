@@ -1,2 +1,3 @@
 # Project-X
-Application for national sports racing.
+Application sportsx is a comprehensive sports platform.
+We are committed to creating a sports career for every sports enthusiast.
