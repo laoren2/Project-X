@@ -143,7 +143,7 @@ class ModelManager: ObservableObject {
         }
         
         // 保存模型文件到 Models 目录
-        let destinationURL = modelsDirectory.appendingPathComponent("\(model.id).mlmodel")
+        let destinationURL = modelsDirectory.appendingPathComponent("\(model.id).mlpackage")
         try FileManager.default.removeItem(at: destinationURL) // 如果存在则删除
         try FileManager.default.moveItem(at: tempURL, to: destinationURL)
         
@@ -333,8 +333,12 @@ class ModelManager: ObservableObject {
 
     // 处理单个模型的下载和验证
     private func processModel(model: ModelInfo) async throws {
-        let localMetadata = self.localModelMetadata[model.id]
-        if localMetadata?.version != model.version {
+        if let localMetadata = self.localModelMetadata[model.id] {
+            if localMetadata.version != model.version {
+                try await self.downloadAndValidate(model: model)
+                self.localModelMetadata[model.id] = ModelMetadata(version: model.version, checksum: model.checksum)
+            }
+        } else {
             try await self.downloadAndValidate(model: model)
             self.localModelMetadata[model.id] = ModelMetadata(version: model.version, checksum: model.checksum)
         }
