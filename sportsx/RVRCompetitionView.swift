@@ -8,6 +8,17 @@
 import SwiftUI
 import MapKit
 
+// 包装器：将 CLLocationCoordinate2D 转成 Equatable
+struct CoordinateWrapper: Equatable {
+    let coordinate: CLLocationCoordinate2D
+    
+    // 手动实现 Equatable
+    static func == (lhs: CoordinateWrapper, rhs: CoordinateWrapper) -> Bool {
+        lhs.coordinate.latitude == rhs.coordinate.latitude &&
+        lhs.coordinate.longitude == rhs.coordinate.longitude
+    }
+}
+
 struct RVRCompetitionView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: RVRCompetitionViewModel
@@ -18,12 +29,13 @@ struct RVRCompetitionView: View {
     @State private var endLongitude: String = ""
     @State private var showCardSelection = false
     
+    @State private var cameraPosition: MapCameraPosition = .automatic
     
     
     var body: some View {
         VStack {
             // 地图视图显示赛道的出发点和终点
-            Map() {
+            Map(position: $cameraPosition) {
                 Annotation("Start", coordinate: appState.competitionManager.startCoordinate) {
                     Image(systemName: "flag.fill")
                         .foregroundColor(.green)
@@ -49,6 +61,15 @@ struct RVRCompetitionView: View {
                 //.annotationTitles(.automatic)
                 
             }
+            .onChange(of: CoordinateWrapper(coordinate: appState.competitionManager.startCoordinate)) {
+                updateCameraPosition()
+            }
+            .onChange(of: CoordinateWrapper(coordinate: appState.competitionManager.endCoordinate)) {
+                updateCameraPosition()
+            }
+            .onAppear {
+                updateCameraPosition()
+            }
             .mapControls {
                 MapUserLocationButton()
                 MapCompass()
@@ -63,18 +84,18 @@ struct RVRCompetitionView: View {
                     .font(.headline)
                 HStack {
                     TextField("纬度", text: $startLatitude)
-                        .keyboardType(.decimalPad)
+                        //.keyboardType(.decimalPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .toolbar {
+                        /*.toolbar {
                             ToolbarItemGroup(placement: .keyboard) {
                                 Spacer()
                                 Button("完成") {
                                     hideKeyboard()
                                 }
                             }
-                        }
+                        }*/
                     TextField("经度", text: $startLongitude)
-                        .keyboardType(.decimalPad)
+                        //.keyboardType(.decimalPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 .padding(.horizontal)
@@ -85,10 +106,10 @@ struct RVRCompetitionView: View {
                     .font(.headline)
                 HStack {
                     TextField("纬度", text: $endLatitude)
-                        .keyboardType(.decimalPad)
+                        //.keyboardType(.decimalPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     TextField("经度", text: $endLongitude)
-                        .keyboardType(.decimalPad)
+                        //.keyboardType(.decimalPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 .padding(.horizontal)
@@ -186,7 +207,27 @@ struct RVRCompetitionView: View {
            let endLon = Double(endLongitude) {
             appState.competitionManager.startCoordinate = CLLocationCoordinate2D(latitude: startLat, longitude: startLon)
             appState.competitionManager.endCoordinate = CLLocationCoordinate2D(latitude: endLat, longitude: endLon)
+            updateCameraPosition()
         }
+    }
+    
+    private func updateCameraPosition() {
+        let start = MKMapPoint(appState.competitionManager.startCoordinate)
+        let end = MKMapPoint(appState.competitionManager.endCoordinate)
+        
+        // 创建一个矩形区域，包含起点和终点
+        let mapRect = MKMapRect(
+            x: min(start.x, end.x),
+            y: min(start.y, end.y),
+            width: abs(start.x - end.x),
+            height: abs(start.y - end.y)
+        )
+        
+        // 在矩形区域基础上增加一些边距
+        let paddedRect = mapRect.insetBy(dx: -mapRect.width * 0.2, dy: -mapRect.height * 0.2)
+        
+        // 更新地图相机位置
+        cameraPosition = .rect(paddedRect)
     }
     
     func hideKeyboard() {
