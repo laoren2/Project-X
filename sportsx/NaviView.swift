@@ -88,7 +88,9 @@ struct NaviView: View {
             }
             .overlay(
                 CompetitionWidget()
-                    .padding(), alignment: .bottomTrailing // 右下角对齐
+                    .padding()
+                    .offset(y: -50),
+                alignment: .bottomTrailing // 右下角对齐
             )
             .fullScreenCover(isPresented: $showingLogin) {
                 LoginView(showingLogin: $showingLogin)

@@ -80,7 +80,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         if !CompetitionManagerData.shared.isRecording && shouldUseAutoLocation {
             DispatchQueue.main.async {
                 self.fetchCityName(from: location)
-                self.updateTracks()
+                //self.updateTracks()
             }
         }
     }
@@ -143,6 +143,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             guard let self = self else { return }
             if let placemark = placemarks?.first, let city = placemark.locality, !city.isEmpty {
                 self.cityName = city
+                self.updateTracks()
             }
         }
     }
@@ -171,8 +172,8 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         for i in tracks.indices {
             tracks[i].city = cityName
             if cityName == "北京市" {
-                tracks[i].from = CLLocationCoordinate2D(latitude: 100, longitude: 160)
-                tracks[i].to = CLLocationCoordinate2D(latitude: 101, longitude: 150)
+                tracks[i].from = CLLocationCoordinate2D(latitude: 39.9 + Double(i)/10, longitude: 116.5 + Double(i)/10)
+                tracks[i].to = CLLocationCoordinate2D(latitude: 40 + Double(i)/10, longitude: 116.2 + Double(i)/10)
             } else if cityName == "上海市" {
                 tracks[i].from = CLLocationCoordinate2D(latitude: 45, longitude: 78)
                 tracks[i].to = CLLocationCoordinate2D(latitude: 46, longitude: 79)
