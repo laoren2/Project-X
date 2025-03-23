@@ -10,8 +10,8 @@ import Combine
 
 class AppState: ObservableObject {
     @Published var sport: SportName = .Bike // 默认运动
-    @Published var competitionManager = CompetitionManager() // 管理比赛进程
-    @Published var navigationManager = NavigationManager() // 管理一级导航
+    @Published var competitionManager = CompetitionManager.shared // 管理比赛进程
+    @Published var navigationManager = NavigationManager.shared // 管理一级导航
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -34,18 +34,21 @@ class AppStateTest: ObservableObject {
     @Published var showWidget: Bool = false
 }
 
+
+
 @main
 struct sportsxApp: App {
     @StateObject var appState = AppState()
     //@StateObject var appStateTest = AppStateTest()
-
+    //@StateObject private var navigationManager = NManager()
+    //@StateObject var nm = NManager()
     
     var body: some Scene {
         WindowGroup {
             NaviView()
                 .environmentObject(appState)
             //test()
-            //    .environmentObject(appStateTest)
+            //    .environmentObject(nm)
             //CompetitionView()
         }
     }

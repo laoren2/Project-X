@@ -27,7 +27,7 @@ struct UserView: View {
             .clipped()
             
             Button("设备绑定") {
-                appState.navigationManager.navigateToSensorBindView = true
+                appState.navigationManager.path.append("sensorBindView")
             }
             
             Text(userManager.user?.nickname ?? "Default_nickname")

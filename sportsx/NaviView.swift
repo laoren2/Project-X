@@ -15,13 +15,13 @@ enum SportCategory: String {
 enum SportName: String, Identifiable, CaseIterable {
     case Bike = "自行车"
     case Badminton = "羽毛球"
-    case Running = "跑步"
+    case Default,Running = "跑步"
     
     var id: String { self.rawValue }
     
     var category: SportCategory {
         switch self {
-        case .Bike, .Running:
+        case .Default, .Bike, .Running:
             return .RVR
         case .Badminton:
             return .PVP
@@ -34,22 +34,43 @@ enum SportName: String, Identifiable, CaseIterable {
             return "figure.outdoor.cycle"
         case .Badminton:
             return "figure.badminton"
-        case .Running:
+        case .Default, .Running:
             return "figure.run"
+        }
+    }
+    
+    // 标记支持的运动
+    var isSupported: Bool {
+        switch self {
+        case .Bike, .Running:
+            return true
+        default:
+            return false
         }
     }
 }
 
 struct NaviView: View {
+    var body: some View {
+        RealNaviView()
+            .overlay(
+                CompetitionWidget()
+                    .padding()
+                    .offset(y: -50),
+                alignment: .bottomTrailing // 右下角对齐
+            )
+    }
+}
+
+struct RealNaviView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject private var userManager = UserManager.shared
     @State private var selectedTab = 0
     @State private var showingLogin = false
     @State private var isAppLaunching = true // 用于区分冷启动和后台恢复
-
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $appState.navigationManager.path) {
             TabView(selection: $selectedTab) {
                 HomeView()
                     .tabItem {
@@ -58,7 +79,7 @@ struct NaviView: View {
                     }
                     .tag(0)
                 
-                PlaceholderView(title: "消息")
+                MessageView(title: "消息")
                     .tabItem {
                         Image(systemName: "message")
                         Text("消息")
@@ -72,7 +93,7 @@ struct NaviView: View {
                     }
                     .tag(2)
                 
-                PlaceholderView(title: "钱包")
+                ShopView(title: "商店")
                     .tabItem {
                         Image(systemName: "storefront")
                         Text("商店")
@@ -86,12 +107,6 @@ struct NaviView: View {
                     }
                     .tag(4)
             }
-            .overlay(
-                CompetitionWidget()
-                    .padding()
-                    .offset(y: -50),
-                alignment: .bottomTrailing // 右下角对齐
-            )
             .fullScreenCover(isPresented: $showingLogin) {
                 LoginView(showingLogin: $showingLogin)
             }
@@ -127,6 +142,12 @@ struct NaviView: View {
                     UserDefaults.standard.set(userManager.user?.phoneNumber, forKey: "savedPhoneNumber")
                 }
             }
+            .onChange(of: appState.competitionManager.isRecording) {
+                if !appState.competitionManager.isRecording {
+                    // 跳转比赛结果清算页面
+                    appState.navigationManager.path.append("competitionResultView")
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 // 应用从后台恢复时，加载之前的 Tab 状态
                 selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
@@ -137,17 +158,42 @@ struct NaviView: View {
                 UserDefaults.standard.set(selectedTab, forKey: "SelectedTab")
                 print("set key: SelectedTab value: ",selectedTab)
             }
-            .navigationDestination(isPresented: $appState.navigationManager.navigateToCompetition) {
-                CompetitionDetailView()
-            }
-            .navigationDestination(isPresented: $appState.navigationManager.navigateToSensorBindView) {
-                SensorBindView()
+            .navigationDestination(for: String.self) { value in
+                if value == "competitionResultView" {
+                    CompetitionResultView()
+                } else if value == "competitionCardSelectView" {
+                    CompetitionCardSelectView()
+                } else if value == "competitionRealtimeView" {
+                    CompetitionRealtimeView()
+                } else if value == "sensorBindView" {
+                    SensorBindView()
+                } else if value == "skillView" {
+                    SportSkillView()
+                } else if value == "activityView" {
+                    ActivityView()
+                } else if value == "competitionManagementView" {
+                    CompetitionManagementView()
+                }
             }
         }
     }
 }
 
-struct PlaceholderView: View {
+struct MessageView: View {
+    @EnvironmentObject var appState: AppState
+    let title: String
+    
+    var body: some View {
+        VStack{
+            Text(title)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding()
+        }
+    }
+}
+
+struct ShopView: View {
     @EnvironmentObject var appState: AppState
     let title: String
     var body: some View {
@@ -161,7 +207,6 @@ struct PlaceholderView: View {
 
 #Preview{
     let appState = AppState()
-    //appState.competitionManager.isShowWidget = true
     return NaviView()
         .environmentObject(appState)
 }

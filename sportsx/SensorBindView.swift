@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SensorBindView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject var deviceManager = DeviceManager.shared
+    @ObservedObject var deviceManager = DeviceManager.shared
     
     var body: some View {
         VStack(spacing: 20) {
@@ -65,5 +65,7 @@ struct SensorBindView: View {
 }
 
 #Preview {
-    SensorBindView()
+    let appState = AppState()
+    return SensorBindView()
+        .environmentObject(appState)
 }
