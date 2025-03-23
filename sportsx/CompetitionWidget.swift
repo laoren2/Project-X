@@ -14,7 +14,7 @@ struct CompetitionWidget: View {
     //private var cancellables = Set<AnyCancellable>()
     
     var body: some View {
-        if appState.competitionManager.isRecording && appState.competitionManager.isShowWidget {
+        if appState.competitionManager.isShowWidget {
             VStack(alignment: .leading) {
                 Text("比赛进行中")
                     .font(.headline)
@@ -26,7 +26,7 @@ struct CompetitionWidget: View {
             .cornerRadius(10)
             .shadow(radius: 8)
             .onTapGesture {
-                appState.navigationManager.navigateToCompetition = true // 触发导航
+                appState.navigationManager.path.append("competitionRealtimeView") // 触发导航
             }
             //.padding(.bottom, 100) // 调整与屏幕边缘的距离
             //.padding(.trailing, -200)
@@ -63,7 +63,6 @@ struct CompetitionWidget: View {
 #Preview{
     @Previewable @State var test: Bool = false
     let appState = AppState()
-    //appState.competitionManager.isShowWidget = true
     CompetitionWidget()
         .environmentObject(appState)
 }

@@ -9,10 +9,11 @@ import SwiftUI
 
 struct SportCenterView: View {
     @EnvironmentObject var appState: AppState
-    @State private var selectedSport: SportName = .Bike // 默认运动
+    @StateObject var viewModel = SportCenterViewModel()
+    @ObservedObject var currencyManager = CurrencyManager.shared
+    
     @State private var showSportPicker = false
     @State private var selectedMode = 1
-    
     
     var body: some View {
         VStack(spacing: 0) {
@@ -20,9 +21,9 @@ struct SportCenterView: View {
                 HStack {
                     // 运动选择模块
                     HStack {
-                        Image(systemName: selectedSport.iconName)
+                        Image(systemName: viewModel.selectedSport.iconName)
                             .font(.title2)
-                        Text(selectedSport.rawValue)
+                        Text(viewModel.selectedSport.rawValue)
                             .font(.headline)
                             .foregroundColor(.primary)
                         
@@ -36,11 +37,12 @@ struct SportCenterView: View {
                                 .font(.headline)
                         }
                         .sheet(isPresented: $showSportPicker) {
-                            SportPickerView(selectedSport: $selectedSport)
+                            SportPickerView(selectedSport: $viewModel.selectedSport)
                         }
-                        Spacer()
                     }
                     .padding(.leading, 10)
+                    
+                    Spacer()
                     
                     // 模式切换开关
                     Picker("", selection: $selectedMode) {
@@ -53,40 +55,69 @@ struct SportCenterView: View {
                 }
                 // 居中图案
                 HStack {
-                    Image(systemName: selectedMode == 1 ? "flag.checkered.2.crossed" : "flag.2.crossed")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                        .foregroundColor((selectedMode == 1) ? .red : .green)
-                        .animation(.easeInOut, value: selectedMode) // 切换时的动画
+                    if selectedMode == 1 {
+                        Text("X1赛季")
+                            .font(.headline)
+                            .foregroundStyle(.red.opacity(0.8))
+                    } else {
+                        Image(systemName: "flag.2.crossed")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .foregroundColor(.green)
+                    }
                 }
             }
             
-            Spacer()
-
-            if selectedSport.category == .PVP {
-                if selectedMode == 0 {
-                    PVPTrainingView(viewModel: PVPTrainingViewModel(sport: selectedSport))
-                } else {
-                    PVPCompetitionView(viewModel: PVPCompetitionViewModel(sport: selectedSport))
-                }
-            } else if selectedSport.category == .RVR {
-                if selectedMode == 0 {
-                    RVRTrainingView(viewModel: RVRTrainingViewModel(sport: selectedSport))
-                } else {
-                    RVRCompetitionView(viewModel: RVRCompetitionViewModel(sport: selectedSport))
-                }
+            HStack() {
+                Image(systemName: "location.fill")
+                    .padding(.leading, 20)
+                Text(viewModel.cityName)
+                Spacer()
+                Text("X点券:\(currencyManager.coinA)")
+                Text("X币:\(currencyManager.coinB)")
+                    .padding(.trailing, 20)
             }
             
-            Spacer()
+            if viewModel.selectedSport.category == .PVP {
+                if selectedMode == 0 {
+                    PVPTrainingView(viewModel: PVPTrainingViewModel())
+                } else {
+                    PVPCompetitionView(viewModel: PVPCompetitionViewModel())
+                }
+            } else if viewModel.selectedSport.category == .RVR {
+                if selectedMode == 0 {
+                    RVRTrainingView(viewModel: RVRTrainingViewModel())
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        RVRCompetitionView(viewModel: RVRCompetitionViewModel(), centerViewModel: viewModel)
+                    }
+                }
+            }
+            //Spacer()
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
+        .onAppear() {
+            LocationManager.shared.saveHomeViewToLast()
+            if !appState.competitionManager.isRecording {
+                LocationManager.shared.enterHomeView()
+            }
+            viewModel.setupLocationSubscription()
+            
+            // 防止首次从首页切到运动中心时定位信息无法及时更新
+            if let location = LocationManager.shared.getLocation() {
+                viewModel.fetchCityName(from: location)
+            }
+        }
+        .onDisappear() {
+            viewModel.deleteLocationSubscription()
+        }
     }
 }
 
 // 训练 View
 struct PVPTrainingView: View {
-    @ObservedObject var viewModel: PVPTrainingViewModel
+    @StateObject var viewModel: PVPTrainingViewModel
     
     var body: some View {
         VStack {
@@ -99,20 +130,22 @@ struct PVPTrainingView: View {
 }
 
 struct RVRTrainingView: View {
-    @ObservedObject var viewModel: RVRTrainingViewModel
+    @StateObject var viewModel: RVRTrainingViewModel
     
     var body: some View {
         VStack {
+            Spacer()
             Text("RVR训练页面")
                 .font(.largeTitle)
                 .fontWeight(.bold)
             // 添加更多的训练页面内容
+            Spacer()
         }
     }
 }
 
 struct PVPCompetitionView: View {
-    @ObservedObject var viewModel: PVPCompetitionViewModel
+    @StateObject var viewModel: PVPCompetitionViewModel
     
     var body: some View {
         VStack {
@@ -125,5 +158,7 @@ struct PVPCompetitionView: View {
 }
 
 #Preview {
-    SportCenterView()
+    let appState = AppState()
+    return SportCenterView()
+        .environmentObject(appState)
 }

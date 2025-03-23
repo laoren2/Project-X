@@ -20,10 +20,17 @@ let SAVESENSORDATA = false // sensor数据保存到本地
 
 
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    let managerData = CompetitionManagerData.shared
+    static let shared = CompetitionManager()
+    
     let dataFusionManager = DataFusionManager()
     let modelManager = ModelManager.shared
     let deviceManager = DeviceManager.shared
+    
+    var currentCompetitionRecord: CompetitionRecord = CompetitionRecord()
+    var competitionRecords: [CompetitionRecord] = [] // 仅本地调试用
+    
+    @Published var selectedCards: [MagicCard] = []
+    var sensorRequest: Int = 0
     
     @Published var predictResultCnt: Int = 0
     
@@ -65,7 +72,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var dataCancellables = Set<AnyCancellable>()
 
 
-    override init() {
+    private override init() {
         super.init()
         motionManager.accelerometerUpdateInterval = 0.05
         motionManager.gyroUpdateInterval = 0.05
@@ -98,8 +105,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     func setupDetailViewLocationSubscription() {
         // 订阅位置更新
         locationDetailViewCancellable = LocationManager.shared.locationPublisher()
-            .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理数据发送
-            .receive(on: DispatchQueue.main) // 主线程更新UI或快速响应
+            .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理订阅成功后的逻辑
+            .receive(on: DispatchQueue.main) // 在主线程响应位置更新
             .sink { location in
                 self.handleLocationUpdate(location)
             }
@@ -364,7 +371,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     func stopCompetition() {
         isRecording = false
-        managerData.isRecording = false
+
+        // 将比赛记录状态从未开始改为已完成
+        currentCompetitionRecord.status = .completed
+        currentCompetitionRecord.duration = elapsedTime
+        if let start = currentCompetitionRecord.startDate {
+            currentCompetitionRecord.completionDate = start + elapsedTime
+        }
+        addCompetitionRecord()
+        
         modelRemainingSamples.removeAll()
         
         // Stop location updates
@@ -403,15 +418,19 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         dataFusionManager.resetAll()
         modelManager.resetAll()
-        MagicCardManager.shared.resetAll()
         Logger.competition.notice_public("competition stop")
     }
     
     func startRecordingSession() {
         startTime = Date()
         isRecording = true
-        managerData.isRecording = true
         competitionData = []
+        
+        // 比赛一旦开始，未开始的报名状态失效，无法再取消报名
+        if currentCompetitionRecord.status != .empty {
+            deleteCompetitionRecord(id: currentCompetitionRecord.id, status: currentCompetitionRecord.status)
+            currentCompetitionRecord.startDate = startTime
+        }
         
         // 初始化模型剩余样本数
         for model in modelManager.selectedModelInfos {
@@ -421,6 +440,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // Start location updates
         LocationManager.shared.startCompetition()
         setupDetailViewLocationSubscription()
+        deleteSelectedViewLocationSubscription()
 
         // Start accelerometer/gyro/magnet updates
         motionManager.startAccelerometerUpdates()
@@ -433,8 +453,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 使用定时器每0.05秒记录一次数据
         self.startTimer()
         
-        let isNeedPhoneData = MagicCardManager.shared.sensorRequest & 0b000001 != 0
-        let sensorRequest = MagicCardManager.shared.sensorRequest >> 1
+        let isNeedPhoneData = sensorRequest & 0b000001 != 0
+        let sensorRequest = sensorRequest >> 1
         dataFusionManager.setPredictWindow(maxWindow: modelManager.maxInputWindow)
         
         // 所有设备开始收集数据
@@ -644,6 +664,46 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
 
     private func saveCompetitionResult() {
         // Process and store the competition data, potentially send to server
+    }
+    
+    // 添加新的比赛记录(比赛未开始或比赛完成即退出比赛链路)
+    func addCompetitionRecord() {
+        let exists = competitionRecords.contains { $0.id == currentCompetitionRecord.id && $0.status == currentCompetitionRecord.status }
+        if !exists {
+            competitionRecords.append(currentCompetitionRecord)
+        }
+        currentCompetitionRecord.status = .empty
+        resetCompetitionProperties()
+    }
+    
+    // 删除已存在的比赛记录
+    func deleteCompetitionRecord(id: UUID, status: CompetitionStatus) {
+        competitionRecords.removeAll { $0.id == id && $0.status == status }
+    }
+    
+    // 重置currentCompetitionRecord
+    func resetCompetitionRecord(record: CompetitionRecord) {
+        currentCompetitionRecord = record
+        startCoordinate = record.trackStart
+        endCoordinate = record.trackEnd
+    }
+    
+    func SelectedCards(_ cards: [MagicCard]) {
+        guard cards.count <= 3 else {
+            print("最多选择3个卡片")
+            return
+        }
+        for card in cards {
+            sensorRequest |= card.sensorLocation
+        }
+        self.selectedCards = cards
+    }
+    
+    func resetCompetitionProperties() {
+        selectedCards.removeAll()
+        sensorRequest = 0
+        startCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+        endCoordinate = CLLocationCoordinate2D(latitude: 1, longitude: 1)
     }
 }
 

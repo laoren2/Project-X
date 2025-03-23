@@ -75,6 +75,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             // 第一个订阅者出现，开始位置更新（如果权限允许）
             startUpdatingLocationIfNeeded()
         }
+        //print("incrementSubscribers - Thread: \(Thread.current)")
         //print("count: ",count)
     }
     
@@ -88,6 +89,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             // 没有订阅者了，停止位置更新以节省资源
             stopUpdatingLocation()
         }
+        //print("decrementSubscribers - Thread: \(Thread.current)")
         //print("count: ",count)
     }
     

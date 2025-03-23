@@ -94,7 +94,7 @@ class testVM: ObservableObject{
     }
 }
 
-struct test: View {
+struct test_old: View {
     @State var viewModel: testVM = testVM()
     @State private var predictionResult: String = "等待预测..."
 
@@ -150,6 +150,15 @@ struct test: View {
     }
 }
 
+
+
+
+
+
+
+
 #Preview {
-    test()
+    //let nm = NManager()
+    //test()
+    //    .environmentObject(nm)
 }

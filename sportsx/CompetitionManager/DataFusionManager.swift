@@ -93,7 +93,7 @@ class DataFusionManager: ObservableObject {
             // 更新稀疏度
             let nonNilCount = self.sensorPhoneWindow.filter { $0 != nil }.count
             let lastNonNilIndex = self.lastNonNilIndex(in: self.sensorPhoneWindow)
-            print("phone nonNilCnt: ", nonNilCount, "lastNonNilIndex: ", lastNonNilIndex)
+            //print("phone nonNilCnt: ", nonNilCount, "lastNonNilIndex: ", lastNonNilIndex)
             self.sparsity[0] = nonNilCount == 0 ? 0 : Float(nonNilCount) / Float(lastNonNilIndex + 1)
             
             let windowLen = self.getPredictWindowLen()

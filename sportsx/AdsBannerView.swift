@@ -131,7 +131,7 @@ struct AdsBannerView: View {
     
     // 开始自动滚动
     func startAutoScroll() {
-        print("startAutoScroll")
+        //print("startAutoScroll")
         guard ads.count > 0 else { return }
 
         // 如果 Timer 已经存在，则不再创建新的 Timer
@@ -158,7 +158,7 @@ struct AdsBannerView: View {
     
     // 停止自动滚动
     func stopAutoScroll() {
-        print("stopAutoScroll")
+        //print("stopAutoScroll")
         cancellable?.cancel()
         cancellable = nil
     }
