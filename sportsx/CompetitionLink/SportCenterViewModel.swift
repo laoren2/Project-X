@@ -10,8 +10,60 @@ import CoreLocation
 import Combine
 
 class SportCenterViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published var cityName: String = "未知"
     @Published var selectedSport: SportName = .Bike // 默认运动
+    
+}
+
+class PVPTrainingViewModel: ObservableObject {
+    /*@Published var sport: SportName
+    var category: SportCategory { sport.category }
+    
+    init(sport: SportName) {
+        self.sport = sport
+    }*/
+}
+
+class RVRTrainingViewModel: ObservableObject {
+    /*@Published var sport: SportName
+    var category: SportCategory { sport.category }
+    
+    init(sport: SportName) {
+        self.sport = sport
+    }*/
+}
+
+class RVRCompetitionViewModel: ObservableObject {
+    let user = UserManager.shared
+    
+    // 队伍管理相关
+    @Published var showCreateTeamSheet: Bool = false
+    @Published var showJoinTeamSheet: Bool = false
+    @Published var showTeamCodeSheet: Bool = false
+    @Published var showTestSheet: Bool = false
+    
+    // 添加队伍字段
+    @Published var teamTitle: String = ""
+    @Published var teamDescription: String = ""
+    @Published var teamSize: Int = 5 // 默认值
+    @Published var teamCompetitionDate = Date().addingTimeInterval(86400 * 7) // 默认一周后
+    @Published var isPublic: Bool = false
+    
+    // 显示选中的team详情页
+    @Published var selectedTeamDetail: Team?
+    
+    // 用于展示临时的提示信息
+    @Published var showCopiedText = false
+    @Published var teamCode: String = ""
+    
+    // alert信息
+    @Published var showAlert = false
+    @Published var alertMessage = ""
+    @Published var showSuccessAlert: Bool = false
+    
+    // 当前最近报名的record
+    var currentRecord: CompetitionRecord?
+    
+    @Published var cityName: String = "未知"
     // 订阅位置更新
     private var locationCancellable: AnyCancellable?
     let competitionManager = CompetitionManager.shared
@@ -21,6 +73,28 @@ class SportCenterViewModel: NSObject, ObservableObject, CLLocationManagerDelegat
     @Published var events: [Event] = [] // 赛事列表
     @Published var tracks: [Track] = [] // 赛道列表
     
+    // 当前赛道可加入的队伍
+    @Published var availableTeams: [Team] = []
+    
+    // 安全获取当前选中的赛道
+    var currentTrack: Track? {
+        guard !tracks.isEmpty,
+              selectedTrackIndex >= 0,
+              selectedTrackIndex < tracks.count else {
+            return nil
+        }
+        return tracks[selectedTrackIndex]
+    }
+    
+    // 安全获取当前选中的比赛
+    var currentEvent: Event? {
+        guard !events.isEmpty,
+              selectedEventIndex >= 0,
+              selectedEventIndex < events.count else {
+            return nil
+        }
+        return events[selectedEventIndex]
+    }
     
     func setupLocationSubscription() {
         // 订阅位置更新
@@ -321,75 +395,177 @@ class SportCenterViewModel: NSObject, ObservableObject, CLLocationManagerDelegat
         selectedTrackIndex = 0 // 重置为第一个赛道
     }
     
-    func createTeam(for trackIndex: Int) {
+    // 验证队伍是否属于所选赛道
+    func verifyTrack() -> Bool {
+        return true
+    }
+    
+    // 验证用户是否在队伍内
+    func verifyInTeam(teamCode: String) -> Bool {
+        // 实际应用中应该向服务器验证
+        // 模拟验证队伍码
+        let allJoinedTeams = competitionManager.myCreatedTeams + competitionManager.myJoinedTeams
+        return (allJoinedTeams.first(where: { $0.teamCode == teamCode }) != nil)
+    }
+    
+    // 防止在同一个队伍内重复报名
+    func verifyRepeatRegister(teamCode: String) -> Bool {
+        let allJoinedTeams = competitionManager.myCreatedTeams + competitionManager.myJoinedTeams
+        if let index = allJoinedTeams.firstIndex(where: { $0.teamCode == teamCode }), let memberIndex = allJoinedTeams[index].members.firstIndex(where: { $0.userID == user.user?.userID }) {
+            return allJoinedTeams[index].members[memberIndex].isRegistered
+        }
+        return true
+    }
+    
+    // 验证队伍是否存在
+    func verifyTeamCode(teamCode: String) -> Bool {
+        // 验证服务器中是否存在该队伍
+        let allTeams = competitionManager.myCreatedTeams + competitionManager.myJoinedTeams + competitionManager.myAppliedTeams + competitionManager.availableTeams
+        return (allTeams.first(where: { $0.teamCode == teamCode }) != nil)
+    }
+    
+    // 检查队伍是否处于锁定状态
+    func verifyTeamLocked(teamCode: String) -> Bool {
+        // 检查服务器中队伍的锁定状态
+        if let index = availableTeams.firstIndex(where: { $0.teamCode == teamCode }) {
+            return availableTeams[index].isLocked
+        }
+        
+        return true
+    }
+    
+    
+    // 创建队伍
+    func createTeam() {
         guard !events.isEmpty && selectedEventIndex < events.count else {
             print("没有可用的赛事数据")
             return
         }
         
         let event = events[selectedEventIndex]
-        guard trackIndex >= 0 && trackIndex < event.tracks.count else {
-            print("没有可用的赛道数据或赛道索引无效: \(trackIndex)")
+        guard selectedTrackIndex >= 0 && selectedTrackIndex < event.tracks.count else {
+            print("没有可用的赛道数据或赛道索引无效: \(selectedTrackIndex)")
             return
         }
         
-        let track = event.tracks[trackIndex]
+        // 重置表单数据
+        teamTitle = ""
+        teamDescription = ""
+        teamSize = 5
+        teamCompetitionDate = Date().addingTimeInterval(86400 * 7) // 默认一周后
+        isPublic = false
         
-        // 这里添加创建队伍的逻辑，例如显示创建队伍的表单或直接创建
-        print("创建队伍: 赛事[\(event.name)], 赛道[\(track.name)]")
-        
-        // 模拟网络请求
-        // 实际应用中，这里应该发送请求到服务器创建队伍
+        // 显示创建队伍表单
+        showCreateTeamSheet = true
     }
-
-    func joinTeam(for trackIndex: Int) {
-        guard !events.isEmpty && selectedEventIndex < events.count else {
-            print("没有可用的赛事数据")
-            return
-        }
+    
+    // 提交创建队伍表单
+    func submitCreateTeamForm() {
+        guard !teamTitle.isEmpty else { return }
+        guard !events.isEmpty && selectedEventIndex < events.count else { return }
+        guard selectedTrackIndex >= 0 && selectedTrackIndex < tracks.count else { return }
         
         let event = events[selectedEventIndex]
-        guard trackIndex >= 0 && trackIndex < event.tracks.count else {
-            print("没有可用的赛道数据或赛道索引无效: \(trackIndex)")
-            return
+        let track = tracks[selectedTrackIndex]
+        
+        // 调用TeamManagementViewModel创建队伍
+        let teamCode = createTeam(
+            title: teamTitle,
+            description: teamDescription,
+            maxMembers: teamSize,
+            competitionDate: teamCompetitionDate,
+            eventId: event.eventIndex,
+            trackId: track.trackIndex,
+            eventName: event.name,
+            trackName: track.name,
+            isPublic: isPublic
+        )
+        
+        // 关闭sheet
+        showCreateTeamSheet = false
+        
+        // 显示队伍码的提示或其他成功反馈
+        print("成功创建队伍，队伍码: \(teamCode)")
+    }
+    
+    // 获取当前赛道可加入的队伍
+    func fetchAvailableTeams(eventId: Int, trackId: Int) {
+        // 模拟从服务器获取数据
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.availableTeams = self.competitionManager.availableTeams
+        }
+    }
+    
+    // 创建新队伍
+    func createTeam(title: String, description: String, maxMembers: Int, competitionDate: Date, eventId: Int, trackId: Int, eventName: String, trackName: String, isPublic: Bool) -> String {
+        // 生成队伍码
+        let teamCode = generateTeamCode()
+        
+        // 创建一个新的队伍
+        let newTeam = Team(
+            captainID: user.user?.userID ?? "未知",
+            captainName: user.user?.nickname ?? "未知",
+            captainAvatar: user.user?.avatarImageURL ?? "未知",
+            title: title,
+            description: description,
+            maxMembers: maxMembers,
+            members: [
+                TeamMember(
+                    userID: user.user?.userID ?? "未知",
+                    name: user.user?.nickname ?? "未知",
+                    avatar: user.user?.avatarImageURL ?? "未知",
+                    isLeader: true,
+                    joinTime: Date(),
+                    isRegistered: false
+                ),
+                TeamMember(
+                    userID: "测试2队员id",
+                    name: "测试2队员",
+                    avatar: "测试2队员头像",
+                    isLeader: false,
+                    joinTime: Date(),
+                    isRegistered: false
+                )
+            ],
+            teamCode: teamCode,
+            eventName: eventName,
+            trackName: trackName,
+            trackID: trackId,
+            eventID: eventId,
+            creationDate: Date(),
+            competitionDate: competitionDate,
+            pendingRequests: [
+                TeamMember(
+                    userID: "测试1队员id",
+                    name: "测试1队员",
+                    avatar: "测试1队员头像",
+                    isLeader: false,
+                    joinTime: Date(),
+                    isRegistered: false
+                )
+            ],
+            isPublic: isPublic
+        )
+        
+        // 添加到我创建的队伍列表
+        competitionManager.myCreatedTeams.append(newTeam)
+        // 如果为公开队伍则添加到对应赛道的队伍列表中
+        if newTeam.isPublic {
+            competitionManager.availableTeams.append(newTeam)
         }
         
-        let track = event.tracks[trackIndex]
+        // 实际应用中，这里应该向服务器发起请求保存队伍信息
         
-        // 这里添加加入队伍的逻辑，例如显示可用队伍列表
-        print("加入队伍: 赛事[\(event.name)], 赛道[\(track.name)]")
-        
-        // 模拟网络请求
-        // 实际应用中，这里应该发送请求到服务器获取可用队伍列表
+        // 返回队伍码
+        return teamCode
     }
-}
-
-class PVPTrainingViewModel: ObservableObject {
-    /*@Published var sport: SportName
-    var category: SportCategory { sport.category }
     
-    init(sport: SportName) {
-        self.sport = sport
-    }*/
-}
-
-class RVRTrainingViewModel: ObservableObject {
-    /*@Published var sport: SportName
-    var category: SportCategory { sport.category }
-    
-    init(sport: SportName) {
-        self.sport = sport
-    }*/
-}
-
-class RVRCompetitionViewModel: ObservableObject {
-    /*@Published var sport: SportName
-    
-    var category: SportCategory { sport.category }
-    
-    init(sport: SportName) {
-        self.sport = sport
-    }*/
+    // 生成队伍码
+    private func generateTeamCode() -> String {
+        // 生成6位数字和字母组合的队伍码
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<6).map { _ in letters.randomElement()! })
+    }
 }
 
 class PVPCompetitionViewModel: ObservableObject {

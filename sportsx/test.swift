@@ -151,7 +151,17 @@ struct test_old: View {
 }
 
 
-
+struct TestView: View {
+    //@EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        ZStack {
+            Button("test"){
+                print("test")
+            }
+        }
+    }
+}
 
 
 
@@ -159,6 +169,6 @@ struct test_old: View {
 
 #Preview {
     //let nm = NManager()
-    //test()
+    TestView()
     //    .environmentObject(nm)
 }

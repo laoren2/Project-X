@@ -22,8 +22,10 @@ struct CompetitionCardSelectView: View {
         VStack {
             HStack {
                 Button(action: {
+                    // 销毁计时器a和b
+                    appState.competitionManager.stopAllTeamJoinTimers()
                     appState.navigationManager.path.removeLast()
-                    appState.competitionManager.addCompetitionRecord()
+                    appState.competitionManager.resetCompetitionProperties()
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 22, weight: .light))
@@ -33,7 +35,26 @@ struct CompetitionCardSelectView: View {
                 
                 Spacer()
             }
+            
             Spacer()
+            
+            // 组队模式显示区域
+            if let isTeamCompetition = appState.competitionManager.currentCompetitionRecord?.isTeamCompetition, isTeamCompetition {
+                VStack {
+                    if appState.competitionManager.isTeamJoinWindowExpired {
+                        Text("队伍有效窗口时间已过，无法加入比赛")
+                            .foregroundColor(.red)
+                            .padding()
+                    } else {
+                        Text("剩余加入时间: \(appState.competitionManager.teamJoinRemainingTime)秒")
+                            .font(.headline)
+                            .padding()
+                    }
+                }
+                .padding(.bottom, 20)
+                
+                Spacer()
+            }
             
             Text("我的卡牌阵容")
                 .font(.headline)
@@ -69,7 +90,7 @@ struct CompetitionCardSelectView: View {
                         )
                     )
                     .foregroundColor(.white)
-                    .cornerRadius(15)
+                    .cornerRadius(12)
                     .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
             }
             .padding()
@@ -91,7 +112,7 @@ struct CompetitionCardSelectView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .cornerRadius(20)
+                    .cornerRadius(12)
                     .foregroundColor(.white)
                     .shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
             }
@@ -107,6 +128,10 @@ struct CompetitionCardSelectView: View {
         .onAppear {
             if cardManager.availableCards.isEmpty {
                 cardManager.fetchUserCards()
+            }
+            // 如果是组队模式，启动计时器a
+            if let isTeamCompetition = appState.competitionManager.currentCompetitionRecord?.isTeamCompetition, isTeamCompetition {
+                appState.competitionManager.startTeamJoinTimerA()
             }
         }
         .navigationBarHidden(true)

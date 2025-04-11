@@ -17,6 +17,10 @@ struct DataSnapshot {
 }
 
 class DataFusionManager: ObservableObject {
+    static let shared = DataFusionManager()
+    
+    // 比赛已进行时间（秒）
+    @Published var elapsedTime: TimeInterval = 0
     // 监测是否到达最大延迟
     @Published var isDelayed: Bool = false
     // 监测各数组的稀疏度
@@ -53,7 +57,7 @@ class DataFusionManager: ObservableObject {
     
     
     
-    init() {
+    private init() {
         // 初始化空数组
         phoneWindow = Array(repeating: nil, count: phoneCapacity)
         sensorPhoneWindow = Array(repeating: nil, count: phoneCapacity)
@@ -406,6 +410,7 @@ class DataFusionManager: ObservableObject {
     }
     
     func resetAll() {
+        elapsedTime = 0
         sparsity = Array(repeating: 0, count: 6)
         deviceNeedToWork = 0
         startSlotIndex = 0

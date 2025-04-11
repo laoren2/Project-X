@@ -25,7 +25,7 @@ class UserManager: ObservableObject {
         //   请求userID/nickname/pic
         // else
         //   创建userID/nickname/pic
-        user?.userID = generateUserID()
+        user?.userID = "user_555"//generateUserID()
         user?.nickname = "Newuser_10358"
         user?.avatarImageURL = "https://example.com/avatar.jpg"
         
