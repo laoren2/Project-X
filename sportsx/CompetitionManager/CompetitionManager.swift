@@ -2,6 +2,8 @@
 //  CompetitionManager.swift
 //  sportsx
 //
+//  一个巨大的状态机，管理和控制一场比赛的全过程
+//
 //  Created by 任杰 on 2024/9/7.
 //
 
@@ -22,12 +24,20 @@ let SAVESENSORDATA = false // sensor数据保存到本地
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = CompetitionManager()
     
-    let dataFusionManager = DataFusionManager()
+    let dataFusionManager = DataFusionManager.shared
     let modelManager = ModelManager.shared
     let deviceManager = DeviceManager.shared
+    let user = UserManager.shared
     
-    var currentCompetitionRecord: CompetitionRecord = CompetitionRecord()
-    var competitionRecords: [CompetitionRecord] = [] // 仅本地调试用
+    var currentCompetitionRecord: CompetitionRecord? // = CompetitionRecord()
+    
+    // 仅用于本地测试
+    var competitionRecords: [CompetitionRecord] = []
+    // 仅用于本地测试
+    @Published var myCreatedTeams: [Team] = []
+    @Published var myJoinedTeams: [Team] = []
+    @Published var myAppliedTeams: [Team] = []
+    @Published var availableTeams: [Team] = []
     
     @Published var selectedCards: [MagicCard] = []
     var sensorRequest: Int = 0
@@ -42,7 +52,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published var alertMessage = ""
     @Published var userLocation: CLLocationCoordinate2D? = nil // 当前用户位置
     @Published var canStartCompetition: Bool = false // 是否可以开始比赛
-    @Published var elapsedTime: TimeInterval = 0 // 已进行时间（秒）
+    
     @Published var compensationTime: Double = 0 // 通过MagicCard拿到的总补偿时间
     @Published var modelResults: [String: Any] = [:] // 存储每个模型的预测结果
     
@@ -62,6 +72,60 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var timer: DispatchSourceTimer? //定时器
     private var collectionTimer: Timer?
 
+    private var teamJoinTimerA: Timer? // 用于获取比赛剩余可加入时间的计时器
+    private var teamJoinTimerB: Timer? // 用于剩余可加入时间倒计时的计时器
+    var teamJoinTimeWindow: Int = 30 // 组队模式下的可加入时间窗口
+    
+    // todo: 将频繁更新的属性移出competitionManager
+    @Published var teamJoinRemainingTime: Int = 30 // 剩余可加入时间，频繁更新，暂时无交互受影响，先放在这里
+    @Published var isTeamJoinWindowExpired: Bool = false // 是否已过期
+
+    // 计时器a和计时器b
+    func startTeamJoinTimerA() {
+        if teamJoinTimerA == nil {
+            teamJoinTimerA = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                guard let self = self, let teamCode = self.currentCompetitionRecord?.teamCode else { return }
+                
+                if let timestamp = self.getTeamTimestampInSeconds(teamCode: teamCode) {
+                    // 找到比赛时间，切换到计时器b
+                    self.teamJoinRemainingTime = max(0, self.teamJoinTimeWindow - timestamp)
+                    self.startTeamJoinTimerB()
+                    self.stopTeamJoinTimerA()
+                }
+            }
+        }
+    }
+    
+    func stopTeamJoinTimerA() {
+        teamJoinTimerA?.invalidate()
+        teamJoinTimerA = nil
+    }
+    
+    func startTeamJoinTimerB() {
+        if teamJoinTimerB == nil {
+            teamJoinTimerB = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                
+                if self.teamJoinRemainingTime > 0 {
+                    self.teamJoinRemainingTime -= 1
+                } else {
+                    self.isTeamJoinWindowExpired = true
+                    self.stopTeamJoinTimerB()
+                }
+            }
+        }
+    }
+    
+    func stopTeamJoinTimerB() {
+        teamJoinTimerB?.invalidate()
+        teamJoinTimerB = nil
+    }
+    
+    func stopAllTeamJoinTimers() {
+        stopTeamJoinTimerA()
+        stopTeamJoinTimerB()
+    }
+
     private let dataHandleQueue = DispatchQueue(label: "com.sportsx.competition.dataHandleQueue", qos: .userInitiated) // 串行队列，用于处理数据
     private let timerQueue = DispatchQueue(label: "com.sportsx.competition.timerQueue", qos: .userInitiated) // 串行队列，用于处理手机端高频计时器的回调
     private var modelRemainingSamples: [String: Int] = [:] // 记录每个模型的剩余预测条数
@@ -74,17 +138,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
 
     private override init() {
         super.init()
+        // 本地测试
+        availableTeams = generateDummyAvailableTeams(eventId: 0, trackId: 0)
+        myJoinedTeams = generateDummyJoinedTeams()
+        
         motionManager.accelerometerUpdateInterval = 0.05
         motionManager.gyroUpdateInterval = 0.05
         motionManager.magnetometerUpdateInterval = 0.05
         requestMicrophoneAccess()
         setupDataBindings()
         
-        // 嵌套的ObservableObject逐层订阅通知
-        dataFusionManager.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
-        .store(in: &dataCancellables)
+        // 嵌套的ObservableObject逐层订阅通知写在这里：
     }
     
     // 设置 Combine 订阅
@@ -372,13 +436,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     func stopCompetition() {
         isRecording = false
 
-        // 将比赛记录状态从未开始改为已完成
-        currentCompetitionRecord.status = .completed
-        currentCompetitionRecord.duration = elapsedTime
-        if let start = currentCompetitionRecord.startDate {
-            currentCompetitionRecord.completionDate = start + elapsedTime
+        // 单人模式下，修改服务端对应用户的record信息，更新排行榜
+        currentCompetitionRecord?.duration = dataFusionManager.elapsedTime
+        if let start = currentCompetitionRecord?.startDate {
+            currentCompetitionRecord?.completionDate = start + dataFusionManager.elapsedTime
+        }
+        if let record = currentCompetitionRecord {
+            // 组队模式下，修改服务端对应用户的record信息，修改对应team中其余member用户的record向其teamMember中添加成员，
+            // 修改team的member中用户的完成状态，最后检查如果team.member全部完成则删除team，更新排行榜
+            if record.isTeamCompetition {
+                stopCompetitionInTeamMode()
+            }
+            
+            deleteCompetitionRecord(id: record.id, status: record.status)
         }
         addCompetitionRecord()
+        resetCompetitionProperties()
         
         modelRemainingSamples.removeAll()
         
@@ -398,13 +471,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         for (pos, dev) in deviceManager.deviceMap {
             if let device = dev {
                 stopCollecting(device: device)
-                /*device.connect { success in
-                    if success {
-                        device.stopCollection()
-                    } else {
-                        print("Failed to connect to device at position \(pos) when stop")
-                    }
-                }*/
             }
         }
         
@@ -412,8 +478,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             self.finalizeCompetitionData()
         }
         
-        saveCompetitionResult()
-        elapsedTime = 0
         predictResultCnt = 0
         
         dataFusionManager.resetAll()
@@ -422,14 +486,27 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func startRecordingSession() {
+        // 重置组队模式下的计时环境
+        stopAllTeamJoinTimers()
+        teamJoinRemainingTime = teamJoinTimeWindow
+        isTeamJoinWindowExpired = false
+        
         startTime = Date()
         isRecording = true
         competitionData = []
         
-        // 比赛一旦开始，未开始的报名状态失效，无法再取消报名
-        if currentCompetitionRecord.status != .empty {
-            deleteCompetitionRecord(id: currentCompetitionRecord.id, status: currentCompetitionRecord.status)
-            currentCompetitionRecord.startDate = startTime
+        if let record = currentCompetitionRecord {
+            // 单人模式下，修改服务端record的startDate和status
+            deleteCompetitionRecord(id: record.id, status: record.status)
+            currentCompetitionRecord?.startDate = startTime
+            currentCompetitionRecord?.status = .completed
+            addCompetitionRecord()
+            
+            // 组队模式下，向服务端对应team中member剩余成员的record.teamMember加入用户并写入startDate，
+            // 更新team的realstarttime和status，修改用户record的status和startDate
+            if record.isTeamCompetition {
+                startCompetitionInTeamMode()
+            }
         }
         
         // 初始化模型剩余样本数
@@ -522,7 +599,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 counter = 0
                 let newElapsedTime = Date().timeIntervalSince(start)
                 DispatchQueue.main.async {
-                    self.elapsedTime = newElapsedTime
+                    self.dataFusionManager.elapsedTime = newElapsedTime
                 }
             }
         }
@@ -661,19 +738,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private func stopRecordingAudio() {
         // Optional: Stop audio recording and save the sample
     }
-
-    private func saveCompetitionResult() {
-        // Process and store the competition data, potentially send to server
-    }
     
     // 添加新的比赛记录(比赛未开始或比赛完成即退出比赛链路)
     func addCompetitionRecord() {
-        let exists = competitionRecords.contains { $0.id == currentCompetitionRecord.id && $0.status == currentCompetitionRecord.status }
-        if !exists {
-            competitionRecords.append(currentCompetitionRecord)
+        if let record = currentCompetitionRecord {
+            let exists = competitionRecords.contains { $0.id == record.id && $0.status == record.status }
+            if !exists {
+                competitionRecords.append(record)
+            }
         }
-        currentCompetitionRecord.status = .empty
-        resetCompetitionProperties()
     }
     
     // 删除已存在的比赛记录
@@ -700,11 +773,146 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func resetCompetitionProperties() {
+        teamJoinRemainingTime = teamJoinTimeWindow
+        isTeamJoinWindowExpired = false
+        currentCompetitionRecord = nil
         selectedCards.removeAll()
         sensorRequest = 0
         startCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
         endCoordinate = CLLocationCoordinate2D(latitude: 1, longitude: 1)
     }
+    
+    // 假设所有比赛中赛道的队伍都一样，本地测试用
+    func generateDummyAvailableTeams(eventId: Int, trackId: Int) -> [Team] {
+        let team1 = Team(
+            teamID: "team001",
+            captainID: "123",
+            captainName: "张伟",
+            captainAvatar: "person.circle",
+            title: "城市定向高手队",
+            description: "有经验的城市定向赛玩家组队",
+            maxMembers: 6,
+            members: [
+                TeamMember(userID: "123", name: "张伟", avatar: "person.circle", isLeader: true, joinTime: Date().addingTimeInterval(-86400 * 4), isRegistered: true),
+                TeamMember(userID: "124", name: "王芳", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400 * 3), isRegistered: false)
+            ],
+            teamCode: "DEF456",
+            eventName: "上海城市定向赛",
+            trackName: "高级赛道",
+            trackID: trackId,
+            eventID: eventId,
+            creationDate: Date().addingTimeInterval(-86400 * 4),
+            competitionDate: Date().addingTimeInterval(86400 * 20),
+            pendingRequests: [],
+            isPublic: true
+        )
+        
+        let team2 = Team(
+            teamID: "team002",
+            captainID: "555",
+            captainName: "李明",
+            captainAvatar: "person.circle",
+            title: "轻松跑团",
+            description: "享受跑步的乐趣，不在乎名次",
+            maxMembers: 10,
+            members: [
+                TeamMember(userID: "555", name: "李明", avatar: "person.circle", isLeader: true, joinTime: Date().addingTimeInterval(-86400 * 2), isRegistered: true),
+                TeamMember(userID: "556",name: "赵丽", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400), isRegistered: true),
+                TeamMember(userID: "557",name: "孙悟空", avatar: "person.circle", isLeader: false, joinTime: Date(), isRegistered: true)
+            ],
+            teamCode: "GHI789",
+            eventName: "上海城市定向赛",
+            trackName: "高级赛道",
+            trackID: trackId,
+            eventID: eventId,
+            creationDate: Date().addingTimeInterval(-86400 * 2),
+            competitionDate: Date().addingTimeInterval(86400 * 25),
+            pendingRequests: [],
+            isPublic: true
+        )
+        
+        return [team1, team2]
+    }
+    
+    // 本地测试使用
+    func generateDummyJoinedTeams() -> [Team] {
+        let team1 = Team(
+            teamID: "team001",
+            captainID: "123",
+            captainName: "张伟",
+            captainAvatar: "person.circle",
+            title: "城市定向高手队",
+            description: "有经验的城市定向赛玩家组队",
+            maxMembers: 6,
+            members: [
+                TeamMember(userID: "123", name: "张伟", avatar: "person.circle", isLeader: true, joinTime: Date().addingTimeInterval(-86400 * 4), isRegistered: true),
+                TeamMember(userID: "124", name: "王芳", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400 * 3), isRegistered: true),
+                TeamMember(userID: "125", name: "张伟", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400 * 4), isRegistered: true),
+                TeamMember(userID: "126", name: "王芳", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400 * 3), isRegistered: true),
+                TeamMember(userID: "127", name: "张伟", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400 * 4), isRegistered: true),
+                TeamMember(userID: "user_555", name: "Newuser_10358", avatar: "person.circle", isLeader: false, joinTime: Date().addingTimeInterval(-86400 * 3), isRegistered: false)
+            ],
+            teamCode: "11RJ11",
+            eventName: "上海城市跑酷赛",
+            trackName: "红牛赛道",
+            trackID: 0,
+            eventID: 0,
+            creationDate: Date().addingTimeInterval(-86400 * 4),
+            competitionDate: Date().addingTimeInterval(86400 * 20),
+            pendingRequests: [],
+            isPublic: true,
+            realCompetitionDate: Date(),
+            isLocked: true,
+            status: .recording
+        )
+        
+        availableTeams.append(team1)
+        
+        return [team1]
+    }
+    
+    func getTeamTimestampInSeconds(teamCode: String) -> Int? {
+        let joinedTeams = myJoinedTeams + myCreatedTeams
+        if let index = joinedTeams.firstIndex(where: { $0.teamCode == teamCode }) {
+            if let startTime = joinedTeams[index].realCompetitionDate {
+                let stamp = Int(Date().timeIntervalSince(startTime))
+                return stamp
+            } else {
+                return nil
+            }
+        }
+        return nil
+    }
+    
+    // 组队模式下开始比赛时尝试向服务端team写入最早时间并修改状态，同时修改所有成员的record
+    func startCompetitionInTeamMode() {
+        let joinedTeams = myJoinedTeams + myCreatedTeams
+        
+        if let record = currentCompetitionRecord, let index = joinedTeams.firstIndex(where: { $0.teamCode == record.teamCode }) {
+            if joinedTeams[index].realCompetitionDate != nil {
+                return
+            } else {
+                if let joinedIndex = myJoinedTeams.firstIndex(where: { $0.teamCode == record.teamCode }) {
+                    myJoinedTeams[joinedIndex].realCompetitionDate = Date()
+                    myJoinedTeams[joinedIndex].status = .recording
+                }
+                if let createdIndex = myCreatedTeams.firstIndex(where: { $0.teamCode == record.teamCode }) {
+                    myCreatedTeams[createdIndex].realCompetitionDate = Date()
+                    myCreatedTeams[createdIndex].status = .recording
+                }
+            }
+        }
+    }
+    
+    // 组队模式下结束比赛时需要修改服务端team数据，以及team中所有member的record
+    func stopCompetitionInTeamMode() {
+        
+    }
+    
+    // 服务端需定期处理异常的team
+    // 针对prepared状态的team不做处理
+    // 针对ready状态的team，比赛时间24h后删除team
+    // 针对recording状态的team，检查realstarttime，超过2h后将member里的所有未完成比赛的成员record状态调整为completed，并删除team
 }
 
 

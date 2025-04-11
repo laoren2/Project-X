@@ -171,8 +171,10 @@ struct RealNaviView: View {
                     SportSkillView()
                 } else if value == "activityView" {
                     ActivityView()
-                } else if value == "competitionManagementView" {
-                    CompetitionManagementView()
+                } else if value == "recordManagementView" {
+                    CompetitionRecordManagementView()
+                } else if value == "teamManagementView" {
+                    TeamManagementView()
                 }
             }
         }

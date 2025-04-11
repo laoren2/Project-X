@@ -10,6 +10,7 @@ import MapKit
 
 struct CompetitionRealtimeView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var dataFusionManager = DataFusionManager.shared
     @State private var cameraPosition: MapCameraPosition = .automatic
     
     var body: some View {
@@ -60,8 +61,26 @@ struct CompetitionRealtimeView: View {
             
             Spacer()
             
+            // 组队模式显示区域
+            if let isTeamCompetition = appState.competitionManager.currentCompetitionRecord?.isTeamCompetition, isTeamCompetition {
+                VStack {
+                    if appState.competitionManager.isTeamJoinWindowExpired {
+                        Text("队伍有效窗口时间已过，无法加入比赛")
+                            .foregroundColor(.red)
+                            .padding()
+                    } else {
+                        Text("剩余加入时间: \(appState.competitionManager.teamJoinRemainingTime)秒")
+                            .font(.headline)
+                            .padding()
+                    }
+                }
+                .padding(.bottom, 20)
+                
+                Spacer()
+            }
+            
             // todo 添加时间显示
-            Text("已进行时间: \(TimeDisplay.formattedTime(appState.competitionManager.elapsedTime))")
+            Text("已进行时间: \(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
                 .font(.subheadline)
             //Spacer()
             Text("Xpose: \(appState.competitionManager.predictResultCnt)")
@@ -76,6 +95,10 @@ struct CompetitionRealtimeView: View {
             }
             
             ZStack {
+                let isDisabledInTeamMode = (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false) && appState.competitionManager.isTeamJoinWindowExpired
+                let isGray = (!appState.competitionManager.canStartCompetition) || isDisabledInTeamMode
+                let isDisabled = appState.competitionManager.isRecording || isGray
+                
                 Button(action: {
                     if !appState.competitionManager.isRecording {
                         appState.competitionManager.startCompetition()
@@ -85,10 +108,10 @@ struct CompetitionRealtimeView: View {
                         .font(.title)
                         .foregroundColor(.white)
                         .frame(width: 100, height: 100)
-                        .background(appState.competitionManager.isRecording ? Color.orange : (appState.competitionManager.canStartCompetition ? Color.green : Color.gray))
+                        .background(appState.competitionManager.isRecording ? Color.orange : (isGray ? Color.gray : Color.green))
                         .clipShape(Circle())
                 }
-                .disabled(appState.competitionManager.isRecording || !appState.competitionManager.canStartCompetition) // 比赛进行中时禁用按钮
+                .disabled(isDisabled) // 比赛进行中时禁用按钮
                 
                 if appState.competitionManager.isRecording {
                     HStack {

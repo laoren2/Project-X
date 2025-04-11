@@ -1,5 +1,5 @@
 //
-//  CompetitionManagementView.swift
+//  CompetitionRecordManagementView.swift
 //  sportsx
 //
 //  Created by 任杰 on 2024/9/7.
@@ -8,9 +8,9 @@
 import SwiftUI
 import CoreLocation
 
-struct CompetitionManagementView: View {
+struct CompetitionRecordManagementView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject private var viewModel = CompetitionManagementViewModel()
+    @StateObject private var viewModel = CompetitionRecordManagementViewModel()
     
     
     var body: some View {
@@ -41,8 +41,8 @@ struct CompetitionManagementView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.top, 15)
             .padding(.bottom, 10)
+            .background(Color(.systemBackground))
             
             // 选项卡
             HStack(spacing: 0) {
@@ -87,10 +87,11 @@ struct CompetitionManagementView: View {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.incompleteCompetitions) { competition in
                                 CompetitionRecordCard(competition: competition, onStart:  {
-                                    appState.competitionManager.resetCompetitionRecord(record: competition)
-                                    appState.navigationManager.path.append("competitionCardSelectView")
+                                    if !appState.competitionManager.isRecording {
+                                        viewModel.startCompetition(record: competition)
+                                    }
                                 }, onDelete: {
-                                    viewModel.cancelCompetition(id: competition.id)
+                                    viewModel.cancelCompetition(record: competition)
                                 })
                             }
                         }
@@ -128,6 +129,7 @@ struct CompetitionManagementView: View {
                 .tag(1)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .ignoresSafeArea()
         }
         .navigationBarHidden(true)
         .onAppear {
@@ -135,11 +137,19 @@ struct CompetitionManagementView: View {
             // 例如从AppState获取CompetitionManager
             viewModel.fetchCompetitionRecords()
         }
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(
+                title: Text("开始失败"),
+                message: Text(viewModel.alertMessage),
+                dismissButton: .default(Text("确定"))
+            )
+        }
     }
 }
 
 // 比赛记录卡片组件
 struct CompetitionRecordCard: View {
+    @EnvironmentObject var appState: AppState
     let competition: CompetitionRecord
     var onStart: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
@@ -272,10 +282,11 @@ struct CompetitionRecordCard: View {
                                 .font(.subheadline)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(Color.green.opacity(0.2))
-                                .foregroundColor(.green)
+                                .background(appState.competitionManager.isRecording ? .gray.opacity(0.2) : .green.opacity(0.2))
+                                .foregroundColor(appState.competitionManager.isRecording ? .gray : .green)
                                 .cornerRadius(4)
                         }
+                        .disabled(appState.competitionManager.isRecording)
                     }
                     
                     // 取消按钮
@@ -331,7 +342,7 @@ struct CompetitionRecordCard: View {
     // 添加一些测试数据
     let record = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .completed)
     
-    //return CompetitionManagementView()
-    //    .environmentObject(appState)
-    CompetitionRecordCard(competition: record, onStart: {}, onDelete: {}, onFeedback: {})
+    return CompetitionRecordManagementView()
+        .environmentObject(appState)
+    //CompetitionRecordCard(competition: record, onStart: {}, onDelete: {}, onFeedback: {})
 }

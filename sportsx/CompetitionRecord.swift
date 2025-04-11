@@ -11,9 +11,19 @@ import MapKit
 
 // 比赛记录状态枚举
 enum CompetitionStatus: String, Codable {
-    case empty = "空"
+    //case empty = "空"
     case incomplete = "未完成"
     case completed = "已完成"
+}
+
+// 队伍成员结构
+struct MemberRecord: Identifiable {
+    let id = UUID()
+    let userID: String?     // server userid
+    let name: String        // 用户昵称
+    let avatar: String      // 头像
+    var startTime: Date     // 开始比赛的时间
+    var endTime: Date       // 结束比赛的时间
 }
 
 // 比赛记录模型
@@ -32,6 +42,8 @@ struct CompetitionRecord: Identifiable {
     var completionDate: Date?  // 完成日期，可为空
     var score: Double?  // 得分，可为空
     var duration: TimeInterval?  // 持续时间，可为空
+    var teamCode: String? // 队伍码，单人比赛时为空
+    var teamMember: [MemberRecord]? // 队伍其他成员的成绩记录，单人比赛时为空
     
     // 初始化方法
     init() {
@@ -43,12 +55,14 @@ struct CompetitionRecord: Identifiable {
         self.trackStart = CLLocationCoordinate2D(latitude: 0, longitude: 0)
         self.trackEnd = CLLocationCoordinate2D(latitude: 1, longitude: 1)
         self.isTeamCompetition = false
-        self.status = .empty
+        self.status = .incomplete
         self.initDate = Date()
         self.startDate = nil
         self.completionDate = nil
         self.score = nil
         self.duration = nil
+        self.teamCode = nil
+        self.teamMember = nil
     }
     
     init(
@@ -65,7 +79,9 @@ struct CompetitionRecord: Identifiable {
         startDate: Date? = nil,
         completionDate: Date? = nil,
         score: Double? = nil,
-        duration: TimeInterval? = nil
+        duration: TimeInterval? = nil,
+        teamCode: String? = nil,
+        teamMember: [MemberRecord]? = nil
     ) {
         self.id = id
         self.sportType = sportType
@@ -81,6 +97,8 @@ struct CompetitionRecord: Identifiable {
         self.completionDate = completionDate
         self.score = score
         self.duration = duration
+        self.teamCode = teamCode
+        self.teamMember = teamMember
     }
     
     // 格式化比赛类型

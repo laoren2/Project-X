@@ -10,6 +10,7 @@ import Combine
 
 struct CompetitionWidget: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var dataFusionManager = DataFusionManager.shared
     //@State private var modelResults: [String: Any] = [:]
     //private var cancellables = Set<AnyCancellable>()
     
@@ -18,7 +19,7 @@ struct CompetitionWidget: View {
             VStack(alignment: .leading) {
                 Text("比赛进行中")
                     .font(.headline)
-                Text("已进行时间: \(TimeDisplay.formattedTime(appState.competitionManager.elapsedTime))")
+                Text("已进行时间: \(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
                     .font(.subheadline)
             }
             .frame(width: 300, height: 100) // 根据需要调整大小

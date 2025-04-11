@@ -36,8 +36,10 @@
 		A9DAC1222C65148D006C47B1 /* UserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1212C65148D006C47B1 /* UserView.swift */; };
 		A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1232C6514C0006C47B1 /* LoginView.swift */; };
 		A9DAC1262C6514D0006C47B1 /* UserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1252C6514D0006C47B1 /* UserManager.swift */; };
-		A9FA1C122D8D1461004E502F /* CompetitionManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FA1C0B2D8D1461004E502F /* CompetitionManagementView.swift */; };
-		A9FA1C132D8D1461004E502F /* CompetitionManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FA1C0C2D8D1461004E502F /* CompetitionManagementViewModel.swift */; };
+		A9EED5762D912ACC00F2F6AF /* TeamManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EED5752D912AAD00F2F6AF /* TeamManagementView.swift */; };
+		A9EED5782D912C1200F2F6AF /* TeamManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EED5772D912C0E00F2F6AF /* TeamManagementViewModel.swift */; };
+		A9FA1C122D8D1461004E502F /* CompetitionRecordManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FA1C0B2D8D1461004E502F /* CompetitionRecordManagementView.swift */; };
+		A9FA1C132D8D1461004E502F /* CompetitionRecordManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FA1C0C2D8D1461004E502F /* CompetitionRecordManagementViewModel.swift */; };
 		A9FA1C4D2D8D15F6004E502F /* CompetitionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FA1C4C2D8D15F6004E502F /* CompetitionRecord.swift */; };
 /* End PBXBuildFile section */
 
@@ -129,8 +131,10 @@
 		A9DAC1212C65148D006C47B1 /* UserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserView.swift; sourceTree = "<group>"; };
 		A9DAC1232C6514C0006C47B1 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		A9DAC1252C6514D0006C47B1 /* UserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManager.swift; sourceTree = "<group>"; };
-		A9FA1C0B2D8D1461004E502F /* CompetitionManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionManagementView.swift; sourceTree = "<group>"; };
-		A9FA1C0C2D8D1461004E502F /* CompetitionManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionManagementViewModel.swift; sourceTree = "<group>"; };
+		A9EED5752D912AAD00F2F6AF /* TeamManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamManagementView.swift; sourceTree = "<group>"; };
+		A9EED5772D912C0E00F2F6AF /* TeamManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamManagementViewModel.swift; sourceTree = "<group>"; };
+		A9FA1C0B2D8D1461004E502F /* CompetitionRecordManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionRecordManagementView.swift; sourceTree = "<group>"; };
+		A9FA1C0C2D8D1461004E502F /* CompetitionRecordManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionRecordManagementViewModel.swift; sourceTree = "<group>"; };
 		A9FA1C4C2D8D15F6004E502F /* CompetitionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -219,6 +223,8 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9EED5772D912C0E00F2F6AF /* TeamManagementViewModel.swift */,
+				A9EED5752D912AAD00F2F6AF /* TeamManagementView.swift */,
 				A9FA1C4C2D8D15F6004E502F /* CompetitionRecord.swift */,
 				A9E269EF2D873003002C2033 /* CompetitionLink */,
 				A966403E2D837D4800A94B73 /* EventModel.swift */,
@@ -249,8 +255,8 @@
 				A99A6AE32C93A9D100FAC86D /* Tools.swift */,
 				A99A6AE52C9CB01900FAC86D /* test.swift */,
 				A90618982D6EFF0B0050B872 /* resources.bundle */,
-				A9FA1C0B2D8D1461004E502F /* CompetitionManagementView.swift */,
-				A9FA1C0C2D8D1461004E502F /* CompetitionManagementViewModel.swift */,
+				A9FA1C0B2D8D1461004E502F /* CompetitionRecordManagementView.swift */,
+				A9FA1C0C2D8D1461004E502F /* CompetitionRecordManagementViewModel.swift */,
 			);
 			path = sportsx;
 			sourceTree = "<group>";
@@ -529,6 +535,7 @@
 				A99A6AE62C9CB01900FAC86D /* test.swift in Sources */,
 				A99A6AE42C93A9D100FAC86D /* Tools.swift in Sources */,
 				A99D9A962C4AF5ED004F72BF /* HomeViewModel.swift in Sources */,
+				A9EED5762D912ACC00F2F6AF /* TeamManagementView.swift in Sources */,
 				A9406EB62D1CB3A40096DE80 /* MagicCardView.swift in Sources */,
 				A9FA1C4D2D8D15F6004E502F /* CompetitionRecord.swift in Sources */,
 				A99D9A982C4B028D004F72BF /* NaviView.swift in Sources */,
@@ -538,12 +545,13 @@
 				A9908DF62D27B6930019C4B4 /* AdsBannerView.swift in Sources */,
 				A966403F2D837D6C00A94B73 /* EventModel.swift in Sources */,
 				A9DAC1222C65148D006C47B1 /* UserView.swift in Sources */,
+				A9EED5782D912C1200F2F6AF /* TeamManagementViewModel.swift in Sources */,
 				A99A6ADE2C89F83900FAC86D /* SportCenterView.swift in Sources */,
 				A92E6D6E2D688FC500400000 /* OSLog.swift in Sources */,
 				A9DAC1262C6514D0006C47B1 /* UserManager.swift in Sources */,
 				A96640092D832DB700A94B73 /* CurrencyManager.swift in Sources */,
-				A9FA1C122D8D1461004E502F /* CompetitionManagementView.swift in Sources */,
-				A9FA1C132D8D1461004E502F /* CompetitionManagementViewModel.swift in Sources */,
+				A9FA1C122D8D1461004E502F /* CompetitionRecordManagementView.swift in Sources */,
+				A9FA1C132D8D1461004E502F /* CompetitionRecordManagementViewModel.swift in Sources */,
 				A9D812782D2F06C100185548 /* SensorBindView.swift in Sources */,
 				A984DCC92D09616C005EF835 /* CardSelectionView.swift in Sources */,
 				A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */,

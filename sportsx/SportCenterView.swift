@@ -69,16 +69,6 @@ struct SportCenterView: View {
                 }
             }
             
-            HStack() {
-                Image(systemName: "location.fill")
-                    .padding(.leading, 20)
-                Text(viewModel.cityName)
-                Spacer()
-                Text("X点券:\(currencyManager.coinA)")
-                Text("X币:\(currencyManager.coinB)")
-                    .padding(.trailing, 20)
-            }
-            
             if viewModel.selectedSport.category == .PVP {
                 if selectedMode == 0 {
                     PVPTrainingView(viewModel: PVPTrainingViewModel())
@@ -97,21 +87,6 @@ struct SportCenterView: View {
             //Spacer()
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
-        .onAppear() {
-            LocationManager.shared.saveHomeViewToLast()
-            if !appState.competitionManager.isRecording {
-                LocationManager.shared.enterHomeView()
-            }
-            viewModel.setupLocationSubscription()
-            
-            // 防止首次从首页切到运动中心时定位信息无法及时更新
-            if let location = LocationManager.shared.getLocation() {
-                viewModel.fetchCityName(from: location)
-            }
-        }
-        .onDisappear() {
-            viewModel.deleteLocationSubscription()
-        }
     }
 }
 
