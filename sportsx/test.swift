@@ -153,6 +153,7 @@ struct test_old: View {
 
 struct TestView: View {
     //@EnvironmentObject var appState: AppState
+    //@StateObject var viewModel = TestViewModel()
     
     var body: some View {
         ZStack {
@@ -163,12 +164,13 @@ struct TestView: View {
     }
 }
 
-
-
+class TestViewModel: ObservableObject {
+    
+}
 
 
 #Preview {
-    //let nm = NManager()
+    //let appState = AppState()
     TestView()
-    //    .environmentObject(nm)
+    //    .environmentObject(appState)
 }

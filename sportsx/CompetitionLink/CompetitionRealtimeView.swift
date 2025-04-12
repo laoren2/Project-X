@@ -10,8 +10,10 @@ import MapKit
 
 struct CompetitionRealtimeView: View {
     @EnvironmentObject var appState: AppState
+    //@StateObject var viewModel = CompetitionRealtimeViewModel()
     @ObservedObject var dataFusionManager = DataFusionManager.shared
     @State private var cameraPosition: MapCameraPosition = .automatic
+    
     
     var body: some View {
         // 显示比赛数据或其他内容
@@ -159,20 +161,15 @@ struct CompetitionRealtimeView: View {
         }
         .onAppear() {
             if !appState.competitionManager.isRecording {
-                LocationManager.shared.saveCompetionSelectViewToLast()
-                if !appState.competitionManager.isRecording {
-                    LocationManager.shared.enterCompetionSelectView()
-                }
-                appState.competitionManager.setupSelectedViewLocationSubscription()
+                LocationManager.shared.changeToMediumUpdate()
+                appState.competitionManager.setupRealtimeViewLocationSubscription()
             }
         }
         .onDisappear() {
             appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
         }
         .onDisappear() {
-            //if !appState.competitionManager.isRecording {
-                appState.competitionManager.deleteSelectedViewLocationSubscription()
-            //}
+            appState.competitionManager.deleteRealtimeViewLocationSubscription()
         }
     }
     

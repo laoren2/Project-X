@@ -23,9 +23,15 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     @Published var isTodaySigned: Bool = false
     @Published var signedInDays: [Bool] = Array(repeating: false, count: 7)
+    
     // 订阅位置更新及授权
     private var locationCancellable: AnyCancellable?
     private var authorizationCancellable: AnyCancellable?
+    
+    // 上一次位置更新时记录的位置，用于截流
+    private var lastLocation: CLLocation?
+    // 上一次位置更新时记录的时间，用于截流
+    private var lastLocationUpdateTime: Date?
     
     private var shouldUseAutoLocation = true // 是否使用自动定位
     private var currentPage = 0 // 当前排行榜分页页码
@@ -141,7 +147,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func fetchLeaderboard(for trackIndex: Int, gender: String, reset: Bool = false) {
         // 确保有选中的赛事和赛道
-        print("count+: \(leaderboardFetchCount)")
+        //print("count+: \(leaderboardFetchCount)")
         guard !events.isEmpty && selectedEventIndex < events.count else {
             print("没有可用的赛事数据")
             // 清空排行榜数据
@@ -206,7 +212,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             
             DispatchQueue.main.async {
                 self.leaderboardFetchCount -= 1
-                print("count-: \(self.leaderboardFetchCount)")
+                //print("count-: \(self.leaderboardFetchCount)")
                 if self.leaderboardFetchCount == 0 {
                     self.leaderboardEntries.append(contentsOf: newEntries)
                     self.currentPage += 1
@@ -238,6 +244,17 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func fetchCityName(from location: CLLocation) {
+        // 位置截流
+        if let lastLocation = lastLocation, location.distance(from: lastLocation) < 100 {
+            return
+        }
+        // 时间截流
+        if let lastLocationUpdateTime = lastLocationUpdateTime, Date().timeIntervalSince(lastLocationUpdateTime) < 2 {
+            return
+        }
+        lastLocation = location
+        lastLocationUpdateTime = Date()
+        
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] (placemarks, error) in
             guard let self = self else { return }
