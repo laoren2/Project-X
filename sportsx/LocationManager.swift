@@ -2,7 +2,11 @@
 //  LocationManager.swift
 //  sportsx
 //
-//  全局单例+Combine模式管理Location的更新，不同场景 -> 不同更新策略
+//  全局单例 + Combine 模式管理Location的更新，不同场景 -> 不同更新策略
+//
+//  可能存在订阅/取消订阅失败的情况，例如频繁快速订阅/取消订阅
+//  场景之一是在某些容器视图（例如scrollview）内子视图appear和disappear时进行订阅和取消订阅，此时可能会频繁调用，
+//  可能导致出现增加无效的订阅，后期可以考虑使用全局锁来锁住订阅和取消订阅的全过程
 //
 //  Created by 任杰 on 2024/12/6.
 //
@@ -31,6 +35,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var subscribersCount = 0
     private let subscribersCountLock = NSLock()
     
+    // 全局锁，防止可能存在某些未知特殊情况下的订阅/取消订阅失败
+    //let testLock = NSLock()
+    
     override private init() {
         // 初始化授权状态
         self.authorizationStatus = CLLocationManager().authorizationStatus
@@ -49,9 +56,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         return locationSubject
             .handleEvents(
                 receiveSubscription: { [weak self] _ in
+                    //print("receiveSubscription")
                     self?.incrementSubscribers()
                 },
                 receiveCancel: { [weak self] in
+                    //print("receiveCancel")
                     self?.decrementSubscribers()
                 }
             )
@@ -76,7 +85,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             startUpdatingLocationIfNeeded()
         }
         //print("incrementSubscribers - Thread: \(Thread.current)")
-        //print("count: ",count)
+        //print("+count: ",count)
     }
     
     private func decrementSubscribers() {
@@ -90,7 +99,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             stopUpdatingLocation()
         }
         //print("decrementSubscribers - Thread: \(Thread.current)")
-        //print("count: ",count)
+        //print("-count: ",count)
     }
     
     func startUpdatingLocationIfNeeded() {
@@ -128,35 +137,38 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.requestAlwaysAuthorization()
     }
     
-    func enterHomeView() {
+    func changeToLowUpdate() {
+        //print("LowUpdate")
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
         locationManager.distanceFilter = kCLLocationAccuracyKilometer
         locationManager.pausesLocationUpdatesAutomatically = true
         locationManager.allowsBackgroundLocationUpdates = false
     }
     
-    func saveHomeViewToLast() {
+    func saveLowToLast() {
         lastDesiredAccuracy = kCLLocationAccuracyKilometer
         lastDistanceFilter = kCLLocationAccuracyKilometer
         lastPausesLocationUpdatesAutomatically = true
         lastAllowsBackgroundLocationUpdates = false
     }
     
-    func enterCompetionSelectView() {
+    func changeToMediumUpdate() {
+        //print("MediumUpdate")
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.allowsBackgroundLocationUpdates = false
         locationManager.pausesLocationUpdatesAutomatically = true
     }
     
-    func saveCompetionSelectViewToLast() {
+    func saveMediumToLast() {
         lastDesiredAccuracy = kCLLocationAccuracyBest
         lastDistanceFilter = kCLDistanceFilterNone
         lastPausesLocationUpdatesAutomatically = true
         lastAllowsBackgroundLocationUpdates = false
     }
     
-    func startCompetition() {
+    func changeToHighUpdate() {
+        //print("HighUpdate")
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.allowsBackgroundLocationUpdates = true

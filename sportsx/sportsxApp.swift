@@ -47,8 +47,8 @@ struct sportsxApp: App {
         WindowGroup {
             NaviView()
                 .environmentObject(appState)
-            //test()
-            //    .environmentObject(nm)
+            //TestView()
+            //    .environmentObject(appState)
             //CompetitionView()
         }
     }

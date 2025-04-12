@@ -102,9 +102,9 @@ struct HomeView: View {
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
         .onAppear() {
-            LocationManager.shared.saveHomeViewToLast()
+            LocationManager.shared.saveLowToLast()
             if !appState.competitionManager.isRecording {
-                LocationManager.shared.enterHomeView()
+                LocationManager.shared.changeToLowUpdate()
             }
             viewModel.setupLocationSubscription()
             

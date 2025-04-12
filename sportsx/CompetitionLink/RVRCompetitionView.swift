@@ -27,457 +27,459 @@ struct RVRCompetitionView: View {
     
     
     var body: some View {
-        VStack(spacing: 0) {
-            // 位置和货币区域
-            HStack() {
-                Image(systemName: "location.fill")
-                    .padding(.leading, 20)
-                Text(viewModel.cityName)
-                Spacer()
-                Text("X点券:\(currencyManager.coinA)")
-                Text("X币:\(currencyManager.coinB)")
-                    .padding(.trailing, 20)
-            }
-            
-            // 赛事选择区域
-            HStack {
-                // 添加1个按钮管理我的队伍
-                Button(action: {
-                    appState.navigationManager.path.append("teamManagementView")
-                }) {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 18))
-                        .foregroundColor(.blue)
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(Color.gray.opacity(0.1))
-                        )
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                // 位置和货币区域
+                HStack() {
+                    Image(systemName: "location.fill")
+                        .padding(.leading, 20)
+                    Text(viewModel.cityName)
+                    Spacer()
+                    Text("X点券:\(currencyManager.coinA)")
+                    Text("X币:\(currencyManager.coinB)")
+                        .padding(.trailing, 20)
                 }
-                .padding(.leading, 5)
-                .buttonStyle(PlainButtonStyle())
                 
-                //Spacer()
-                
-                if !viewModel.events.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(viewModel.events) { event in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(event.name)
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.primary)
-                                        .fontWeight(.semibold)
-                                    
-                                    Text(event.description)
-                                        .font(.caption)
-                                        .foregroundStyle(Color.secondary)
-                                        .lineLimit(1)
-                                }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(viewModel.selectedEventIndex == event.eventIndex ?
-                                              Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(viewModel.selectedEventIndex == event.eventIndex ?
-                                                Color.blue : Color.clear, lineWidth: 1)
-                                )
-                                .onTapGesture {
-                                    withAnimation {
-                                        viewModel.switchEvent(to: event.eventIndex)
+                // 赛事选择区域
+                HStack {
+                    // 添加1个按钮管理我的队伍
+                    Button(action: {
+                        appState.navigationManager.path.append("teamManagementView")
+                    }) {
+                        Image(systemName: "person.2")
+                            .font(.system(size: 18))
+                            .foregroundColor(.blue)
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.gray.opacity(0.1))
+                            )
+                    }
+                    .padding(.leading, 5)
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    //Spacer()
+                    
+                    if !viewModel.events.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(viewModel.events) { event in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(event.name)
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.primary)
+                                            .fontWeight(.semibold)
+                                        
+                                        Text(event.description)
+                                            .font(.caption)
+                                            .foregroundStyle(Color.secondary)
+                                            .lineLimit(1)
+                                    }
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(viewModel.selectedEventIndex == event.eventIndex ?
+                                                  Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(viewModel.selectedEventIndex == event.eventIndex ?
+                                                    Color.blue : Color.clear, lineWidth: 1)
+                                    )
+                                    .onTapGesture {
+                                        withAnimation {
+                                            viewModel.switchEvent(to: event.eventIndex)
+                                        }
                                     }
                                 }
+                            }
+                            .padding(.horizontal)
+                        }
+                        //.padding(.leading, 10)
+                    } else {
+                        Spacer()
+                        Text("暂无赛事")
+                            .foregroundColor(.secondary)
+                        //.padding(.horizontal)
+                        Spacer()
+                    }
+                    
+                    //Spacer()
+                    // 添加1个按钮管理我的赛事
+                    Button(action: {
+                        appState.navigationManager.path.append("recordManagementView")
+                    }) {
+                        Image(systemName: "list.bullet.clipboard")
+                            .font(.system(size: 20))
+                            .foregroundColor(.blue)
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.gray.opacity(0.1))
+                            )
+                    }
+                    .padding(.trailing, 10)
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(.top, 20)
+                
+                // 使用安全检查显示地图
+                if let track = viewModel.currentTrack {
+                    Map(interactionModes: []) {
+                        Annotation("From", coordinate: track.from) {
+                            Image(systemName: "location.fill")
+                                .padding(5)
+                        }
+                        Annotation("To", coordinate: track.to) {
+                            Image(systemName: "location.fill")
+                                .padding(5)
+                        }
+                    }
+                    .frame(height: 200)
+                    .padding(10)
+                    .shadow(radius: 2)
+                } else {
+                    // 当没有可用赛道时显示占位视图
+                    VStack {
+                        Text(AttributedString("无法获取赛道数据\n1.请检查 首页-广场 中的定位信息\n2.请检查应用是否取得定位权限"))
+                            .foregroundColor(.secondary)
+                        Image(systemName: "map")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                            .opacity(0.5)
+                    }
+                    .frame(height: 200)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray.opacity(0.1))
+                    .padding(10)
+                }
+                
+                // 赛道选择
+                if viewModel.tracks.isEmpty {
+                    Text("暂无可用赛道")
+                        .foregroundColor(.secondary)
+                        .padding()
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 15) {
+                            ForEach(viewModel.tracks) {track in
+                                Text(track.name)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 20)
+                                    .background(viewModel.selectedTrackIndex == track.trackIndex ? Color.blue : Color.gray)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                    .onTapGesture {
+                                        withAnimation {
+                                            viewModel.selectedTrackIndex = track.trackIndex
+                                        }
+                                    }
                             }
                         }
                         .padding(.horizontal)
                     }
-                    //.padding(.leading, 10)
-                } else {
-                    Spacer()
-                    Text("暂无赛事")
-                        .foregroundColor(.secondary)
-                    //.padding(.horizontal)
-                    Spacer()
                 }
                 
-                //Spacer()
-                // 添加1个按钮管理我的赛事
-                Button(action: {
-                    appState.navigationManager.path.append("recordManagementView")
-                }) {
-                    Image(systemName: "list.bullet.clipboard")
-                        .font(.system(size: 20))
-                        .foregroundColor(.blue)
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(Color.gray.opacity(0.1))
-                        )
-                }
-                .padding(.trailing, 10)
-                .buttonStyle(PlainButtonStyle())
-            }
-            .padding(.top, 20)
-            
-            // 使用安全检查显示地图
-            if let track = viewModel.currentTrack {
-                Map(interactionModes: []) {
-                    Annotation("From", coordinate: track.from) {
-                        Image(systemName: "location.fill")
-                            .padding(5)
-                    }
-                    Annotation("To", coordinate: track.to) {
-                        Image(systemName: "location.fill")
-                            .padding(5)
-                    }
-                }
-                .frame(height: 200)
-                .padding(10)
-                .shadow(radius: 2)
-            } else {
-                // 当没有可用赛道时显示占位视图
-                VStack {
-                    Text(AttributedString("无法获取赛道数据\n1.请检查 首页-广场 中的定位信息\n2.请检查应用是否取得定位权限"))
-                        .foregroundColor(.secondary)
-                    Image(systemName: "map")
-                        .font(.system(size: 50))
-                        .foregroundColor(.gray)
-                        .opacity(0.5)
-                }
-                .frame(height: 200)
-                .frame(maxWidth: .infinity)
-                .background(Color.gray.opacity(0.1))
-                .padding(10)
-            }
-            
-            // 赛道选择
-            if viewModel.tracks.isEmpty {
-                Text("暂无可用赛道")
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 15) {
-                        ForEach(viewModel.tracks) {track in
-                            Text(track.name)
-                                .padding(.vertical, 10)
-                                .padding(.horizontal, 20)
-                                .background(viewModel.selectedTrackIndex == track.trackIndex ? Color.blue : Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                                .onTapGesture {
-                                    withAnimation {
-                                        viewModel.selectedTrackIndex = track.trackIndex
-                                    }
+                // 添加赛道信息
+                if let track = viewModel.currentTrack {
+                    VStack(alignment: .leading, spacing: 12) {
+                        // 赛道卡片
+                        VStack(alignment: .leading, spacing: 10) {
+                            // 赛道标题
+                            HStack {
+                                Text(track.name)
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .lineLimit(1)
+                                
+                                Spacer()
+                                
+                                // 参与人数信息
+                                HStack(spacing: 5) {
+                                    Image(systemName: "person.2")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.gray)
+                                    //.frame(width: 24, height: 24, alignment: .center)
+                                    Text("总参与人数: \(track.totalParticipants > 0 ? "\(track.totalParticipants)" : "未知")")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                        .lineLimit(1)
                                 }
+                            }
+                            
+                            Divider()
+                            
+                            // 赛道详细信息 - 使用LazyVGrid布局
+                            LazyVGrid(columns: [
+                                GridItem(.flexible(), spacing: 16),
+                                GridItem(.flexible(), spacing: 16)
+                            ], alignment: .leading, spacing: 12) {
+                                // 海拔差
+                                InfoItemView(
+                                    iconName: "arrow.up.arrow.down",
+                                    iconColor: .blue,
+                                    text: "海拔差: \(track.elevationDifference > 0 ? "\(track.elevationDifference)米" : "未知")"
+                                )
+                                
+                                // 奖金池
+                                InfoItemView(
+                                    iconName: "dollarsign.circle",
+                                    iconColor: .orange,
+                                    text: "奖金池: \(track.prizePool > 0 ? "\(track.prizePool)" : "未知")"
+                                )
+                                
+                                // 地理区域
+                                InfoItemView(
+                                    iconName: "map",
+                                    iconColor: .green,
+                                    text: "覆盖区域: \(track.regionName.isEmpty ? "未知" : track.regionName)"
+                                )
+                                
+                                // 当前参与人数
+                                InfoItemView(
+                                    iconName: "person.2",
+                                    iconColor: .purple,
+                                    text: "当前参与: \(track.currentParticipants > 0 ? "\(track.currentParticipants)人" : "未知")"
+                                )
+                            }
+                            .padding(.vertical, 6)
+                            
+                            Divider()
+                            
+                            // 按钮区
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    // 创建队伍逻辑
+                                    viewModel.createTeam()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "person.badge.plus")
+                                        Text("创建队伍")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                .sheet(isPresented: $viewModel.showCreateTeamSheet) {
+                                    TeamCreateView(viewModel: viewModel)
+                                }
+                                
+                                Button(action: {
+                                    // 加入队伍逻辑
+                                    viewModel.showJoinTeamSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "person.3")
+                                        Text("加入队伍")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                .sheet(isPresented: $viewModel.showJoinTeamSheet) {
+                                    TeamJoinView(viewModel: viewModel)
+                                }
+                            }
                         }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                        )
                     }
                     .padding(.horizontal)
+                    .padding(.top, 10)
                 }
-            }
-            
-            // 添加赛道信息
-            if let track = viewModel.currentTrack {
-                VStack(alignment: .leading, spacing: 12) {
-                    // 赛道卡片
-                    VStack(alignment: .leading, spacing: 10) {
-                        // 赛道标题
-                        HStack {
-                            Text(track.name)
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .lineLimit(1)
-                            
-                            Spacer()
-                            
-                            // 参与人数信息
-                            HStack(spacing: 5) {
-                                Image(systemName: "person.2")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.gray)
-                                //.frame(width: 24, height: 24, alignment: .center)
-                                Text("总参与人数: \(track.totalParticipants > 0 ? "\(track.totalParticipants)" : "未知")")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                                    .lineLimit(1)
-                            }
-                        }
+                
+                // 报名按钮区域
+                VStack {
+                    HStack(spacing: 20) {
+                        Spacer()
                         
-                        Divider()
-                        
-                        // 赛道详细信息 - 使用LazyVGrid布局
-                        LazyVGrid(columns: [
-                            GridItem(.flexible(), spacing: 16),
-                            GridItem(.flexible(), spacing: 16)
-                        ], alignment: .leading, spacing: 12) {
-                            // 海拔差
-                            InfoItemView(
-                                iconName: "arrow.up.arrow.down",
-                                iconColor: .blue,
-                                text: "海拔差: \(track.elevationDifference > 0 ? "\(track.elevationDifference)米" : "未知")"
-                            )
-                            
-                            // 奖金池
-                            InfoItemView(
-                                iconName: "dollarsign.circle",
-                                iconColor: .orange,
-                                text: "奖金池: \(track.prizePool > 0 ? "\(track.prizePool)" : "未知")"
-                            )
-                            
-                            // 地理区域
-                            InfoItemView(
-                                iconName: "map",
-                                iconColor: .green,
-                                text: "覆盖区域: \(track.regionName.isEmpty ? "未知" : track.regionName)"
-                            )
-                            
-                            // 当前参与人数
-                            InfoItemView(
-                                iconName: "person.2",
-                                iconColor: .purple,
-                                text: "当前参与: \(track.currentParticipants > 0 ? "\(track.currentParticipants)人" : "未知")"
-                            )
-                        }
-                        .padding(.vertical, 6)
-                        
-                        Divider()
-                        
-                        // 按钮区
-                        HStack(spacing: 12) {
-                            Button(action: {
-                                // 创建队伍逻辑
-                                viewModel.createTeam()
-                            }) {
-                                HStack {
-                                    Image(systemName: "person.badge.plus")
-                                    Text("创建队伍")
+                        // 单人按钮
+                        Button(action: {
+                            if let track = viewModel.currentTrack {
+                                // 检查是否有足够的货币
+                                if currencyManager.consume(currency: "coinB", amount: track.fee) {
+                                    singleRegister()
+                                } else {
+                                    // 货币不足提示
+                                    viewModel.alertMessage = "货币不足，无法报名"
+                                    viewModel.showAlert = true
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
                             }
-                            .sheet(isPresented: $viewModel.showCreateTeamSheet) {
-                                TeamCreateView(viewModel: viewModel)
-                            }
-                            
-                            Button(action: {
-                                // 加入队伍逻辑
-                                viewModel.showJoinTeamSheet = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "person.3")
-                                    Text("加入队伍")
+                        }) {
+                            ZStack {
+                                let overlay = appState.competitionManager.isRecording && (!(appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? true))
+                                let gray = appState.competitionManager.isRecording && (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false)
+                                // 按钮容器
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(gray ? .gray.opacity(0.5) : .yellow.opacity(0.5))
+                                    .frame(width: 120, height: 80)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(gray ? .gray.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 1.5)
+                                    )
+                                    .shadow(color: Color.yellow.opacity(0.1), radius: 3, x: 0, y: 2)
+                                
+                                // 按钮文字
+                                VStack(alignment: .center, spacing: 6) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "person")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("报名")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                    }
+                                    .padding(.bottom, 2)
+                                    
+                                    Text("单人")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
-                            .sheet(isPresented: $viewModel.showJoinTeamSheet) {
-                                TeamJoinView(viewModel: viewModel)
+                                
+                                // 禁用状态蒙版
+                                if overlay {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.green.opacity(0.5))
+                                            .frame(width: 120, height: 80)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color.green.opacity(0.8), lineWidth: 1.5)
+                                            )
+                                        
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "figure.run")
+                                                .font(.system(size: 20))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("比赛进行中")
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                }
                             }
                         }
+                        .disabled(appState.competitionManager.isRecording)
+                        .alert(isPresented: $viewModel.showAlert) {
+                            Alert(
+                                title: Text("报名成功"),
+                                message: Text("单人模式"),
+                                primaryButton: .default(Text("稍后开始")) {
+                                    //viewModel.showAlert = false
+                                },
+                                secondaryButton: .default(Text("立即开始")) {
+                                    if viewModel.currentTrack != nil, !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
+                                        appState.competitionManager.resetCompetitionRecord(record: record)
+                                        appState.navigationManager.path.append("competitionCardSelectView")
+                                        viewModel.currentRecord = nil
+                                    }
+                                }
+                            )
+                        }
+                        
+                        Spacer()
+                        
+                        // 组队按钮
+                        Button(action: {
+                            if viewModel.currentTrack != nil {
+                                viewModel.showTeamCodeSheet = true
+                            } else {
+                                print("请选择一条赛道")
+                            }
+                        }) {
+                            ZStack {
+                                let gray = appState.competitionManager.isRecording && (!(appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? true))
+                                let overlay = appState.competitionManager.isRecording && (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false)
+                                // 按钮容器
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(gray ? .gray.opacity(0.5) : .orange.opacity(0.5))
+                                    .frame(width: 120, height: 80)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(gray ? .gray.opacity(0.8) : Color.orange.opacity(0.8), lineWidth: 1.5)
+                                    )
+                                    .shadow(color: Color.orange.opacity(0.1), radius: 3, x: 0, y: 2)
+                                
+                                // 按钮文字
+                                VStack(alignment: .center, spacing: 6) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "person.3")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.primary)
+                                        
+                                        Text("报名")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                    }
+                                    .padding(.bottom, 2)
+                                    
+                                    Text("组队")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                // 禁用状态蒙版
+                                if overlay {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color.green.opacity(0.5))
+                                            .frame(width: 120, height: 80)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color.green.opacity(0.8), lineWidth: 1.5)
+                                            )
+                                        
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "figure.run")
+                                                .font(.system(size: 20))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("比赛进行中")
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .disabled(appState.competitionManager.isRecording)
+                        .sheet(isPresented: $viewModel.showTeamCodeSheet) {
+                            TeamCodeView(centerViewModel: centerViewModel, viewModel: viewModel)
+                                .presentationDetents([.fraction(0.4)])
+                                .interactiveDismissDisabled() // 防止点击过快导致弹窗高度错误
+                        }
+                        
+                        Spacer()
                     }
-                    .padding()
+                    .padding(.vertical, 15)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color(.systemBackground))
                             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
                     )
                 }
-                .padding(.horizontal)
-                .padding(.top, 10)
+                .padding()
+                
+                Spacer()
             }
-            
-            // 报名按钮区域
-            VStack {
-                HStack(spacing: 20) {
-                    Spacer()
-                    
-                    // 单人按钮
-                    Button(action: {
-                        if let track = viewModel.currentTrack {
-                            // 检查是否有足够的货币
-                            if currencyManager.consume(currency: "coinB", amount: track.fee) {
-                                singleRegister()
-                            } else {
-                                // 货币不足提示
-                                viewModel.alertMessage = "货币不足，无法报名"
-                                viewModel.showAlert = true
-                            }
-                        }
-                    }) {
-                        ZStack {
-                            let overlay = appState.competitionManager.isRecording && (!(appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? true))
-                            let gray = appState.competitionManager.isRecording && (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false)
-                            // 按钮容器
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(gray ? .gray.opacity(0.5) : .yellow.opacity(0.5))
-                                .frame(width: 120, height: 80)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(gray ? .gray.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 1.5)
-                                )
-                                .shadow(color: Color.yellow.opacity(0.1), radius: 3, x: 0, y: 2)
-                            
-                            // 按钮文字
-                            VStack(alignment: .center, spacing: 6) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "person")
-                                        .font(.system(size: 15))
-                                        .foregroundColor(.primary)
-                                    
-                                    Text("报名")
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                }
-                                .padding(.bottom, 2)
-                                
-                                Text("单人")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            // 禁用状态蒙版
-                            if overlay {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.green.opacity(0.5))
-                                        .frame(width: 120, height: 80)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.green.opacity(0.8), lineWidth: 1.5)
-                                        )
-                                    
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "figure.run")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(.white)
-                                        
-                                        Text("比赛进行中")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .disabled(appState.competitionManager.isRecording)
-                    .alert(isPresented: $viewModel.showAlert) {
-                        Alert(
-                            title: Text("报名成功"),
-                            message: Text("单人模式"),
-                            primaryButton: .default(Text("稍后开始")) {
-                                //viewModel.showAlert = false
-                            },
-                            secondaryButton: .default(Text("立即开始")) {
-                                if viewModel.currentTrack != nil, !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
-                                    appState.competitionManager.resetCompetitionRecord(record: record)
-                                    appState.navigationManager.path.append("competitionCardSelectView")
-                                    viewModel.currentRecord = nil
-                                }
-                            }
-                        )
-                    }
-                    
-                    Spacer()
-                    
-                    // 组队按钮
-                    Button(action: {
-                        if viewModel.currentTrack != nil {
-                            viewModel.showTeamCodeSheet = true
-                        } else {
-                            print("请选择一条赛道")
-                        }
-                    }) {
-                        ZStack {
-                            let gray = appState.competitionManager.isRecording && (!(appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? true))
-                            let overlay = appState.competitionManager.isRecording && (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false)
-                            // 按钮容器
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(gray ? .gray.opacity(0.5) : .orange.opacity(0.5))
-                                .frame(width: 120, height: 80)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(gray ? .gray.opacity(0.8) : Color.orange.opacity(0.8), lineWidth: 1.5)
-                                )
-                                .shadow(color: Color.orange.opacity(0.1), radius: 3, x: 0, y: 2)
-                            
-                            // 按钮文字
-                            VStack(alignment: .center, spacing: 6) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "person.3")
-                                        .font(.system(size: 15))
-                                        .foregroundColor(.primary)
-                                    
-                                    Text("报名")
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                }
-                                .padding(.bottom, 2)
-                                
-                                Text("组队")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            // 禁用状态蒙版
-                            if overlay {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.green.opacity(0.5))
-                                        .frame(width: 120, height: 80)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.green.opacity(0.8), lineWidth: 1.5)
-                                        )
-                                    
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "figure.run")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(.white)
-                                        
-                                        Text("比赛进行中")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .disabled(appState.competitionManager.isRecording)
-                    .sheet(isPresented: $viewModel.showTeamCodeSheet) {
-                        TeamCodeView(centerViewModel: centerViewModel, viewModel: viewModel)
-                            .presentationDetents([.fraction(0.4)])
-                            .interactiveDismissDisabled() // 防止点击过快导致弹窗高度错误
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.vertical, 15)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                )
-            }
-            .padding()
-            
-            Spacer()
         }
         .onAppear() {
-            LocationManager.shared.saveHomeViewToLast()
+            LocationManager.shared.saveLowToLast()
             if !appState.competitionManager.isRecording {
-                LocationManager.shared.enterHomeView()
+                LocationManager.shared.changeToLowUpdate()
             }
             viewModel.setupLocationSubscription()
             

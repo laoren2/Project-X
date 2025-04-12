@@ -64,9 +64,15 @@ class RVRCompetitionViewModel: ObservableObject {
     var currentRecord: CompetitionRecord?
     
     @Published var cityName: String = "未知"
+    
     // 订阅位置更新
     private var locationCancellable: AnyCancellable?
     let competitionManager = CompetitionManager.shared
+    
+    // 上一次位置更新时记录的位置，用于截流
+    private var lastLocation: CLLocation?
+    // 上一次位置更新时记录的时间，用于截流
+    private var lastLocationUpdateTime: Date?
     
     @Published var selectedTrackIndex: Int = 0
     @Published var selectedEventIndex: Int = 0 // 当前选择的赛事索引
@@ -122,6 +128,17 @@ class RVRCompetitionViewModel: ObservableObject {
     }
     
     func fetchCityName(from location: CLLocation) {
+        // 位置截流
+        if let lastLocation = lastLocation, location.distance(from: lastLocation) < 100 {
+            return
+        }
+        // 时间截流
+        if let lastLocationUpdateTime = lastLocationUpdateTime, Date().timeIntervalSince(lastLocationUpdateTime) < 2 {
+            return
+        }
+        lastLocation = location
+        lastLocationUpdateTime = Date()
+        
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] (placemarks, error) in
             guard let self = self else { return }

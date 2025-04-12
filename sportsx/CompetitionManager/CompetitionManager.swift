@@ -152,7 +152,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     // 设置 Combine 订阅
-    func setupSelectedViewLocationSubscription() {
+    func setupRealtimeViewLocationSubscription() {
         // 订阅位置更新
         locationSelectedViewCancellable = LocationManager.shared.locationPublisher()
             .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理数据发送
@@ -162,11 +162,11 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
     }
     
-    func deleteSelectedViewLocationSubscription() {
+    func deleteRealtimeViewLocationSubscription() {
         locationSelectedViewCancellable?.cancel()
     }
     
-    func setupDetailViewLocationSubscription() {
+    func setupCompetitionLocationSubscription() {
         // 订阅位置更新
         locationDetailViewCancellable = LocationManager.shared.locationPublisher()
             .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理订阅成功后的逻辑
@@ -176,7 +176,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
     }
     
-    func deleteDetailViewLocationSubscription() {
+    func deleteCompetitionLocationSubscription() {
         locationDetailViewCancellable?.cancel()
     }
     
@@ -456,7 +456,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         modelRemainingSamples.removeAll()
         
         // Stop location updates
-        deleteDetailViewLocationSubscription()
+        deleteCompetitionLocationSubscription()
         LocationManager.shared.backToLastSet()
         //locationManager.stopUpdatingHeading()
         motionManager.stopAccelerometerUpdates()
@@ -515,9 +515,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // Start location updates
-        LocationManager.shared.startCompetition()
-        setupDetailViewLocationSubscription()
-        deleteSelectedViewLocationSubscription()
+        LocationManager.shared.changeToHighUpdate()
+        setupCompetitionLocationSubscription()
+        deleteRealtimeViewLocationSubscription()
 
         // Start accelerometer/gyro/magnet updates
         motionManager.startAccelerometerUpdates()

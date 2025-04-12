@@ -79,9 +79,7 @@ struct SportCenterView: View {
                 if selectedMode == 0 {
                     RVRTrainingView(viewModel: RVRTrainingViewModel())
                 } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        RVRCompetitionView(viewModel: RVRCompetitionViewModel(), centerViewModel: viewModel)
-                    }
+                    RVRCompetitionView(viewModel: RVRCompetitionViewModel(), centerViewModel: viewModel)
                 }
             }
             //Spacer()
