@@ -372,13 +372,11 @@ struct RVRCompetitionView: View {
                             }
                         }
                         .disabled(appState.competitionManager.isRecording)
-                        .alert(isPresented: $viewModel.showAlert) {
+                        .alert(isPresented: $viewModel.showSingleRegisterAlert) {
                             Alert(
                                 title: Text("报名成功"),
                                 message: Text("单人模式"),
-                                primaryButton: .default(Text("稍后开始")) {
-                                    //viewModel.showAlert = false
-                                },
+                                primaryButton: .default(Text("稍后开始")),
                                 secondaryButton: .default(Text("立即开始")) {
                                     if viewModel.currentTrack != nil, !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
                                         appState.competitionManager.resetCompetitionRecord(record: record)
@@ -504,7 +502,7 @@ struct RVRCompetitionView: View {
             }
             viewModel.currentRecord = record
         }
-        viewModel.showAlert = true
+        viewModel.showSingleRegisterAlert = true
     }
 }
 
@@ -568,11 +566,11 @@ struct TeamCodeView: View {
                                 handleRegister()
                             } else {
                                 viewModel.alertMessage = "货币不足，无法报名"
-                                viewModel.showSuccessAlert = false
+                                viewModel.teamRegisterSuccessAlert = false
                                 viewModel.showAlert = true
                             }
                         } else {
-                            viewModel.showSuccessAlert = false
+                            viewModel.teamRegisterSuccessAlert = false
                             viewModel.showAlert = true
                         }
                     }
@@ -598,7 +596,7 @@ struct TeamCodeView: View {
                 }
             )
             .alert(isPresented: $viewModel.showAlert) {
-                if viewModel.showSuccessAlert {
+                if viewModel.teamRegisterSuccessAlert {
                     return Alert(
                         title: Text("报名成功"),
                         message: Text("组队模式"),
@@ -675,7 +673,7 @@ struct TeamCodeView: View {
         }
         
         // 显示成功提示框
-        viewModel.showSuccessAlert = true
+        viewModel.teamRegisterSuccessAlert = true
         viewModel.showAlert = true
     }
 }

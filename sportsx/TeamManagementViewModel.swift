@@ -180,7 +180,8 @@ class TeamManagementViewModel: ObservableObject {
     
     // 提示信息
     @Published var showAlert = false
-    @Published var alertMessage = ""
+    @Published var showCardAlert = false    // 控制teamManageCard弹出的alert
+    var alertMessage = ""
     
     // 当前选择的Tab
     @Published var selectedTab = 0

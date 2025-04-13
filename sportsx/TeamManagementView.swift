@@ -367,7 +367,7 @@ struct TeamManageCard: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-        .alert(isPresented: $viewModel.showAlert) {
+        .alert(isPresented: $viewModel.showCardAlert) {
             Alert(
                 title: Text("提示"),
                 message: Text(viewModel.alertMessage),
@@ -396,7 +396,7 @@ struct TeamManageCard: View {
     func exitTeam() {
         if let me = team.members.firstIndex(where: { $0.userID == user.user?.userID }), team.members[me].isRegistered {
             viewModel.alertMessage = "请先取消报名再退出队伍"
-            viewModel.showAlert = true
+            viewModel.showCardAlert = true
             return
         }
         
@@ -419,7 +419,7 @@ struct TeamManageCard: View {
     func disbandTeam() {
         if let me = team.members.firstIndex(where: { $0.userID == user.user?.userID }), team.members[me].isRegistered {
             viewModel.alertMessage = "请先取消报名再解散队伍"
-            viewModel.showAlert = true
+            viewModel.showCardAlert = true
             return
         }
         

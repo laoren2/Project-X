@@ -56,9 +56,10 @@ class RVRCompetitionViewModel: ObservableObject {
     @Published var teamCode: String = ""
     
     // alert信息
-    @Published var showAlert = false
-    @Published var alertMessage = ""
-    @Published var showSuccessAlert: Bool = false
+    @Published var showAlert = false    // 控制各子页面、弹窗内的alert
+    @Published var showSingleRegisterAlert = false  // 控制主页面的alert
+    var alertMessage = ""
+    var teamRegisterSuccessAlert: Bool = false  // 组队报名失败和成功的alert格式不一致
     
     // 当前最近报名的record
     var currentRecord: CompetitionRecord?
