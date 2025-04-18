@@ -44,7 +44,7 @@ struct RVRCompetitionView: View {
                 HStack {
                     // 添加1个按钮管理我的队伍
                     Button(action: {
-                        appState.navigationManager.path.append("teamManagementView")
+                        appState.navigationManager.path.append(.teamManagementView)
                     }) {
                         Image(systemName: "person.2")
                             .font(.system(size: 18))
@@ -108,7 +108,7 @@ struct RVRCompetitionView: View {
                     //Spacer()
                     // 添加1个按钮管理我的赛事
                     Button(action: {
-                        appState.navigationManager.path.append("recordManagementView")
+                        appState.navigationManager.path.append(.recordManagementView)
                     }) {
                         Image(systemName: "list.bullet.clipboard")
                             .font(.system(size: 20))
@@ -380,7 +380,7 @@ struct RVRCompetitionView: View {
                                 secondaryButton: .default(Text("立即开始")) {
                                     if viewModel.currentTrack != nil, !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
                                         appState.competitionManager.resetCompetitionRecord(record: record)
-                                        appState.navigationManager.path.append("competitionCardSelectView")
+                                        appState.navigationManager.path.append(.competitionCardSelectView)
                                         viewModel.currentRecord = nil
                                     }
                                 }
@@ -602,7 +602,7 @@ struct TeamCodeView: View {
                         message: Text("组队模式"),
                         primaryButton: .default(Text("去看看")) {
                             viewModel.showTeamCodeSheet = false
-                            appState.navigationManager.path.append("recordManagementView")
+                            appState.navigationManager.path.append(.recordManagementView)
                         },
                         secondaryButton: .default(Text("确定")) {
                             viewModel.showTeamCodeSheet = false

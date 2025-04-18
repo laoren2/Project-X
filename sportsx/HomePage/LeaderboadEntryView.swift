@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LeaderboardEntryView: View {
+    @EnvironmentObject var appState: AppState
     var entry: LeaderboardEntry
 
     var body: some View {
@@ -31,6 +32,9 @@ struct LeaderboardEntryView: View {
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.blue, lineWidth: 2))
                         .padding(.leading, 5)
+                        .onTapGesture {
+                            appState.navigationManager.path.append(.userView(id: "123454321", needBack: true))
+                        }
                 }
             } else {
                 Circle()

@@ -177,7 +177,11 @@ struct CompetitionRealtimeView: View {
         if !appState.competitionManager.isRecording {
             appState.navigationManager.path.removeLast()
         } else {
-            let lastToRemove = max(1, appState.navigationManager.findIndex(des: "competitionCardSelectView"))
+            var indexToLast = 1
+            if let index = appState.navigationManager.path.firstIndex(where: { $0.string == "competitionCardSelectView" }) {
+                indexToLast = appState.navigationManager.path.count - index
+            }
+            let lastToRemove = max(1, indexToLast)
             appState.navigationManager.path.removeLast(lastToRemove)
         }
     }

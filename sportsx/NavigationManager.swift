@@ -8,41 +8,70 @@
 import Foundation
 import SwiftUI
 
+
+enum AppRoute: Hashable {
+    case competitionResultView
+    case competitionCardSelectView
+    case competitionRealtimeView
+    case sensorBindView
+    case skillView
+    case activityView
+    case recordManagementView
+    case teamManagementView
+    case userSetUpView
+    case instituteView
+    case userView(id: String, needBack: Bool)
+    
+    var string: String {
+        switch self {
+        case .competitionResultView: 
+            return "competitionResultView"
+        case .competitionCardSelectView: 
+            return "competitionCardSelectView"
+        case .competitionRealtimeView:
+            return "competitionRealtimeView"
+        case .sensorBindView:
+            return "sensorBindView"
+        case .skillView:
+            return "skillView"
+        case .activityView:
+            return "activityView"
+        case .recordManagementView:
+            return "recordManagementView"
+        case .teamManagementView:
+            return "teamManagementView"
+        case .userSetUpView:
+            return "userSetUpView"
+        case .instituteView:
+            return "instituteView"
+        case .userView:
+            return "userView"
+        }
+    }
+}
+
 class NavigationManager: ObservableObject {
     static let shared = NavigationManager()
     
-    @Published var path = NavigationPath()
+    // 处理所有页面的导航
+    @Published var path: [AppRoute] = []
+    
+    // 主页tab的导航
+    @Published var selectedTab: Tab = .home
     
     private init() {}
     
-    // 直接导航到目标页面
+    // 直接导航到path内目标页面（有重复页面则导航到第一个出现的页面）
     func NavigationTo(des: String) {
-        let cnt = findIndex(des: des) - 1
-        if cnt >= 0 {
-            path.removeLast(cnt)
-        } else {
-            print("Navigation failed")
-        }
-    }
-    
-    // 计算path中目标页面是倒数第几个
-    func findIndex(des: String) -> Int {
-        do {
-            // 编码 NavigationPath 为 JSON 数据
-            let data = try JSONEncoder().encode(path.codable)
-            
-            // 将 JSON 数据解码为数组
-            let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as! [String]
-            
-            // 查找 "B" 的索引
-            if let index = jsonObject.firstIndex(of: "\"\(des)\"") {
-                return (index + 1) / 2 // 返回与 "B" 相关的 "Swift.String" 的索引
+        if let index = path.firstIndex(where: { $0.string == des }) {
+            let cnt = path.count - index - 1
+            if cnt >= 0 {
+                path.removeLast(cnt)
             } else {
-                return -1
+                print("Navigation failed")
             }
-        } catch {
-            print("Error handling NavigationPath: \(error)")
-            return -1
+        } else {
+            print("Navigation des not found")
         }
     }
 }

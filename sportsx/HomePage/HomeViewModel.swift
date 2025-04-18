@@ -58,8 +58,8 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     // 功能组件数据
     let features = [
-        FeatureComponent(iconName: "star.fill", title: "技巧", destination: "skillView"),
-        FeatureComponent(iconName: "star.fill", title: "活动", destination: "activityView")
+        FeatureComponent(iconName: "star.fill", title: "技巧", destination: .skillView),
+        FeatureComponent(iconName: "star.fill", title: "活动", destination: .activityView)
         //FeatureComponent(iconName: "star.fill", title: "钱包2", destination: "navigateToWallet"),
         //FeatureComponent(iconName: "star.fill", title: "钱包3", destination: "navigateToWallet")
         //Feature(iconName: "star.fill", title: "功能5", destination: "navigateToWallet")
@@ -594,7 +594,7 @@ struct FeatureComponent: Identifiable {
     let id = UUID()
     let iconName: String
     let title: String
-    let destination: String
+    let destination: AppRoute
 }
 
 
