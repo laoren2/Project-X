@@ -33,6 +33,11 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     // 仅用于本地测试
     var competitionRecords: [CompetitionRecord] = []
+    
+    // 仅用于本地测试
+    var userTab1: [CompetitionRecord] = []
+    var userTab2: [CompetitionRecord] = []
+    
     // 仅用于本地测试
     @Published var myCreatedTeams: [Team] = []
     @Published var myJoinedTeams: [Team] = []
@@ -141,6 +146,26 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 本地测试
         availableTeams = generateDummyAvailableTeams(eventId: 0, trackId: 0)
         myJoinedTeams = generateDummyJoinedTeams()
+        let record = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+        let record2 = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+        let record3 = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+        let record4 = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+        let record5 = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+        let record6 = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+        let record7 = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
+
+        userTab1.append(record)
+        userTab1.append(record2)
+        userTab1.append(record3)
+        userTab1.append(record4)
+        userTab1.append(record5)
+        userTab1.append(record6)
+        userTab1.append(record7)
+        userTab2.append(record)
+        userTab2.append(record2)
+        userTab2.append(record3)
+        userTab2.append(record4)
+
         
         motionManager.accelerometerUpdateInterval = 0.05
         motionManager.gyroUpdateInterval = 0.05

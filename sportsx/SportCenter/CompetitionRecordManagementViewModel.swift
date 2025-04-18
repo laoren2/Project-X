@@ -71,7 +71,7 @@ class CompetitionRecordManagementViewModel: ObservableObject {
         }
         // 进入比赛链路
         competitionManager.resetCompetitionRecord(record: record)
-        navigationManager.path.append("competitionCardSelectView")
+        navigationManager.path.append(.competitionCardSelectView)
     }
     
     // 取消比赛报名

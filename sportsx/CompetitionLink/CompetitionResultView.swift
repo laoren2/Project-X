@@ -29,8 +29,14 @@ struct CompetitionResultView: View {
     }
     
     private func adjustNavigationPath() {
-        let cardSelectViewIndex = appState.navigationManager.findIndex(des: "competitionCardSelectView")
-        let realtimeViewIndex = appState.navigationManager.findIndex(des: "competitionRealtimeView")
+        var cardSelectViewIndex = 1
+        var realtimeViewIndex = 1
+        if let index = appState.navigationManager.path.firstIndex(where: { $0.string == "competitionCardSelectView" }) {
+            cardSelectViewIndex = appState.navigationManager.path.count - index
+        }
+        if let index = appState.navigationManager.path.firstIndex(where: { $0.string == "competitionRealtimeView" }) {
+            realtimeViewIndex = appState.navigationManager.path.count - index
+        }
         let lastToRemove = max(1, cardSelectViewIndex, realtimeViewIndex)
         appState.navigationManager.path.removeLast(lastToRemove)
     }

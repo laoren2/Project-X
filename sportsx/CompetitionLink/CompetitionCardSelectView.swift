@@ -100,7 +100,7 @@ struct CompetitionCardSelectView: View {
             .disabled(appState.competitionManager.isRecording)
             
             Button(action: {
-                appState.navigationManager.path.append("competitionRealtimeView")
+                appState.navigationManager.path.append(.competitionRealtimeView)
             }) {
                 Text("我准备好了")
                     .frame(minWidth: 180)

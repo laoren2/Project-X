@@ -10,9 +10,10 @@ import Combine
 
 class UserManager: ObservableObject {
     static let shared = UserManager() // 单例模式
-        
+    
     @Published var user: User? // 存储用户信息
     @Published var isLoggedIn: Bool = false
+    @Published var showingLogin: Bool = false
         
     private init() {}
         
@@ -69,12 +70,21 @@ struct User: Identifiable, Codable {
     var nickname: String
     var phoneNumber: String
     var avatarImageURL: String
+    var backgroundImageURL: String
     
-    init(id: UUID = UUID(), userID: String = "", nickname: String = "", phoneNumber: String, avatarImageURL: String = "") {
+    init(
+        id: UUID = UUID(),
+        userID: String = "未知",
+        nickname: String = "未知",
+        phoneNumber: String = "未知",
+        avatarImageURL: String = "未知",
+        backgroundImageURL: String = "未知"
+    ) {
         self.id = id
         self.userID = userID
         self.nickname = nickname
         self.phoneNumber = phoneNumber
         self.avatarImageURL = avatarImageURL
+        self.backgroundImageURL = backgroundImageURL
     }
 }

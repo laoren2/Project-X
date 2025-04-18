@@ -50,6 +50,30 @@ enum SportName: String, Identifiable, CaseIterable {
     }
 }
 
+enum Tab: Int, CaseIterable {
+    case home, shop, sportCenter, storeHouse, user
+
+    var title: String {
+        switch self {
+        case .home: return "首页"
+        case .shop: return "商店"
+        case .sportCenter: return "运动中心"
+        case .storeHouse: return "仓库"
+        case .user: return "我的"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .home: return "house"
+        case .shop: return "storefront"
+        case .sportCenter: return "sportscourt"
+        case .storeHouse: return "message"
+        case .user: return "person"
+        }
+    }
+}
+
 struct NaviView: View {
     var body: some View {
         RealNaviView()
@@ -64,120 +88,148 @@ struct NaviView: View {
 
 struct RealNaviView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject private var userManager = UserManager.shared
-    @State private var selectedTab = 0
-    @State private var showingLogin = false
+    @ObservedObject var user = UserManager.shared
     @State private var isAppLaunching = true // 用于区分冷启动和后台恢复
     
     var body: some View {
         NavigationStack(path: $appState.navigationManager.path) {
-            TabView(selection: $selectedTab) {
-                HomeView()
-                    .tabItem {
-                        Image(systemName: appState.sport.iconName)
-                        Text("首页")
-                    }
-                    .tag(0)
-                
-                MessageView(title: "消息")
-                    .tabItem {
-                        Image(systemName: "message")
-                        Text("消息")
-                    }
-                    .tag(1)
-                
-                SportCenterView()
-                    .tabItem {
-                        Image(systemName: "sportscourt")
-                        Text("运动中心")
-                    }
-                    .tag(2)
-                
-                ShopView(title: "商店")
-                    .tabItem {
-                        Image(systemName: "storefront")
-                        Text("商店")
-                    }
-                    .tag(3)
-                
-                UserView(showingLogin: $showingLogin)
-                    .tabItem {
-                        Image(systemName: "person")
-                        Text("我的")
-                    }
-                    .tag(4)
-            }
-            .fullScreenCover(isPresented: $showingLogin) {
-                LoginView(showingLogin: $showingLogin)
-            }
-            .onAppear {
-                // 从持久存储中读取登录状态/tab状态
-                // 可以在这里添加持久化逻辑，例如 UserDefaults
-                if !userManager.isLoggedIn {
-                    if let savedPhoneNumber = UserDefaults.standard.string(forKey: "savedPhoneNumber") {
-                        //print("read UserDefaults success")
-                        userManager.loginUser(phoneNumber: savedPhoneNumber)
-                    } else {
-                        print("read UserDefaults unsuccess")
-                        showingLogin = true
-                    }
+            ZStack(alignment: .bottom) {
+                TabView(selection: $appState.navigationManager.selectedTab) {
+                    HomeView()
+                        .tag(Tab.home)
+                    
+                    ShopView(title: "商店")
+                        .tag(Tab.shop)
+                    
+                    SportCenterView()
+                        .tag(Tab.sportCenter)
+                    
+                    MessageView(title: "仓库")
+                        .tag(Tab.storeHouse)
+                    
+                    UserView(viewModel: UserViewModel(id: user.user?.userID ?? "未知", needBack: false))
+                        .tag(Tab.user)
                 }
-                /*if isAppLaunching {
-                 // 如果是冷启动，设置为默认首页
-                 selectedTab = 0
-                 isAppLaunching = false
-                 print("冷启动")
-                 } else {
-                 // 如果是从后台恢复，读取上次选中的 tab
-                 selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
-                 print("后台恢复")
-                 }
-                 print("onAppear tab: ",selectedTab)*/
+                
+                CustomTabBar()
             }
-            .onChange(of: userManager.isLoggedIn) {
-                if userManager.isLoggedIn {
-                    // 模拟将登录状态保存到持久存储
-                    // 可以在这里添加你的持久化逻辑，例如 UserDefaults
-                    print("set Key: savedPhoneNumber Value: ",userManager.user?.phoneNumber ?? "nil")
-                    UserDefaults.standard.set(userManager.user?.phoneNumber, forKey: "savedPhoneNumber")
-                }
+            .ignoresSafeArea(edges: .bottom)
+            .fullScreenCover(isPresented: $user.showingLogin) {
+                LoginView(showingLogin: $user.showingLogin)
             }
             .onChange(of: appState.competitionManager.isRecording) {
                 if !appState.competitionManager.isRecording {
                     // 跳转比赛结果清算页面
-                    appState.navigationManager.path.append("competitionResultView")
+                    appState.navigationManager.path.append(.competitionResultView)
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 // 应用从后台恢复时，加载之前的 Tab 状态
-                selectedTab = UserDefaults.standard.integer(forKey: "SelectedTab")
-                print("后台恢复 Tab: ",selectedTab)
+                let rawValue = UserDefaults.standard.integer(forKey: "SelectedTab")
+                if let restoredTab = Tab(rawValue: rawValue) {
+                    appState.navigationManager.selectedTab = restoredTab
+                    print("后台恢复 Tab: ", restoredTab)
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
                 // 当应用进入后台时，保存当前选中的 Tab
-                UserDefaults.standard.set(selectedTab, forKey: "SelectedTab")
-                print("set key: SelectedTab value: ",selectedTab)
+                UserDefaults.standard.set(appState.navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
+                print("set key: SelectedTab value: ",appState.navigationManager.selectedTab)
             }
-            .navigationDestination(for: String.self) { value in
-                if value == "competitionResultView" {
+            .navigationDestination(for: AppRoute.self) { route in
+                switch route {
+                case .competitionResultView:
                     CompetitionResultView()
-                } else if value == "competitionCardSelectView" {
+                case .competitionCardSelectView:
                     CompetitionCardSelectView()
-                } else if value == "competitionRealtimeView" {
+                case .competitionRealtimeView:
                     CompetitionRealtimeView()
-                } else if value == "sensorBindView" {
+                case .sensorBindView:
                     SensorBindView()
-                } else if value == "skillView" {
+                case .skillView:
                     SportSkillView()
-                } else if value == "activityView" {
+                case .activityView:
                     ActivityView()
-                } else if value == "recordManagementView" {
+                case .recordManagementView:
                     CompetitionRecordManagementView()
-                } else if value == "teamManagementView" {
+                case .teamManagementView:
                     TeamManagementView()
+                case .userSetUpView:
+                    UserSetUpView()
+                case .instituteView:
+                    InstituteView()
+                case .userView(let id, let isNeedBack):
+                    UserView(viewModel: UserViewModel(id: id, needBack: isNeedBack))
                 }
             }
         }
+    }
+}
+
+struct CustomTabBar: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject private var userManager = UserManager.shared
+    
+
+    var body: some View {
+        HStack(alignment: .bottom) {
+            ForEach(Tab.allCases, id: \.self) { tab in
+                Spacer()
+                Button {
+                    if shouldAllowSwitch(to: tab) {
+                        appState.navigationManager.selectedTab = tab
+                    }
+                } label: {
+                    VStack {
+                        Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
+                            .font(.system(size: 22, weight: .regular))
+                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .black : .gray)
+                            .padding(.bottom, 1)
+                        
+                        Text(tab.title)
+                            .font(.caption)
+                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .black : .gray)
+                    }
+                    .padding(.vertical, 8)
+                }
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 5)
+        .padding(.bottom, 20)
+        .background(.white)
+        .onAppear {
+            // 从持久存储中读取登录状态/tab状态
+            // 可以在这里添加持久化逻辑，例如 UserDefaults
+            if !userManager.isLoggedIn {
+                if let savedPhoneNumber = UserDefaults.standard.string(forKey: "savedPhoneNumber") {
+                    //print("read UserDefaults success")
+                    userManager.loginUser(phoneNumber: savedPhoneNumber)
+                } else {
+                    print("read UserDefaults unsuccess")
+                    userManager.showingLogin = true
+                }
+            }
+        }
+        .onChange(of: userManager.isLoggedIn) {
+            if userManager.isLoggedIn {
+                // 模拟将登录状态保存到持久存储
+                // 可以在这里添加你的持久化逻辑，例如 UserDefaults
+                print("set Key: savedPhoneNumber Value: ",userManager.user?.phoneNumber ?? "nil")
+                UserDefaults.standard.set(userManager.user?.phoneNumber, forKey: "savedPhoneNumber")
+            }
+        }
+    }
+
+    func shouldAllowSwitch(to tab: Tab) -> Bool {
+        // 示例条件：如果切到“我的”，必须已登录
+        if !userManager.isLoggedIn {
+            print("未登录，禁止切换tab")
+            // 可弹出登录弹窗
+            userManager.showingLogin = true
+            return false
+        }
+        return true
     }
 }
 
@@ -198,6 +250,7 @@ struct MessageView: View {
 struct ShopView: View {
     @EnvironmentObject var appState: AppState
     let title: String
+    
     var body: some View {
         Text(title)
             .font(.largeTitle)

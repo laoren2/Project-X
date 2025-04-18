@@ -27,7 +27,7 @@ struct CompetitionWidget: View {
             .cornerRadius(10)
             .shadow(radius: 8)
             .onTapGesture {
-                appState.navigationManager.path.append("competitionRealtimeView") // 触发导航
+                appState.navigationManager.path.append(.competitionRealtimeView) // 触发导航
             }
             //.padding(.bottom, 100) // 调整与屏幕边缘的距离
             //.padding(.trailing, -200)

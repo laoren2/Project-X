@@ -10,7 +10,7 @@ import CoreLocation
 
 struct CompetitionRecordManagementView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject private var viewModel = CompetitionRecordManagementViewModel()
+    @StateObject var viewModel = CompetitionRecordManagementViewModel()
     
     
     var body: some View {
@@ -83,6 +83,7 @@ struct CompetitionRecordManagementView: View {
                                 .font(.headline)
                                 .foregroundColor(.gray)
                         }
+                        .border(.blue)
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.incompleteCompetitions) { competition in
@@ -97,9 +98,11 @@ struct CompetitionRecordManagementView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top)
+                        .border(.blue)
                     }
                 }
                 .tag(0)
+                //.border(.green)
                 
                 // 已完成列表
                 ScrollView {
@@ -130,6 +133,7 @@ struct CompetitionRecordManagementView: View {
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .ignoresSafeArea()
+            .border(.red)
         }
         .navigationBarHidden(true)
         .onAppear {
@@ -340,7 +344,7 @@ struct CompetitionRecordCard: View {
     let appState = AppState()
     
     // 添加一些测试数据
-    let record = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .completed)
+    let record = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)
     
     return CompetitionRecordManagementView()
         .environmentObject(appState)
