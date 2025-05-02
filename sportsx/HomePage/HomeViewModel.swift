@@ -37,7 +37,8 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var currentPage = 0 // 当前排行榜分页页码
     private var leaderboardFetchCount = 0 // 更新排行榜的引用计数，在频繁更新时显示加载状态
     
-    let competitionManager = CompetitionManager.shared
+    let appState = AppState.shared
+    //let competitionManager = CompetitionManager.shared
 
     var ads: [Ad] = [
         Ad(imageURL: "https://example.com/ad3.jpg"),
@@ -101,7 +102,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func handleLocationUpdate(_ location: CLLocation) {
         // 更新UI转到主线程上
         // 比赛开始后位置更新频率变高，停止位置更新回调
-        if !competitionManager.isRecording && shouldUseAutoLocation {
+        if !appState.competitionManager.isRecording && shouldUseAutoLocation {
             DispatchQueue.main.async {
                 self.fetchCityName(from: location)
                 print("homeView fetchCityName")
@@ -261,6 +262,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             if let placemark = placemarks?.first, let city = placemark.locality, !city.isEmpty, city != self.cityName {
                 print("\(city)--\(self.cityName)")
                 self.cityName = city
+                appState.config.location = city
                 // 城市变更后，获取该城市的赛事信息
                 self.fetchEventsByCity(city)
             }

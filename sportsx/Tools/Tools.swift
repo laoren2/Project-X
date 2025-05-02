@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import SwiftUI
 
 struct CoordinateConverter {
     
@@ -79,3 +80,47 @@ struct TimeDisplay {
     }
 }
 
+struct AgeDisplay {
+    static func calculateAge(from birthDateString: String) -> Int? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        guard let birthDate = dateFormatter.date(from: birthDateString) else {
+            return nil // 解析失败
+        }
+
+        let calendar = Calendar.current
+        let now = Date()
+        let ageComponents = calendar.dateComponents([.year], from: birthDate, to: now)
+        return ageComponents.year
+    }
+}
+
+struct ColorComputer {
+    static func averageColor(from image: UIImage) -> UIColor? {
+        guard let ciImage = CIImage(image: image) else { return nil }
+        let extent = ciImage.extent
+        let context = CIContext()
+        let filter = CIFilter(name: "CIAreaAverage", parameters: [
+            kCIInputImageKey: ciImage,
+            kCIInputExtentKey: CIVector(cgRect: extent)
+        ])!
+        
+        guard let outputImage = filter.outputImage else { return nil }
+        var bitmap = [UInt8](repeating: 0, count: 4)
+        context.render(outputImage,
+                       toBitmap: &bitmap,
+                       rowBytes: 4,
+                       bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+                       format: .RGBA8,
+                       colorSpace: CGColorSpaceCreateDeviceRGB())
+        
+        return UIColor(
+            red: CGFloat(bitmap[0]) / 255.0,
+            green: CGFloat(bitmap[1]) / 255.0,
+            blue: CGFloat(bitmap[2]) / 255.0,
+            alpha: 1.0
+        )
+    }
+}

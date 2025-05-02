@@ -45,6 +45,9 @@ struct AdsBannerView: View {
     @State var ads: [Ad]
     @State var currentIndex = 1
     @State var tempOffset: CGFloat = 0
+    var totalOffset: CGFloat {
+        return -CGFloat(self.currentIndex) * width + self.tempOffset
+    }
     @State private var cancellable: AnyCancellable? = nil
     
     @GestureState var dragOffset: CGFloat = 0
@@ -65,8 +68,7 @@ struct AdsBannerView: View {
                     .frame(width: width, height: height)
             }
             .frame(width: width, height: height, alignment: .leading)
-            .offset(x: -CGFloat(self.currentIndex) * width)
-            .offset(x: self.tempOffset)
+            .offset(x: totalOffset)
             .onChange(of: currentIndex) {
                 if currentIndex == ads.count + 1 {
                     currentIndex = 1
@@ -75,7 +77,6 @@ struct AdsBannerView: View {
                 }
             }
             // 拖动事件
-            // todo: 考虑拖动速度优化交互
             .gesture(
                 DragGesture()
                     .updating(self.$dragOffset, body: { value, state, transaction in
@@ -87,22 +88,25 @@ struct AdsBannerView: View {
                     })
                     .onEnded({ value in
                         let threshold = width * 0.25
-                        var newIndex = self.currentIndex
-                        var newTempOffset = width
-                        if value.translation.width < -threshold {
-                            newIndex += 1
-                            newTempOffset = -newTempOffset
-                        } else if value.translation.width > threshold {
-                            newIndex -= 1
+                        // 速度阈值，单位是点/秒
+                        let velocityThreshold: CGFloat = 200
+                        
+                        if value.translation.width < -threshold || value.velocity.width < -velocityThreshold {
+                            withAnimation {
+                                currentIndex += 1
+                                tempOffset = 0
+                            }
+                        } else if value.translation.width > threshold || value.velocity.width > velocityThreshold {
+                            withAnimation {
+                                currentIndex -= 1
+                                tempOffset = 0
+                            }
                         } else {
-                            newTempOffset = 0
+                            withAnimation {
+                                tempOffset = 0
+                            }
                         }
-                        withAnimation {
-                            tempOffset = newTempOffset
-                        }
-                        self.currentIndex = newIndex
-                        tempOffset = 0
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                             startAutoScroll()
                         }
                     })
@@ -113,6 +117,7 @@ struct AdsBannerView: View {
             .onDisappear {
                 stopAutoScroll()
             }
+            //.border(.red)
             
             // 分页指示器
             HStack(spacing: 8) {
@@ -162,4 +167,17 @@ struct AdsBannerView: View {
         cancellable?.cancel()
         cancellable = nil
     }
+}
+
+
+
+#Preview {
+    let appState = AppState.shared
+    let ads: [Ad] = [
+        Ad(imageURL: "qwe"),
+        Ad(imageURL: "qwe"),
+        Ad(imageURL: "qwe")
+    ]
+    return AdsBannerView(width: 300, height: 200, ads: ads)
+        .environmentObject(appState)
 }

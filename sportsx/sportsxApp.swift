@@ -9,13 +9,17 @@ import SwiftUI
 import Combine
 
 class AppState: ObservableObject {
+    static let shared = AppState()
+    
     @Published var sport: SportName = .Bike // 默认运动
     @Published var competitionManager = CompetitionManager.shared // 管理比赛进程
     @Published var navigationManager = NavigationManager.shared // 管理一级导航
     
+    let config = GlobalConfig.shared    // 全局配置
+    
     private var cancellables = Set<AnyCancellable>()
     
-    init() {
+    private init() {
         // 当 competitionManager 有变化时，让 AppState 也发出变化通知
         competitionManager.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
@@ -35,10 +39,16 @@ class AppStateTest: ObservableObject {
 }
 
 
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return .portrait
+    }
+}
 
 @main
 struct sportsxApp: App {
-    @StateObject var appState = AppState()
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @ObservedObject var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
     //@StateObject private var navigationManager = NManager()
     //@StateObject var nm = NManager()
@@ -47,6 +57,7 @@ struct sportsxApp: App {
         WindowGroup {
             NaviView()
                 .environmentObject(appState)
+                .preferredColorScheme(.light)
             //TestView()
             //    .environmentObject(appState)
             //CompetitionView()

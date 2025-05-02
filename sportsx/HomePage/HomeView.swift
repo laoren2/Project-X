@@ -10,6 +10,7 @@ import MapKit
 import Combine
 import SDWebImage
 import SDWebImageSwiftUI
+import UIKit
 
 
 struct HomeView: View {
@@ -21,84 +22,100 @@ struct HomeView: View {
     @Namespace private var animationNamespace
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 自定义导航栏
-            ZStack {
-                // 运动选择部分
-                HStack {
-                    Image(systemName: appState.sport.iconName)
-                        .font(.title2)
-                    Text(appState.sport.rawValue)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Button(action: {
-                        withAnimation {
-                            showSportPicker.toggle()
-                        }
-                    }) {
-                        Image(systemName: "repeat")
-                            .foregroundColor(.primary)
-                            .font(.headline)
-                    }
-                    .sheet(isPresented: $showSportPicker) {
-                        SportPickerView(selectedSport: $appState.sport)
-                    }
-                    
-                    Spacer()
-                    
-                    // 性别选择toggle，仅在竞赛tab显示
-                    if selectedTab == 1 {
-                        Picker("", selection: $isMaleSelected) {
-                            Image(systemName: "figure.stand")
-                                .foregroundColor(.blue)
-                                .tag(true)
-                            Image(systemName: "figure.stand.dress")
-                                .foregroundColor(.pink)
-                                .tag(false)
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                        .frame(width: 100, height: 20)
-                        .padding(.trailing)
-                        .onChange(of: isMaleSelected) {
-                            // 当性别选择改变时，重新获取排行榜数据
-                            viewModel.gender = isMaleSelected ? "male" : "female"
-                            viewModel.fetchLeaderboard(for: viewModel.selectedTrackIndex, gender: isMaleSelected ? "male" : "female", reset: true)
-                        }
-                    }
-                }
-                .padding(.leading, 10)
-                
-                HStack(spacing: 20) {
-                    TabButton(title: "广场", isSelected: selectedTab == 0, namespace: animationNamespace) {
-                        withAnimation {
-                            selectedTab = 0
-                        }
-                    }
-                    
-                    TabButton(title: "竞赛", isSelected: selectedTab == 1, namespace: animationNamespace) {
-                        withAnimation {
-                            selectedTab = 1
-                        }
-                    }
-                }
-            }
+        ZStack {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
+                            .defaultBackground
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea()
             
-            // TabView 切换页面
-            TabView(selection: $selectedTab) {
-                if appState.sport.category == .PVP {
-                    PVPSquareView()
-                        .tag(0)
-                    PVPCompetitionInfoView()
-                        .tag(1)
-                } else {
-                    RVRSquareView(viewModel: viewModel)
-                        .tag(0)
-                    RVRCompetitionInfoView(viewModel: viewModel)
-                        .tag(1)
+            VStack(spacing: 0) {
+                // 自定义导航栏
+                ZStack {
+                    // 运动选择部分
+                    HStack {
+                        HStack(spacing: 5) {
+                            Image(systemName: "list.dash")
+                                .bold()
+                            
+                            Text(appState.sport.name)
+                                .font(.headline)
+                            
+                            Image(systemName: appState.sport.iconName)
+                                .font(.system(size: 18))
+                        }
+                        .foregroundStyle(.white)
+                        .onTapGesture {
+                            withAnimation {
+                                showSportPicker.toggle()
+                            }
+                        }
+                        .sheet(isPresented: $showSportPicker) {
+                            SportPickerView(selectedSport: $appState.sport)
+                        }
+                        
+                        Spacer()
+                        
+                        // 性别选择toggle，仅在竞赛tab显示
+                        if selectedTab == 1 {
+                            Picker("", selection: $isMaleSelected) {
+                                Image(systemName: "figure.stand")
+                                    .foregroundColor(.white)
+                                    .tag(true)
+                                Image(systemName: "figure.stand.dress")
+                                    .foregroundColor(.white)
+                                    .tag(false)
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .frame(width: 100, height: 20)
+                            .onChange(of: isMaleSelected) {
+                                // 当性别选择改变时，重新获取排行榜数据
+                                viewModel.gender = isMaleSelected ? "male" : "female"
+                                viewModel.fetchLeaderboard(for: viewModel.selectedTrackIndex, gender: isMaleSelected ? "male" : "female", reset: true)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    //.border(.red)
+                    
+                    HStack(spacing: 20) {
+                        TabButton(title: "广场", isSelected: selectedTab == 0, namespace: animationNamespace) {
+                            withAnimation {
+                                selectedTab = 0
+                            }
+                        }
+                        
+                        TabButton(title: "竞赛", isSelected: selectedTab == 1, namespace: animationNamespace) {
+                            withAnimation {
+                                selectedTab = 1
+                            }
+                        }
+                    }
                 }
+                
+                // TabView 切换页面
+                TabView(selection: $selectedTab) {
+                    if appState.sport.category == .PVP {
+                        PVPSquareView()
+                            .tag(0)
+                        PVPCompetitionInfoView()
+                            .tag(1)
+                    } else {
+                        RVRSquareView(viewModel: viewModel)
+                            .tag(0)
+                        RVRCompetitionInfoView(viewModel: viewModel)
+                            .tag(1)
+                    }
+                }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
         .onAppear() {
@@ -130,13 +147,13 @@ struct TabButton: View {
             Button(action: action) {
                 Text(title)
                     .fontWeight(isSelected ? .bold : .regular) // 选中状态下字体加粗
-                    .foregroundColor(isSelected ? .primary : .secondary)
+                    .foregroundColor(isSelected ? .white : .secondText)
             }
             
             if isSelected {
                 Rectangle()
                     .frame(width: 20, height: 2) // 控制条状UI的宽度和高度
-                    .foregroundColor(.primary)
+                    .foregroundColor(.white)
                     .matchedGeometryEffect(id: "underline", in: namespace)
             } else {
                 Rectangle()
@@ -158,14 +175,40 @@ struct PVPSquareView: View {
 
 // 示例功能页面
 struct SportSkillView: View {
+    @EnvironmentObject var appState: AppState
+    
     var body: some View {
-        Text("Sport Skill页面")
+        ZStack {
+            Color.defaultBackground
+                .ignoresSafeArea()
+            
+            VStack(alignment: .leading) {
+                Text("Sport Skill页面")
+                    .font(.largeTitle)
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        //.border(.red)
+        .enableBackGesture(true)
     }
 }
 
 struct ActivityView: View {
+    @EnvironmentObject var appState: AppState
+    
     var body: some View {
-        Text("活动页面")
+        ZStack {
+            Color.defaultBackground
+                .ignoresSafeArea()
+            
+            VStack(alignment: .leading) {
+                Text("Activity页面")
+                    .font(.largeTitle)
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        //.border(.red)
+        .enableBackGesture(true)
     }
 }
 
@@ -179,13 +222,15 @@ struct RVRSquareView: View {
     var body: some View {
         VStack(spacing: 0) {
             // 定位区域
-            HStack {
+            HStack(spacing: 5) {
                 Image(systemName: "location.fill")
+                    .foregroundColor(.white)
                 Text(viewModel.cityName)
+                    .foregroundColor(.white)
                 Button(action: {
                     showingCitySelection.toggle()
                 }) {
-                    Text("选择城市")
+                    Text("选择")
                 }
                 .sheet(isPresented: $showingCitySelection) {
                     CitySelectionView(viewModel: viewModel, isPresented: $showingCitySelection)
@@ -208,16 +253,16 @@ struct RVRSquareView: View {
             HStack(spacing: 38) {
                 ForEach(viewModel.features) { feature in
                     Button(action: {
-                        appState.navigationManager.path.append(feature.destination)
+                        appState.navigationManager.append(feature.destination)
                     }) {
                         VStack {
                             Image(systemName: feature.iconName)
                                 .resizable()
                                 .frame(width: 40, height: 40)
-                                .foregroundColor(.accentColor)
                             Text(feature.title)
                                 .font(.caption)
                         }
+                        .foregroundColor(.white)
                     }
                 }
                 Spacer() // 确保组件从左侧开始排列
@@ -291,6 +336,9 @@ struct RVRCompetitionInfoView: View {
     @State private var cancellable: AnyCancellable? = nil
     @State private var selectedEvent: Event? = nil
     
+    @State private var chevronDirection: Bool = true
+    @State private var chevronDirection2: Bool = true
+    
     // 安全获取当前选中的赛道
     private var currentTrack: Track? {
         guard !viewModel.tracks.isEmpty,
@@ -302,15 +350,13 @@ struct RVRCompetitionInfoView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing :10) {
             // 赛事选择模块
-            Spacer()
-            
-            HStack(spacing: 0) {
+            HStack(spacing: 20) {
                 Text("X1赛季")
                     .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
+                    .foregroundColor(.white)
+                    //.border(.yellow)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -319,7 +365,7 @@ struct RVRCompetitionInfoView: View {
                                 HStack {
                                     Text(event.name)
                                         .font(.subheadline)
-                                        .foregroundStyle(Color.primary)
+                                        .foregroundColor(viewModel.selectedEventIndex == event.eventIndex ? .white : .thirdText)
                                         .fontWeight(.semibold)
                                     
                                     Spacer()
@@ -327,27 +373,26 @@ struct RVRCompetitionInfoView: View {
                                     Button(action: {
                                         selectedEvent = event
                                     }) {
-                                        Image(systemName: "arrow.down.left.and.arrow.up.right.square")
-                                            .foregroundColor(.blue)
+                                        Image(systemName: "info.circle")
+                                            .foregroundColor(Color.thirdText)
                                     }
                                 }
                                 
                                 Text(event.description)
                                     .font(.caption)
-                                    .foregroundStyle(Color.secondary)
-                                    .lineLimit(1)
+                                    .foregroundColor(viewModel.selectedEventIndex == event.eventIndex ? .secondText : .thirdText)
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 12)
                             .background(
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .fill(viewModel.selectedEventIndex == event.eventIndex ?
                                           Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .stroke(viewModel.selectedEventIndex == event.eventIndex ?
-                                            Color.blue : Color.clear, lineWidth: 1)
+                                            Color.blue : Color.clear, lineWidth: 2)
                             )
                             .onTapGesture {
                                 // 防止频繁刷新
@@ -357,45 +402,83 @@ struct RVRCompetitionInfoView: View {
                                     }
                                 }
                             }
+                            //.border(.green)
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 2)
                 }
-                .frame(width: 280)
+                //.border(.orange)
             }
-            .padding(.leading, 10)
+            .padding(.top, 10)
+            .padding(.leading, 20)
             .padding(.trailing, 10)
+            //.border(.pink)
             
             // 使用安全检查显示地图
             if let track = currentTrack {
-                Map(interactionModes: []) {
-                    Annotation("From", coordinate: track.from) {
-                        Image(systemName: "location.fill")
-                            .padding(5)
+                ScrollView {
+                    Map(interactionModes: []) {
+                        Annotation("From", coordinate: track.from) {
+                            Image(systemName: "location.fill")
+                                .padding(5)
+                        }
+                        Annotation("To", coordinate: track.to) {
+                            Image(systemName: "location.fill")
+                                .padding(5)
+                        }
                     }
-                    Annotation("To", coordinate: track.to) {
-                        Image(systemName: "location.fill")
-                            .padding(5)
-                    }
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                    )
+                    .shadow(radius: 2)
+                    .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
+                    //.border(.yellow)
                 }
                 .frame(height: 200)
-                .padding(10)
-                .shadow(radius: 2)
+                .disabled(true)
+                //.border(.blue)
+                
+                // 添加一个“展开/收起”按钮，点击可以展开或收起上方的Map视图
+                HStack {
+                    Spacer()
+                    Image(systemName: chevronDirection2 ? "chevron.up" : "chevron.down")
+                        .foregroundStyle(.white)
+                    Spacer()
+                }
+                .contentShape(Rectangle()) // 将整个 HStack 设为可点击区域
+                .onTapGesture {
+                    chevronDirection2.toggle()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        withAnimation {
+                            chevronDirection.toggle()
+                        }
+                    }
+                }
+                .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
             } else {
                 // 当没有可用赛道时显示占位视图
-                VStack {
-                    Text("暂无赛道信息")
-                        .foregroundColor(.secondary)
-                    Image(systemName: "map")
-                        .font(.system(size: 50))
-                        .foregroundColor(.gray)
-                        .opacity(0.5)
+                HStack {
+                    Spacer()
+                    VStack {
+                        Text("暂无赛道信息")
+                            .foregroundColor(.secondary)
+                        Image(systemName: "map")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                            .opacity(0.5)
+                    }
+                    Spacer()
                 }
                 .frame(height: 200)
-                .frame(maxWidth: .infinity)
                 .background(Color.gray.opacity(0.1))
-                .padding(10)
+                .cornerRadius(20)
+                //.border(.red)
             }
+            
             
             // 赛道选择
             if viewModel.tracks.isEmpty {
@@ -409,9 +492,18 @@ struct RVRCompetitionInfoView: View {
                             Text(track.name)
                                 .padding(.vertical, 10)
                                 .padding(.horizontal, 20)
-                                .background(viewModel.selectedTrackIndex == track.trackIndex ? Color.blue : Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                                .font(.system(size: 15))
+                                .foregroundColor(viewModel.selectedTrackIndex == track.trackIndex ? .white : .thirdText)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(viewModel.selectedTrackIndex == track.trackIndex ?
+                                              Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(viewModel.selectedTrackIndex == track.trackIndex ?
+                                                Color.blue : Color.clear, lineWidth: 1)
+                                )
                                 .onTapGesture {
                                     // 防止频繁刷新
                                     if viewModel.selectedTrackIndex != track.trackIndex {
@@ -423,42 +515,54 @@ struct RVRCompetitionInfoView: View {
                                 }
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.vertical, 1)
+                    .padding(.horizontal, 1)
+                    //.border(.yellow)
                 }
+                .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
+                //.border(.blue)
             }
             
             // 用户排行信息
-            LeaderboardEntryView(entry: LeaderboardEntry(user_id: userManager.user?.userID ?? "null", nickname: userManager.user?.nickname ?? "未知", best_time: 55.55, avatarImageURL: userManager.user?.avatarImageURL ?? "Ads"))
-            //.padding(.bottom, 0)
-                .padding(.top, 10)
+            LeaderboardEntryView(entry: LeaderboardEntry(user_id: userManager.user?.userID ?? "未知", nickname: userManager.user?.nickname ?? "未知", best_time: 55.55, avatarImageURL: userManager.user?.avatarImageURL ?? "未知"))
+            //.border(.red)
+                .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
             
             // 排行榜
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    if viewModel.leaderboardEntries.isEmpty && !viewModel.isLoadingMore {
-                        Text("暂无排行榜数据")
-                            .foregroundColor(.secondary)
-                            .padding()
-                    } else {
-                        LazyVStack {
-                            ForEach(viewModel.leaderboardEntries) { entry in
-                                LeaderboardEntryView(entry: entry)
-                                    .onAppear {
-                                        if entry == viewModel.leaderboardEntries.last {
-                                            viewModel.loadMoreEntries()
+            GeometryReader { geometry in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        if viewModel.leaderboardEntries.isEmpty && !viewModel.isLoadingMore {
+                            Text("暂无排行榜数据")
+                                .foregroundColor(.secondary)
+                                .padding()
+                        } else {
+                            LazyVStack(spacing: 10) {
+                                ForEach(viewModel.leaderboardEntries) { entry in
+                                    LeaderboardEntryView(entry: entry)
+                                        .onAppear {
+                                            if entry == viewModel.leaderboardEntries.last {
+                                                viewModel.loadMoreEntries()
+                                            }
                                         }
-                                    }
+                                }
+                                if viewModel.isLoadingMore {
+                                    ProgressView()
+                                        .padding()
+                                }
                             }
-                            if viewModel.isLoadingMore {
-                                ProgressView()
-                                    .padding()
-                            }
+                            //.border(.green)
                         }
-                        .padding(.vertical)
                     }
+                    //.border(.blue)
                 }
+                .frame(height: 600)
+                .frame(alignment: .top)
+                //.border(.red)
+                .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
             }
         }
+        .padding(.horizontal, 10)
         .sheet(item: $selectedEvent) { event in
             EventDetailView(event: event)
         }
@@ -479,7 +583,7 @@ struct SportPickerView: View {
                     HStack {
                         Image(systemName: sport.iconName)
                             .foregroundColor(.blue)
-                        Text(sport.rawValue)
+                        Text(sport.name)
                             .foregroundColor(.primary)
                         Spacer()
                         if sport == selectedSport {
@@ -611,8 +715,9 @@ struct EventDetailView: View {
 }
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     return HomeView()
         .environmentObject(appState)
+        .preferredColorScheme(.dark)
     //CompetitionResultView()
 }

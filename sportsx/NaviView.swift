@@ -13,11 +13,25 @@ enum SportCategory: String {
 }
 
 enum SportName: String, Identifiable, CaseIterable {
-    case Bike = "自行车"
-    case Badminton = "羽毛球"
-    case Default,Running = "跑步"
+    case Bike = "bike"
+    case Badminton = "badminton"
+    case Running = "running"
+    case Default = "default"
     
-    var id: String { self.rawValue }
+    var id: String {
+        return self.rawValue
+    }
+    
+    var name: String {
+        switch self {
+        case .Bike:
+            return "自行车"
+        case .Badminton:
+            return "羽毛球"
+        case .Default, .Running:
+            return "跑步"
+        }
+    }
     
     var category: SportCategory {
         switch self {
@@ -92,7 +106,7 @@ struct RealNaviView: View {
     @State private var isAppLaunching = true // 用于区分冷启动和后台恢复
     
     var body: some View {
-        NavigationStack(path: $appState.navigationManager.path) {
+        NavigationStack(path: appState.navigationManager.binding) {
             ZStack(alignment: .bottom) {
                 TabView(selection: $appState.navigationManager.selectedTab) {
                     HomeView()
@@ -104,7 +118,7 @@ struct RealNaviView: View {
                     SportCenterView()
                         .tag(Tab.sportCenter)
                     
-                    MessageView(title: "仓库")
+                    StoreHouseView(title: "仓库")
                         .tag(Tab.storeHouse)
                     
                     UserView(viewModel: UserViewModel(id: user.user?.userID ?? "未知", needBack: false))
@@ -120,7 +134,7 @@ struct RealNaviView: View {
             .onChange(of: appState.competitionManager.isRecording) {
                 if !appState.competitionManager.isRecording {
                     // 跳转比赛结果清算页面
-                    appState.navigationManager.path.append(.competitionResultView)
+                    appState.navigationManager.append(.competitionResultView)
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
@@ -160,6 +174,14 @@ struct RealNaviView: View {
                     InstituteView()
                 case .userView(let id, let isNeedBack):
                     UserView(viewModel: UserViewModel(id: id, needBack: isNeedBack))
+                case .friendListView(let selectedTab):
+                    FriendListView(selectedTab: selectedTab)
+                case .userIntroEditView:
+                    UserIntroEditView()
+                case .realNameAuthView:
+                    RealNameAuthView()
+                case .identityAuthView:
+                    IdentityAuthView()
                 }
             }
         }
@@ -183,12 +205,12 @@ struct CustomTabBar: View {
                     VStack {
                         Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
                             .font(.system(size: 22, weight: .regular))
-                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .black : .gray)
+                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
                             .padding(.bottom, 1)
                         
                         Text(tab.title)
                             .font(.caption)
-                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .black : .gray)
+                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
                     }
                     .padding(.vertical, 8)
                 }
@@ -197,7 +219,8 @@ struct CustomTabBar: View {
         }
         .padding(.horizontal, 5)
         .padding(.bottom, 20)
-        .background(.white)
+        .background(appState.navigationManager.selectedTab == .user ? userManager.backgroundColor : .defaultBackground)
+        .background(appState.navigationManager.selectedTab == .user ? .ultraThickMaterial : .ultraThinMaterial)
         .onAppear {
             // 从持久存储中读取登录状态/tab状态
             // 可以在这里添加持久化逻辑，例如 UserDefaults
@@ -233,16 +256,32 @@ struct CustomTabBar: View {
     }
 }
 
-struct MessageView: View {
+struct StoreHouseView: View {
     @EnvironmentObject var appState: AppState
     let title: String
     
     var body: some View {
-        VStack{
-            Text(title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
+        ZStack {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
+                            .defaultBackground
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea()
+            
+            VStack{
+                Text(title)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    .padding()
+            }
         }
     }
 }
@@ -252,16 +291,33 @@ struct ShopView: View {
     let title: String
     
     var body: some View {
-        Text(title)
-            .font(.largeTitle)
-            .fontWeight(.bold)
-            .padding()
+        ZStack {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
+                            .defaultBackground
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea()
+            
+            Text(title)
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundStyle(.white)
+                .padding()
+        }
     }
 }
 
 
 #Preview{
-    let appState = AppState()
+    let appState = AppState.shared
     return NaviView()
         .environmentObject(appState)
+        //.preferredColorScheme(.dark)
 }

@@ -65,7 +65,7 @@ struct SensorBindView: View {
 }
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     return SensorBindView()
         .environmentObject(appState)
 }
