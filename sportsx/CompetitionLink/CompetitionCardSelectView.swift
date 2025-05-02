@@ -24,7 +24,7 @@ struct CompetitionCardSelectView: View {
                 Button(action: {
                     // 销毁计时器a和b
                     appState.competitionManager.stopAllTeamJoinTimers()
-                    appState.navigationManager.path.removeLast()
+                    appState.navigationManager.removeLast()
                     appState.competitionManager.resetCompetitionProperties()
                 }) {
                     Image(systemName: "chevron.left")
@@ -100,7 +100,7 @@ struct CompetitionCardSelectView: View {
             .disabled(appState.competitionManager.isRecording)
             
             Button(action: {
-                appState.navigationManager.path.append(.competitionRealtimeView)
+                appState.navigationManager.append(.competitionRealtimeView)
             }) {
                 Text("我准备好了")
                     .frame(minWidth: 180)
@@ -141,7 +141,7 @@ struct CompetitionCardSelectView: View {
 
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     return CompetitionCardSelectView()
         .environmentObject(appState)
 }

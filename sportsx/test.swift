@@ -170,7 +170,7 @@ class TestViewModel: ObservableObject {
 
 
 #Preview {
-    //let appState = AppState()
+    //let appState = AppState.shared
     TestView()
     //    .environmentObject(appState)
 }

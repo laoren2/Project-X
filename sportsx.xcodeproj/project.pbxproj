@@ -14,6 +14,7 @@
 		A911DBB42C47024E0033D809 /* sportsxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBB32C47024E0033D809 /* sportsxTests.swift */; };
 		A911DBBE2C47024E0033D809 /* sportsxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBD2C47024E0033D809 /* sportsxUITests.swift */; };
 		A911DBC02C47024E0033D809 /* sportsxUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */; };
+		A933C48D2DBDE1ED000C51D8 /* GlobalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */; };
 		A95064892D0239B600998E30 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95064882D0239AE00998E30 /* LocationManager.swift */; };
 		A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95721702D2FBCE300286592 /* NavigationManager.swift */; };
 		A96640092D832DB700A94B73 /* CurrencyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96640082D832DB700A94B73 /* CurrencyManager.swift */; };
@@ -88,6 +89,7 @@
 		A911DBB92C47024E0033D809 /* sportsxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sportsxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A911DBBD2C47024E0033D809 /* sportsxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITests.swift; sourceTree = "<group>"; };
 		A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalConfig.swift; sourceTree = "<group>"; };
 		A95064872D0133C400998E30 /* sportsx.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = sportsx.entitlements; sourceTree = "<group>"; };
 		A95064882D0239AE00998E30 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		A95721702D2FBCE300286592 /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
@@ -107,6 +109,7 @@
 		A97D147F2DAFAAB7002F0B1E /* UserCenter */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = UserCenter; sourceTree = "<group>"; };
 		A97D14802DAFAF71002F0B1E /* HomePage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HomePage; sourceTree = "<group>"; };
 		A97D14812DAFB098002F0B1E /* Tools */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Tools; sourceTree = "<group>"; };
+		A98A25EF2DB9990200BAC987 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
 		A9B9A52C2D2BFDE700B357C2 /* sportsx_Watch Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch App"; sourceTree = "<group>"; };
 		A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppTests"; sourceTree = "<group>"; };
 		A9B9A5472D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppUITests"; sourceTree = "<group>"; };
@@ -190,6 +193,8 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */,
+				A98A25EF2DB9990200BAC987 /* Components */,
 				A97D14812DAFB098002F0B1E /* Tools */,
 				A97D14802DAFAF71002F0B1E /* HomePage */,
 				A97D147F2DAFAAB7002F0B1E /* UserCenter */,
@@ -260,6 +265,7 @@
 				A97D147F2DAFAAB7002F0B1E /* UserCenter */,
 				A97D14802DAFAF71002F0B1E /* HomePage */,
 				A97D14812DAFB098002F0B1E /* Tools */,
+				A98A25EF2DB9990200BAC987 /* Components */,
 				A9D812762D2EEF6600185548 /* SensorManager */,
 				A9E269EF2D873003002C2033 /* CompetitionLink */,
 			);
@@ -489,6 +495,7 @@
 				A99A6AE62C9CB01900FAC86D /* test.swift in Sources */,
 				A99D9A982C4B028D004F72BF /* NaviView.swift in Sources */,
 				A95064892D0239B600998E30 /* LocationManager.swift in Sources */,
+				A933C48D2DBDE1ED000C51D8 /* GlobalConfig.swift in Sources */,
 				A911DBA32C47024D0033D809 /* sportsxApp.swift in Sources */,
 				A96640092D832DB700A94B73 /* CurrencyManager.swift in Sources */,
 				A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */,

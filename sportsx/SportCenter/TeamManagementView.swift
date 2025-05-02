@@ -18,7 +18,7 @@ struct TeamManagementView: View {
                 // 顶部导航栏
                 HStack {
                     Button(action: {
-                        appState.navigationManager.path.removeLast()
+                        appState.navigationManager.removeLast()
                     }) {
                         //HStack(spacing: 5) {
                         Image(systemName: "chevron.left")
@@ -839,7 +839,7 @@ struct TeamManageView: View {
 
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     
     return TeamManagementView()
         .environmentObject(appState)

@@ -18,7 +18,7 @@ struct CompetitionRecordManagementView: View {
             // 标题
             HStack {
                 Button(action: {
-                    appState.navigationManager.path.removeLast()
+                    appState.navigationManager.removeLast()
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
@@ -27,7 +27,7 @@ struct CompetitionRecordManagementView: View {
                 
                 Spacer()
                 
-                Text("我的赛事")
+                Text("比赛记录")
                     .font(.title3)
                     .fontWeight(.bold)
                 
@@ -341,7 +341,7 @@ struct CompetitionRecordCard: View {
 }
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     
     // 添加一些测试数据
     let record = CompetitionRecord(sportType: .Default, fee: 55, eventName: "event", trackName: "track", trackStart: CLLocationCoordinate2D(latitude: 0, longitude: 0), trackEnd: CLLocationCoordinate2D(latitude: 1, longitude: 1), isTeamCompetition: true, status: .incomplete)

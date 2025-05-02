@@ -38,7 +38,7 @@ struct UserSetUpView: View {
     func logoutUser() {
         userManager.logoutUser()
         appState.navigationManager.selectedTab = .home
-        appState.navigationManager.path.removeLast()
+        appState.navigationManager.removeLast()
         UserDefaults.standard.removeObject(forKey: "savedPhoneNumber")
         print("delete Key: savedPhoneNumber Value: ",userManager.user?.phoneNumber ?? "nil")
         print("showingLogin: ",userManager.showingLogin)
@@ -47,7 +47,7 @@ struct UserSetUpView: View {
 }
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     UserSetUpView()
         .environmentObject(appState)
 }

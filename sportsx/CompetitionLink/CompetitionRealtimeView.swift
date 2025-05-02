@@ -175,21 +175,21 @@ struct CompetitionRealtimeView: View {
     
     private func adjustNavigationPath() {
         if !appState.competitionManager.isRecording {
-            appState.navigationManager.path.removeLast()
+            appState.navigationManager.removeLast()
         } else {
             var indexToLast = 1
             if let index = appState.navigationManager.path.firstIndex(where: { $0.string == "competitionCardSelectView" }) {
                 indexToLast = appState.navigationManager.path.count - index
             }
             let lastToRemove = max(1, indexToLast)
-            appState.navigationManager.path.removeLast(lastToRemove)
+            appState.navigationManager.removeLast(lastToRemove)
         }
     }
 }
 
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     return CompetitionRealtimeView()
         .environmentObject(appState)
 }

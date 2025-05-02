@@ -20,7 +20,7 @@ struct LeaderboardEntryView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 50, height: 50)
                         .clipShape(Circle()) // 使图片变为圆形
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2)) // 添加白色边框
+                        //.overlay(Circle().stroke(Color.white, lineWidth: 2)) // 添加白色边框
                         .padding(.leading, 5)
                 } placeholder: {
                     //Circle()
@@ -30,10 +30,10 @@ struct LeaderboardEntryView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 50, height: 50)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                        //.overlay(Circle().stroke(Color.blue, lineWidth: 2))
                         .padding(.leading, 5)
                         .onTapGesture {
-                            appState.navigationManager.path.append(.userView(id: "123454321", needBack: true))
+                            appState.navigationManager.append(.userView(id: entry.user_id, needBack: true))
                         }
                 }
             } else {
@@ -46,17 +46,19 @@ struct LeaderboardEntryView: View {
             VStack(alignment: .leading) {
                 Text(entry.nickname)
                     .font(.headline)
+                    .foregroundStyle(.white)
                 Text("Time: \(entry.best_time) seconds")
                     .font(.subheadline)
+                    .foregroundStyle(.white)
             }
             .padding(.leading, 1)
         }
         .padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
         .shadow(radius: 2)
-        .padding(.horizontal)
+        //.padding(.horizontal)
     }
 }
 

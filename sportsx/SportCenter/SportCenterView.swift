@@ -16,75 +16,87 @@ struct SportCenterView: View {
     @State private var selectedMode = 1
     
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                HStack {
-                    // 运动选择模块
+        ZStack {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
+                            .defaultBackground
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                ZStack {
                     HStack {
-                        Image(systemName: viewModel.selectedSport.iconName)
-                            .font(.title2)
-                        Text(viewModel.selectedSport.rawValue)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Button(action: {
+                        // 运动选择模块
+                        HStack(spacing: 5) {
+                            Image(systemName: "list.dash")
+                                .bold()
+                            
+                            Text(viewModel.selectedSport.name)
+                                .font(.headline)
+                            
+                            Image(systemName: viewModel.selectedSport.iconName)
+                                .font(.system(size: 18))
+                        }
+                        .foregroundStyle(.white)
+                        .onTapGesture {
                             withAnimation {
                                 showSportPicker.toggle()
                             }
-                        }) {
-                            Image(systemName: "repeat")
-                                .foregroundColor(.primary)
-                                .font(.headline)
                         }
                         .sheet(isPresented: $showSportPicker) {
                             SportPickerView(selectedSport: $viewModel.selectedSport)
                         }
+                        
+                        Spacer()
+                        
+                        // 模式切换开关
+                        Picker("", selection: $selectedMode) {
+                            Text("训练").tag(0)
+                            Text("竞赛").tag(1)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .frame(width: 100, height: 40)
                     }
-                    .padding(.leading, 10)
+                    .padding(.horizontal, 10)
                     
-                    Spacer()
-                    
-                    // 模式切换开关
-                    Picker("", selection: $selectedMode) {
-                        Text("训练").tag(0)
-                        Text("竞赛").tag(1)
+                    // 居中图案
+                    HStack {
+                        if selectedMode == 1 {
+                            Text("X1赛季")
+                                .font(.headline)
+                                .foregroundStyle(.red.opacity(0.8))
+                        } else {
+                            Image(systemName: "flag.2.crossed")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 40, height: 40)
+                                .foregroundColor(.green)
+                        }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .frame(width: 120, height: 40)
-                    .padding(.trailing)
                 }
-                // 居中图案
-                HStack {
-                    if selectedMode == 1 {
-                        Text("X1赛季")
-                            .font(.headline)
-                            .foregroundStyle(.red.opacity(0.8))
+                
+                if viewModel.selectedSport.category == .PVP {
+                    if selectedMode == 0 {
+                        PVPTrainingView(viewModel: PVPTrainingViewModel())
                     } else {
-                        Image(systemName: "flag.2.crossed")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 40, height: 40)
-                            .foregroundColor(.green)
+                        PVPCompetitionView(viewModel: PVPCompetitionViewModel())
+                    }
+                } else if viewModel.selectedSport.category == .RVR {
+                    if selectedMode == 0 {
+                        RVRTrainingView(viewModel: RVRTrainingViewModel())
+                    } else {
+                        RVRCompetitionView(viewModel: RVRCompetitionViewModel(), centerViewModel: viewModel)
                     }
                 }
             }
-            
-            if viewModel.selectedSport.category == .PVP {
-                if selectedMode == 0 {
-                    PVPTrainingView(viewModel: PVPTrainingViewModel())
-                } else {
-                    PVPCompetitionView(viewModel: PVPCompetitionViewModel())
-                }
-            } else if viewModel.selectedSport.category == .RVR {
-                if selectedMode == 0 {
-                    RVRTrainingView(viewModel: RVRTrainingViewModel())
-                } else {
-                    RVRCompetitionView(viewModel: RVRCompetitionViewModel(), centerViewModel: viewModel)
-                }
-            }
-            //Spacer()
         }
-        .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
     }
 }
 
@@ -131,7 +143,8 @@ struct PVPCompetitionView: View {
 }
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     return SportCenterView()
         .environmentObject(appState)
+        .preferredColorScheme(.dark)
 }

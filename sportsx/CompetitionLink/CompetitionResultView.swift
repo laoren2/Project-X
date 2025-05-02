@@ -38,6 +38,6 @@ struct CompetitionResultView: View {
             realtimeViewIndex = appState.navigationManager.path.count - index
         }
         let lastToRemove = max(1, cardSelectViewIndex, realtimeViewIndex)
-        appState.navigationManager.path.removeLast(lastToRemove)
+        appState.navigationManager.removeLast(lastToRemove)
     }
 }

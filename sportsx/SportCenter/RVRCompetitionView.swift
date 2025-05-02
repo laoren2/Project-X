@@ -28,37 +28,42 @@ struct RVRCompetitionView: View {
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 0) {
+            VStack(spacing: 10) {
                 // 位置和货币区域
-                HStack() {
+                HStack(spacing: 5) {
                     Image(systemName: "location.fill")
-                        .padding(.leading, 20)
                     Text(viewModel.cityName)
                     Spacer()
                     Text("X点券:\(currencyManager.coinA)")
                     Text("X币:\(currencyManager.coinB)")
-                        .padding(.trailing, 20)
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
                 
                 // 赛事选择区域
                 HStack {
                     // 添加1个按钮管理我的队伍
-                    Button(action: {
-                        appState.navigationManager.path.append(.teamManagementView)
-                    }) {
-                        Image(systemName: "person.2")
-                            .font(.system(size: 18))
-                            .foregroundColor(.blue)
-                            .padding(8)
-                            .background(
-                                Circle()
-                                    .fill(Color.gray.opacity(0.1))
-                            )
+                    VStack(spacing: 2) {
+                        Button(action: {
+                            appState.navigationManager.append(.teamManagementView)
+                        }) {
+                            Image(systemName: "person.2")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        //.border(.green)
+                        
+                        Text("队伍")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.secondText)
                     }
-                    .padding(.leading, 5)
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    //Spacer()
                     
                     if !viewModel.events.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -67,12 +72,12 @@ struct RVRCompetitionView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(event.name)
                                             .font(.subheadline)
-                                            .foregroundStyle(Color.primary)
+                                            .foregroundColor(.white)
                                             .fontWeight(.semibold)
                                         
                                         Text(event.description)
                                             .font(.caption)
-                                            .foregroundStyle(Color.secondary)
+                                            .foregroundColor(.secondText)
                                             .lineLimit(1)
                                     }
                                     .padding(.vertical, 8)
@@ -85,7 +90,7 @@ struct RVRCompetitionView: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(viewModel.selectedEventIndex == event.eventIndex ?
-                                                    Color.blue : Color.clear, lineWidth: 1)
+                                                    Color.blue : Color.clear, lineWidth: 2)
                                     )
                                     .onTapGesture {
                                         withAnimation {
@@ -95,6 +100,7 @@ struct RVRCompetitionView: View {
                                 }
                             }
                             .padding(.horizontal)
+                            .padding(.vertical, 2)
                         }
                         //.padding(.leading, 10)
                     } else {
@@ -105,24 +111,30 @@ struct RVRCompetitionView: View {
                         Spacer()
                     }
                     
-                    //Spacer()
                     // 添加1个按钮管理我的赛事
-                    Button(action: {
-                        appState.navigationManager.path.append(.recordManagementView)
-                    }) {
-                        Image(systemName: "list.bullet.clipboard")
-                            .font(.system(size: 20))
-                            .foregroundColor(.blue)
-                            .padding(8)
-                            .background(
-                                Circle()
-                                    .fill(Color.gray.opacity(0.1))
-                            )
+                    VStack(spacing: 2) {
+                        Button(action: {
+                            appState.navigationManager.append(.recordManagementView)
+                        }) {
+                            Image(systemName: "list.bullet.clipboard")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 8)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        //.border(.green)
+                        
+                        Text("记录")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.secondText)
                     }
-                    .padding(.trailing, 10)
-                    .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.top, 20)
+                //.border(.red)
                 
                 // 使用安全检查显示地图
                 if let track = viewModel.currentTrack {
@@ -137,7 +149,11 @@ struct RVRCompetitionView: View {
                         }
                     }
                     .frame(height: 200)
-                    .padding(10)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                    )
                     .shadow(radius: 2)
                 } else {
                     // 当没有可用赛道时显示占位视图
@@ -152,7 +168,6 @@ struct RVRCompetitionView: View {
                     .frame(height: 200)
                     .frame(maxWidth: .infinity)
                     .background(Color.gray.opacity(0.1))
-                    .padding(10)
                 }
                 
                 // 赛道选择
@@ -162,14 +177,23 @@ struct RVRCompetitionView: View {
                         .padding()
                 } else {
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 15) {
+                        HStack(spacing: 10) {
                             ForEach(viewModel.tracks) {track in
                                 Text(track.name)
                                     .padding(.vertical, 10)
                                     .padding(.horizontal, 20)
-                                    .background(viewModel.selectedTrackIndex == track.trackIndex ? Color.blue : Color.gray)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(viewModel.selectedTrackIndex == track.trackIndex ? .white : .thirdText)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(viewModel.selectedTrackIndex == track.trackIndex ?
+                                                  Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(viewModel.selectedTrackIndex == track.trackIndex ?
+                                                    Color.blue : Color.clear, lineWidth: 1)
+                                    )
                                     .onTapGesture {
                                         withAnimation {
                                             viewModel.selectedTrackIndex = track.trackIndex
@@ -177,7 +201,8 @@ struct RVRCompetitionView: View {
                                     }
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.vertical, 1)
+                        .padding(.horizontal, 1)
                     }
                 }
                 
@@ -192,6 +217,7 @@ struct RVRCompetitionView: View {
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .lineLimit(1)
+                                    .foregroundColor(.white)
                                 
                                 Spacer()
                                 
@@ -199,11 +225,11 @@ struct RVRCompetitionView: View {
                                 HStack(spacing: 5) {
                                     Image(systemName: "person.2")
                                         .font(.system(size: 13))
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondText)
                                     //.frame(width: 24, height: 24, alignment: .center)
                                     Text("总参与人数: \(track.totalParticipants > 0 ? "\(track.totalParticipants)" : "未知")")
                                         .font(.caption)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondText)
                                         .lineLimit(1)
                                 }
                             }
@@ -287,14 +313,11 @@ struct RVRCompetitionView: View {
                             }
                         }
                         .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.systemBackground))
-                                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                        )
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 10)
+                    //.padding(.horizontal)
+                    //.padding(.top, 10)
                 }
                 
                 // 报名按钮区域
@@ -333,17 +356,17 @@ struct RVRCompetitionView: View {
                                     HStack(spacing: 4) {
                                         Image(systemName: "person")
                                             .font(.system(size: 15))
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.white)
                                         
                                         Text("报名")
                                             .font(.headline)
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.white)
                                     }
                                     .padding(.bottom, 2)
                                     
                                     Text("单人")
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondText)
                                 }
                                 
                                 // 禁用状态蒙版
@@ -380,7 +403,7 @@ struct RVRCompetitionView: View {
                                 secondaryButton: .default(Text("立即开始")) {
                                     if viewModel.currentTrack != nil, !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
                                         appState.competitionManager.resetCompetitionRecord(record: record)
-                                        appState.navigationManager.path.append(.competitionCardSelectView)
+                                        appState.navigationManager.append(.competitionCardSelectView)
                                         viewModel.currentRecord = nil
                                     }
                                 }
@@ -415,17 +438,17 @@ struct RVRCompetitionView: View {
                                     HStack(spacing: 4) {
                                         Image(systemName: "person.3")
                                             .font(.system(size: 15))
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.white)
                                         
                                         Text("报名")
                                             .font(.headline)
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.white)
                                     }
                                     .padding(.bottom, 2)
                                     
                                     Text("组队")
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondText)
                                 }
                                 
                                 // 禁用状态蒙版
@@ -463,16 +486,14 @@ struct RVRCompetitionView: View {
                         Spacer()
                     }
                     .padding(.vertical, 15)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                    )
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(20)
                 }
-                .padding()
+                //.padding(.vertical)
                 
                 Spacer()
             }
+            .padding(.horizontal, 10)
         }
         .onAppear() {
             LocationManager.shared.saveLowToLast()
@@ -524,6 +545,7 @@ struct InfoItemView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .lineLimit(nil)
                 .multilineTextAlignment(.leading)
+                .foregroundColor(.secondText)
         }
     }
 }
@@ -602,7 +624,7 @@ struct TeamCodeView: View {
                         message: Text("组队模式"),
                         primaryButton: .default(Text("去看看")) {
                             viewModel.showTeamCodeSheet = false
-                            appState.navigationManager.path.append(.recordManagementView)
+                            appState.navigationManager.append(.recordManagementView)
                         },
                         secondaryButton: .default(Text("确定")) {
                             viewModel.showTeamCodeSheet = false
@@ -1231,10 +1253,11 @@ struct TeamPublicCard: View {
 }
 
 #Preview {
-    let appState = AppState()
+    let appState = AppState.shared
     let rvr = RVRCompetitionViewModel()
     let center = SportCenterViewModel()
     rvr.fetchEventsByCity("上海市")
     return RVRCompetitionView(viewModel: rvr, centerViewModel: center)
         .environmentObject(appState)
+        .preferredColorScheme(.dark)
 }
