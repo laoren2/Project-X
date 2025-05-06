@@ -99,26 +99,26 @@ class UserManager: ObservableObject {
 
 struct User: Identifiable, Codable, Hashable {
     let id: UUID
-    var userID: String // 服务器端的唯一标识符
-    var nickname: String
-    var phoneNumber: String
-    var avatarImageURL: String
-    var backgroundImageURL: String
+    var userID: String              // 服务器端的唯一标识符
+    var nickname: String            // 昵称
+    var phoneNumber: String         // 手机号
+    var avatarImageURL: String      // 头像url
+    var backgroundImageURL: String  // 封面url
     
-    var introduction: String
-    var gender: String?
-    var birthday: String?
-    var location: String?
-    var identityAuthName: String?
+    var introduction: String        // 简介
+    var gender: String?             // 性别
+    var birthday: String?           // 生日
+    var location: String?           // 地理位置
+    var identityAuthName: String?   // 身份名称
     
     var isRealnameAuth: Bool    // 是否已实名认证
     var isIdentityAuth: Bool    // 是否已身份认证
     
-    var isDisplayGender: Bool
-    var isDisplayAge: Bool
-    var isDisplayLocation: Bool
-    var enableAutoLocation: Bool
-    var isDisplayIdentity: Bool
+    var isDisplayGender: Bool       // 是否展示性别
+    var isDisplayAge: Bool          // 是否真实年龄
+    var isDisplayLocation: Bool     // 是否展示地理位置
+    var enableAutoLocation: Bool    // 是否使用最新定位的地理位置
+    var isDisplayIdentity: Bool     // 是否展示身份名称
     
     init(
         id: UUID = UUID(),
