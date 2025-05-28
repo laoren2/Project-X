@@ -110,6 +110,7 @@
 		A97D14802DAFAF71002F0B1E /* HomePage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HomePage; sourceTree = "<group>"; };
 		A97D14812DAFB098002F0B1E /* Tools */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Tools; sourceTree = "<group>"; };
 		A98A25EF2DB9990200BAC987 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
+		A9B2825A2DD9101A00DCBCBD /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		A9B9A52C2D2BFDE700B357C2 /* sportsx_Watch Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch App"; sourceTree = "<group>"; };
 		A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppTests"; sourceTree = "<group>"; };
 		A9B9A5472D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppUITests"; sourceTree = "<group>"; };
@@ -193,6 +194,7 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9B2825A2DD9101A00DCBCBD /* Extensions */,
 				A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */,
 				A98A25EF2DB9990200BAC987 /* Components */,
 				A97D14812DAFB098002F0B1E /* Tools */,
@@ -266,6 +268,7 @@
 				A97D14802DAFAF71002F0B1E /* HomePage */,
 				A97D14812DAFB098002F0B1E /* Tools */,
 				A98A25EF2DB9990200BAC987 /* Components */,
+				A9B2825A2DD9101A00DCBCBD /* Extensions */,
 				A9D812762D2EEF6600185548 /* SensorManager */,
 				A9E269EF2D873003002C2033 /* CompetitionLink */,
 			);

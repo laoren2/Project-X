@@ -350,13 +350,13 @@ struct RVRCompetitionInfoView: View {
     }
     
     var body: some View {
-        VStack(spacing :10) {
+        VStack(spacing: 10) {
             // 赛事选择模块
             HStack(spacing: 20) {
                 Text("X1赛季")
                     .font(.headline)
                     .foregroundColor(.white)
-                    //.border(.yellow)
+                //.border(.yellow)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -523,10 +523,17 @@ struct RVRCompetitionInfoView: View {
                 //.border(.blue)
             }
             
-            // 用户排行信息
-            LeaderboardEntryView(entry: LeaderboardEntry(user_id: userManager.user?.userID ?? "未知", nickname: userManager.user?.nickname ?? "未知", best_time: 55.55, avatarImageURL: userManager.user?.avatarImageURL ?? "未知"))
-            //.border(.red)
-                .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
+            // 我的排行信息
+            if userManager.isLoggedIn {
+                LeaderboardEntryView(entry: LeaderboardEntry(user_id: userManager.user.userID, nickname: userManager.user.nickname, best_time: 55.55, avatarImageURL: NetworkService.baseDomain + userManager.user.avatarImageURL))
+                    .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
+            }
+            
+            // 测试用户关系功能
+            LeaderboardEntryView(entry: LeaderboardEntry(user_id: "174736215432184", nickname: "新用户_32184", best_time: 66.66, avatarImageURL: NetworkService.baseDomain + "/resources/user/174736215432184/avatar.png"))
+                .offset(y: chevronDirection ? 0 : -210)
+            LeaderboardEntryView(entry: LeaderboardEntry(user_id: "174751859937834", nickname: "新用户_37834", best_time: 16.66, avatarImageURL: NetworkService.baseDomain + "/resources/user/174751859937834/avatar.png"))
+                .offset(y: chevronDirection ? 0 : -210)
             
             // 排行榜
             GeometryReader { geometry in
@@ -553,6 +560,7 @@ struct RVRCompetitionInfoView: View {
                             }
                             //.border(.green)
                         }
+                        //.border(.blue)
                     }
                     //.border(.blue)
                 }

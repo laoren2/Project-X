@@ -106,7 +106,7 @@ struct UserIntroEditView: View {
                         }
                         
                         // 简介
-                        EditItemView(title: "简介", value: viewModel.currentUser.introduction) {
+                        EditItemView(title: "简介", value: viewModel.currentUser.introduction ?? "") {
                             showIntroEditor = true
                         }
                         
@@ -267,9 +267,6 @@ struct EditItemView: View {
                 
                 Image(systemName: "chevron.right")
                     .foregroundColor(.white.opacity(0.8))
-                    .onTapGesture {
-                        onEdit()
-                    }
             }
             .padding(.vertical, 15)
             .padding(.horizontal)
@@ -278,6 +275,9 @@ struct EditItemView: View {
                 .padding(.leading, 80)
         }
         .background(.ultraThinMaterial)
+        .onTapGesture {
+            onEdit()
+        }
     }
 }
 
@@ -353,7 +353,7 @@ struct IntroEditorView: View {
             //.border(.red)
         }
         .onAppear {
-            tempIntro = viewModel.currentUser.introduction
+            tempIntro = viewModel.currentUser.introduction ?? ""
         }
     }
 }

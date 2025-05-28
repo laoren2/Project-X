@@ -9,7 +9,7 @@ import SwiftUI
 import MapKit
 
 
-// MARK: - 导航中右划返回手势
+// MARK: 导航中右划返回手势
 extension View {
     func enableBackGesture(_ enabled: Bool = true) -> some View {
         modifier(BackGestureModifier(enabled: enabled))
@@ -44,52 +44,26 @@ private struct BackGestureModifier: ViewModifier {
     }
 }
 
-// MARK: - asyncImage支持拿到UIImage并处理
-struct AsyncImageWithColorExtraction: View {
-    let url: URL?
-    let onImageLoaded: (UIImage) -> Void
-    let placeholder: Image
-
-    var body: some View {
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .onAppear {
-                        extractUIImage(from: image, completion: onImageLoaded)
-                    }
-            case .failure(_):
-                placeholder
-                    .resizable()
-                    .scaledToFill()
-                    .onAppear {
-                        extractUIImage(from: placeholder, completion: onImageLoaded)
-                    }
-            case .empty:
-                placeholder
-                    .resizable()
-                    .scaledToFill()
-                    .onAppear {
-                        extractUIImage(from: placeholder, completion: onImageLoaded)
-                    }
-            @unknown default:
-                placeholder
-                    .resizable()
-                    .scaledToFill()
-                    .onAppear {
-                        extractUIImage(from: placeholder, completion: onImageLoaded)
-                    }
-            }
+// MARK: 点击收起键盘
+extension View {
+    func hideKeyboardOnTap() -> some View {
+        self.onTapGesture {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil, from: nil, for: nil
+            )
         }
     }
+}
 
-    private func extractUIImage(from image: Image, completion: @escaping (UIImage) -> Void) {
-        let renderer = ImageRenderer(content: image)
-        if let uiImage = renderer.uiImage {
-            completion(uiImage)
-        }
+// MARK: 拖动收起键盘
+extension View {
+    func hideKeyboardOnScroll() -> some View {
+        self.simultaneousGesture(
+            DragGesture().onChanged { _ in
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        )
     }
 }
 
@@ -175,6 +149,14 @@ extension Color {
         let blendedB = b + (1.0 - b) * clamped
 
         return Color(red: blendedR, green: blendedG, blue: blendedB)
+    }
+}
+
+extension Data {
+    mutating func append(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            self.append(data)
+        }
     }
 }
 

@@ -18,6 +18,11 @@ class UserViewModel: ObservableObject {
     @Published var avatarImage: UIImage?        // 非登录用户的头像
     @Published var backgroundImage: UIImage?    // 非登录用户的封面
     @Published var backgroundColor: Color = .defaultBackground      // 非登录用户的封面背景色
+    @Published var followerCount: Int = 0       // 非登录用户的粉丝数
+    @Published var followedCount: Int = 0       // 非登录用户的关注数
+    @Published var friendCount: Int = 0         // 非登录用户的好友数
+    
+    @Published var relationship: UserRelationshipStatus = .none     // 与当前登录用户的关系
     
     @Published var showSidebar = false  // 侧边栏是否显示
     
@@ -33,7 +38,7 @@ class UserViewModel: ObservableObject {
     @Published var totalMeters: Int = 0
     // 赛季获得总奖金
     @Published var totalBonus: Int = 0
-
+    
     // 赛季赛事积分记录汇总
     var competitionScoreRecords: [TrackScoreRecord] = []
     
@@ -78,19 +83,142 @@ class UserViewModel: ObservableObject {
         
         // 外部入口且不是已登录用户请求数据存入currentUser
         if isNeedBack {
-            if let user = userManager.user, user.userID == userID {
+            if userManager.user.userID == userID {
                 return
             } else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.fetchUserInfo()
-                }
+                self.fetchUserInfo()
             }
+        } else {
+            userManager.fetchMeInfo()
         }
     }
     
     func fetchUserInfo() {
-        // 请求用户数据，计算封面背景色
-        print("fetch user : \(userID)")
+        guard var components = URLComponents(string: "/user/anyone") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "user_id", value: userID)
+        ]
+        if userManager.isLoggedIn {
+            components.queryItems?.append(URLQueryItem(name: "my_id", value: userManager.user.userID))
+        }
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
+        
+        NetworkService.sendRequest(with: request, decodingType: FetchAnyUserResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.relationship = unwrappedData.relationship
+                        self.friendCount = unwrappedData.relation.friends
+                        self.followedCount = unwrappedData.relation.followed
+                        self.followerCount = unwrappedData.relation.follower
+                        self.currentUser = User(from: unwrappedData.user)
+                        self.downloadImages(avatar_url: self.currentUser.avatarImageURL, background_url: self.currentUser.backgroundImageURL)
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func downloadImages(avatar_url: String, background_url: String) {
+        NetworkService.downloadImage(from: avatar_url) { image in
+            if let image = image {
+                DispatchQueue.main.async {
+                    self.avatarImage = image
+                }
+            } else {
+                print("下载头像失败")
+            }
+        }
+        NetworkService.downloadImage(from: background_url) { image in
+            if let image = image {
+                DispatchQueue.main.async {
+                    self.backgroundImage = image
+                }
+                if let avg = ColorComputer.averageColor(from: image) {
+                    DispatchQueue.main.async {
+                        self.backgroundColor = avg.bestSoftDarkReadableColor()
+                    }
+                }
+            } else {
+                print("下载封面失败")
+            }
+        }
+    }
+    
+    func follow() {
+        guard var components = URLComponents(string: "/user/follow") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "user_id", value: userID)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: UserRelationshipStatus.self, showErrorToast: true) {result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.relationship = unwrappedData
+                    }
+                }
+                self.updateRelationInfo()
+                self.userManager.updateRelationInfo()
+            default: break
+            }
+        }
+    }
+    
+    func cancelFollow() {
+        guard var components = URLComponents(string: "/user/cancel_follow") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "user_id", value: userID)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: UserRelationshipStatus.self, showErrorToast: true) {result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.relationship = unwrappedData
+                    }
+                }
+                self.updateRelationInfo()
+                self.userManager.updateRelationInfo()
+            default: break
+            }
+        }
+    }
+    
+    func updateRelationInfo() {
+        guard var components = URLComponents(string: "/user/relation_info") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "user_id", value: userID)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
+        
+        NetworkService.sendRequest(with: request, decodingType: RelationInfoResponse.self, showErrorToast: true) {result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.friendCount = unwrappedData.friends
+                        self.followerCount = unwrappedData.follower
+                        self.followedCount = unwrappedData.followed
+                    }
+                }
+            default: break
+            }
+        }
     }
 }
 
@@ -133,5 +261,42 @@ struct Cup: Identifiable {
     let id = UUID()
     let level: CupLevel
     let image: String
+}
+
+struct SetUpItemView: View {
+    let icon: String
+    let title: String
+    var showChevron: Bool = true
+    let onEdit: (() -> Void)
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center) {
+                Image(systemName: icon)
+                    .foregroundColor(.secondText)
+                    .frame(width: 18, height: 18, alignment: .leading)
+                
+                Text(title)
+                    .font(.system(size: 16))
+                    .foregroundColor(.secondText)
+                    
+                Spacer()
+                
+                if showChevron {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            }
+            .padding(.vertical, 15)
+            .padding(.horizontal)
+            
+            Divider()
+                .padding(.leading, 80)
+        }
+        .background(.ultraThinMaterial)
+        .onTapGesture {
+            onEdit()
+        }
+    }
 }
 

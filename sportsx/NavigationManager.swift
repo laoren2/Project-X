@@ -7,6 +7,7 @@
 //
 import Foundation
 import SwiftUI
+import Combine
 
 
 enum AppRoute: Hashable {
@@ -21,10 +22,11 @@ enum AppRoute: Hashable {
     case userSetUpView
     case instituteView
     case userView(id: String, needBack: Bool)
-    case friendListView(selectedTab: Int)
+    case friendListView(id: String, selectedTab: Int)
     case userIntroEditView
     case realNameAuthView
     case identityAuthView
+    case userSetUpAccountView
     
     var string: String {
         switch self {
@@ -58,6 +60,8 @@ enum AppRoute: Hashable {
             return "realNameAuthView"
         case .identityAuthView:
             return "identityAuthView"
+        case .userSetUpAccountView:
+            return "userSetUpAccountView"
         }
     }
 }
@@ -75,24 +79,33 @@ class NavigationManager: ObservableObject {
     // 可供 NavigationStack 绑定
     var binding: Binding<[AppRoute]> {
         Binding(
-            get: { self.path },
+            get: {
+                //print("path didget")
+                return self.path
+            },
             set: { [weak self] newValue in
+                //print("path didset")
                 self?.lock.lock()
-                self?.path = newValue
-                self?.lock.unlock()
+                
+                defer { self?.lock.unlock() }
+
+                if self?.path != newValue {
+                    self?.path = newValue
+                }
             }
         )
     }
     
-    private init() {}
-    
     func append(_ route: AppRoute) {
+        //print("path append")
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         lock.lock()
         path.append(route)
         lock.unlock()
     }
 
     func removeLast(_ count: Int = 1) {
+        //print("path removeLast")
         guard count >= 0 else { return }
         
         lock.lock()
@@ -104,6 +117,7 @@ class NavigationManager: ObservableObject {
     
     // 直接导航到path内目标页面（有重复页面则导航到第一个出现的页面）
     func NavigationTo(des: String) {
+        //print("path navigationTo")
         if let index = path.firstIndex(where: { $0.string == des }) {
             let cnt = path.count - index - 1
             if cnt >= 0 {
@@ -116,5 +130,8 @@ class NavigationManager: ObservableObject {
         }
     }
     
-    
+    func backToHome() {
+        selectedTab = .home
+        removeLast(path.count)
+    }
 }

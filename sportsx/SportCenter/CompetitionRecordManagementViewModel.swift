@@ -95,12 +95,12 @@ class CompetitionRecordManagementViewModel: ObservableObject {
         
         // 在该队伍中调整用户的报名状态
         if let indexCreated = competitionManager.myCreatedTeams.firstIndex(where: {$0.teamCode == record.teamCode}) {
-            if let userIndex = competitionManager.myCreatedTeams[indexCreated].members.firstIndex(where: {$0.userID == user.user?.userID}) {
+            if let userIndex = competitionManager.myCreatedTeams[indexCreated].members.firstIndex(where: {$0.userID == user.user.userID}) {
                 competitionManager.myCreatedTeams[indexCreated].members[userIndex].isRegistered = false
             }
         }
         if let indexJoined = competitionManager.myJoinedTeams.firstIndex(where: {$0.teamCode == record.teamCode}) {
-            if let userIndex = competitionManager.myJoinedTeams[indexJoined].members.firstIndex(where: {$0.userID == user.user?.userID}) {
+            if let userIndex = competitionManager.myJoinedTeams[indexJoined].members.firstIndex(where: {$0.userID == user.user.userID}) {
                 competitionManager.myJoinedTeams[indexJoined].members[userIndex].isRegistered = false
             }
         }
