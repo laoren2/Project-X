@@ -20,19 +20,11 @@ struct UserView: View {
     
     // 是否是已登陆用户
     var isUserSelf: Bool {
-        if let user = userManager.user {
-            // 总tabview的"我的"页，防止未登录成功时id未设置成功
-            if !viewModel.isNeedBack {
-                viewModel.userID = user.userID
-            }
-            
-            if viewModel.userID != user.userID {
-                return false
-            } else {
-                return true
-            }
-        } else {
+        if !viewModel.isNeedBack { return true }
+        if viewModel.userID != userManager.user.userID {
             return false
+        } else {
+            return true
         }
     }
     
@@ -200,7 +192,7 @@ struct MainUserView: View {
                                     HStack(spacing: 30) {
                                         // 互关
                                         VStack(spacing: 2) {
-                                            Text("1")
+                                            Text(isUserSelf ? "\(userManager.friendCount)" : "\(viewModel.friendCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
                                             Text("好友")
@@ -210,13 +202,13 @@ struct MainUserView: View {
                                         .simultaneousGesture(
                                             TapGesture()
                                                 .onEnded {
-                                                    appState.navigationManager.append(.friendListView(selectedTab: 0))
+                                                    appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 0))
                                                 }
                                         )
                                         
                                         // 关注
                                         VStack(spacing: 2) {
-                                            Text("2")
+                                            Text(isUserSelf ? "\(userManager.followedCount)" : "\(viewModel.followedCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
                                             Text("关注")
@@ -226,13 +218,13 @@ struct MainUserView: View {
                                         .simultaneousGesture(
                                             TapGesture()
                                                 .onEnded {
-                                                    appState.navigationManager.append(.friendListView(selectedTab: 1))
+                                                    appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 1))
                                                 }
                                         )
                                         
                                         // 粉丝
                                         VStack(spacing: 2) {
-                                            Text("5")
+                                            Text(isUserSelf ? "\(userManager.followerCount)" : "\(viewModel.followerCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
                                             Text("粉丝")
@@ -242,7 +234,7 @@ struct MainUserView: View {
                                         .simultaneousGesture(
                                             TapGesture()
                                                 .onEnded {
-                                                    appState.navigationManager.append(.friendListView(selectedTab: 2))
+                                                    appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 2))
                                                 }
                                         )
                                         
@@ -261,17 +253,32 @@ struct MainUserView: View {
                                                     .cornerRadius(8)
                                             }
                                         } else {
-                                            Button(action: {
-                                                // 关注
-                                            }) {
-                                                Text("关注")
-                                                    .font(.system(size: 16))
-                                                    .bold()
-                                                    .foregroundColor(.white)
-                                                    .padding(.vertical, 8)
-                                                    .padding(.horizontal, 30)
-                                                    .background(.pink.opacity(0.8))
-                                                    .cornerRadius(8)
+                                            if viewModel.relationship == .follower || viewModel.relationship == .none {
+                                                Button(action: {
+                                                    viewModel.follow()
+                                                }) {
+                                                    Text("关注")
+                                                        .font(.system(size: 16))
+                                                        .bold()
+                                                        .foregroundColor(.white)
+                                                        .padding(.vertical, 8)
+                                                        .padding(.horizontal, 30)
+                                                        .background(.pink.opacity(0.8))
+                                                        .cornerRadius(8)
+                                                }
+                                            } else {
+                                                Button(action: {
+                                                    viewModel.cancelFollow()
+                                                }) {
+                                                    Text("取消关注")
+                                                        .font(.system(size: 16))
+                                                        .bold()
+                                                        .foregroundColor(.white)
+                                                        .padding(.vertical, 8)
+                                                        .padding(.horizontal, 30)
+                                                        .background(.gray.opacity(0.8))
+                                                        .cornerRadius(8)
+                                                }
                                             }
                                         }
                                     }
@@ -283,13 +290,34 @@ struct MainUserView: View {
                                     
                                     // 个人说明
                                     VStack(alignment: .leading, spacing: 12) {
-                                        Text(isUserSelf ? (userManager.user?.introduction ?? "未知") : viewModel.currentUser.introduction)
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.white)
+                                        if isUserSelf {
+                                            if let intro = userManager.user.introduction {
+                                                Text(intro)
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.white)
+                                            } else {
+                                                HStack {
+                                                    Text("介绍一下自己吧")
+                                                        .font(.system(size: 14))
+                                                        .foregroundColor(Color.secondText)
+                                                    Image(systemName: "pencil.line")
+                                                        .foregroundStyle(Color.secondText)
+                                                }
+                                                .onTapGesture {
+                                                    appState.navigationManager.append(.userIntroEditView)
+                                                }
+                                            }
+                                        } else {
+                                            if let intro = viewModel.currentUser.introduction {
+                                                Text(intro)
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.white)
+                                            }
+                                        }
                                         
                                         HStack {
                                             if isUserSelf {
-                                                if userManager.user?.isDisplayGender == true, let gender = userManager.user?.gender {
+                                                if userManager.user.isDisplayGender == true, let gender = userManager.user.gender {
                                                     Text(gender)
                                                         .padding(.vertical, 4)
                                                         .padding(.horizontal, 8)
@@ -297,7 +325,7 @@ struct MainUserView: View {
                                                         .cornerRadius(6)
                                                 }
                                                 
-                                                if userManager.user?.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: userManager.user?.birthday ?? "xxxx-xx-xx") {
+                                                if userManager.user.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: userManager.user.birthday ?? "xxxx-xx-xx") {
                                                     Text("\(age)岁")
                                                         .padding(.vertical, 4)
                                                         .padding(.horizontal, 8)
@@ -305,7 +333,7 @@ struct MainUserView: View {
                                                         .cornerRadius(6)
                                                 }
                                                 
-                                                if userManager.user?.isDisplayLocation == true, let location = userManager.user?.location {
+                                                if userManager.user.isDisplayLocation == true, let location = userManager.user.location {
                                                     Text(location)
                                                         .padding(.vertical, 4)
                                                         .padding(.horizontal, 8)
@@ -313,7 +341,7 @@ struct MainUserView: View {
                                                         .cornerRadius(6)
                                                 }
                                                 
-                                                if userManager.user?.isDisplayIdentity == true, let identity = userManager.user?.identityAuthName {
+                                                if userManager.user.isDisplayIdentity == true, let identity = userManager.user.identityAuthName {
                                                     Text(identity)
                                                         .padding(.vertical, 4)
                                                         .padding(.horizontal, 8)
@@ -360,19 +388,16 @@ struct MainUserView: View {
                                         .foregroundStyle(.white)
                                     }
                                     .padding(.horizontal, 16)
+                                    //.border(.red)
                                 }
+                                .padding(.top, 20)
                                 .padding(.bottom, 12)
+                                //.border(.red)
                             }
                             //.border(.orange)
                             
                             // 头像和用户名区域
                             VStack {
-                                // 用户名
-                                Text(isUserSelf ? (userManager.user?.nickname ?? "未知") : viewModel.currentUser.nickname)
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                
                                 // 头像
                                 if let avatar = isUserSelf ? userManager.avatarImage : viewModel.avatarImage {
                                     Image(uiImage: avatar)
@@ -390,8 +415,23 @@ struct MainUserView: View {
                                         .clipShape(Circle())
                                         .shadow(radius: 5, x: 0, y: 5)
                                 }
+                                // 用户名
+                                HStack {
+                                    Text(isUserSelf ? userManager.user.nickname : viewModel.currentUser.nickname)
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                    if (!isUserSelf) && viewModel.relationship != .none {
+                                        Text(viewModel.relationship.displayName)
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white)
+                                            .padding(4)
+                                            .background(Color.gray.opacity(0.6))
+                                            .cornerRadius(5)
+                                    }
+                                }
                             }
-                            .padding(.top, 93)
+                            .padding(.top, 120)
                             //.border(.green)
                         }
                         .padding(.top, 56)
@@ -596,7 +636,7 @@ struct MainUserView: View {
                                 }
                                 //.border(.red)
                                 
-                                Text(isUserSelf ? (userManager.user?.nickname ?? "未知") : viewModel.currentUser.nickname)
+                                Text(isUserSelf ? (userManager.user.nickname) : viewModel.currentUser.nickname)
                                     .bold()
                                     .foregroundStyle(.white)
                                     .opacity(1 - opacityFor(offset: toolbarTop))
@@ -681,7 +721,6 @@ struct MainUserView: View {
     func updateOffset(_ geo: GeometryProxy) {
         DispatchQueue.main.async {
             toolbarTop = geo.frame(in: .global).minY
-            //print("📐 仅用GeometryReader 距顶：", toolbarTop)
         }
     }
     
@@ -797,7 +836,7 @@ struct PressableButton: View {
 #Preview {
     let appState = AppState.shared
     let userManager = UserManager.shared
-    let vm = UserViewModel(id: userManager.user?.userID ?? "未知", needBack: false)
+    let vm = UserViewModel(id: userManager.user.userID, needBack: false)
     
     UserView(viewModel: vm)
         .environmentObject(appState)

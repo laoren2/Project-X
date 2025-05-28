@@ -89,14 +89,23 @@ enum Tab: Int, CaseIterable {
 }
 
 struct NaviView: View {
+    @ObservedObject var user = UserManager.shared
     var body: some View {
-        RealNaviView()
-            .overlay(
-                CompetitionWidget()
-                    .padding()
-                    .offset(y: -50),
-                alignment: .bottomTrailing // 右下角对齐
-            )
+        ToastContainerView() {
+            ZStack {
+                RealNaviView()
+                    .overlay(
+                        CompetitionWidget()
+                            .padding()
+                            .offset(y: -50),
+                        alignment: .bottomTrailing // 右下角对齐
+                    )
+                LoginView()
+                    .opacity(user.showingLogin ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.3), value: user.showingLogin)
+                    .allowsHitTesting(user.showingLogin)
+            }
+        }
     }
 }
 
@@ -121,16 +130,19 @@ struct RealNaviView: View {
                     StoreHouseView(title: "仓库")
                         .tag(Tab.storeHouse)
                     
-                    UserView(viewModel: UserViewModel(id: user.user?.userID ?? "未知", needBack: false))
+                    UserView(viewModel: UserViewModel(id: user.user.userID, needBack: false))
                         .tag(Tab.user)
                 }
+                
+                // 防止穿透到TabView原生bar的暂时hack
+                Color.clear
+                    .frame(height: 100) // 估算系统tabbar高度
+                    .contentShape(Rectangle())
+                    //.border(.blue)
                 
                 CustomTabBar()
             }
             .ignoresSafeArea(edges: .bottom)
-            .fullScreenCover(isPresented: $user.showingLogin) {
-                LoginView(showingLogin: $user.showingLogin)
-            }
             .onChange(of: appState.competitionManager.isRecording) {
                 if !appState.competitionManager.isRecording {
                     // 跳转比赛结果清算页面
@@ -174,14 +186,16 @@ struct RealNaviView: View {
                     InstituteView()
                 case .userView(let id, let isNeedBack):
                     UserView(viewModel: UserViewModel(id: id, needBack: isNeedBack))
-                case .friendListView(let selectedTab):
-                    FriendListView(selectedTab: selectedTab)
+                case .friendListView(let id, let selectedTab):
+                    FriendListView(viewModel:FriendListViewModel(id: id), selectedTab: selectedTab)
                 case .userIntroEditView:
                     UserIntroEditView()
                 case .realNameAuthView:
                     RealNameAuthView()
                 case .identityAuthView:
                     IdentityAuthView()
+                case .userSetUpAccountView:
+                    UserSetUpAccountView()
                 }
             }
         }
@@ -194,61 +208,44 @@ struct CustomTabBar: View {
     
 
     var body: some View {
-        HStack(alignment: .bottom) {
+        HStack(alignment: .bottom, spacing: 0) {
             ForEach(Tab.allCases, id: \.self) { tab in
                 Spacer()
-                Button {
+                
+                VStack {
+                    Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
+                        .font(.system(size: 22, weight: .regular))
+                        .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
+                        .padding(.bottom, 1)
+                    
+                    Text(tab.title)
+                        .font(.caption)
+                        .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
+                }
+                .padding(.vertical, 8)
+                .onTapGesture {
                     if shouldAllowSwitch(to: tab) {
                         appState.navigationManager.selectedTab = tab
                     }
-                } label: {
-                    VStack {
-                        Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
-                            .font(.system(size: 22, weight: .regular))
-                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
-                            .padding(.bottom, 1)
-                        
-                        Text(tab.title)
-                            .font(.caption)
-                            .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
-                    }
-                    .padding(.vertical, 8)
                 }
+                //.border(.red)
+                
                 Spacer()
             }
         }
         .padding(.horizontal, 5)
-        .padding(.bottom, 20)
+        .padding(.bottom, 25)
+        .frame(height: 85)
         .background(appState.navigationManager.selectedTab == .user ? userManager.backgroundColor : .defaultBackground)
         .background(appState.navigationManager.selectedTab == .user ? .ultraThickMaterial : .ultraThinMaterial)
-        .onAppear {
-            // 从持久存储中读取登录状态/tab状态
-            // 可以在这里添加持久化逻辑，例如 UserDefaults
-            if !userManager.isLoggedIn {
-                if let savedPhoneNumber = UserDefaults.standard.string(forKey: "savedPhoneNumber") {
-                    //print("read UserDefaults success")
-                    userManager.loginUser(phoneNumber: savedPhoneNumber)
-                } else {
-                    print("read UserDefaults unsuccess")
-                    userManager.showingLogin = true
-                }
-            }
-        }
-        .onChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn {
-                // 模拟将登录状态保存到持久存储
-                // 可以在这里添加你的持久化逻辑，例如 UserDefaults
-                print("set Key: savedPhoneNumber Value: ",userManager.user?.phoneNumber ?? "nil")
-                UserDefaults.standard.set(userManager.user?.phoneNumber, forKey: "savedPhoneNumber")
-            }
-        }
     }
 
     func shouldAllowSwitch(to tab: Tab) -> Bool {
-        // 示例条件：如果切到“我的”，必须已登录
+        if tab == .home { return true }
+        // 如果离开首页，必须登录
         if !userManager.isLoggedIn {
             print("未登录，禁止切换tab")
-            // 可弹出登录弹窗
+            // 弹出登录页
             userManager.showingLogin = true
             return false
         }
@@ -288,7 +285,10 @@ struct StoreHouseView: View {
 
 struct ShopView: View {
     @EnvironmentObject var appState: AppState
+    @State private var searchText: String = ""
+    
     let title: String
+    @State private var filteredPersonInfos: [PersonInfoCard] = []
     
     var body: some View {
         ZStack {
@@ -305,11 +305,105 @@ struct ShopView: View {
                 )
                 .ignoresSafeArea()
             
-            Text(title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-                .padding()
+            VStack {
+                HStack {
+                    // 搜索框
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(.gray.opacity(0.1))
+                            .frame(height: 30)
+                        
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray)
+                                .padding(.leading, 12)
+                            
+                            TextField(text: $searchText) {
+                                Text("搜索用户")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 15))
+                            }
+                            .foregroundStyle(.white)
+                            .font(.system(size: 15))
+                            
+                            if !searchText.isEmpty {
+                                Button(action: {
+                                    withAnimation {
+                                        searchText = ""
+                                    }
+                                    filteredPersonInfos.removeAll()
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.gray)
+                                        .padding(.trailing, 12)
+                                }
+                                .transition(.opacity)
+                            } else {
+                                // 占位，保持布局一致
+                                Spacer().frame(width: 12)
+                            }
+                        }
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                    .padding(.trailing, 8)
+                    
+                    Button("搜索"){
+                        filteredPersonInfos.removeAll()
+                        searchAnyPersonInfoCard()
+                    }
+                    .foregroundStyle(.white)
+                }
+                
+                ScrollView {
+                    LazyVStack(spacing: 15) {
+                        ForEach(filteredPersonInfos) { person in
+                            PersonInfoCardView(person: person)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                }
+                
+                Text(title)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    .padding()
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+        }
+        .ignoresSafeArea(.keyboard)
+        .hideKeyboardOnTap()
+    }
+    
+    func searchAnyPersonInfoCard() {
+        guard var components = URLComponents(string: "/user/anyone_card") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "phone_number", value: searchText)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: PersonInfoDTO.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    filteredPersonInfos.append(
+                        PersonInfoCard(
+                            userID: unwrappedData.user_id,
+                            avatarUrl: unwrappedData.avatar_image_url,
+                            name: unwrappedData.nickname)
+                    )
+                }
+            default: break
+            }
         }
     }
 }
@@ -317,7 +411,7 @@ struct ShopView: View {
 
 #Preview{
     let appState = AppState.shared
-    return NaviView()
-        .environmentObject(appState)
+    return ShopView(title: "商店")
+        //.environmentObject(appState)
         //.preferredColorScheme(.dark)
 }

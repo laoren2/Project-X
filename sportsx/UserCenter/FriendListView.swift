@@ -9,43 +9,15 @@ import SwiftUI
 
 struct FriendListView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject var viewModel = FriendListViewModel()
+    @StateObject var viewModel: FriendListViewModel
     
     // 当前选择的Tab
-    @State var selectedTab = 0
+    @State var selectedTab: Int = 0
     
-    @State private var searchText: String = ""
+    @State private var searchFriendText: String = ""
+    @State private var searchIdolText: String = ""
+    @State private var searchFanText: String = ""
     
-    // 过滤后的好友
-    var filteredFriends: [PersonInfoCard] {
-        if searchText.isEmpty {
-            return viewModel.myFriends
-        } else {
-            return viewModel.myFriends.filter { person in
-                person.name.lowercased().contains(searchText.lowercased())
-            }
-        }
-    }
-    // 过滤后的关注
-    var filteredIdols: [PersonInfoCard] {
-        if searchText.isEmpty {
-            return viewModel.myIdols
-        } else {
-            return viewModel.myIdols.filter { person in
-                person.name.lowercased().contains(searchText.lowercased())
-            }
-        }
-    }
-    // 过滤后的粉丝
-    var filteredFans: [PersonInfoCard] {
-        if searchText.isEmpty {
-            return viewModel.myFans
-        } else {
-            return viewModel.myFans.filter { person in
-                person.name.lowercased().contains(searchText.lowercased())
-            }
-        }
-    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -56,7 +28,7 @@ struct FriendListView: View {
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                 }
                 
                 Spacer()
@@ -72,11 +44,11 @@ struct FriendListView: View {
                             VStack(spacing: 10) {
                                 Text(["好友", "关注", "粉丝"][index])
                                     .font(.system(size: 16, weight: selectedTab == index ? .semibold : .regular))
-                                    .foregroundColor(selectedTab == index ? .black : .gray)
+                                    .foregroundColor(selectedTab == index ? Color.white : Color.thirdText)
                                 
                                 // 选中指示器
                                 Rectangle()
-                                    .fill(selectedTab == index ? Color.black : Color.clear)
+                                    .fill(selectedTab == index ? Color.white : Color.clear)
                                     .frame(width: 40, height: 2)
                             }
                         }
@@ -92,141 +64,402 @@ struct FriendListView: View {
                         .foregroundColor(.clear)
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
             
             Divider()
             
-            // 搜索框
-            ZStack {
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(.gray.opacity(0.1))
-                    .frame(height: 30)
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                        .padding(.leading, 12)
-                    
-                    TextField(text: $searchText) {
-                        Text("搜索用户")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 15))
-                    }
-                    .foregroundStyle(.black)
-                    .font(.system(size: 15))
-                    
-                    if !searchText.isEmpty {
-                        Button(action: {
-                            withAnimation {
-                                searchText = ""
-                            }
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                                .padding(.trailing, 12)
-                        }
-                        .transition(.opacity)
-                    } else {
-                        // 占位，保持布局一致
-                        Spacer().frame(width: 12)
-                    }
-                }
-            }
-            .overlay(
-                RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)            )
-            .padding()
-            
             // 列表区域
             TabView(selection: $selectedTab) {
-                // 好友列表
-                if viewModel.myFriends.isEmpty {
-                    VStack(spacing: 10) {
-                        Text("您当前还没有好友")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Text("去组队运动，寻找一名好友吧")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
-                    .tag(0)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 15) {
-                            ForEach(filteredFriends) { person in
-                                PersonInfoCardView(person: person)
+                VStack(spacing: 0) {
+                    // 搜索框
+                    HStack {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(.gray.opacity(0.1))
+                                .frame(height: 30)
+                            
+                            HStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .padding(.leading, 12)
+                                
+                                TextField(text: $searchFriendText) {
+                                    Text("搜索好友")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 15))
+                                }
+                                .foregroundStyle(.white)
+                                .font(.system(size: 15))
+                                
+                                if !searchFriendText.isEmpty {
+                                    Button(action: {
+                                        searchFriendText = ""
+                                        viewModel.myFilteredFriends.removeAll()
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.gray)
+                                            .padding(.trailing, 12)
+                                    }
+                                    .transition(.opacity)
+                                } else {
+                                    // 占位，保持布局一致
+                                    Spacer().frame(width: 12)
+                                }
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.top)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)            )
+                        .padding(.vertical, 16)
+                        .padding(.trailing, 8)
+                        
+                        Button("搜索"){
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            viewModel.myFilteredFriends.removeAll()
+                            if !searchFriendText.isEmpty {
+                                viewModel.searchFriendsCursorDatetime = nil
+                                viewModel.searchFriendsCursorID = nil
+                                viewModel.fetchFriends(withNicname: searchFriendText)
+                            }
+                        }
+                        .foregroundStyle(.white)
                     }
-                    .tag(0)
+                    .padding(.horizontal, 16)
+                    // 好友列表
+                    ZStack(alignment: .top) {
+                        if viewModel.myFriends.isEmpty {
+                            VStack(spacing: 10) {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Text("您当前还没有好友")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                HStack {
+                                    Spacer()
+                                    Text("去组队运动，寻找一名好友吧")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color.secondText)
+                                        .multilineTextAlignment(.center)
+                                        //.padding(.horizontal, 40)
+                                    Spacer()
+                                }
+                                Spacer()
+                            }
+                            .background(Color.defaultBackground)
+                            .hideKeyboardOnTap()
+                        } else {
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(viewModel.myFriends) { person in
+                                        PersonInfoCardView(person: person)
+                                            .onAppear {
+                                                if person == viewModel.myFriends.last && viewModel.hasMoreFriends {
+                                                    viewModel.fetchFriends()
+                                                }
+                                            }
+                                    }
+                                    if viewModel.isFriendsLoading {
+                                        ProgressView()
+                                            .padding()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top)
+                            }
+                            .hideKeyboardOnScroll()
+                        }
+                        if !searchFriendText.isEmpty {
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(viewModel.myFilteredFriends) { person in
+                                        PersonInfoCardView(person: person)
+                                            .onAppear {
+                                                if person == viewModel.myFilteredFriends.last && viewModel.hasMoreSearchFriends {
+                                                    viewModel.fetchFriends(withNicname: searchFriendText)
+                                                }
+                                            }
+                                    }
+                                    if viewModel.isSearchFriendsLoading {
+                                        ProgressView()
+                                            .padding()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top)
+                            }
+                            .background(.ultraThinMaterial)
+                            .hideKeyboardOnScroll()
+                        }
+                    }
                 }
+                .tag(0)
                 
-                // 关注列表
-                if viewModel.myIdols.isEmpty {
-                    VStack(spacing: 10) {
-                        Text("您当前还没有关注的人")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Text("快去排行榜逛一逛，关注一位大神吧")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
-                    .tag(1)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 15) {
-                            ForEach(filteredIdols) { person in
-                                PersonInfoCardView(person: person)
+                VStack(spacing: 0) {
+                    // 搜索框
+                    HStack {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(.gray.opacity(0.1))
+                                .frame(height: 30)
+                            
+                            HStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .padding(.leading, 12)
+                                
+                                TextField(text: $searchIdolText) {
+                                    Text("搜索关注")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 15))
+                                }
+                                .foregroundStyle(.white)
+                                .font(.system(size: 15))
+                                
+                                if !searchIdolText.isEmpty {
+                                    Button(action: {
+                                        searchIdolText = ""
+                                        viewModel.myFilteredIdols.removeAll()
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.gray)
+                                            .padding(.trailing, 12)
+                                    }
+                                    .transition(.opacity)
+                                } else {
+                                    // 占位，保持布局一致
+                                    Spacer().frame(width: 12)
+                                }
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.top)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                        .padding(.vertical, 16)
+                        .padding(.trailing, 8)
+                        
+                        Button("搜索"){
+                            viewModel.myFilteredIdols.removeAll()
+                            if !searchIdolText.isEmpty {
+                                viewModel.searchIdolsCursorDatetime = nil
+                                viewModel.searchIdolsCursorID = nil
+                                viewModel.fetchIdols(withNicname: searchIdolText)
+                            }
+                        }
+                        .foregroundStyle(.white)
                     }
-                    .tag(1)
+                    .padding(.horizontal, 16)
+                    // 关注列表
+                    ZStack(alignment: .top) {
+                        if viewModel.myIdols.isEmpty {
+                            VStack(spacing: 10) {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Text("您当前还没有关注的人")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                HStack {
+                                    Spacer()
+                                    Text("快去排行榜逛一逛，关注一位运动达人吧")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color.secondText)
+                                        .multilineTextAlignment(.center)
+                                    Spacer()
+                                }
+                                Spacer()
+                            }
+                            .background(Color.defaultBackground)
+                            .hideKeyboardOnTap()
+                        } else {
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(viewModel.myIdols) { person in
+                                        PersonInfoCardView(person: person)
+                                            .onAppear {
+                                                if person == viewModel.myIdols.last && viewModel.hasMoreIdols {
+                                                    viewModel.fetchIdols()
+                                                }
+                                            }
+                                    }
+                                    if viewModel.isIdolsLoading {
+                                        ProgressView()
+                                            .padding()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top)
+                            }
+                            .hideKeyboardOnScroll()
+                        }
+                        if !searchIdolText.isEmpty {
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(viewModel.myFilteredIdols) { person in
+                                        PersonInfoCardView(person: person)
+                                            .onAppear {
+                                                if person == viewModel.myFilteredIdols.last && viewModel.hasMoreSearchIdols {
+                                                    viewModel.fetchIdols(withNicname: searchIdolText)
+                                                }
+                                            }
+                                    }
+                                    if viewModel.isSearchIdolsLoading {
+                                        ProgressView()
+                                            .padding()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top)
+                            }
+                            .background(.ultraThinMaterial)
+                            .hideKeyboardOnScroll()
+                        }
+                    }
                 }
+                .tag(1)
                 
-                // 粉丝列表
-                if viewModel.myFans.isEmpty {
-                    VStack(spacing: 10) {
-                        Text("您当前还没有粉丝")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Text("快去比赛中挑战自己，吸引更多粉丝吧")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
-                    .tag(2)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 15) {
-                            ForEach(filteredFans) { person in
-                                PersonInfoCardView(person: person)
+                VStack(spacing: 0) {
+                    // 搜索框
+                    HStack {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(.gray.opacity(0.1))
+                                .frame(height: 30)
+                            
+                            HStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .padding(.leading, 12)
+                                
+                                TextField(text: $searchFanText) {
+                                    Text("搜索粉丝")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 15))
+                                }
+                                .foregroundStyle(.white)
+                                .font(.system(size: 15))
+                                
+                                if !searchFanText.isEmpty {
+                                    Button(action: {
+                                        searchFanText = ""
+                                        viewModel.myFilteredFans.removeAll()
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.gray)
+                                            .padding(.trailing, 12)
+                                    }
+                                    .transition(.opacity)
+                                } else {
+                                    // 占位，保持布局一致
+                                    Spacer().frame(width: 12)
+                                }
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.top)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                        .padding(.vertical, 16)
+                        .padding(.trailing, 8)
+                        
+                        Button("搜索"){
+                            viewModel.myFilteredFans.removeAll()
+                            if !searchFanText.isEmpty {
+                                viewModel.searchFansCursorDatetime = nil
+                                viewModel.searchFansCursorID = nil
+                                viewModel.fetchFans(withNicname: searchFanText)
+                            }
+                        }
+                        .foregroundStyle(.white)
                     }
-                    .tag(2)
+                    .padding(.horizontal, 16)
+                    // 粉丝列表
+                    ZStack(alignment: .top) {
+                        if viewModel.myFans.isEmpty {
+                            VStack(spacing: 10) {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Text("您当前还没有粉丝")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                HStack {
+                                    Spacer()
+                                    Text("快去比赛中挑战自己，吸引更多粉丝吧")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color.secondText)
+                                        .multilineTextAlignment(.center)
+                                    Spacer()
+                                }
+                                Spacer()
+                            }
+                            .background(Color.defaultBackground)
+                            .hideKeyboardOnTap()
+                        } else {
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(viewModel.myFans) { person in
+                                        PersonInfoCardView(person: person)
+                                            .onAppear {
+                                                if person == viewModel.myFans.last && viewModel.hasMoreFans {
+                                                    viewModel.fetchFans()
+                                                }
+                                            }
+                                    }
+                                    if viewModel.isFansLoading {
+                                        ProgressView()
+                                            .padding()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top)
+                            }
+                            .hideKeyboardOnScroll()
+                        }
+                        if !searchFanText.isEmpty {
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(viewModel.myFilteredFans) { person in
+                                        PersonInfoCardView(person: person)
+                                            .onAppear {
+                                                if person == viewModel.myFilteredFans.last && viewModel.hasMoreSearchFans {
+                                                    viewModel.fetchFans(withNicname: searchFanText)
+                                                }
+                                            }
+                                    }
+                                    if viewModel.isSearchFansLoading {
+                                        ProgressView()
+                                            .padding()
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.top)
+                            }
+                            .background(.ultraThinMaterial)
+                            .hideKeyboardOnScroll()
+                        }
+                    }
                 }
+                .tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .ignoresSafeArea()
         }
         .toolbar(.hidden, for: .navigationBar)
-        .background(.white)
+        .background(Color.defaultBackground)
     }
 }
 
@@ -237,7 +470,7 @@ struct PersonInfoCardView: View {
     var body: some View {
         HStack(alignment: .center) {
             HStack(spacing: 12) {
-                if let url = URL(string: person.avatarUrl) {
+                if let url = URL(string: NetworkService.baseDomain + person.avatarUrl) {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
@@ -245,21 +478,23 @@ struct PersonInfoCardView: View {
                             .frame(width: 60, height: 60)
                             .clipShape(Circle()) // 使图片变为圆形
                     } placeholder: {
-                        Image("Ads")
+                        Image(systemName: "person")
                             .resizable()
                             .aspectRatio(contentMode: .fill)
+                            .foregroundStyle(.white)
+                            .padding(10)
                             .frame(width: 60, height: 60)
+                            .background(Color.gray)
                             .clipShape(Circle())
                     }
                 } else {
                     Circle()
                         .fill(Color.gray)
                         .frame(width: 60, height: 60)
-                        .padding(.leading, 5)
                 }
                 
                 Text(person.name)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .font(.system(size: 15))
                     .bold()
             }
@@ -281,6 +516,6 @@ struct PersonInfoCardView: View {
 #Preview {
     let appState = AppState.shared
     //return PersonInfoCardView(avatarUrl: "123", name: "哈qweasd我的")
-    return FriendListView()
-        .environmentObject(appState)
+    //return FriendListView()
+    //    .environmentObject(appState)
 }

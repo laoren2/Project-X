@@ -675,12 +675,12 @@ struct TeamCodeView: View {
     func handleRegister() {
         // 修改队伍内用户的报名状态
         if let indexCreated = appState.competitionManager.myCreatedTeams.firstIndex(where: {$0.teamCode == teamCode}) {
-            if let userIndex = appState.competitionManager.myCreatedTeams[indexCreated].members.firstIndex(where: {$0.userID == user.user?.userID}) {
+            if let userIndex = appState.competitionManager.myCreatedTeams[indexCreated].members.firstIndex(where: {$0.userID == user.user.userID}) {
                 appState.competitionManager.myCreatedTeams[indexCreated].members[userIndex].isRegistered = true
             }
         }
         if let indexJoined = appState.competitionManager.myJoinedTeams.firstIndex(where: {$0.teamCode == teamCode}) {
-            if let userIndex = appState.competitionManager.myJoinedTeams[indexJoined].members.firstIndex(where: {$0.userID == user.user?.userID}) {
+            if let userIndex = appState.competitionManager.myJoinedTeams[indexJoined].members.firstIndex(where: {$0.userID == user.user.userID}) {
                 appState.competitionManager.myJoinedTeams[indexJoined].members[userIndex].isRegistered = true
             }
         }
@@ -780,125 +780,111 @@ struct TeamJoinView: View {
     @State var teamCode: String = ""
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                HStack {
-                    // 平衡布局的空按钮
-                    Button(action: {}) {
-                        Image(systemName: "xmark.circle")
-                            .font(.system(size: 25, weight: .semibold))
-                            .foregroundColor(.clear)
-                    }
-                    
-                    Spacer()
-                    
-                    Text("加入队伍")
-                        .font(.title)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        viewModel.showJoinTeamSheet = false
-                    }) {
-                        Image(systemName: "xmark.circle")
-                            .font(.system(size: 25, weight: .semibold))
-                            .foregroundColor(.gray)
-                    }
+        VStack(spacing: 0) {
+            HStack {
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "xmark.circle")
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundColor(.clear)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 20)
-                .background(Color(.systemGroupedBackground))
                 
-                // 队伍码输入区域
-                HStack {
-                    TextField("输入6位队伍码直接加入", text: $teamCode)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .font(.system(.body, design: .monospaced))
-                        .textInputAutocapitalization(.characters)
-                        .keyboardType(.asciiCapable)
-                        .padding(.horizontal)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        if JoinWithTeamCode() {
-                            joinTeam(teamCode: teamCode)
-                        } else {
-                            viewModel.showAlert = true
-                        }
-                    }) {
-                        Text("一键加入")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 15)
-                            .background(Color.blue.opacity(0.8))
-                            .cornerRadius(8)
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal)
-                }
-                .background(.blue.opacity(0.2))
+                Spacer()
                 
-                if viewModel.availableTeams.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "person.3.slash")
-                            .font(.system(size: 60))
-                            .foregroundColor(.gray.opacity(0.7))
-                            .padding(.bottom, 10)
-                        
-                        Text("暂无可加入的队伍")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Text("当前赛道还没有可加入的队伍，您可以创建一个新队伍")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(.systemGroupedBackground))
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 15) {
-                            ForEach(viewModel.availableTeams) { team in
-                                TeamPublicCard(
-                                    viewModel: viewModel,
-                                    type: team.getRelationship(for: viewModel.user.user?.userID ?? ""),
-                                    team: team
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top)
-                    }
-                    .background(Color(.systemGroupedBackground))
+                Text("加入队伍")
+                    .font(.title)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Button(action: {
+                    viewModel.showJoinTeamSheet = false
+                }) {
+                    Image(systemName: "xmark.circle")
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundColor(.gray)
                 }
             }
-            .sheet(item: $viewModel.selectedTeamDetail) { _ in
-                TeamDetailView(selectedTeam: viewModel.selectedTeamDetail, type: viewModel.selectedTeamDetail?.getRelationship(for: viewModel.user.user?.userID ?? "未知") ?? .unrelated)
-            }
-            .alert(isPresented: $viewModel.showAlert) {
-                Alert(
-                    title: Text("提示"),
-                    message: Text(viewModel.alertMessage),
-                    dismissButton: .default(Text("确定"))
-                )
-            }
+            .padding(.horizontal)
+            .padding(.vertical, 20)
+            .background(Color(.systemGroupedBackground))
             
-            // 显示复制的文字提示
-            if viewModel.showCopiedText {
-                Text("已复制: \(viewModel.teamCode)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.gray.opacity(0.6))
-                    .cornerRadius(8)
-                    .transition(.opacity)
-                    .offset(y: -50) // 上移，防止遮挡
+            // 队伍码输入区域
+            HStack {
+                TextField("输入6位队伍码直接加入", text: $teamCode)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .font(.system(.body, design: .monospaced))
+                    .textInputAutocapitalization(.characters)
+                    .keyboardType(.asciiCapable)
+                    .padding(.horizontal)
+                
+                Spacer()
+                
+                Button(action: {
+                    if JoinWithTeamCode() {
+                        joinTeam(teamCode: teamCode)
+                    } else {
+                        viewModel.showAlert = true
+                    }
+                }) {
+                    Text("一键加入")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 15)
+                        .background(Color.blue.opacity(0.8))
+                        .cornerRadius(8)
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal)
             }
+            .background(.blue.opacity(0.2))
+            
+            if viewModel.availableTeams.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "person.3.slash")
+                        .font(.system(size: 60))
+                        .foregroundColor(.gray.opacity(0.7))
+                        .padding(.bottom, 10)
+                    
+                    Text("暂无可加入的队伍")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Text("当前赛道还没有可加入的队伍，您可以创建一个新队伍")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemGroupedBackground))
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 15) {
+                        ForEach(viewModel.availableTeams) { team in
+                            TeamPublicCard(
+                                viewModel: viewModel,
+                                type: team.getRelationship(for: viewModel.user.user.userID),
+                                team: team
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                }
+                .background(Color(.systemGroupedBackground))
+            }
+        }
+        .sheet(item: $viewModel.selectedTeamDetail) { _ in
+            TeamDetailView(selectedTeam: viewModel.selectedTeamDetail, type: viewModel.selectedTeamDetail?.getRelationship(for: viewModel.user.user.userID) ?? .unrelated)
+        }
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(
+                title: Text("提示"),
+                message: Text(viewModel.alertMessage),
+                dismissButton: .default(Text("确定"))
+            )
         }
         .onAppear {
             viewModel.fetchAvailableTeams(eventId: viewModel.selectedEventIndex, trackId: viewModel.selectedTrackIndex)
@@ -947,15 +933,15 @@ struct TeamJoinView: View {
         
         // 修改服务端的team数据然后拉取更新viewModel.availableTeams
         let newMember = TeamMember(
-            userID: viewModel.user.user?.userID ?? "未知",
-            name: viewModel.user.user?.nickname ?? "未知",
-            avatar: viewModel.user.user?.avatarImageURL ?? "未知",
+            userID: viewModel.user.user.userID,
+            name: viewModel.user.user.nickname,
+            avatar: viewModel.user.user.avatarImageURL,
             isLeader: false,
             joinTime: Date(),
             isRegistered: false
         )
 
-        if let index = appState.competitionManager.myAppliedTeams.firstIndex(where: { $0.teamCode == teamCode }), let member = appState.competitionManager.myAppliedTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user?.userID }) {
+        if let index = appState.competitionManager.myAppliedTeams.firstIndex(where: { $0.teamCode == teamCode }), let member = appState.competitionManager.myAppliedTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user.userID }) {
             let copyMember = appState.competitionManager.myAppliedTeams[index].pendingRequests[member]
             appState.competitionManager.myAppliedTeams[index].pendingRequests.remove(at: member)
             appState.competitionManager.myAppliedTeams[index].members.append(copyMember)
@@ -971,7 +957,7 @@ struct TeamJoinView: View {
         }
         
         if let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.teamCode == teamCode }) {
-            if let member = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user?.userID }) {
+            if let member = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user.userID }) {
                 let copyMember = appState.competitionManager.availableTeams[index].pendingRequests[member]
                 appState.competitionManager.availableTeams[index].pendingRequests.remove(at: member)
                 appState.competitionManager.availableTeams[index].members.append(copyMember)
@@ -981,7 +967,7 @@ struct TeamJoinView: View {
         }
         
         if let index = viewModel.availableTeams.firstIndex(where: { $0.teamCode == teamCode }) {
-            if let member = viewModel.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user?.userID }) {
+            if let member = viewModel.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user.userID }) {
                 let copyMember = viewModel.availableTeams[index].pendingRequests[member]
                 viewModel.availableTeams[index].pendingRequests.remove(at: member)
                 viewModel.availableTeams[index].members.append(copyMember)
@@ -1064,16 +1050,8 @@ struct TeamPublicCard: View {
                     .onTapGesture {
                         UIPasteboard.general.string = team.teamCode
                         
-                        viewModel.teamCode = team.teamCode
-                        withAnimation {
-                            viewModel.showCopiedText = true
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            viewModel.teamCode = ""
-                            withAnimation {
-                                viewModel.showCopiedText = false
-                            }
-                        }
+                        let toast = Toast(message: "已复制: \(team.teamCode)", duration: 2)
+                        ToastManager.shared.show(toast: toast)
                     }
                 }
                 
@@ -1205,9 +1183,9 @@ struct TeamPublicCard: View {
         
         // 添加申请
         let newMember = TeamMember(
-            userID: user.user?.userID ?? "未知",
-            name: user.user?.nickname ?? "未知",
-            avatar: user.user?.avatarImageURL ?? "未知",
+            userID: user.user.userID,
+            name: user.user.nickname,
+            avatar: user.user.avatarImageURL,
             isLeader: false,
             joinTime: Date(),
             isRegistered: false
@@ -1237,12 +1215,12 @@ struct TeamPublicCard: View {
         type = .unrelated
         
         if let index = viewModel.availableTeams.firstIndex(where: { $0.id == team.id }),
-           let memberIndex = viewModel.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user?.userID }) {
+           let memberIndex = viewModel.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user.userID }) {
             viewModel.availableTeams[index].pendingRequests.remove(at: memberIndex)
         }
         
         if let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.id == team.id }),
-           let memberIndex = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user?.userID }) {
+           let memberIndex = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user.userID }) {
             appState.competitionManager.availableTeams[index].pendingRequests.remove(at: memberIndex)
         }
         

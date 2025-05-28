@@ -13,117 +13,103 @@ struct TeamManagementView: View {
     
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // 顶部导航栏
-                HStack {
-                    Button(action: {
-                        appState.navigationManager.removeLast()
-                    }) {
-                        //HStack(spacing: 5) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.blue)
-                    }
-                    //.padding(.leading, 16)
-                    
-                    Spacer()
-                    
-                    Text("队伍管理")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    // 平衡布局的空按钮
-                    Button(action: {}) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.clear)
-                    }
+        VStack(spacing: 0) {
+            // 顶部导航栏
+            HStack {
+                Button(action: {
+                    appState.navigationManager.removeLast()
+                }) {
+                    //HStack(spacing: 5) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.blue)
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 10)
-                .background(Color(.systemBackground))
+                //.padding(.leading, 16)
                 
-                // 选项卡
-                HStack(spacing: 0) {
-                    ForEach(["已创建", "已申请", "已加入"].indices, id: \.self) { index in
-                        Button(action: {
-                            withAnimation {
-                                viewModel.selectedTab = index
-                            }
-                        }) {
-                            VStack(spacing: 8) {
-                                Text(["已创建", "已申请", "已加入"][index])
-                                    .font(.system(size: 16, weight: viewModel.selectedTab == index ? .semibold : .regular))
-                                    .foregroundColor(viewModel.selectedTab == index ? .blue : .gray)
-                                
-                                // 选中指示器
-                                Rectangle()
-                                    .fill(viewModel.selectedTab == index ? Color.blue : Color.clear)
-                                    .frame(width: 80, height: 3)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                }
-                .padding(.top, 5)
+                Spacer()
                 
-                // 内容区域
-                TabView(selection: $viewModel.selectedTab) {
-                    // 已创建队伍
-                    if viewModel.myCreatedTeams.isEmpty {
-                        emptyTeamView(title: "您还没有创建任何队伍", subtitle: "在赛事中心创建您的第一支队伍")
-                            .tag(0)
-                    } else {
-                        teamListView(teams: viewModel.myCreatedTeams, type: .created)
-                            .tag(0)
-                    }
-                    
-                    // 已申请队伍
-                    if viewModel.myAppliedTeams.isEmpty {
-                        emptyTeamView(title: "您还没有申请任何队伍", subtitle: "在赛事中心申请加入感兴趣的队伍")
-                            .tag(1)
-                    } else {
-                        teamListView(teams: viewModel.myAppliedTeams, type: .applied)
-                            .tag(1)
-                    }
-                    
-                    // 已加入队伍
-                    if viewModel.myJoinedTeams.isEmpty {
-                        emptyTeamView(title: "您还没有加入任何队伍", subtitle: "在赛事中心申请加入感兴趣的队伍")
-                            .tag(2)
-                    } else {
-                        teamListView(teams: viewModel.myJoinedTeams, type: .joined)
-                            .tag(2)
-                    }
+                Text("队伍管理")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .ignoresSafeArea()
             }
-            .navigationBarHidden(true)
-            .onAppear {
-                viewModel.fetchTeamInfo()
-            }
-            .sheet(item: $viewModel.selectedTeamDetail) { _ in
-                TeamDetailView(selectedTeam: viewModel.selectedTeamDetail, type: viewModel.selectedTeamDetail?.getRelationship(for: viewModel.user.user?.userID ?? "未知") ?? .unrelated)
-            }
-            .sheet(item: $viewModel.selectedTeamManage) { _ in
-                TeamManageView(viewModel: viewModel)
-            }
+            .padding(.horizontal)
+            .padding(.bottom, 10)
+            .background(Color(.systemBackground))
             
-            // 显示复制的文字提示
-            if viewModel.showCopiedText {
-                Text("已复制: \(viewModel.teamCode)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.gray.opacity(0.6))
-                    .cornerRadius(8)
-                    .transition(.opacity)
-                    .offset(y: -50) // 上移，防止遮挡
+            // 选项卡
+            HStack(spacing: 0) {
+                ForEach(["已创建", "已申请", "已加入"].indices, id: \.self) { index in
+                    Button(action: {
+                        withAnimation {
+                            viewModel.selectedTab = index
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            Text(["已创建", "已申请", "已加入"][index])
+                                .font(.system(size: 16, weight: viewModel.selectedTab == index ? .semibold : .regular))
+                                .foregroundColor(viewModel.selectedTab == index ? .blue : .gray)
+                            
+                            // 选中指示器
+                            Rectangle()
+                                .fill(viewModel.selectedTab == index ? Color.blue : Color.clear)
+                                .frame(width: 80, height: 3)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
             }
+            .padding(.top, 5)
+            
+            // 内容区域
+            TabView(selection: $viewModel.selectedTab) {
+                // 已创建队伍
+                if viewModel.myCreatedTeams.isEmpty {
+                    emptyTeamView(title: "您还没有创建任何队伍", subtitle: "在赛事中心创建您的第一支队伍")
+                        .tag(0)
+                } else {
+                    teamListView(teams: viewModel.myCreatedTeams, type: .created)
+                        .tag(0)
+                }
+                
+                // 已申请队伍
+                if viewModel.myAppliedTeams.isEmpty {
+                    emptyTeamView(title: "您还没有申请任何队伍", subtitle: "在赛事中心申请加入感兴趣的队伍")
+                        .tag(1)
+                } else {
+                    teamListView(teams: viewModel.myAppliedTeams, type: .applied)
+                        .tag(1)
+                }
+                
+                // 已加入队伍
+                if viewModel.myJoinedTeams.isEmpty {
+                    emptyTeamView(title: "您还没有加入任何队伍", subtitle: "在赛事中心申请加入感兴趣的队伍")
+                        .tag(2)
+                } else {
+                    teamListView(teams: viewModel.myJoinedTeams, type: .joined)
+                        .tag(2)
+                }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .ignoresSafeArea()
+        }
+        .navigationBarHidden(true)
+        .onAppear {
+            viewModel.fetchTeamInfo()
+        }
+        .sheet(item: $viewModel.selectedTeamDetail) { _ in
+            TeamDetailView(selectedTeam: viewModel.selectedTeamDetail, type: viewModel.selectedTeamDetail?.getRelationship(for: viewModel.user.user.userID) ?? .unrelated)
+        }
+        .sheet(item: $viewModel.selectedTeamManage) { _ in
+            TeamManageView(viewModel: viewModel)
         }
     }
     
@@ -245,16 +231,8 @@ struct TeamManageCard: View {
                         .onTapGesture {
                             UIPasteboard.general.string = team.teamCode
                             
-                            viewModel.teamCode = team.teamCode
-                            withAnimation {
-                                viewModel.showCopiedText = true
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                viewModel.teamCode = ""
-                                withAnimation {
-                                    viewModel.showCopiedText = false
-                                }
-                            }
+                            let toast = Toast(message: "已复制: \(team.teamCode)", duration: 2)
+                            ToastManager.shared.show(toast: toast)
                         }
                     }
                 }
@@ -379,7 +357,7 @@ struct TeamManageCard: View {
     // 取消申请加入
     func cancelApplied() {
         if team.isPublic, let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.id == team.id }),
-           let memberIndex = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user?.userID }) {
+           let memberIndex = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user.userID }) {
             appState.competitionManager.availableTeams[index].pendingRequests.remove(at: memberIndex)
         }
         
@@ -394,7 +372,7 @@ struct TeamManageCard: View {
     
     // 退出队伍
     func exitTeam() {
-        if let me = team.members.firstIndex(where: { $0.userID == user.user?.userID }), team.members[me].isRegistered {
+        if let me = team.members.firstIndex(where: { $0.userID == user.user.userID }), team.members[me].isRegistered {
             viewModel.alertMessage = "请先取消报名再退出队伍"
             viewModel.showCardAlert = true
             return
@@ -409,7 +387,7 @@ struct TeamManageCard: View {
         }
         
         if team.isPublic, let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.id == team.id }),
-           let memberIndex = appState.competitionManager.availableTeams[index].members.firstIndex(where: { $0.userID == user.user?.userID }) {
+           let memberIndex = appState.competitionManager.availableTeams[index].members.firstIndex(where: { $0.userID == user.user.userID }) {
             print("availableTeam member remove success")
             appState.competitionManager.availableTeams[index].members.remove(at: memberIndex)
         }
@@ -417,7 +395,7 @@ struct TeamManageCard: View {
     
     // 解散队伍
     func disbandTeam() {
-        if let me = team.members.firstIndex(where: { $0.userID == user.user?.userID }), team.members[me].isRegistered {
+        if let me = team.members.firstIndex(where: { $0.userID == user.user.userID }), team.members[me].isRegistered {
             viewModel.alertMessage = "请先取消报名再解散队伍"
             viewModel.showCardAlert = true
             return

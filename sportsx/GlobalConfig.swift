@@ -13,6 +13,5 @@ class GlobalConfig: ObservableObject {
     
     private init () {}
     
-    // 示例
     var location: String = "未知"
 }

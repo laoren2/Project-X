@@ -97,6 +97,55 @@ struct AgeDisplay {
     }
 }
 
+// MARK: - asyncImage支持拿到UIImage并处理
+struct AsyncImageWithColorExtraction: View {
+    let url: URL?
+    let onImageLoaded: (UIImage) -> Void
+    let placeholder: Image
+
+    var body: some View {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .onAppear {
+                        extractUIImage(from: image, completion: onImageLoaded)
+                    }
+            case .failure(_):
+                placeholder
+                    .resizable()
+                    .scaledToFill()
+                    .onAppear {
+                        extractUIImage(from: placeholder, completion: onImageLoaded)
+                    }
+            case .empty:
+                placeholder
+                    .resizable()
+                    .scaledToFill()
+                    .onAppear {
+                        extractUIImage(from: placeholder, completion: onImageLoaded)
+                    }
+            @unknown default:
+                placeholder
+                    .resizable()
+                    .scaledToFill()
+                    .onAppear {
+                        extractUIImage(from: placeholder, completion: onImageLoaded)
+                    }
+            }
+        }
+    }
+
+    private func extractUIImage(from image: Image, completion: @escaping (UIImage) -> Void) {
+        let renderer = ImageRenderer(content: image)
+        if let uiImage = renderer.uiImage {
+            completion(uiImage)
+        }
+    }
+}
+
 struct ColorComputer {
     static func averageColor(from image: UIImage) -> UIColor? {
         guard let ciImage = CIImage(image: image) else { return nil }

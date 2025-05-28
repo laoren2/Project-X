@@ -51,10 +51,6 @@ class RVRCompetitionViewModel: ObservableObject {
     // 显示选中的team详情页
     @Published var selectedTeamDetail: Team?
     
-    // 用于展示临时的提示信息
-    @Published var showCopiedText = false
-    @Published var teamCode: String = ""
-    
     // alert信息
     @Published var showAlert = false    // 控制各子页面、弹窗内的alert
     @Published var showSingleRegisterAlert = false  // 控制主页面的alert
@@ -429,7 +425,7 @@ class RVRCompetitionViewModel: ObservableObject {
     // 防止在同一个队伍内重复报名
     func verifyRepeatRegister(teamCode: String) -> Bool {
         let allJoinedTeams = competitionManager.myCreatedTeams + competitionManager.myJoinedTeams
-        if let index = allJoinedTeams.firstIndex(where: { $0.teamCode == teamCode }), let memberIndex = allJoinedTeams[index].members.firstIndex(where: { $0.userID == user.user?.userID }) {
+        if let index = allJoinedTeams.firstIndex(where: { $0.teamCode == teamCode }), let memberIndex = allJoinedTeams[index].members.firstIndex(where: { $0.userID == user.user.userID }) {
             return allJoinedTeams[index].members[memberIndex].isRegistered
         }
         return true
@@ -521,17 +517,17 @@ class RVRCompetitionViewModel: ObservableObject {
         
         // 创建一个新的队伍
         let newTeam = Team(
-            captainID: user.user?.userID ?? "未知",
-            captainName: user.user?.nickname ?? "未知",
-            captainAvatar: user.user?.avatarImageURL ?? "未知",
+            captainID: user.user.userID,
+            captainName: user.user.nickname,
+            captainAvatar: user.user.avatarImageURL,
             title: title,
             description: description,
             maxMembers: maxMembers,
             members: [
                 TeamMember(
-                    userID: user.user?.userID ?? "未知",
-                    name: user.user?.nickname ?? "未知",
-                    avatar: user.user?.avatarImageURL ?? "未知",
+                    userID: user.user.userID,
+                    name: user.user.nickname,
+                    avatar: user.user.avatarImageURL,
                     isLeader: true,
                     joinTime: Date(),
                     isRegistered: false

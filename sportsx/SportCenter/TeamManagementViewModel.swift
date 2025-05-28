@@ -174,10 +174,6 @@ class TeamManagementViewModel: ObservableObject {
     @Published var selectedTeamDetail: Team?
     @Published var selectedTeamManage: Team?
     
-    // 用于展示临时的提示信息
-    @Published var showCopiedText = false
-    @Published var teamCode: String = ""
-    
     // 提示信息
     @Published var showAlert = false
     @Published var showCardAlert = false    // 控制teamManageCard弹出的alert

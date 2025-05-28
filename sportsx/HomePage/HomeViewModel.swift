@@ -38,7 +38,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var leaderboardFetchCount = 0 // 更新排行榜的引用计数，在频繁更新时显示加载状态
     
     let appState = AppState.shared
-    //let competitionManager = CompetitionManager.shared
+    let userManager = UserManager.shared
 
     var ads: [Ad] = [
         Ad(imageURL: "https://example.com/ad3.jpg"),
@@ -145,6 +145,10 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         // todo
         isTodaySigned = isSignedIn(day: Calendar.current.component(.weekday, from: Date()) - 1)
     }
+    
+    func fetchMeInLeaderboard() -> LeaderboardEntry {
+        return LeaderboardEntry(user_id: "", nickname: "", best_time: 00.00, avatarImageURL: NetworkService.baseDomain + "")
+    }
 
     func fetchLeaderboard(for trackIndex: Int, gender: String, reset: Bool = false) {
         // 确保有选中的赛事和赛道
@@ -180,6 +184,8 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         leaderboardFetchCount += 1
         
         print("获取排行榜数据: 赛事[\(event.name)], 赛道[\(track.name)], 性别[\(gender)], 页码[\(currentPage)]")
+        
+        
         
         // 模拟网络请求
         DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
@@ -244,14 +250,16 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.cities = ["北京市", "上海市", "广州市", "深圳市"]
     }
 
-    func fetchCityName(from location: CLLocation) {
-        // 位置截流
-        if let lastLocation = lastLocation, location.distance(from: lastLocation) < 100 {
-            return
-        }
-        // 时间截流
-        if let lastLocationUpdateTime = lastLocationUpdateTime, Date().timeIntervalSince(lastLocationUpdateTime) < 2 {
-            return
+    func fetchCityName(from location: CLLocation, enforce: Bool = false) {
+        if !enforce {
+            // 位置截流
+            if let lastLocation = lastLocation, location.distance(from: lastLocation) < 100 {
+                return
+            }
+            // 时间截流
+            if let lastLocationUpdateTime = lastLocationUpdateTime, Date().timeIntervalSince(lastLocationUpdateTime) < 2 {
+                return
+            }
         }
         lastLocation = location
         lastLocationUpdateTime = Date()
@@ -279,14 +287,15 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     func enableAutoLocation() {
         // 启用自动定位
         shouldUseAutoLocation = true
-        // 强制刷新一次
+        
         guard let location = LocationManager.shared.getLocation() else {
             cityName = "未知"
             resetEvents()
             print("No location data available.")
             return
         }
-        fetchCityName(from: location)
+        // 强制刷新一次
+        fetchCityName(from: location, enforce: true)
     }
     
     func resetEvents() {
@@ -309,7 +318,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         // 显示加载状态
         // 这里可以添加一个加载指示器
-        let isLoading = true
+        //let isLoading = true
         
         // 模拟网络请求，这里需要替换成真实的网络请求代码
         DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
@@ -574,7 +583,7 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable {
     let best_time: TimeInterval
     let avatarImageURL: String?
     
-    init(id: UUID = UUID(), user_id: String = "null", nickname: String = "null", best_time: TimeInterval = 0.0, avatarImageURL: String = "null") {
+    init(id: UUID = UUID(), user_id: String = "null", nickname: String = "null", best_time: TimeInterval = 0.0, avatarImageURL: String? = nil) {
         self.id = id
         self.user_id = user_id
         self.nickname = nickname
