@@ -14,9 +14,10 @@ struct UserView: View {
     @ObservedObject var userManager = UserManager.shared
     @StateObject var viewModel: UserViewModel
     
-    @State private var dragOffset: CGFloat = 0       // 当前拖动偏移量
-    @State private var disableScroll = false         // 是否禁用滚动(拖动时禁用)
-    @GestureState private var drag = CGFloat.zero    // 手势状态
+    @State private var dragOffset: CGFloat = 0      // 当前拖动偏移量
+    @State private var disableScroll = false        // 是否禁用滚动(拖动时禁用)
+    @GestureState private var drag = CGFloat.zero   // 手势状态
+    @State private var isDragging: Bool = false     // 是否处于拖动中
     
     // 是否是已登陆用户
     var isUserSelf: Bool {
@@ -42,8 +43,12 @@ struct UserView: View {
                 .frame(width: viewModel.sidebarWidth)
                 .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? UIScreen.main.bounds.width - viewModel.sidebarWidth : 0) : (viewModel.isNeedBack ? UIScreen.main.bounds.width : -viewModel.sidebarWidth)) + dragOffset)
         }
+        .allowsHitTesting(!isDragging)
         .gesture(
             DragGesture(minimumDistance: 10) // 设置最小拖动距离，防止误触
+                .onChanged { _ in
+                    isDragging = true
+                }
                 .updating($drag) { value, state, _ in
                     // 获取水平滑动的偏移量
                     let translation = value.translation.width
@@ -78,6 +83,7 @@ struct UserView: View {
                     }
                 }
                 .onEnded { value in
+                    isDragging = false
                     // 计算拖动距离
                     let translation = value.translation.width
                     let distanceThreshold: CGFloat = 150  // 距离阈值，超过这个距离就触发动作

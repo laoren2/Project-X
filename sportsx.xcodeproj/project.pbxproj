@@ -105,6 +105,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A90021742DEF3F9A00B34847 /* AdminSevice */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AdminSevice; sourceTree = "<group>"; };
 		A97D147D2DAFA80E002F0B1E /* SportCenter */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SportCenter; sourceTree = "<group>"; };
 		A97D147F2DAFAAB7002F0B1E /* UserCenter */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = UserCenter; sourceTree = "<group>"; };
 		A97D14802DAFAF71002F0B1E /* HomePage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HomePage; sourceTree = "<group>"; };
@@ -194,6 +195,7 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A90021742DEF3F9A00B34847 /* AdminSevice */,
 				A9B2825A2DD9101A00DCBCBD /* Extensions */,
 				A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */,
 				A98A25EF2DB9990200BAC987 /* Components */,
@@ -263,6 +265,7 @@
 				A9B9A54D2D2BFDE800B357C2 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				A90021742DEF3F9A00B34847 /* AdminSevice */,
 				A97D147D2DAFA80E002F0B1E /* SportCenter */,
 				A97D147F2DAFAAB7002F0B1E /* UserCenter */,
 				A97D14802DAFAF71002F0B1E /* HomePage */,

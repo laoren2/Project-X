@@ -2,6 +2,8 @@
 //  NavigationManager.swift
 //  sportsx
 //
+//  全局的path管理可能导致导航时SWiftUI重建导航视图，关键任务逻辑尽量不要使用onAppear和onDisappear，使用自定义Stable版本
+//
 //  Created by 任杰 on 2025/1/9.
 //
 //
@@ -27,6 +29,9 @@ enum AppRoute: Hashable {
     case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
+    case adminPanelView
+    case seasonBackendView
+    case eventBackendView
     
     var string: String {
         switch self {
@@ -62,6 +67,12 @@ enum AppRoute: Hashable {
             return "identityAuthView"
         case .userSetUpAccountView:
             return "userSetUpAccountView"
+        case .adminPanelView:
+            return "adminPanelView"
+        case .seasonBackendView:
+            return "seasonBackendView"
+        case .eventBackendView:
+            return "eventBackendView"
         }
     }
 }

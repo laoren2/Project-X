@@ -68,8 +68,10 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     override init() {
         super.init()
-        //setupLocationSubscription()
-        //fetchLeaderboard(for: selectedTrackIndex, gender: gender, reset: true)
+        setupLocationSubscription()
+        if let location = LocationManager.shared.getLocation() {
+            self.fetchCityName(from: location)
+        }
         fetchCities()
     }
     
@@ -101,14 +103,10 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     private func handleLocationUpdate(_ location: CLLocation) {
         // 更新UI转到主线程上
-        // 比赛开始后位置更新频率变高，停止位置更新回调
-        if !appState.competitionManager.isRecording && shouldUseAutoLocation {
-            DispatchQueue.main.async {
-                self.fetchCityName(from: location)
-                print("homeView fetchCityName")
-                //self.updateTracks()
-            }
+        DispatchQueue.main.async {
+            self.fetchCityName(from: location)
         }
+        deleteLocationSubscription()
     }
         
     private func handleAuthorizationStatusChange(_ status: CLAuthorizationStatus) {
@@ -147,7 +145,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func fetchMeInLeaderboard() -> LeaderboardEntry {
-        return LeaderboardEntry(user_id: "", nickname: "", best_time: 00.00, avatarImageURL: NetworkService.baseDomain + "")
+        return LeaderboardEntry(user_id: "", nickname: "", best_time: 00.00, avatarImageURL: NetworkService.baseDomain + "", predictBonus: 0)
     }
 
     func fetchLeaderboard(for trackIndex: Int, gender: String, reset: Bool = false) {
@@ -213,7 +211,8 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                     user_id: userId,
                     nickname: nickname,
                     best_time: bestTime,
-                    avatarImageURL: "https://example.com/avatar/\(userId).jpg"
+                    avatarImageURL: "https://example.com/avatar/\(userId).jpg",
+                    predictBonus: 0
                 ))
             }
             
@@ -342,7 +341,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             // 正常情况下获取数据
             if city == "北京市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "北京马拉松", city: city, description: "北京国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "北京马拉松", city: city, description: "北京国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "北京马拉松",
                               from: CLLocationCoordinate2D(latitude: 39.90, longitude: 116.39),
                               to: CLLocationCoordinate2D(latitude: 39.95, longitude: 116.45),
@@ -362,7 +361,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                               totalParticipants: 8742,
                               currentParticipants: 456)
                     ]),
-                    Event(eventIndex: 1, name: "奥林匹克公园跑步赛", city: city, description: "奥林匹克公园跑步挑战赛", tracks: [
+                    Event(eventIndex: 1, name: "奥林匹克公园跑步赛", city: city, description: "奥林匹克公园跑步挑战赛", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "5公里赛道", eventName: "奥林匹克公园跑步赛",
                               from: CLLocationCoordinate2D(latitude: 40.00, longitude: 116.38),
                               to: CLLocationCoordinate2D(latitude: 40.02, longitude: 116.40),
@@ -385,7 +384,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 ]
             } else if city == "上海市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "上海马拉松", city: city, description: "上海国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "上海马拉松", city: city, description: "上海国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "上海马拉松",
                               from: CLLocationCoordinate2D(latitude: 31.23, longitude: 121.47),
                               to: CLLocationCoordinate2D(latitude: 31.28, longitude: 121.52),
@@ -405,7 +404,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                               totalParticipants: 9876,
                               currentParticipants: 567)
                     ]),
-                    Event(eventIndex: 1, name: "上海城市定向赛", city: city, description: "上海城市定向挑战赛", tracks: [
+                    Event(eventIndex: 1, name: "上海城市定向赛", city: city, description: "上海城市定向挑战赛", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "初级赛道", eventName: "上海城市定向赛",
                               from: CLLocationCoordinate2D(latitude: 31.0051, longitude: 121.4098),
                               to: CLLocationCoordinate2D(latitude: 31.24, longitude: 121.48),
@@ -437,7 +436,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 ]
             } else if city == "广州市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "广州马拉松", city: city, description: "广州国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "广州马拉松", city: city, description: "广州国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "广州马拉松",
                               from: CLLocationCoordinate2D(latitude: 23.12, longitude: 113.25),
                               to: CLLocationCoordinate2D(latitude: 23.17, longitude: 113.30),
@@ -460,7 +459,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 ]
             } else if city == "深圳市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "深圳马拉松", city: city, description: "深圳国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "深圳马拉松", city: city, description: "深圳国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "深圳马拉松",
                               from: CLLocationCoordinate2D(latitude: 22.53, longitude: 114.05),
                               to: CLLocationCoordinate2D(latitude: 22.58, longitude: 114.10),
@@ -480,7 +479,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                               totalParticipants: 8765,
                               currentParticipants: 489)
                     ]),
-                    Event(eventIndex: 1, name: "深圳湾跑步赛", city: city, description: "深圳湾公园跑步挑战赛", tracks: [
+                    Event(eventIndex: 1, name: "深圳湾跑步赛", city: city, description: "深圳湾公园跑步挑战赛", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "5公里赛道", eventName: "深圳湾跑步赛",
                               from: CLLocationCoordinate2D(latitude: 22.50, longitude: 113.95),
                               to: CLLocationCoordinate2D(latitude: 22.52, longitude: 113.97),
@@ -504,7 +503,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             } else {
                 // 默认赛事数据，当城市不在支持列表中时使用
                 cityEvents = [
-                    Event(eventIndex: 0, name: "未知马拉松", city: city, description: "未知马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "未知马拉松", city: city, description: "未知马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "5公里赛道", eventName: "未知马拉松",
                               from: CLLocationCoordinate2D(latitude: 31.00, longitude: 121.40),
                               to: CLLocationCoordinate2D(latitude: 31.02, longitude: 121.42),
@@ -581,14 +580,16 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable {
     let user_id: String
     let nickname: String
     let best_time: TimeInterval
-    let avatarImageURL: String?
+    let avatarImageURL: String
+    let predictBonus: Int
     
-    init(id: UUID = UUID(), user_id: String = "null", nickname: String = "null", best_time: TimeInterval = 0.0, avatarImageURL: String? = nil) {
+    init(id: UUID = UUID(), user_id: String = "null", nickname: String = "null", best_time: TimeInterval = 0.0, avatarImageURL: String, predictBonus: Int = 0) {
         self.id = id
         self.user_id = user_id
         self.nickname = nickname
         self.best_time = best_time
         self.avatarImageURL = avatarImageURL
+        self.predictBonus = predictBonus
     }
     
     static func == (lhs: LeaderboardEntry, rhs: LeaderboardEntry) -> Bool {

@@ -28,13 +28,22 @@ struct CompetitionCardSelectView: View {
                     appState.competitionManager.resetCompetitionProperties()
                 }) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 22, weight: .light))
-                    Text("返回")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
                 }
-                .padding(.leading, 18)
-                
                 Spacer()
+                Text("cardselect")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+                Spacer()
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
             }
+            .padding(.horizontal)
             
             Spacer()
             
@@ -48,6 +57,7 @@ struct CompetitionCardSelectView: View {
                     } else {
                         Text("剩余加入时间: \(appState.competitionManager.teamJoinRemainingTime)秒")
                             .font(.headline)
+                            .foregroundStyle(.white)
                             .padding()
                     }
                 }
@@ -59,6 +69,7 @@ struct CompetitionCardSelectView: View {
             Text("我的卡牌阵容")
                 .font(.headline)
                 .padding(.bottom, 5)
+                .foregroundStyle(.white)
             
             // 固定的三个卡牌位
             HStack(spacing: 20) {
@@ -121,10 +132,14 @@ struct CompetitionCardSelectView: View {
             
             Spacer()
         }
-        .background(
-            Color(.systemBackground)
-                .edgesIgnoringSafeArea(.all)
-        )
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableBackGesture() {
+            // 销毁计时器a和b
+            appState.competitionManager.stopAllTeamJoinTimers()
+            appState.navigationManager.removeLast()
+            appState.competitionManager.resetCompetitionProperties()
+        }
         .onAppear {
             if cardManager.availableCards.isEmpty {
                 cardManager.fetchUserCards()
@@ -134,7 +149,6 @@ struct CompetitionCardSelectView: View {
                 appState.competitionManager.startTeamJoinTimerA()
             }
         }
-        .navigationBarHidden(true)
     }
 }
 

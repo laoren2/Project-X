@@ -11,22 +11,28 @@ import MapKit
 
 // MARK: 导航中右划返回手势
 extension View {
-    func enableBackGesture(_ enabled: Bool = true) -> some View {
-        modifier(BackGestureModifier(enabled: enabled))
+    func enableBackGesture(_ enabled: Bool = true, onBack: (() -> Void)? = nil) -> some View {
+        modifier(BackGestureModifier(enabled: enabled, onBack: onBack))
     }
 }
 
 private struct BackGestureModifier: ViewModifier {
     @EnvironmentObject var appState: AppState
     let enabled: Bool
+    let onBack: (() -> Void)?
+    @State private var isDragging: Bool = false
 
     func body(content: Content) -> some View {
         content
+            .allowsHitTesting(!isDragging)
             .gesture(
                 enabled ?
                 DragGesture()
+                    .onChanged { _ in
+                        isDragging = true
+                    }
                     .onEnded { value in
-                        // 计算拖动距离
+                        isDragging = false
                         let translation = value.translation.width
                         let distanceThreshold: CGFloat = 150  // 距离阈值，超过这个距离就触发动作
                         
@@ -36,7 +42,11 @@ private struct BackGestureModifier: ViewModifier {
                         
                         // 根据距离或速度来判断是否返回
                         if translation > distanceThreshold || (translation > minThreshold && value.velocity.width > velocityThreshold) {
-                            appState.navigationManager.removeLast()
+                            if let onBack = onBack {
+                                onBack()
+                            } else {
+                                appState.navigationManager.removeLast()
+                            }
                         }
                     }
                 : nil
@@ -64,6 +74,59 @@ extension View {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
         )
+    }
+}
+
+// MARK: 稳定生命周期监听
+
+extension View {
+    func onStableAppear(perform: @escaping () -> Void) -> some View {
+        background(
+            StableLifecycleObserver(
+                onAppear: perform,
+                onDisappear: {}
+            )
+            .frame(width: 0, height: 0)
+        )
+    }
+
+    func onStableDisappear(perform: @escaping () -> Void) -> some View {
+        background(
+            StableLifecycleObserver(
+                onAppear: {},
+                onDisappear: perform
+            )
+            .frame(width: 0, height: 0)
+        )
+    }
+}
+
+struct StableLifecycleObserver: UIViewControllerRepresentable {
+    var onAppear: () -> Void
+    var onDisappear: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = LifecycleViewController()
+        controller.onAppear = onAppear
+        controller.onDisappear = onDisappear
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+
+    class LifecycleViewController: UIViewController {
+        var onAppear: (() -> Void)?
+        var onDisappear: (() -> Void)?
+
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            onAppear?()
+        }
+
+        override func viewDidDisappear(_ animated: Bool) {
+            super.viewDidDisappear(animated)
+            onDisappear?()
+        }
     }
 }
 
@@ -159,5 +222,4 @@ extension Data {
         }
     }
 }
-
 

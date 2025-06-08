@@ -111,7 +111,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             locationManager.requestWhenInUseAuthorization()
         } else {
             // Denied或Restricted时无法启动更新
-            print("Denied/Restricted")
+            DispatchQueue.main.async {
+                let toast = Toast(message: "无位置信息权限")
+                ToastManager.shared.show(toast: toast)
+            }
         }
     }
     
@@ -119,14 +122,20 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.stopUpdatingLocation()
     }
     
-    // 手动控制更新的接口（如果需要）
+    // 手动强制开始位置更新
     func startUpdating() {
         // 调用此方法时，可确保即使没有订阅者也开始更新位置（谨慎使用）
         locationManager.startUpdatingLocation()
     }
     
+    // 手动强制停止位置更新
     func stopUpdating() {
         locationManager.stopUpdatingLocation()
+    }
+    
+    // 手动请求一次位置更新
+    func requestUpdateOnce() {
+        locationManager.requestLocation()
     }
     
     func getLocation() -> CLLocation? {

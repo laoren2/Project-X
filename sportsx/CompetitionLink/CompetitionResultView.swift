@@ -12,19 +12,36 @@ struct CompetitionResultView: View {
     
     var body: some View {
         VStack {
-            Text("比赛结果结算页面")
-                .font(.largeTitle)
-        }
-        .navigationBarBackButtonHidden(true)  // 隐藏默认返回按钮
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: adjustNavigationPath) {
-                    HStack {
-                        Image(systemName: "chevron.left")
-                        Text("返回")
-                    }
+            HStack {
+                Button(action: {
+                    adjustNavigationPath()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                Spacer()
+                Text("result")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+                Spacer()
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
                 }
             }
+            .padding(.horizontal)
+            Text("比赛结果结算页面")
+                .font(.largeTitle)
+                .foregroundStyle(.white)
+            Spacer()
+        }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableBackGesture() {
+            adjustNavigationPath()
         }
     }
     

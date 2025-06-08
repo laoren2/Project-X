@@ -495,21 +495,6 @@ struct RVRCompetitionView: View {
             }
             .padding(.horizontal, 10)
         }
-        .onAppear() {
-            LocationManager.shared.saveLowToLast()
-            if !appState.competitionManager.isRecording {
-                LocationManager.shared.changeToLowUpdate()
-            }
-            viewModel.setupLocationSubscription()
-            
-            // 防止首次从首页切到运动中心时定位信息无法及时更新
-            if let location = LocationManager.shared.getLocation() {
-                viewModel.fetchCityName(from: location)
-            }
-        }
-        .onDisappear() {
-            viewModel.deleteLocationSubscription()
-        }
     }
     
     // 单人报名

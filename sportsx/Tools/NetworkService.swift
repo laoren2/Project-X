@@ -28,8 +28,9 @@ struct APIRequest {
     var method: HTTPMethod
     var headers: [String: String]?
     var body: Data?
-    var requiresAuth: Bool
+    var requiresAuth: Bool = false
     var isInternal: Bool = false
+    var cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
 }
 
 struct APIResponse<T: Decodable>: Decodable {
@@ -43,14 +44,15 @@ struct EmptyResponse: Decodable {}
 
 
 struct NetworkService {
-    static let baseDomain: String = "https://192.168.1.4:8000"
-    static let baseUrl: String = "https://192.168.1.4:8000/api/v1"
-    static let baseUrl_internal: String = "https://192.168.1.4:8000/api/internal"
+    static let baseDomain: String = "https://192.168.1.2:8000"
+    static let baseUrl: String = "https://192.168.1.2:8000/api/v1"
+    static let baseUrl_internal: String = "https://192.168.1.2:8000/api/internal"
     
     static func sendRequest<T: Decodable>(
         with apiRequest: APIRequest,
         decodingType: T.Type,
         showLoadingToast: Bool = false,
+        showSuccessToast: Bool = false,
         showErrorToast: Bool = false,
         customErrorToast: ((APIError) -> Toast?)? = nil,
         completion: @escaping (Result<T?, APIError>) -> Void
@@ -68,7 +70,7 @@ struct NetworkService {
 
         // Headers
         var allHeaders = apiRequest.headers ?? [:]
-        if apiRequest.requiresAuth, let token = KeychainHelper.standard.read(forKey: "access_token") {
+        if (apiRequest.requiresAuth || apiRequest.isInternal), let token = KeychainHelper.standard.read(forKey: "access_token") {
             allHeaders["Authorization"] = "Bearer \(token)"
         }
         for (key, value) in allHeaders {
@@ -79,6 +81,7 @@ struct NetworkService {
         if let body = apiRequest.body, apiRequest.method != .get {
             request.httpBody = body
         }
+        request.cachePolicy = apiRequest.cachePolicy
         
         // 加载toast
         if showLoadingToast {
@@ -152,7 +155,7 @@ struct NetworkService {
             }
             
             guard let decoded = try? JSONDecoder().decode(APIResponse<T>.self, from: data) else {
-                let toast = customErrorToast?(.decodeError) ?? Toast(message: "数据错误", duration: 2)
+                let toast = customErrorToast?(.decodeError) ?? Toast(message: "数据错误2", duration: 2)
                 if showErrorToast {
                     DispatchQueue.main.async {
                         ToastManager.shared.show(toast: toast)
@@ -169,6 +172,13 @@ struct NetworkService {
             
             // 判断业务 code
             if decoded.code == 0 {
+                // 默认展示服务端传回的msg
+                if showSuccessToast {
+                    let toast = Toast(message: decoded.message, duration: 2)
+                    DispatchQueue.main.async {
+                        ToastManager.shared.show(toast: toast)
+                    }
+                }
                 completion(.success(decoded.data))
             } else {
                 let toast = customErrorToast?(.businessError(code: decoded.code, message: decoded.message)) ?? Toast(message: "\(decoded.message)", duration: 2)

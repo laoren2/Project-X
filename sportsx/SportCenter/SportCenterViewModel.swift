@@ -99,6 +99,13 @@ class RVRCompetitionViewModel: ObservableObject {
         return events[selectedEventIndex]
     }
     
+    init() {
+        setupLocationSubscription()
+        if let location = LocationManager.shared.getLocation() {
+            self.fetchCityName(from: location)
+        }
+    }
+    
     func setupLocationSubscription() {
         // 订阅位置更新
         locationCancellable = LocationManager.shared.locationPublisher()
@@ -115,13 +122,10 @@ class RVRCompetitionViewModel: ObservableObject {
     
     private func handleLocationUpdate(_ location: CLLocation) {
         // 更新UI转到主线程上
-        // 比赛开始后位置更新频率变高，停止位置更新回调
-        if !competitionManager.isRecording {
-            DispatchQueue.main.async {
-                self.fetchCityName(from: location)
-                print("centerView fetchCityName")
-            }
+        DispatchQueue.main.async {
+            self.fetchCityName(from: location)
         }
+        deleteLocationSubscription()
     }
     
     func fetchCityName(from location: CLLocation) {
@@ -183,7 +187,7 @@ class RVRCompetitionViewModel: ObservableObject {
             // 正常情况下获取数据
             if city == "北京市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "北京马拉松", city: city, description: "北京国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "北京马拉松", city: city, description: "北京国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "北京马拉松",
                               from: CLLocationCoordinate2D(latitude: 39.90, longitude: 116.39),
                               to: CLLocationCoordinate2D(latitude: 39.95, longitude: 116.45),
@@ -203,7 +207,7 @@ class RVRCompetitionViewModel: ObservableObject {
                               totalParticipants: 8742,
                               currentParticipants: 456)
                     ]),
-                    Event(eventIndex: 1, name: "奥林匹克公园跑步赛", city: city, description: "奥林匹克公园跑步挑战赛", tracks: [
+                    Event(eventIndex: 1, name: "奥林匹克公园跑步赛", city: city, description: "奥林匹克公园跑步挑战赛", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "5公里赛道", eventName: "奥林匹克公园跑步赛",
                               from: CLLocationCoordinate2D(latitude: 40.00, longitude: 116.38),
                               to: CLLocationCoordinate2D(latitude: 40.02, longitude: 116.40),
@@ -226,7 +230,7 @@ class RVRCompetitionViewModel: ObservableObject {
                 ]
             } else if city == "上海市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "上海马拉松", city: city, description: "上海国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "上海马拉松", city: city, description: "上海国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "上海马拉松",
                               from: CLLocationCoordinate2D(latitude: 31.23, longitude: 121.47),
                               to: CLLocationCoordinate2D(latitude: 31.28, longitude: 121.52),
@@ -246,7 +250,7 @@ class RVRCompetitionViewModel: ObservableObject {
                               totalParticipants: 9876,
                               currentParticipants: 567)
                     ]),
-                    Event(eventIndex: 1, name: "上海城市定向赛", city: city, description: "上海城市定向挑战赛", tracks: [
+                    Event(eventIndex: 1, name: "上海城市定向赛", city: city, description: "上海城市定向挑战赛", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "初级赛道", eventName: "上海城市定向赛",
                               from: CLLocationCoordinate2D(latitude: 31.0051, longitude: 121.4098),
                               to: CLLocationCoordinate2D(latitude: 31.24, longitude: 121.48),
@@ -278,7 +282,7 @@ class RVRCompetitionViewModel: ObservableObject {
                 ]
             } else if city == "广州市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "广州马拉松", city: city, description: "广州国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "广州马拉松", city: city, description: "广州国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "广州马拉松",
                               from: CLLocationCoordinate2D(latitude: 23.12, longitude: 113.25),
                               to: CLLocationCoordinate2D(latitude: 23.17, longitude: 113.30),
@@ -301,7 +305,7 @@ class RVRCompetitionViewModel: ObservableObject {
                 ]
             } else if city == "深圳市" {
                 cityEvents = [
-                    Event(eventIndex: 0, name: "深圳马拉松", city: city, description: "深圳国际马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "深圳马拉松", city: city, description: "深圳国际马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "全程马拉松", eventName: "深圳马拉松",
                               from: CLLocationCoordinate2D(latitude: 22.53, longitude: 114.05),
                               to: CLLocationCoordinate2D(latitude: 22.58, longitude: 114.10),
@@ -321,7 +325,7 @@ class RVRCompetitionViewModel: ObservableObject {
                               totalParticipants: 8765,
                               currentParticipants: 489)
                     ]),
-                    Event(eventIndex: 1, name: "深圳湾跑步赛", city: city, description: "深圳湾公园跑步挑战赛", tracks: [
+                    Event(eventIndex: 1, name: "深圳湾跑步赛", city: city, description: "深圳湾公园跑步挑战赛", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "5公里赛道", eventName: "深圳湾跑步赛",
                               from: CLLocationCoordinate2D(latitude: 22.50, longitude: 113.95),
                               to: CLLocationCoordinate2D(latitude: 22.52, longitude: 113.97),
@@ -345,7 +349,7 @@ class RVRCompetitionViewModel: ObservableObject {
             } else {
                 // 默认赛事数据，当城市不在支持列表中时使用
                 cityEvents = [
-                    Event(eventIndex: 0, name: "未知马拉松", city: city, description: "未知马拉松赛事", tracks: [
+                    Event(eventIndex: 0, name: "未知马拉松", city: city, description: "未知马拉松赛事", startTime: .now, endTime: .now, tracks: [
                         Track(trackIndex: 0, name: "5公里赛道", eventName: "未知马拉松",
                               from: CLLocationCoordinate2D(latitude: 31.00, longitude: 121.40),
                               to: CLLocationCoordinate2D(latitude: 31.02, longitude: 121.42),
