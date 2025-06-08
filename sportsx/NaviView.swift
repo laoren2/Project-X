@@ -196,6 +196,12 @@ struct RealNaviView: View {
                     IdentityAuthView()
                 case .userSetUpAccountView:
                     UserSetUpAccountView()
+                case .adminPanelView:
+                    AdminPanelView()
+                case .seasonBackendView:
+                    SeasonBackendView()
+                case .eventBackendView:
+                    EventBackendView()
                 }
             }
         }
@@ -390,7 +396,7 @@ struct ShopView: View {
         ]
         guard let urlPath = components.url?.absoluteString else { return }
         
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false, isInternal: true)
+        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
         NetworkService.sendRequest(with: request, decodingType: PersonInfoDTO.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):

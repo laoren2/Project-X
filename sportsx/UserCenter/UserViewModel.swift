@@ -89,6 +89,7 @@ class UserViewModel: ObservableObject {
                 self.fetchUserInfo()
             }
         } else {
+            userManager.fetchMeRole()
             userManager.fetchMeInfo()
         }
     }
@@ -263,35 +264,61 @@ struct Cup: Identifiable {
     let image: String
 }
 
-struct SetUpItemView: View {
+struct SetUpItemView<Content: View>: View {
     let icon: String
     let title: String
-    var showChevron: Bool = true
+    let showChevron: Bool
+    let showDivider: Bool
+    let isDarkScheme: Bool
     let onEdit: (() -> Void)
+    let trailingView: (() -> Content)
+    
+    
+    init(
+        icon: String,
+        title: String,
+        showChevron: Bool = true,
+        showDivider: Bool = true,
+        isDarkScheme: Bool = true,
+        onEdit: @escaping (() -> Void),
+        @ViewBuilder trailingView: @escaping () -> Content =  { EmptyView() }
+    ) {
+        self.icon = icon
+        self.title = title
+        self.showChevron = showChevron
+        self.showDivider = showDivider
+        self.isDarkScheme = isDarkScheme
+        self.onEdit = onEdit
+        self.trailingView = trailingView
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
                 Image(systemName: icon)
-                    .foregroundColor(.secondText)
+                    .foregroundColor(isDarkScheme ? .secondText : .black)
                     .frame(width: 18, height: 18, alignment: .leading)
                 
                 Text(title)
                     .font(.system(size: 16))
-                    .foregroundColor(.secondText)
+                    .foregroundColor(isDarkScheme ? .secondText : .black)
                     
                 Spacer()
                 
+                trailingView()
+                
                 if showChevron {
                     Image(systemName: "chevron.right")
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(isDarkScheme ? .white.opacity(0.8) : .black.opacity(0.8))
                 }
             }
             .padding(.vertical, 15)
             .padding(.horizontal)
             
-            Divider()
-                .padding(.leading, 80)
+            if showDivider {
+                Divider()
+                    .padding(.leading, 80)
+            }
         }
         .background(.ultraThinMaterial)
         .onTapGesture {

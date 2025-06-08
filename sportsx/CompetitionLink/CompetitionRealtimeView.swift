@@ -18,6 +18,27 @@ struct CompetitionRealtimeView: View {
     var body: some View {
         // 显示比赛数据或其他内容
         VStack {
+            HStack {
+                Button(action: {
+                    adjustNavigationPath()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                Spacer()
+                Text("realtime")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
             ZStack(alignment: .bottomTrailing) {
                 Map(position: $cameraPosition) {
                     Annotation("From", coordinate: appState.competitionManager.startCoordinate) {
@@ -72,6 +93,7 @@ struct CompetitionRealtimeView: View {
                             .padding()
                     } else {
                         Text("剩余加入时间: \(appState.competitionManager.teamJoinRemainingTime)秒")
+                            .foregroundColor(.white)
                             .font(.headline)
                             .padding()
                     }
@@ -84,16 +106,18 @@ struct CompetitionRealtimeView: View {
             // todo 添加时间显示
             Text("已进行时间: \(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
                 .font(.subheadline)
+                .foregroundColor(.white)
             //Spacer()
             Text("Xpose: \(appState.competitionManager.predictResultCnt)")
                 .font(.headline)
+                .foregroundColor(.white)
                 .padding(.top, 20)
             
             Spacer()
             
             if !appState.competitionManager.isRecording && !appState.competitionManager.canStartCompetition {
                 Text("您不在出发点，无法开始比赛")
-                    .foregroundColor(Color.gray)
+                    .foregroundColor(Color.secondText)
             }
             
             ZStack {
@@ -136,16 +160,10 @@ struct CompetitionRealtimeView: View {
             
             Spacer()
         }
-        .navigationBarBackButtonHidden(true)  // 隐藏默认返回按钮
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: adjustNavigationPath) {
-                    HStack {
-                        Image(systemName: "chevron.left")
-                        Text("返回")
-                    }
-                }
-            }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableBackGesture() {
+            adjustNavigationPath()
         }
         .alert(isPresented: $appState.competitionManager.showAlert) {
             Alert(
@@ -154,21 +172,16 @@ struct CompetitionRealtimeView: View {
                 dismissButton: .default(Text("确定"))
             )
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .onAppear() {
+        .onStableAppear() {
             appState.competitionManager.isShowWidget = false
             appState.competitionManager.requestLocationAlwaysAuthorization()
-        }
-        .onAppear() {
             if !appState.competitionManager.isRecording {
                 LocationManager.shared.changeToMediumUpdate()
                 appState.competitionManager.setupRealtimeViewLocationSubscription()
             }
         }
-        .onDisappear() {
+        .onStableDisappear() {
             appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
-        }
-        .onDisappear() {
             appState.competitionManager.deleteRealtimeViewLocationSubscription()
         }
     }

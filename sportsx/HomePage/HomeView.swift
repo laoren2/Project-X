@@ -118,21 +118,6 @@ struct HomeView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar) // 隐藏导航栏
-        .onAppear() {
-            LocationManager.shared.saveLowToLast()
-            if !appState.competitionManager.isRecording {
-                LocationManager.shared.changeToLowUpdate()
-            }
-            viewModel.setupLocationSubscription()
-            
-            // 防止首次从运动中心切到首页时定位信息无法及时更新
-            if let location = LocationManager.shared.getLocation() {
-                viewModel.fetchCityName(from: location)
-            }
-        }
-        .onDisappear() {
-            viewModel.deleteLocationSubscription()
-        }
     }
 }
 

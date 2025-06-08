@@ -53,6 +53,17 @@ struct sportsxApp: App {
     //@StateObject private var navigationManager = NManager()
     //@StateObject var nm = NManager()
     
+    init() {
+        // 设置共享缓存，50MB内存 + 200MB磁盘
+        let cache = URLCache(
+            memoryCapacity: 50 * 1024 * 1024,
+            diskCapacity: 200 * 1024 * 1024,
+            diskPath: "network_cache"
+        )
+        URLCache.shared = cache
+        print("URLCache configured with memory: 50MB, disk: 200MB")
+    }
+    
     var body: some Scene {
         WindowGroup {
             NaviView()

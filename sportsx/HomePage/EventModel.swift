@@ -34,13 +34,17 @@ struct Event: Identifiable {
     let name: String
     var city: String = "未知"
     let description: String
+    let startTime: Date     // 赛事的开始时间
+    let endTime: Date       // 赛事的结束时间
     var tracks: [Track] // 修改为可变属性
     
-    init(eventIndex: Int, name: String, city: String, description: String = "", tracks: [Track] = []) {
+    init(eventIndex: Int, name: String, city: String, description: String = "", startTime: Date, endTime: Date, tracks: [Track] = []) {
         self.eventIndex = eventIndex
         self.name = name
         self.city = city
         self.description = description
+        self.startTime = startTime
+        self.endTime = endTime
         self.tracks = tracks
     }
 }

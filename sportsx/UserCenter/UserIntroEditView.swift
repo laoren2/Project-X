@@ -134,7 +134,7 @@ struct UserIntroEditView: View {
                     .padding()
                     
                     Button(action: {
-                        viewModel.saveUserIntro()
+                        viewModel.saveMeInfo()
                     }) {
                         Text("保存")
                             .padding(.vertical, 10)

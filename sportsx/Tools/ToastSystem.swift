@@ -16,7 +16,7 @@ struct Toast: Identifiable, Equatable {
     
     init(
         message: String = "提示",
-        duration: TimeInterval = 0,
+        duration: TimeInterval = 2,
         isProgressing: Bool = false,
         allowsInteraction: Bool = true
     ) {

@@ -25,13 +25,7 @@ class UserIntroEditViewModel: ObservableObject {
         backgroundColor = userManager.backgroundColor
     }
     
-    func saveUserIntro() {
-        // 同步到服务端，并更新本地userManager
-        //userManager.user = currentUser
-        //userManager.avatarImage = avatarImage
-        //userManager.backgroundImage = backgroundImage
-        //userManager.backgroundColor = backgroundColor
-        
+    func saveMeInfo() {
         updateMe_request()
     }
     
@@ -68,15 +62,15 @@ class UserIntroEditViewModel: ObservableObject {
         }
         
         // 图片字段
-        let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("avatar_image", avatarImage, "avatar.png"),
-            ("background_image", backgroundImage, "background.png")
+        let images: [(name: String, image: UIImage?, filename: String, maxSize: Int)] = [
+            ("avatar_image", avatarImage, "avatar.jpg", 300),
+            ("background_image", backgroundImage, "background.jpg", 500)
         ]
-        for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = unwrappedImage.pngData() {
+        for (name, image, filename, size) in images {
+            if let unwrappedImage = image, let imageData = compressImage(unwrappedImage, maxSizeKB: size) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/png\r\n\r\n")
+                body.append("Content-Type: image/jpeg\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -138,6 +132,23 @@ class UserIntroEditViewModel: ObservableObject {
                 break
             }
         }
+    }
+    
+    func compressImage(_ image: UIImage, maxSizeKB: Int = 300) -> Data? {
+        var compression: CGFloat = 1.0
+        let maxBytes = maxSizeKB * 1024
+        guard var data = image.jpegData(compressionQuality: compression) else { return nil }
+
+        while data.count > maxBytes && compression > 0.1 {
+            compression -= 0.1
+            if let newData = image.jpegData(compressionQuality: compression) {
+                data = newData
+            } else {
+                break
+            }
+            print("size: \(data.count) compression: \(compression)")
+        }
+        return data
     }
 }
 

@@ -25,6 +25,8 @@ class UserManager: ObservableObject {
     
     @Published var isLoggedIn: Bool = false
     @Published var showingLogin: Bool = false
+    
+    var role: UserRole = UserRole.user  // 用户权限
         
     private init() {
         if let token = KeychainHelper.standard.read(forKey: "access_token") {
@@ -47,6 +49,8 @@ class UserManager: ObservableObject {
         followedCount = 0
         friendCount = 0
         
+        role = UserRole.user
+        
         isLoggedIn = false
         showingLogin = true
         
@@ -66,6 +70,22 @@ class UserManager: ObservableObject {
                     ToastManager.shared.show(toast: successToast)
                     self.logoutUser()
                     self.navigationManager.backToHome()
+                }
+            default: break
+            }
+        }
+    }
+    
+    func fetchMeRole() {
+        let request = APIRequest(path: "/user/me/role", method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: UserRole.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.role = unwrappedData
+                    }
                 }
             default: break
             }
@@ -294,6 +314,11 @@ struct FetchAnyUserResponse: Codable {
     let user: UserDTO
     let relation: RelationInfoResponse
     let relationship: UserRelationshipStatus
+}
+
+enum UserRole: String, Codable {
+    case user = "user"
+    case admin = "admin"
 }
 
 enum UserRelationshipStatus: String, Codable {

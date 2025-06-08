@@ -139,6 +139,7 @@ struct LoginView: View {
                             enableAutoLocation: user.enable_auto_location,
                             isDisplayIdentity: user.is_display_identity
                         )
+                        userManager.role = unwrappedData.role
                         userManager.saveUserInfoToCache()
                         if userManager.user.enableAutoLocation {
                             userManager.user.location = config.location
@@ -217,6 +218,7 @@ struct SmsCodeResponse: Codable {
 struct LoginResponse: Codable {
     let user: UserDTO
     let relation: RelationInfoResponse
+    let role: UserRole
     let isRegister: Bool
 }
 

@@ -25,7 +25,7 @@ struct LeaderboardEntryView: View {
                         appState.navigationManager.append(.userView(id: entry.user_id, needBack: true))
                     }
             } else {
-                if let urlString = entry.avatarImageURL, let url = URL(string: urlString) {
+                if let url = URL(string: entry.avatarImageURL) {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
@@ -66,6 +66,10 @@ struct LeaderboardEntryView: View {
                     .foregroundStyle(.white)
             }
             .padding(.leading, 1)
+            
+            Image(systemName: "dollarsign.circle")
+                .foregroundStyle(.yellow)
+            Text("\(entry.predictBonus)")
         }
         .padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
