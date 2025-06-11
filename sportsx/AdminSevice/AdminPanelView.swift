@@ -44,9 +44,11 @@ struct AdminPanelView: View {
                     SetUpItemView(icon: "pc", title: "赛季&地理区域管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.seasonBackendView)
                     }
-                    
                     SetUpItemView(icon: "pc", title: "赛事管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.eventBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "赛道管理",showDivider: false, isDarkScheme: false) {
+                        NavigationManager.shared.append(.trackBackendView)
                     }
                 }
                 .cornerRadius(20)

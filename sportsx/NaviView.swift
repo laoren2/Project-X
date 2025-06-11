@@ -202,6 +202,8 @@ struct RealNaviView: View {
                     SeasonBackendView()
                 case .eventBackendView:
                     EventBackendView()
+                case .trackBackendView:
+                    TrackBackendView()
                 }
             }
         }

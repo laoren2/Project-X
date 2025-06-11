@@ -65,7 +65,7 @@ struct NetworkService {
             return
         }
 
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: url, timeoutInterval: 10)
         request.httpMethod = apiRequest.method.rawValue
 
         // Headers
@@ -206,8 +206,10 @@ struct NetworkService {
             completion(nil)
             return
         }
+        
+        let request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 5)
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             // 确保没有错误，且返回的是有效图片数据
             if let data = data, let image = UIImage(data: data) {
                 DispatchQueue.main.async {

@@ -510,15 +510,12 @@ struct RVRCompetitionInfoView: View {
             
             // 我的排行信息
             if userManager.isLoggedIn {
-                LeaderboardEntryView(entry: LeaderboardEntry(user_id: userManager.user.userID, nickname: userManager.user.nickname, best_time: 55.55, avatarImageURL: NetworkService.baseDomain + userManager.user.avatarImageURL))
+                LeaderboardEntrySelfView(entry: LeaderboardEntry(user_id: userManager.user.userID, nickname: userManager.user.nickname, best_time: 55.55, avatarImageURL: NetworkService.baseDomain + userManager.user.avatarImageURL))
                     .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
             }
             
-            // 测试用户关系功能
-            LeaderboardEntryView(entry: LeaderboardEntry(user_id: "174736215432184", nickname: "新用户_32184", best_time: 66.66, avatarImageURL: NetworkService.baseDomain + "/resources/user/174736215432184/avatar.png"))
-                .offset(y: chevronDirection ? 0 : -210)
-            LeaderboardEntryView(entry: LeaderboardEntry(user_id: "174751859937834", nickname: "新用户_37834", best_time: 16.66, avatarImageURL: NetworkService.baseDomain + "/resources/user/174751859937834/avatar.png"))
-                .offset(y: chevronDirection ? 0 : -210)
+            // todo
+            // 添加leaderboardEntries容量控制
             
             // 排行榜
             GeometryReader { geometry in
@@ -641,14 +638,12 @@ struct EventDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     // 背景图片
-                    AsyncImage(url: URL(string: "https://example.com/event/\(event.name).jpg")) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                    }
+                    CachedAsyncImage(
+                        urlString: "/resources/placeholder/event.png",
+                        placeholder: Image("Ads"),
+                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                    )
+                    .aspectRatio(contentMode: .fill)
                     .frame(height: 200)
                     .clipped()
                     

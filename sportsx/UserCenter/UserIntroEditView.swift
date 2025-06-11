@@ -237,7 +237,7 @@ struct UserIntroEditView: View {
             }
         }
         .onChange(of: viewModel.backgroundImage) {
-            if let backgroundImage = viewModel.backgroundImage, let avg = ColorComputer.averageColor(from: backgroundImage) {
+            if let backgroundImage = viewModel.backgroundImage, let avg = ImageTool.averageColor(from: backgroundImage) {
                 viewModel.backgroundColor = avg.bestSoftDarkReadableColor()
             } else {
                 viewModel.backgroundColor = .defaultBackground

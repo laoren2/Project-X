@@ -77,8 +77,7 @@ extension View {
     }
 }
 
-// MARK: 稳定生命周期监听
-
+// MARK: 视图稳定生命周期监听
 extension View {
     func onStableAppear(perform: @escaping () -> Void) -> some View {
         background(
@@ -130,6 +129,27 @@ struct StableLifecycleObserver: UIViewControllerRepresentable {
     }
 }
 
+// MARK: 视图首次渲染监听
+extension View {
+    func onFirstAppear(_ perform: @escaping () -> Void) -> some View {
+        modifier(FirstAppearModifier(perform: perform))
+    }
+}
+
+struct FirstAppearModifier: ViewModifier {
+    @State private var hasAppeared = false
+    let perform: () -> Void
+
+    func body(content: Content) -> some View {
+        content.onAppear {
+            guard !hasAppeared else { return }
+            hasAppeared = true
+            perform()
+        }
+    }
+}
+
+// MARK: UIColor
 extension UIColor {
     var rgbComponents: (CGFloat, CGFloat, CGFloat) {
         var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 1)
@@ -190,6 +210,7 @@ extension UIColor {
     }
 }
 
+// MARK: Color
 extension Color {
     static let defaultBackground = Color(red: 0.1, green: 0.1, blue: 0.1)
     
@@ -215,6 +236,7 @@ extension Color {
     }
 }
 
+// MARK: Data
 extension Data {
     mutating func append(_ string: String) {
         if let data = string.data(using: .utf8) {

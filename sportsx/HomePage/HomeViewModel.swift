@@ -41,7 +41,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     let userManager = UserManager.shared
 
     var ads: [Ad] = [
-        Ad(imageURL: "https://example.com/ad3.jpg"),
+        Ad(imageURL: "/resources/placeholder/season.png"),
         Ad(imageURL: "https://example.com/ad3.jpg"),
         Ad(imageURL: "https://s2.loli.net/2024/12/31/ZqR3uWdXTtUELsB.jpg"),
         Ad(imageURL: "https://s2.loli.net/2024/12/31/ZqR3uWdXTtUELsB.jpg"),
@@ -49,9 +49,9 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     ]
     
     var business: [Ad] = [
-        Ad(imageURL: "https://example.com/ad3.jpg"),
-        Ad(imageURL: "https://example.com/ad3.jpg"),
-        Ad(imageURL: "https://s2.loli.net/2024/12/31/ZqR3uWdXTtUELsB.jpg")
+        Ad(imageURL: "/resources/placeholder/season.png"),
+        Ad(imageURL: "/resources/placeholder/season.png"),
+        Ad(imageURL: "https://example.com/ad3.jpg")
     ]
 
     @Published var events: [Event] = [] // 赛事列表
@@ -211,7 +211,7 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                     user_id: userId,
                     nickname: nickname,
                     best_time: bestTime,
-                    avatarImageURL: "https://example.com/avatar/\(userId).jpg",
+                    avatarImageURL: "/avatar/\(userId).jpg",
                     predictBonus: 0
                 ))
             }
