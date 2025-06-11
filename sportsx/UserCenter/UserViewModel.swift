@@ -139,7 +139,7 @@ class UserViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.backgroundImage = image
                 }
-                if let avg = ColorComputer.averageColor(from: image) {
+                if let avg = ImageTool.averageColor(from: image) {
                     DispatchQueue.main.async {
                         self.backgroundColor = avg.bestSoftDarkReadableColor()
                     }

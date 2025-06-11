@@ -160,7 +160,7 @@ class UserManager: ObservableObject {
                 if let data = image.pngData() {
                     try? data.write(to: backgroundPath)
                 }
-                if let avg = ColorComputer.averageColor(from: image) {
+                if let avg = ImageTool.averageColor(from: image) {
                     DispatchQueue.main.async {
                         self.backgroundColor = avg.bestSoftDarkReadableColor()
                     }
@@ -263,7 +263,7 @@ class UserManager: ObservableObject {
            let bgImage = UIImage(data: bgData) {
             self.backgroundImage = bgImage
 
-            if let avg = ColorComputer.averageColor(from: bgImage) {
+            if let avg = ImageTool.averageColor(from: bgImage) {
                 self.backgroundColor = avg.bestSoftDarkReadableColor()
             }
         }

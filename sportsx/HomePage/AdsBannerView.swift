@@ -13,24 +13,12 @@ struct AdsCard: View {
     let height: CGFloat
     let image: String
     var body: some View {
-        AsyncImage(url: URL(string: image)) { phase in
-            switch phase {
-            case .empty:
-                Image("Ads") // 使用本地图片作为占位符
-                    .resizable()
-                    .scaledToFill()
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            case .failure:
-                Image("Ads2") // 使用本地图片作为错误占位符
-                    .resizable()
-                    .scaledToFill()
-            @unknown default:
-                EmptyView()
-            }
-        }
+        CachedAsyncImage(
+            urlString: image,
+            placeholder: Image("Ads"),
+            errorImage: Image(systemName: "photo.badge.exclamationmark")
+        )
+        .scaledToFill()
         .frame(width: width, height: height)
         .clipped()
     }

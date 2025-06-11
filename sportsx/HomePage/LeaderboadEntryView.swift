@@ -9,56 +9,25 @@ import SwiftUI
 
 struct LeaderboardEntryView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var userManager = UserManager.shared
     var entry: LeaderboardEntry
 
     var body: some View {
         HStack {
-            if entry.user_id == userManager.user.userID, let avater_image = userManager.avatarImage {
-                Image(uiImage: avater_image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 50, height: 50)
-                    .clipShape(Circle())
-                    .padding(.leading, 5)
-                    .onTapGesture {
-                        appState.navigationManager.append(.userView(id: entry.user_id, needBack: true))
-                    }
-            } else {
-                if let url = URL(string: entry.avatarImageURL) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle()) // 使图片变为圆形
-                            .padding(.leading, 5)
-                            .onTapGesture {
-                                appState.navigationManager.append(.userView(id: entry.user_id, needBack: true))
-                            }
-                    } placeholder: {
-                        //Circle()
-                        Image("Ads")
-                        //.fill(Color.gray)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle())
-                            .padding(.leading, 5)
-                            .onTapGesture {
-                                appState.navigationManager.append(.userView(id: entry.user_id, needBack: true))
-                            }
-                    }
-                } else {
-                    Circle()
-                        .fill(Color.gray)
-                        .frame(width: 50, height: 50)
-                        .padding(.leading, 5)
-                }
+            CachedAsyncImage(
+                urlString: entry.avatarImageURL,
+                placeholder: Image(systemName: "person"),
+                errorImage: Image(systemName: "photo.badge.exclamationmark")
+            )
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
+            .padding(.leading, 5)
+            .onTapGesture {
+                appState.navigationManager.append(.userView(id: entry.user_id, needBack: true))
             }
             
             VStack(alignment: .leading) {
-                Text(entry.user_id == userManager.user.userID ? userManager.user.nickname : entry.nickname)
+                Text(entry.nickname)
                     .font(.headline)
                     .foregroundStyle(.white)
                 Text("Time: \(entry.best_time) seconds")
@@ -76,7 +45,60 @@ struct LeaderboardEntryView: View {
         .background(.ultraThinMaterial)
         .cornerRadius(10)
         .shadow(radius: 2)
-        //.padding(.horizontal)
+    }
+}
+
+struct LeaderboardEntrySelfView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var userManager = UserManager.shared
+    var entry: LeaderboardEntry
+
+    var body: some View {
+        HStack {
+            if let avater_image = userManager.avatarImage {
+                Image(uiImage: avater_image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
+                    .padding(.leading, 5)
+                    .onTapGesture {
+                        appState.navigationManager.append(.userView(id: userManager.user.userID, needBack: true))
+                    }
+            } else {
+                CachedAsyncImage(
+                    urlString: userManager.user.avatarImageURL,
+                    placeholder: Image(systemName: "person"),
+                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                )
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+                .padding(.leading, 5)
+                .onTapGesture {
+                    appState.navigationManager.append(.userView(id: userManager.user.userID, needBack: true))
+                }
+            }
+            
+            VStack(alignment: .leading) {
+                Text(userManager.user.nickname)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text("Time: \(entry.best_time) seconds")
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+            }
+            .padding(.leading, 1)
+            
+            Image(systemName: "dollarsign.circle")
+                .foregroundStyle(.yellow)
+            Text("\(entry.predictBonus)")
+        }
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
+        .shadow(radius: 2)
     }
 }
 

@@ -32,6 +32,7 @@ enum AppRoute: Hashable {
     case adminPanelView
     case seasonBackendView
     case eventBackendView
+    case trackBackendView
     
     var string: String {
         switch self {
@@ -73,6 +74,8 @@ enum AppRoute: Hashable {
             return "seasonBackendView"
         case .eventBackendView:
             return "eventBackendView"
+        case .trackBackendView:
+            return "trackBackendView"
         }
     }
 }

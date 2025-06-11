@@ -106,11 +106,11 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A90021742DEF3F9A00B34847 /* AdminSevice */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AdminSevice; sourceTree = "<group>"; };
+		A9350C6D2DF748E9005A424F /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
 		A97D147D2DAFA80E002F0B1E /* SportCenter */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SportCenter; sourceTree = "<group>"; };
 		A97D147F2DAFAAB7002F0B1E /* UserCenter */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = UserCenter; sourceTree = "<group>"; };
 		A97D14802DAFAF71002F0B1E /* HomePage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HomePage; sourceTree = "<group>"; };
 		A97D14812DAFB098002F0B1E /* Tools */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Tools; sourceTree = "<group>"; };
-		A98A25EF2DB9990200BAC987 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
 		A9B2825A2DD9101A00DCBCBD /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		A9B9A52C2D2BFDE700B357C2 /* sportsx_Watch Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch App"; sourceTree = "<group>"; };
 		A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppTests"; sourceTree = "<group>"; };
@@ -195,10 +195,10 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9350C6D2DF748E9005A424F /* Components */,
 				A90021742DEF3F9A00B34847 /* AdminSevice */,
 				A9B2825A2DD9101A00DCBCBD /* Extensions */,
 				A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */,
-				A98A25EF2DB9990200BAC987 /* Components */,
 				A97D14812DAFB098002F0B1E /* Tools */,
 				A97D14802DAFAF71002F0B1E /* HomePage */,
 				A97D147F2DAFAAB7002F0B1E /* UserCenter */,
@@ -266,11 +266,11 @@
 			);
 			fileSystemSynchronizedGroups = (
 				A90021742DEF3F9A00B34847 /* AdminSevice */,
+				A9350C6D2DF748E9005A424F /* Components */,
 				A97D147D2DAFA80E002F0B1E /* SportCenter */,
 				A97D147F2DAFAAB7002F0B1E /* UserCenter */,
 				A97D14802DAFAF71002F0B1E /* HomePage */,
 				A97D14812DAFB098002F0B1E /* Tools */,
-				A98A25EF2DB9990200BAC987 /* Components */,
 				A9B2825A2DD9101A00DCBCBD /* Extensions */,
 				A9D812762D2EEF6600185548 /* SensorManager */,
 				A9E269EF2D873003002C2033 /* CompetitionLink */,

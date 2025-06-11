@@ -470,28 +470,14 @@ struct PersonInfoCardView: View {
     var body: some View {
         HStack(alignment: .center) {
             HStack(spacing: 12) {
-                if let url = URL(string: NetworkService.baseDomain + person.avatarUrl) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 60, height: 60)
-                            .clipShape(Circle()) // 使图片变为圆形
-                    } placeholder: {
-                        Image(systemName: "person")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .foregroundStyle(.white)
-                            .padding(10)
-                            .frame(width: 60, height: 60)
-                            .background(Color.gray)
-                            .clipShape(Circle())
-                    }
-                } else {
-                    Circle()
-                        .fill(Color.gray)
-                        .frame(width: 60, height: 60)
-                }
+                CachedAsyncImage(
+                    urlString: person.avatarUrl,
+                    placeholder: Image(systemName: "person"),
+                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                )
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 60, height: 60)
+                .clipShape(Circle())
                 
                 Text(person.name)
                     .foregroundStyle(.white)
