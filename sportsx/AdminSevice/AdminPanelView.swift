@@ -44,11 +44,17 @@ struct AdminPanelView: View {
                     SetUpItemView(icon: "pc", title: "赛季&地理区域管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.seasonBackendView)
                     }
-                    SetUpItemView(icon: "pc", title: "赛事管理", isDarkScheme: false) {
-                        NavigationManager.shared.append(.eventBackendView)
+                    SetUpItemView(icon: "pc", title: "自行车赛事管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.bikeEventBackendView)
                     }
-                    SetUpItemView(icon: "pc", title: "赛道管理",showDivider: false, isDarkScheme: false) {
-                        NavigationManager.shared.append(.trackBackendView)
+                    SetUpItemView(icon: "pc", title: "自行车赛道管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.bikeTrackBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "跑步赛事管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.runningEventBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "跑步赛道管理",showDivider: false, isDarkScheme: false) {
+                        NavigationManager.shared.append(.runningTrackBackendView)
                     }
                 }
                 .cornerRadius(20)

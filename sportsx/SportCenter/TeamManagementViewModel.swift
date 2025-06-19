@@ -62,8 +62,8 @@ struct Team: Identifiable {
     let teamCode: String // 队伍码
     let eventName: String
     let trackName: String
-    let trackID: Int
-    let eventID: Int
+    //let trackID: Int
+    //let eventID: Int
     let creationDate: Date?
     let competitionDate: Date
     var pendingRequests: [TeamMember] // 申请加入的用户
@@ -112,8 +112,8 @@ struct Team: Identifiable {
         teamCode: String,
         eventName: String,
         trackName: String,
-        trackID: Int,
-        eventID: Int,
+        //trackID: Int,
+        //eventID: Int,
         creationDate: Date? = nil,
         competitionDate: Date,
         pendingRequests: [TeamMember],
@@ -134,8 +134,8 @@ struct Team: Identifiable {
         self.teamCode = teamCode
         self.eventName = eventName
         self.trackName = trackName
-        self.trackID = trackID
-        self.eventID = eventID
+        //self.trackID = trackID
+        //self.eventID = eventID
         self.creationDate = creationDate
         self.competitionDate = competitionDate
         self.pendingRequests = pendingRequests

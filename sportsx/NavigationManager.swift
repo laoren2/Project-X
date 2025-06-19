@@ -31,8 +31,11 @@ enum AppRoute: Hashable {
     case userSetUpAccountView
     case adminPanelView
     case seasonBackendView
-    case eventBackendView
-    case trackBackendView
+    case runningEventBackendView
+    case runningTrackBackendView
+    case bikeEventBackendView
+    case bikeTrackBackendView
+    case regionSelectedView
     
     var string: String {
         switch self {
@@ -72,10 +75,16 @@ enum AppRoute: Hashable {
             return "adminPanelView"
         case .seasonBackendView:
             return "seasonBackendView"
-        case .eventBackendView:
-            return "eventBackendView"
-        case .trackBackendView:
-            return "trackBackendView"
+        case .runningEventBackendView:
+            return "runningEventBackendView"
+        case .runningTrackBackendView:
+            return "runningTrackBackendView"
+        case .bikeEventBackendView:
+            return "bikeEventBackendView"
+        case .bikeTrackBackendView:
+            return "bikeTrackBackendView"
+        case .regionSelectedView:
+            return "regionSelectedView"
         }
     }
 }
@@ -89,6 +98,9 @@ class NavigationManager: ObservableObject {
     
     // 主页tab的导航
     @Published var selectedTab: Tab = .home
+    
+    // 运动中心状态
+    @Published var isTrainingView: Bool = false
     
     // 可供 NavigationStack 绑定
     var binding: Binding<[AppRoute]> {

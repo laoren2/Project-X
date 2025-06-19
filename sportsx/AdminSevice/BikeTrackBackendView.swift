@@ -1,23 +1,22 @@
 //
-//  TrackBackendView.swift
+//  BikeTrackBackendView.swift
 //  sportsx
 //
-//  Created by 任杰 on 2025/6/11.
+//  Created by 任杰 on 2025/6/16.
 //
 
 import SwiftUI
 import PhotosUI
 
 
-struct TrackBackendView: View {
+struct BikeTrackBackendView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject var viewModel = TrackBackendViewModel()
+    @StateObject var viewModel = BikeTrackBackendViewModel()
     
     @State private var name: String = ""
     @State private var eventName: String = ""
     @State private var seasonName: String = ""
     @State private var regionName: String = ""
-    @State private var sportType: SportType = .running
     
     @State var isLoading: Bool = false
     
@@ -34,7 +33,7 @@ struct TrackBackendView: View {
                 
                 Spacer()
                 
-                Text("赛道管理")
+                Text("自行车赛道管理")
                     .font(.system(size: 18, weight: .bold))
                 
                 Spacer()
@@ -60,10 +59,6 @@ struct TrackBackendView: View {
                         .background(.gray.opacity(0.1))
                     TextField("区域名称", text: $regionName)
                         .background(.gray.opacity(0.1))
-                    Picker("运动类型", selection: $sportType) {
-                        Text("跑步").tag(SportType.running)
-                        Text("骑行").tag(SportType.bike)
-                    }
                 }
                 
                 Button("查询") {
@@ -78,7 +73,7 @@ struct TrackBackendView: View {
             ScrollView {
                 LazyVStack(spacing: 15) {
                     ForEach(viewModel.tracks) { track in
-                        TrackCardView(viewModel: viewModel, track: track)
+                        BikeTrackCardView(viewModel: viewModel, track: track)
                             .onAppear {
                                 if track == viewModel.tracks.last && viewModel.hasMoreTracks {
                                     queryTracks()
@@ -109,36 +104,35 @@ struct TrackBackendView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
-            TrackCreateView(viewModel: viewModel)
+            BikeTrackCreateView(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.showUpdateSheet) {
-            TrackUpdateView(viewModel: viewModel)
+            BikeTrackUpdateView(viewModel: viewModel)
         }
     }
     
     func queryTracks() {
         isLoading = true
-        guard var components = URLComponents(string: "/competition/query_tracks") else { return }
+        guard var components = URLComponents(string: "/competition/bike/query_tracks") else { return }
         components.queryItems = [
             URLQueryItem(name: "track_name", value: name),
             URLQueryItem(name: "event_name", value: eventName),
             URLQueryItem(name: "season_name", value: seasonName),
             URLQueryItem(name: "region_name", value: regionName),
-            URLQueryItem(name: "sport_type", value: sportType.rawValue),
             URLQueryItem(name: "page", value: "\(viewModel.currentPage)")
         ]
         guard let urlPath = components.string else { return }
         
         let request = APIRequest(path: urlPath, method: .get, isInternal: true)
         
-        NetworkService.sendRequest(with: request, decodingType: TracksResponse.self, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: BikeTracksInternalResponse.self, showSuccessToast: true, showErrorToast: true) { result in
             isLoading = false
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         for track in unwrappedData.tracks {
-                            viewModel.tracks.append(TrackCardEntry(from: track))
+                            viewModel.tracks.append(BikeTrackCardEntry(from: track))
                         }
                     }
                     if unwrappedData.tracks.count < 10 {
@@ -154,15 +148,14 @@ struct TrackBackendView: View {
     }
 }
 
-struct TrackCreateView: View {
+struct BikeTrackCreateView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var viewModel: TrackBackendViewModel
+    @ObservedObject var viewModel: BikeTrackBackendViewModel
     
     @State var name: String = ""
     @State var eventName: String = ""
     @State var seasonName: String = ""
     @State var regionName: String = ""
-    @State var sportType: SportType = .running
     @State var startDate: Date = Date()
     @State var endDate: Date = Date().addingTimeInterval(3600*24)
     
@@ -189,10 +182,6 @@ struct TrackCreateView: View {
                     TextField("赛事名称", text: $eventName)
                     TextField("赛季名称", text: $seasonName)
                     TextField("区域名称", text: $regionName)
-                    Picker("运动类型", selection: $sportType) {
-                        Text("跑步").tag(SportType.running)
-                        Text("骑行").tag(SportType.bike)
-                    }
                 }
                 Section(header: Text("时间")) {
                     DatePicker("开始时间", selection: $startDate, displayedComponents: [.date])
@@ -210,7 +199,7 @@ struct TrackCreateView: View {
                 }
                 Section(header: Text("赛道信息")) {
                     TextField("海拔差", text: $elevationDifference)
-                        .keyboardType(.decimalPad)
+                        .keyboardType(.numberPad)
                     TextField("子区域", text: $subRegioName)
                     TextField("报名费", text: $fee)
                         .keyboardType(.numberPad)
@@ -273,8 +262,7 @@ struct TrackCreateView: View {
             "end_date": ISO8601DateFormatter().string(from: endDate),
             "event_name": eventName,
             "season_name": seasonName,
-            "region_name": regionName,
-            "sport_type": sportType.rawValue
+            "region_name": regionName
         ]
         
         if !from_la.isEmpty { textFields["from_latitude"] = from_la }
@@ -294,13 +282,13 @@ struct TrackCreateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("track_image", trackImage, "background.png")
+            ("track_image", trackImage, "background.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = unwrappedImage.pngData() {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 1000) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/png\r\n\r\n")
+                body.append("Content-Type: image/jpeg\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -308,15 +296,15 @@ struct TrackCreateView: View {
         
         body.append("--\(boundary)--\r\n")
         
-        let request = APIRequest(path: "/competition/create_track", method: .post, headers: headers, body: body, isInternal: true)
+        let request = APIRequest(path: "/competition/bike/create_track", method: .post, headers: headers, body: body, isInternal: true)
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
     }
 }
 
-struct TrackUpdateView: View {
+struct BikeTrackUpdateView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var viewModel: TrackBackendViewModel
+    @ObservedObject var viewModel: BikeTrackBackendViewModel
     
     @State var trackImage: UIImage? = nil
     @State var showImagePicker: Bool = false
@@ -345,7 +333,7 @@ struct TrackUpdateView: View {
                 }
                 Section(header: Text("赛道信息")) {
                     TextField("海拔差", text: $viewModel.elevationDifference)
-                        .keyboardType(.decimalPad)
+                        .keyboardType(.numberPad)
                     TextField("子区域", text: $viewModel.subRegioName)
                     TextField("报名费", text: $viewModel.fee)
                         .keyboardType(.numberPad)
@@ -428,13 +416,13 @@ struct TrackUpdateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("track_image", trackImage, "background.png")
+            ("track_image", trackImage, "background.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = unwrappedImage.pngData() {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 1000) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/png\r\n\r\n")
+                body.append("Content-Type: image/jpeg\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -442,20 +430,19 @@ struct TrackUpdateView: View {
         
         body.append("--\(boundary)--\r\n")
         
-        let request = APIRequest(path: "/competition/update_track", method: .post, headers: headers, body: body, isInternal: true)
+        let request = APIRequest(path: "/competition/bike/update_track", method: .post, headers: headers, body: body, isInternal: true)
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
     }
 }
 
-struct TrackCardView: View {
-    @ObservedObject var viewModel: TrackBackendViewModel
-    let track: TrackCardEntry
+struct BikeTrackCardView: View {
+    @ObservedObject var viewModel: BikeTrackBackendViewModel
+    let track: BikeTrackCardEntry
     
     
     var body: some View {
         HStack {
-            Text(track.sport_type.rawValue)
             Text(track.season_name)
             Text(track.region_name)
             Text(track.event_name)
@@ -484,8 +471,4 @@ struct TrackCardView: View {
         viewModel.fee = track.fee
         viewModel.prizePool = track.prizePool
     }
-}
-
-#Preview {
-    TrackBackendView()
 }
