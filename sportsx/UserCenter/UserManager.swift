@@ -101,7 +101,6 @@ class UserManager: ObservableObject {
                 if let unwrappedData = data {
                     let user = unwrappedData.user
                     let relation = unwrappedData.relation
-                    print("followed: \(relation.followed)")
                     DispatchQueue.main.async {
                         self.friendCount = relation.friends
                         self.followerCount = relation.follower
@@ -128,7 +127,6 @@ class UserManager: ObservableObject {
                         self.saveUserInfoToCache()
                     }
                     self.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
-                    print("fetchme success with userid: \(user.user_id)")
                 }
             default: break
             }
@@ -136,8 +134,8 @@ class UserManager: ObservableObject {
     }
     
     func downloadImages(avatar_url: String, background_url: String) {
-        let avatarPath = getLocalImagePath(filename: "avatar.png")
-        let backgroundPath = getLocalImagePath(filename: "background.png")
+        let avatarPath = getLocalImagePath(filename: "avatar.jpg")
+        let backgroundPath = getLocalImagePath(filename: "background.jpg")
 
         NetworkService.downloadImage(from: avatar_url) { image in
             if let image = image {
@@ -251,8 +249,8 @@ class UserManager: ObservableObject {
         followerCount = defaults.integer(forKey: "followerCount")
         friendCount = defaults.integer(forKey: "friendCount")
 
-        let avatarPath = getLocalImagePath(filename: "avatar.png")
-        let backgroundPath = getLocalImagePath(filename: "background.png")
+        let avatarPath = getLocalImagePath(filename: "avatar.jpg")
+        let backgroundPath = getLocalImagePath(filename: "background.jpg")
 
         if let avatarData = try? Data(contentsOf: avatarPath),
            let avatarImage = UIImage(data: avatarData) {

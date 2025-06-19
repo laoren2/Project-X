@@ -11,7 +11,7 @@ import SwiftUI
 struct SeasonBackendView: View {
     @EnvironmentObject var appState: AppState
     
-    @State private var sportType: SportType = .running
+    @State private var sportType: SportName = .Running
     @State private var seasonName: String = ""
     @State private var regionName: String = ""
     @State private var startDate: Date = Date()
@@ -50,8 +50,8 @@ struct SeasonBackendView: View {
             Form {
                 Section(header: Text("运动类型")) {
                     Picker("运动", selection: $sportType) {
-                        ForEach(SportType.allCases, id: \.self) { type in
-                            Text(type.displayName).tag(type)
+                        ForEach(SportName.allCases.filter { $0.isSupported }, id: \.self) { type in
+                            Text(type.name).tag(type)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
@@ -91,20 +91,6 @@ struct SeasonBackendView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .enableBackGesture()
-        .onAppear {
-            print("seasonView onappear")
-            print("path: ")
-            for path in NavigationManager.shared.path {
-                print("\(path.string)")
-            }
-        }
-        .onDisappear {
-            print("seasonView onDisappear")
-            print("path: ")
-            for path in NavigationManager.shared.path {
-                print("\(path.string)")
-            }
-        }
     }
     
     func createSeason() {

@@ -12,7 +12,7 @@ enum SportCategory: String {
     case RVR = "RVR"
 }
 
-enum SportName: String, Identifiable, CaseIterable {
+enum SportName: String, Identifiable, CaseIterable, Codable {
     case Bike = "bike"
     case Badminton = "badminton"
     case Running = "running"
@@ -138,7 +138,6 @@ struct RealNaviView: View {
                 Color.clear
                     .frame(height: 100) // 估算系统tabbar高度
                     .contentShape(Rectangle())
-                    //.border(.blue)
                 
                 CustomTabBar()
             }
@@ -200,10 +199,16 @@ struct RealNaviView: View {
                     AdminPanelView()
                 case .seasonBackendView:
                     SeasonBackendView()
-                case .eventBackendView:
-                    EventBackendView()
-                case .trackBackendView:
-                    TrackBackendView()
+                case .runningEventBackendView:
+                    RunningEventBackendView()
+                case .runningTrackBackendView:
+                    RunningTrackBackendView()
+                case .bikeEventBackendView:
+                    BikeEventBackendView()
+                case .bikeTrackBackendView:
+                    BikeTrackBackendView()
+                case .regionSelectedView:
+                    RegionSelectedView()
                 }
             }
         }
@@ -226,17 +231,20 @@ struct CustomTabBar: View {
                         .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
                         .padding(.bottom, 1)
                     
-                    Text(tab.title)
+                    Text((tab == appState.navigationManager.selectedTab && tab == .sportCenter) ? (appState.navigationManager.isTrainingView ? "训练中心" : "竞技中心") : tab.title)
                         .font(.caption)
                         .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
                 }
                 .padding(.vertical, 8)
                 .onTapGesture {
+                    if tab == appState.navigationManager.selectedTab && tab == .sportCenter {
+                        appState.navigationManager.isTrainingView.toggle()
+                    }
                     if shouldAllowSwitch(to: tab) {
                         appState.navigationManager.selectedTab = tab
                     }
                 }
-                //.border(.red)
+                .frame(width: 50)
                 
                 Spacer()
             }
@@ -249,7 +257,7 @@ struct CustomTabBar: View {
     }
 
     func shouldAllowSwitch(to tab: Tab) -> Bool {
-        if tab == .home { return true }
+        if tab == .home || tab == .sportCenter { return true }
         // 如果离开首页，必须登录
         if !userManager.isLoggedIn {
             print("未登录，禁止切换tab")
@@ -419,7 +427,7 @@ struct ShopView: View {
 
 #Preview{
     let appState = AppState.shared
-    return ShopView(title: "商店")
-        //.environmentObject(appState)
+    return NaviView()
+        .environmentObject(appState)
         //.preferredColorScheme(.dark)
 }

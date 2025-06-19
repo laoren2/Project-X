@@ -62,6 +62,12 @@ struct sportsxApp: App {
         )
         URLCache.shared = cache
         print("URLCache configured with memory: 50MB, disk: 200MB")
+        // 查询地区
+        if let countryCode = Locale.current.region?.identifier {
+            print("region_language: \(countryCode)")
+        } else {
+            print("region_language: UNKNOWN")
+        }
     }
     
     var body: some Scene {
