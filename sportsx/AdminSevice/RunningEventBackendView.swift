@@ -122,7 +122,9 @@ struct RunningEventBackendView: View {
         let request = APIRequest(path: urlPath, method: .get, isInternal: true)
         
         NetworkService.sendRequest(with: request, decodingType: RunningEventsInternalResponse.self, showSuccessToast: true, showErrorToast: true) { result in
-            isLoading = false
+            DispatchQueue.main.async {
+                isLoading = false
+            }
             switch result {
             case .success(let data):
                 if let unwrappedData = data {

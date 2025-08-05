@@ -19,13 +19,11 @@ struct CompetitionRealtimeView: View {
         // 显示比赛数据或其他内容
         VStack {
             HStack {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     adjustNavigationPath()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
                 Spacer()
                 Text("realtime")
                     .font(.system(size: 18, weight: .bold))
@@ -39,6 +37,7 @@ struct CompetitionRealtimeView: View {
                 }
             }
             .padding(.horizontal)
+            
             ZStack(alignment: .bottomTrailing) {
                 Map(position: $cameraPosition) {
                     Annotation("From", coordinate: appState.competitionManager.startCoordinate) {
@@ -60,7 +59,7 @@ struct CompetitionRealtimeView: View {
                 }
                 
                 // 重新居中按钮
-                Button(action: {
+                CommonIconButton(icon: "location.north.line.fill") {
                     withAnimation(.easeInOut(duration: 2)) {
                         cameraPosition = .region(
                             MKCoordinateRegion(
@@ -70,14 +69,12 @@ struct CompetitionRealtimeView: View {
                             )
                         )
                     }
-                }) {
-                    Image(systemName: "location.north.line.fill") // 自定义图标
-                        .font(.title3)
-                        .padding(12)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
-                        .shadow(radius: 2)
                 }
+                .font(.title3)
+                .padding(12)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+                .shadow(radius: 2)
                 .padding(.trailing, 15)
                 .padding(.bottom, 15) // 贴到右下角
             }
@@ -85,7 +82,7 @@ struct CompetitionRealtimeView: View {
             Spacer()
             
             // 组队模式显示区域
-            if let isTeamCompetition = appState.competitionManager.currentCompetitionRecord?.isTeamCompetition, isTeamCompetition {
+            if appState.competitionManager.isTeam && (!appState.competitionManager.isRecording) {
                 VStack {
                     if appState.competitionManager.isTeamJoinWindowExpired {
                         Text("队伍有效窗口时间已过，无法加入比赛")
@@ -121,38 +118,33 @@ struct CompetitionRealtimeView: View {
             }
             
             ZStack {
-                let isDisabledInTeamMode = (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false) && appState.competitionManager.isTeamJoinWindowExpired
+                let isDisabledInTeamMode = appState.competitionManager.isTeam && appState.competitionManager.isTeamJoinWindowExpired
                 let isGray = (!appState.competitionManager.canStartCompetition) || isDisabledInTeamMode
-                let isDisabled = appState.competitionManager.isRecording || isGray
                 
-                Button(action: {
-                    if !appState.competitionManager.isRecording {
-                        appState.competitionManager.startCompetition()
+                Text(appState.competitionManager.isRecording ? "进行中" : "开始")
+                    .font(.title)
+                    .foregroundColor(.white)
+                    .frame(width: 100, height: 100)
+                    .background(appState.competitionManager.isRecording ? Color.orange : (isGray ? Color.gray : Color.green))
+                    .clipShape(Circle())
+                    .exclusiveTouchTapGesture {
+                        startCompetition()
                     }
-                }) {
-                    Text(appState.competitionManager.isRecording ? "进行中" : "开始")
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .frame(width: 100, height: 100)
-                        .background(appState.competitionManager.isRecording ? Color.orange : (isGray ? Color.gray : Color.green))
-                        .clipShape(Circle())
-                }
-                .disabled(isDisabled) // 比赛进行中时禁用按钮
+                    .disabled(appState.competitionManager.isRecording) // 比赛进行中时禁用按钮
                 
                 if appState.competitionManager.isRecording {
                     HStack {
                         Spacer()
-                        Button(action: {
-                            appState.competitionManager.stopCompetition()
-                        }) {
-                            Text("结束比赛")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 80, height: 50)
-                                .background(Color.red)
-                                .clipShape(Capsule())
-                        }
-                        .padding(.trailing, 25)
+                        Text("结束比赛")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 80, height: 50)
+                            .background(Color.red)
+                            .clipShape(Capsule())
+                            .padding(.trailing, 25)
+                            .exclusiveTouchTapGesture {
+                                appState.competitionManager.stopCompetition()
+                            }
                     }
                 }
             }
@@ -183,6 +175,46 @@ struct CompetitionRealtimeView: View {
         .onStableDisappear() {
             appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
             appState.competitionManager.deleteRealtimeViewLocationSubscription()
+        }
+    }
+    
+    private func startCompetition() {
+        if appState.competitionManager.sport == .Bike {
+            guard let record = appState.competitionManager.currentBikeRecord else {
+                let toast = Toast(message: "报名数据错误,请重试")
+                ToastManager.shared.show(toast: toast)
+                return
+            }
+            if record.isTeam, appState.competitionManager.isTeamJoinWindowExpired {
+                let toast = Toast(message: "您不在队伍比赛窗口期内")
+                ToastManager.shared.show(toast: toast)
+                return
+            }
+        } else if appState.competitionManager.sport == .Running {
+            guard let record = appState.competitionManager.currentRunningRecord else {
+                let toast = Toast(message: "报名数据错误,请重试")
+                ToastManager.shared.show(toast: toast)
+                return
+            }
+            if record.isTeam, appState.competitionManager.isTeamJoinWindowExpired {
+                let toast = Toast(message: "您不在队伍比赛窗口期内")
+                ToastManager.shared.show(toast: toast)
+                return
+            }
+        } else {
+            let toast = Toast(message: "暂不支持当前运动")
+            ToastManager.shared.show(toast: toast)
+            return
+        }
+        
+        guard appState.competitionManager.canStartCompetition else {
+            let toast = Toast(message: "您不在出发点范围内")
+            ToastManager.shared.show(toast: toast)
+            return
+        }
+        
+        if !appState.competitionManager.isRecording {
+            appState.competitionManager.startCompetition()
         }
     }
     

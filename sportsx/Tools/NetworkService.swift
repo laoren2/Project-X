@@ -44,9 +44,9 @@ struct EmptyResponse: Decodable {}
 
 
 struct NetworkService {
-    static let baseDomain: String = "https://192.168.1.2:8000"
-    static let baseUrl: String = "https://192.168.1.2:8000/api/v1"
-    static let baseUrl_internal: String = "https://192.168.1.2:8000/api/internal"
+    static let baseDomain: String = "https://192.168.1.5:8000"
+    static let baseUrl: String = "https://192.168.1.5:8000/api/v1"
+    static let baseUrl_internal: String = "https://192.168.1.5:8000/api/internal"
     
     static func sendRequest<T: Decodable>(
         with apiRequest: APIRequest,
@@ -85,7 +85,7 @@ struct NetworkService {
         
         // 加载toast
         if showLoadingToast {
-            let progressToast = Toast(isProgressing: true, allowsInteraction: false)
+            let progressToast = LoadingToast()
             DispatchQueue.main.async {
                 ToastManager.shared.start(toast: progressToast)
             }
@@ -188,7 +188,7 @@ struct NetworkService {
                     }
                 }
                 switch decoded.code {
-                case 3002, 3003:
+                case 2006, 2007, 3002, 3003:
                     DispatchQueue.main.async {
                         UserManager.shared.showingLogin = true
                         UserManager.shared.logoutUser()
@@ -221,5 +221,29 @@ struct NetworkService {
                 }
             }
         }.resume()
+    }
+    
+    
+    static func sendAsyncRequest<T: Decodable>(
+        with apiRequest: APIRequest,
+        decodingType: T.Type,
+        showLoadingToast: Bool = false,
+        showSuccessToast: Bool = false,
+        showErrorToast: Bool = false,
+        customErrorToast: ((APIError) -> Toast?)? = nil
+    ) async -> Result<T?, APIError> {
+        await withCheckedContinuation { continuation in
+            sendRequest(
+                with: apiRequest,
+                decodingType: decodingType,
+                showLoadingToast: showLoadingToast,
+                showSuccessToast: showSuccessToast,
+                showErrorToast: showErrorToast,
+                customErrorToast: customErrorToast,
+                completion: { result in
+                    continuation.resume(returning: result)
+                }
+            )
+        }
     }
 }

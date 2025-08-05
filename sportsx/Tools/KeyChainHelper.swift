@@ -19,7 +19,7 @@ final class KeychainHelper {
         if let data = value.data(using: .utf8) {
             save(data, forKey: key)
         }
-        print("save token success")
+        //print("save token success")
     }
 
     /// 读取字符串
@@ -37,7 +37,7 @@ final class KeychainHelper {
             kSecAttrAccount as String: key
         ]
         SecItemDelete(query as CFDictionary)
-        print("delete token success")
+        //print("delete token success")
     }
 
     /// 保存 Data 到 Keychain

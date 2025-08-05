@@ -58,22 +58,16 @@ struct RegionSelectedView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
                 }
-                
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
                 Spacer()
-                
                 Text("选择区域")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
-                
                 Spacer()
-                
                 // 平衡布局的空按钮
                 Button(action: {}) {
                     Image(systemName: "chevron.left")
@@ -89,12 +83,11 @@ struct RegionSelectedView: View {
                 Text(locationManager.region)
                     .font(.headline)
                     .foregroundColor(.white)
-                
                 Spacer()
-                
-                Button("重新定位") {
+                CommonTextButton(text: "重新定位") {
                     reposition()
                 }
+                .foregroundStyle(Color.thirdText)
                 Spacer()
                 Toggle(isOn: $onlyShowWithEvents) {
                     Text("仅显示赛事区域")
@@ -114,14 +107,12 @@ struct RegionSelectedView: View {
                     VStack(alignment: .leading) {
                         if !regions.isEmpty {
                             ForEach(regions.keys.sorted(), id: \.self) { province in
-                                Button(action: {
+                                CommonTextButton(text: province) {
                                     selectedProvince = province
-                                }) {
-                                    Text(province)
-                                        .foregroundColor(province == selectedProvince ? .white : .thirdText)
-                                        .padding(.vertical, 8)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
+                                .foregroundColor(province == selectedProvince ? .white : .thirdText)
+                                .padding(.vertical, 8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         } else {
                             Text("未知")
@@ -142,15 +133,13 @@ struct RegionSelectedView: View {
                     VStack(alignment: .leading) {
                         if let cities = regions[selectedProvince] {
                             ForEach(cities, id: \.self) { city in
-                                Button(action: {
+                                CommonTextButton(text: city) {
                                     locationManager.region = city
                                     appState.navigationManager.removeLast()
-                                }) {
-                                    Text(city)
-                                        .foregroundColor(city == locationManager.region ? .white : .thirdText)
-                                        .padding(.vertical, 8)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
+                                .foregroundColor(city == locationManager.region ? .white : .thirdText)
+                                .padding(.vertical, 8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         } else {
                             Text("未知")

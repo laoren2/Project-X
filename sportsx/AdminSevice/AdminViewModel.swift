@@ -92,7 +92,6 @@ class RunningTrackBackendViewModel: ObservableObject {
     
     @Published var elevationDifference: String = ""
     @Published var subRegioName: String = ""
-    @Published var fee: String = ""
     @Published var prizePool: String = ""
     @Published var distance: String = ""
     
@@ -117,7 +116,6 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     
     let elevationDifference: String    // 海拔差(米)
     let subRegioName: String        // 覆盖的地理子区域
-    let fee: String                    // 报名费
     let prizePool: String              // 奖金池金额
     let distance: String
     
@@ -140,7 +138,6 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         
         self.elevationDifference = track.elevation_difference
         self.subRegioName = track.sub_region_name
-        self.fee = track.fee
         self.prizePool = track.prize_pool
         self.distance = track.distance
     }
@@ -167,7 +164,6 @@ struct RunningTrackInfoInternalDTO: Codable {
     let to_longitude: String
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: String         // 覆盖的地理子区域
-    let fee: String                     // 报名费
     let prize_pool: String              // 奖金池金额
     let distance: String
 }
@@ -175,6 +171,7 @@ struct RunningTrackInfoInternalDTO: Codable {
 struct RunningTracksInternalResponse: Codable {
     let tracks: [RunningTrackInfoInternalDTO]
 }
+
 
 class BikeEventBackendViewModel: ObservableObject {
     @Published var events: [BikeEventCardEntry] = []
@@ -259,7 +256,6 @@ class BikeTrackBackendViewModel: ObservableObject {
     
     @Published var elevationDifference: String = ""
     @Published var subRegioName: String = ""
-    @Published var fee: String = ""
     @Published var prizePool: String = ""
     
     var image_url: String = ""
@@ -283,7 +279,6 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     
     let elevationDifference: String    // 海拔差(米)
     let subRegioName: String        // 覆盖的地理子区域
-    let fee: String                    // 报名费
     let prizePool: String              // 奖金池金额
     
     
@@ -305,7 +300,6 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         
         self.elevationDifference = track.elevation_difference
         self.subRegioName = track.sub_region_name
-        self.fee = track.fee
         self.prizePool = track.prize_pool
     }
     
@@ -331,10 +325,120 @@ struct BikeTrackInfoInternalDTO: Codable {
     let to_longitude: String
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: String         // 覆盖的地理子区域
-    let fee: String                     // 报名费
     let prize_pool: String              // 奖金池金额
 }
 
 struct BikeTracksInternalResponse: Codable {
     let tracks: [BikeTrackInfoInternalDTO]
 }
+
+
+class CPAssetBackendViewModel: ObservableObject {
+    @Published var assets: [CPAssetCardEntry] = []
+    @Published var showCreateSheet = false
+    @Published var showUpdateSheet = false
+    
+    var hasMoreEvents: Bool = true
+    var currentPage: Int = 1
+    
+    var selectedAssetID: String = ""
+    
+    // 更新的asset信息
+    @Published var name: String = ""
+    @Published var description: String = ""
+    @Published var startDate: Date = Date()
+    @Published var endDate: Date = Date().addingTimeInterval(3600*24)
+    var image_url: String = ""
+}
+
+struct CPAssetCardEntry: Identifiable, Equatable {
+    var id: String {asset_id}
+    let asset_id: String
+    let cpasset_type: String
+    let name: String
+    let description: String
+    let image_url: String
+    
+    init(from asset: CPAssetDefDTO) {
+        self.asset_id = asset.asset_id
+        self.cpasset_type = asset.cpasset_type
+        self.name = asset.name
+        self.description = asset.description
+        self.image_url = asset.image_url
+    }
+    
+    static func == (lhs: CPAssetCardEntry, rhs: CPAssetCardEntry) -> Bool {
+        return lhs.asset_id == rhs.asset_id
+    }
+}
+
+struct CPAssetDefDTO: Codable {
+    let asset_id: String
+    let cpasset_type: String
+    let name: String
+    let description: String
+    let image_url: String
+}
+
+struct CPAssetInternalResponse: Codable {
+    let defs: [CPAssetDefDTO]
+}
+
+
+class CPAssetPriceBackendViewModel: ObservableObject {
+    @Published var assets: [CPAssetPriceCardEntry] = []
+    @Published var showCreateSheet = false
+    @Published var showUpdateSheet = false
+    
+    var hasMoreEvents: Bool = true
+    var currentPage: Int = 1
+    
+    var selectedAssetID: String = ""
+    
+    // 更新的asset信息
+    @Published var name: String = ""
+    @Published var description: String = ""
+    @Published var startDate: Date = Date()
+    @Published var endDate: Date = Date().addingTimeInterval(3600*24)
+    var image_url: String = ""
+}
+
+struct CPAssetPriceCardEntry: Identifiable, Equatable {
+    var id: String {asset_id}
+    let asset_id: String
+    let name: String
+    let description: String
+    let image_url: String
+    let ccasset_type: CCAssetType
+    let price: Int
+    let is_on_shelves: Bool
+    
+    init(from asset: CPAssetPriceDTO) {
+        self.asset_id = asset.asset_id
+        self.name = asset.name
+        self.description = asset.description
+        self.image_url = asset.image_url
+        self.ccasset_type = asset.ccasset_type
+        self.price = asset.price
+        self.is_on_shelves = asset.is_on_shelves
+    }
+    
+    static func == (lhs: CPAssetPriceCardEntry, rhs: CPAssetPriceCardEntry) -> Bool {
+        return lhs.asset_id == rhs.asset_id
+    }
+}
+
+struct CPAssetPriceDTO: Codable {
+    let asset_id: String
+    let name: String
+    let description: String
+    let image_url: String
+    let ccasset_type: CCAssetType
+    let price: Int
+    let is_on_shelves: Bool
+}
+
+struct CPAssetPriceInternalResponse: Codable {
+    let assets: [CPAssetPriceDTO]
+}
+

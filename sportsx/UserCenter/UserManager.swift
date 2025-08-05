@@ -56,18 +56,17 @@ class UserManager: ObservableObject {
         
         KeychainHelper.standard.delete(forKey: "access_token")
         clearUserInfoCache()
+        config.refreshCompetitionView = true
     }
     
     // 注销账号
     func cancelUser() {
         let request = APIRequest(path: "/user/delete", method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let success):
-                let successToast = Toast(message: "账号已成功注销", duration: 2)
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: successToast)
                     self.logoutUser()
                     self.navigationManager.backToHome()
                 }
@@ -79,7 +78,7 @@ class UserManager: ObservableObject {
     func fetchMeRole() {
         let request = APIRequest(path: "/user/me/role", method: .get, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: UserRole.self, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: UserRole.self) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -105,25 +104,7 @@ class UserManager: ObservableObject {
                         self.friendCount = relation.friends
                         self.followerCount = relation.follower
                         self.followedCount = relation.followed
-                        self.user = User(
-                            userID: user.user_id,
-                            nickname: user.nickname,
-                            phoneNumber: user.phone_number,
-                            avatarImageURL: user.avatar_image_url,
-                            backgroundImageURL: user.background_image_url,
-                            introduction: user.introduction,
-                            gender: user.gender,
-                            birthday: user.birthday,
-                            location: user.location,
-                            identityAuthName: user.identity_auth_name,
-                            isRealnameAuth: user.is_realname_auth,
-                            isIdentityAuth: user.is_identity_auth,
-                            isDisplayGender: user.is_display_gender,
-                            isDisplayAge: user.is_display_age,
-                            isDisplayLocation: user.is_display_location,
-                            enableAutoLocation: user.enable_auto_location,
-                            isDisplayIdentity: user.is_display_identity
-                        )
+                        self.user = User(from: user)
                         self.saveUserInfoToCache()
                     }
                     self.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
@@ -206,7 +187,7 @@ class UserManager: ObservableObject {
         defaults.set(user.avatarImageURL, forKey: "user.avatarImageURL")
         defaults.set(user.backgroundImageURL, forKey: "user.backgroundImageURL")
         defaults.set(user.introduction, forKey: "user.introduction")
-        defaults.set(user.gender, forKey: "user.gender")
+        defaults.set(user.gender?.rawValue, forKey: "user.gender")
         defaults.set(user.birthday, forKey: "user.birthday")
         defaults.set(user.location, forKey: "user.location")
         defaults.set(user.identityAuthName, forKey: "user.identityAuthName")
@@ -224,6 +205,8 @@ class UserManager: ObservableObject {
     
     private func loadUserInfoCache() {
         let defaults = UserDefaults.standard
+        let genderRaw = defaults.string(forKey: "user.gender")
+        let gender = genderRaw.flatMap { Gender(rawValue: $0) }
         let user = User(
             userID: defaults.string(forKey: "user.userID") ?? "未知",
             nickname: defaults.string(forKey: "user.nickname") ?? "未登录",
@@ -231,7 +214,7 @@ class UserManager: ObservableObject {
             avatarImageURL: defaults.string(forKey: "user.avatarImageURL") ?? "",
             backgroundImageURL: defaults.string(forKey: "user.backgroundImageURL") ?? "",
             introduction: defaults.string(forKey: "user.introduction"),
-            gender: defaults.string(forKey: "user.gender"),
+            gender: gender,
             birthday: defaults.string(forKey: "user.birthday"),
             location: defaults.string(forKey: "user.location"),
             identityAuthName: defaults.string(forKey: "user.identityAuthName"),
@@ -319,6 +302,11 @@ enum UserRole: String, Codable {
     case admin = "admin"
 }
 
+enum Gender: String, Codable {
+    case male = "male"
+    case female = "female"
+}
+
 enum UserRelationshipStatus: String, Codable {
     case friend
     case following
@@ -344,12 +332,12 @@ struct RelationInfoResponse: Codable {
 struct UserDTO: Codable {
     var user_id: String                 // 服务器端的唯一标识符
     var nickname: String                // 昵称
-    var phone_number: String            // 手机号
+    var phone_number: String?           // 手机号
     var avatar_image_url: String        // 头像url
     var background_image_url: String    // 封面url
     
     var introduction: String?           // 简介
-    var gender: String?                 // 性别
+    var gender: Gender?                 // 性别
     var birthday: String?               // 生日
     var location: String?               // 地理位置
     var identity_auth_name: String?     // 身份名称
@@ -368,12 +356,12 @@ struct User: Identifiable, Codable, Hashable {
     let id: UUID
     var userID: String              // 服务器端的唯一标识符
     var nickname: String            // 昵称
-    var phoneNumber: String         // 手机号
+    var phoneNumber: String?        // 手机号
     var avatarImageURL: String      // 头像url
     var backgroundImageURL: String  // 封面url
     
     var introduction: String?        // 简介
-    var gender: String?             // 性别
+    var gender: Gender?             // 性别 male/female
     var birthday: String?           // 生日
     var location: String?           // 地理位置
     var identityAuthName: String?   // 身份名称
@@ -394,7 +382,7 @@ struct User: Identifiable, Codable, Hashable {
         avatarImageURL: String = "",
         backgroundImageURL: String = "",
         introduction: String? = nil,
-        gender: String? = nil,
+        gender: Gender? = nil,
         birthday: String? = nil,
         location: String? = nil,
         identityAuthName: String? = nil,

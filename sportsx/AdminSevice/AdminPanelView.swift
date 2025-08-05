@@ -53,8 +53,17 @@ struct AdminPanelView: View {
                     SetUpItemView(icon: "pc", title: "跑步赛事管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.runningEventBackendView)
                     }
-                    SetUpItemView(icon: "pc", title: "跑步赛道管理",showDivider: false, isDarkScheme: false) {
+                    SetUpItemView(icon: "pc", title: "跑步赛道管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.runningTrackBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "cp资产定义管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.cpAssetBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "cp资产商店管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.cpAssetPriceBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "用户资产管理",showDivider: false, isDarkScheme: false) {
+                        NavigationManager.shared.append(.userAssetManageBackendView)
                     }
                 }
                 .cornerRadius(20)

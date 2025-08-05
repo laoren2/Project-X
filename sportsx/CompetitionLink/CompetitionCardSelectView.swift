@@ -21,16 +21,16 @@ struct CompetitionCardSelectView: View {
     var body: some View {
         VStack {
             HStack {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     // 销毁计时器a和b
                     appState.competitionManager.stopAllTeamJoinTimers()
                     appState.navigationManager.removeLast()
-                    appState.competitionManager.resetCompetitionProperties()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
+                    if !appState.competitionManager.isRecording {
+                        appState.competitionManager.resetCompetitionProperties()
+                    }
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
                 Spacer()
                 Text("cardselect")
                     .font(.system(size: 18, weight: .bold))
@@ -48,7 +48,7 @@ struct CompetitionCardSelectView: View {
             Spacer()
             
             // 组队模式显示区域
-            if let isTeamCompetition = appState.competitionManager.currentCompetitionRecord?.isTeamCompetition, isTeamCompetition {
+            if appState.competitionManager.isTeam {
                 VStack {
                     if appState.competitionManager.isTeamJoinWindowExpired {
                         Text("队伍有效窗口时间已过，无法加入比赛")
@@ -87,48 +87,45 @@ struct CompetitionCardSelectView: View {
             }
             .padding(.bottom, 30)
             
-            Button(action: {
-                showCardSelection = true
-            }) {
-                Text("选择卡片")
-                    .padding(.horizontal, 30)
-                    .padding(.vertical, 12)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.7)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+            Text("选择卡片")
+                .padding(.horizontal, 30)
+                .padding(.vertical, 12)
+                .foregroundColor(.white)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.7)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
-            }
-            .padding()
-            .sheet(isPresented: $showCardSelection) {
-                CardSelectionView()
-            }
-            .disabled(appState.competitionManager.isRecording)
+                )
+                .cornerRadius(12)
+                .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
+                .sheet(isPresented: $showCardSelection) {
+                    CardSelectionView()
+                }
+                .exclusiveTouchTapGesture {
+                    showCardSelection = true
+                }
+                .disabled(appState.competitionManager.isRecording)
             
-            Button(action: {
-                appState.navigationManager.append(.competitionRealtimeView)
-            }) {
-                Text("我准备好了")
-                    .frame(minWidth: 180)
-                    .padding(.vertical, 15)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.green, Color.green.opacity(0.7)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+            Text("我准备好了")
+                .frame(minWidth: 180)
+                .padding(.vertical, 15)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.green, Color.green.opacity(0.7)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-                    .cornerRadius(12)
-                    .foregroundColor(.white)
-                    .shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
-            }
-            .padding(.top, 10)
-            .disabled(appState.competitionManager.isRecording)
+                )
+                .cornerRadius(12)
+                .foregroundColor(.white)
+                .shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
+                .padding(.top, 10)
+                .exclusiveTouchTapGesture {
+                    appState.navigationManager.append(.competitionRealtimeView)
+                }
+                .disabled(appState.competitionManager.isRecording)
             
             Spacer()
         }
@@ -138,14 +135,16 @@ struct CompetitionCardSelectView: View {
             // 销毁计时器a和b
             appState.competitionManager.stopAllTeamJoinTimers()
             appState.navigationManager.removeLast()
-            appState.competitionManager.resetCompetitionProperties()
+            if !appState.competitionManager.isRecording {
+                appState.competitionManager.resetCompetitionProperties()
+            }
         }
-        .onAppear {
+        .onFirstAppear {
             if cardManager.availableCards.isEmpty {
                 cardManager.fetchUserCards()
             }
             // 如果是组队模式，启动计时器a
-            if let isTeamCompetition = appState.competitionManager.currentCompetitionRecord?.isTeamCompetition, isTeamCompetition {
+            if appState.competitionManager.isTeam {
                 appState.competitionManager.startTeamJoinTimerA()
             }
         }

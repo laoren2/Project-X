@@ -163,15 +163,13 @@ struct CardView: View {
                         Spacer()
                         HStack {
                             Spacer()
-                            Button(action: {
+                            CommonIconButton(icon: "info.circle.fill") {
                                 showDetail = true
-                            }) {
-                                Image(systemName: "info.circle.fill")
-                                    .font(.system(size: width * 0.12))
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .shadow(color: .black.opacity(0.5), radius: 1)
-                                    .padding(width * 0.04)
                             }
+                            .font(.system(size: width * 0.12))
+                            .foregroundColor(.white.opacity(0.8))
+                            .shadow(color: .black.opacity(0.5), radius: 1)
+                            .padding(width * 0.04)
                         }
                     }
                 }

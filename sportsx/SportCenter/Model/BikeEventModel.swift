@@ -10,12 +10,12 @@ import CoreLocation
 
 
 // 赛道数据结构
-struct BikeTrack: Identifiable {
+struct BikeTrack: Identifiable, Equatable {
     var id: String { trackID }
     let trackID: String
     let name: String
-    let startDate: Date
-    let endDate: Date
+    let startDate: Date?
+    let endDate: Date?
     let from: CLLocationCoordinate2D
     let to: CLLocationCoordinate2D
     let image_url: String
@@ -23,7 +23,6 @@ struct BikeTrack: Identifiable {
     // 添加新的属性
     let elevationDifference: Int        // 海拔差(米)
     let regionName: String              // 覆盖的地理区域
-    let fee: Int                        // 报名费
     let prizePool: Int                  // 奖金池金额
     var totalParticipants: Int = 0      // 总参与人数
     var currentParticipants: Int = 0    // 当前参与人数
@@ -31,15 +30,18 @@ struct BikeTrack: Identifiable {
     init(from track: BikeTrackInfoDTO) {
         self.trackID = track.track_id
         self.name = track.name
-        self.startDate = ISO8601DateFormatter().date(from: track.start_date) ?? Date()
-        self.endDate = ISO8601DateFormatter().date(from: track.end_date) ?? Date()
+        self.startDate = ISO8601DateFormatter().date(from: track.start_date)
+        self.endDate = ISO8601DateFormatter().date(from: track.end_date)
         self.from = CLLocationCoordinate2D(latitude: track.from_latitude, longitude: track.from_longitude)
         self.to = CLLocationCoordinate2D(latitude: track.to_latitude, longitude: track.to_longitude)
         self.image_url = track.image_url
         self.elevationDifference = track.elevation_difference
         self.regionName = track.sub_region_name
-        self.fee = track.fee
         self.prizePool = track.prize_pool
+    }
+    
+    static func == (lhs: BikeTrack, rhs: BikeTrack) -> Bool {
+        return lhs.trackID == rhs.trackID
     }
 }
 
@@ -49,8 +51,8 @@ struct BikeEvent: Identifiable {
     let eventID: String
     let name: String
     let description: String
-    let startDate: Date         // 赛事的开始时间
-    let endDate: Date           // 赛事的结束时间
+    let startDate: Date?         // 赛事的开始时间
+    let endDate: Date?           // 赛事的结束时间
     let image_url: String
     var tracks: [BikeTrack] = []    // 修改为可变属性
     
@@ -58,8 +60,8 @@ struct BikeEvent: Identifiable {
         self.eventID = event.event_id
         self.name = event.name
         self.description = event.description
-        self.startDate = ISO8601DateFormatter().date(from: event.start_date) ?? Date()
-        self.endDate = ISO8601DateFormatter().date(from: event.end_date) ?? Date()
+        self.startDate = ISO8601DateFormatter().date(from: event.start_date)
+        self.endDate = ISO8601DateFormatter().date(from: event.end_date)
         self.image_url = event.image_url
     }
 }
@@ -89,10 +91,9 @@ struct BikeTrackInfoDTO: Codable {
     let from_longitude: Double
     let to_latitude: Double
     let to_longitude: Double
-    let elevation_difference: Int    // 海拔差(米)
-    let sub_region_name: String      // 覆盖的地理子区域
-    let fee: Int                     // 报名费
-    let prize_pool: Int              // 奖金池金额
+    let elevation_difference: Int       // 海拔差(米)
+    let sub_region_name: String         // 覆盖的地理子区域
+    let prize_pool: Int                 // 奖金池金额
 }
 
 struct BikeTracksResponse: Codable {

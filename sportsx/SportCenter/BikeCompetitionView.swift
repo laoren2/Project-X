@@ -13,44 +13,38 @@ struct BikeCompetitionView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel = BikeCompetitionViewModel()
     @ObservedObject var centerViewModel: CompetitionCenterViewModel
-    @ObservedObject var currencyManager = CurrencyManager.shared
     @ObservedObject var locationManager = LocationManager.shared
+    @ObservedObject var navigationManager = NavigationManager.shared
+    let assetManager = AssetManager.shared
     
     @State private var selectedDetailEvent: BikeEvent? = nil
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
+    @State private var firstOnAppear = true
     
+    @Binding var isDragging: Bool
+    
+    let globalConfig = GlobalConfig.shared
     
     var body: some View {
         ZStack(alignment: .bottom) {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 10) {
-                    // 位置和货币区域
-                    HStack(spacing: 5) {
-                        Spacer()
-                        Text("X点券:\(currencyManager.coinA)")
-                        Text("X币:\(currencyManager.coinB)")
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                    
                     // 赛事选择区域
                     HStack {
                         // 添加1个按钮管理我的队伍
                         VStack(spacing: 2) {
-                            Button(action: {
-                                appState.navigationManager.append(.teamManagementView)
-                            }) {
-                                Image(systemName: "person.2")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 8)
-                                    .background(
-                                        Circle()
-                                            .fill(.ultraThinMaterial)
-                                    )
+                            CommonIconButton(icon: "person.2") {
+                                appState.navigationManager.append(.bikeTeamManagementView)
                             }
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 8)
+                            .background(
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                            )
                             .buttonStyle(PlainButtonStyle())
                             
                             Text("队伍")
@@ -67,12 +61,10 @@ struct BikeCompetitionView: View {
                                 HStack(spacing: 12) {
                                     ForEach(viewModel.events) { event in
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Button(action: {
+                                            CommonIconButton(icon: "info.circle") {
                                                 selectedDetailEvent = event
-                                            }) {
-                                                Image(systemName: "info.circle")
-                                                    .foregroundColor(Color.thirdText)
                                             }
+                                            .foregroundColor(Color.thirdText)
                                             Text(event.name)
                                                 .font(.subheadline)
                                                 .foregroundColor(.white)
@@ -90,7 +82,7 @@ struct BikeCompetitionView: View {
                                                 .stroke(viewModel.selectedEvent?.eventID == event.eventID ?
                                                         Color.blue : Color.clear, lineWidth: 2)
                                         )
-                                        .onTapGesture {
+                                        .exclusiveTouchTapGesture {
                                             // 防止频繁刷新
                                             if viewModel.selectedEvent?.eventID != event.eventID {
                                                 withAnimation {
@@ -107,19 +99,17 @@ struct BikeCompetitionView: View {
                         Spacer()
                         // 添加1个按钮管理我的赛事
                         VStack(spacing: 2) {
-                            Button(action: {
-                                appState.navigationManager.append(.recordManagementView)
-                            }) {
-                                Image(systemName: "list.bullet.clipboard")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.white)
-                                    .padding(.vertical, 6)
-                                    .padding(.horizontal, 8)
-                                    .background(
-                                        Circle()
-                                            .fill(.ultraThinMaterial)
-                                    )
+                            CommonIconButton(icon: "list.bullet.clipboard") {
+                                appState.navigationManager.append(.bikeRecordManagementView)
                             }
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 8)
+                            .background(
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                            )
                             .buttonStyle(PlainButtonStyle())
                             
                             Text("记录")
@@ -175,7 +165,7 @@ struct BikeCompetitionView: View {
                         Spacer()
                     }
                     .contentShape(Rectangle()) // 将整个 HStack 设为可点击区域
-                    .onTapGesture {
+                    .exclusiveTouchTapGesture {
                         chevronDirection2.toggle()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             withAnimation {
@@ -210,7 +200,7 @@ struct BikeCompetitionView: View {
                                                 .stroke(viewModel.selectedTrack?.trackID == track.trackID ?
                                                         Color.blue : Color.clear, lineWidth: 1)
                                         )
-                                        .onTapGesture {
+                                        .exclusiveTouchTapGesture {
                                             // 防止频繁刷新
                                             if viewModel.selectedTrack?.trackID != track.trackID {
                                                 withAnimation {
@@ -226,10 +216,10 @@ struct BikeCompetitionView: View {
                         .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
                     }
                     
-                    // 添加赛道信息
+                    // 赛道信息
                     if let track = viewModel.selectedTrack {
                         VStack(alignment: .leading, spacing: 12) {
-                            // 赛道卡片
+                            // 赛道信息卡片
                             VStack(alignment: .leading, spacing: 10) {
                                 // 赛道标题
                                 HStack {
@@ -292,40 +282,97 @@ struct BikeCompetitionView: View {
                                 
                                 // 按钮区
                                 HStack(spacing: 12) {
-                                    Button(action: {
-                                        // 创建队伍逻辑
-                                        viewModel.createTeam()
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "person.badge.plus")
-                                            Text("创建队伍")
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
+                                    HStack {
+                                        Image(systemName: "person.badge.plus")
+                                        Text("创建队伍")
                                     }
-                                    .sheet(isPresented: $viewModel.showCreateTeamSheet) {
-                                        TeamCreateView(viewModel: viewModel)
+                                    .font(.system(size: 15))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                    .exclusiveTouchTapGesture {
+                                        guard let competitionDate = track.endDate, competitionDate > Date() else {
+                                            let toast = Toast(message: "比赛已结束")
+                                            ToastManager.shared.show(toast: toast)
+                                            return
+                                        }
+                                        navigationManager.append(.bikeTeamCreateView(trackID: track.trackID, competitionDate: competitionDate))
                                     }
                                     
-                                    Button(action: {
-                                        // 加入队伍逻辑
-                                        viewModel.showJoinTeamSheet = true
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "person.3")
-                                            Text("加入队伍")
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                        .background(Color.green)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
+                                    HStack {
+                                        Image(systemName: "person.3")
+                                        Text("加入队伍")
                                     }
-                                    .sheet(isPresented: $viewModel.showJoinTeamSheet) {
-                                        TeamJoinView(viewModel: viewModel)
+                                    .font(.system(size: 15))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .background(Color.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                    .exclusiveTouchTapGesture {
+                                        guard let competitionDate = track.endDate, competitionDate > Date() else {
+                                            let toast = Toast(message: "比赛已结束")
+                                            ToastManager.shared.show(toast: toast)
+                                            return
+                                        }
+                                        navigationManager.append(.bikeTeamJoinView(trackID: track.trackID))
+                                    }
+                                }
+                            }
+                            .padding()
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(20)
+                            
+                            VStack {
+                                HStack {
+                                    Text("我的最好成绩")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                    Spacer()
+                                    if let rank = viewModel.selectedRankInfo?.rank {
+                                        Text("No. \(rank)")
+                                            .font(.headline)
+                                    } else {
+                                        Text("无数据")
+                                            .font(.headline)
+                                    }
+                                    Spacer()
+                                    Text("排行榜")
+                                        .font(.subheadline)
+                                        .padding(5)
+                                        .background(Color.orange.opacity(0.5))
+                                        .cornerRadius(8)
+                                        .exclusiveTouchTapGesture {
+                                            navigationManager.append(.bikeRankingListView(trackID: track.trackID))
+                                        }
+                                }
+                                .foregroundColor(.white)
+                                Divider()
+                                HStack(spacing: 0) {
+                                    Text("用时: ")
+                                    if let duration = viewModel.selectedRankInfo?.duration {
+                                        Text(TimeDisplay.formattedTime(duration, showFraction: true))
+                                    } else {
+                                        Text("无数据")
+                                    }
+                                    Spacer()
+                                    Text(viewModel.selectedRankInfo?.recordID ?? "无record数据")
+                                }
+                                .font(.caption)
+                                .foregroundColor(.secondText)
+                                if let rankInfo = viewModel.selectedRankInfo {
+                                    Divider()
+                                    HStack(spacing: 4) {
+                                        Image(systemName: CCAssetType.coin.iconName)
+                                        Text("\(rankInfo.coinAmount)")
+                                        Spacer()
+                                        Image(systemName: CCAssetType.coupon.iconName)
+                                        Text("\(rankInfo.couponAmount)")
+                                        Spacer()
+                                        Image(systemName: CCAssetType.voucher.iconName)
+                                        Text("\(rankInfo.voucherAmount)")
                                     }
                                 }
                             }
@@ -337,42 +384,30 @@ struct BikeCompetitionView: View {
                     }
                 }
                 .padding(.horizontal, 10)
+                .padding(.bottom, 70)
+                .padding(.top, 5)
+                .onScrollDragChanged($isDragging)
             }
             
             // 报名按钮区域
-            HStack(spacing: 0) {
-                Spacer()
-                Text("立即报名")
-                    .font(.title2)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 25)
-                Spacer()
-                // 单人按钮
-                Button(action: {
-                    if let track = viewModel.selectedTrack {
-                        // 检查是否有足够的货币
-                        if currencyManager.consume(currency: "coinB", amount: track.fee) {
-                            singleRegister()
-                        } else {
-                            // 货币不足提示
-                            viewModel.alertMessage = "货币不足，无法报名"
-                            viewModel.showAlert = true
-                        }
-                    } else {
-                        let toast = Toast(message: "请选择一条赛道")
-                        ToastManager.shared.show(toast: toast)
-                    }
-                }) {
+            // todo: 解决切换赛道时因selectedTrack变化导致的闪烁问题
+            if let track = viewModel.selectedTrack, !appState.competitionManager.isRecording {
+                HStack(spacing: 0) {
+                    Spacer()
+                    Text("立即报名")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 25)
+                    Spacer()
+                    // 单人按钮
                     ZStack {
-                        let overlay = appState.competitionManager.isRecording && (!(appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? true))
-                        let gray = appState.competitionManager.isRecording && (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false)
                         // 按钮容器
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(gray ? .gray.opacity(0.5) : .yellow.opacity(0.5))
+                            .fill(.yellow.opacity(0.5))
                             .frame(width: 80, height: 40)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(gray ? .gray.opacity(0.8) : Color.yellow.opacity(0.8), lineWidth: 1.5)
+                                    .stroke(Color.yellow.opacity(0.8), lineWidth: 1.5)
                             )
                             .shadow(color: Color.yellow.opacity(0.1), radius: 3, x: 0, y: 2)
                         
@@ -386,69 +421,42 @@ struct BikeCompetitionView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondText)
                         }
-                        
-                        // 禁用状态蒙版
-                        if overlay {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.green.opacity(0.5))
-                                    .frame(width: 80, height: 40)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.green.opacity(0.8), lineWidth: 1.5)
-                                    )
-                                
-                                HStack(spacing: 4) {
-                                    Image(systemName: "figure.run")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("比赛进行中")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
+                    }
+                    .exclusiveTouchTapGesture {
+                        guard let competitionDate = track.endDate, competitionDate > Date() else {
+                            let toast = Toast(message: "比赛已结束")
+                            ToastManager.shared.show(toast: toast)
+                            return
+                        }
+                        singleRegister()
+                    }
+                    .disabled(appState.competitionManager.isRecording)
+                    .alert(isPresented: $viewModel.showSingleRegisterAlert) {
+                        Alert(
+                            title: Text("报名成功"),
+                            message: Text("单人模式"),
+                            primaryButton: .default(Text("稍后开始")),
+                            secondaryButton: .default(Text("立即开始")) {
+                                if !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
+                                    appState.competitionManager.resetBikeRaceRecord(record: record)
+                                    appState.navigationManager.append(.competitionCardSelectView)
+                                    viewModel.currentRecord = nil
                                 }
                             }
-                        }
+                        )
                     }
-                }
-                .disabled(appState.competitionManager.isRecording)
-                .alert(isPresented: $viewModel.showSingleRegisterAlert) {
-                    Alert(
-                        title: Text("报名成功"),
-                        message: Text("单人模式"),
-                        primaryButton: .default(Text("稍后开始")),
-                        secondaryButton: .default(Text("立即开始")) {
-                            if viewModel.selectedTrack != nil, !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
-                                appState.competitionManager.resetCompetitionRecord(record: record)
-                                appState.navigationManager.append(.competitionCardSelectView)
-                                viewModel.currentRecord = nil
-                            }
-                        }
-                    )
-                }
-                
-                Spacer()
-                
-                // 组队按钮
-                Button(action: {
-                    if viewModel.selectedTrack != nil {
-                        viewModel.showTeamCodeSheet = true
-                    } else {
-                        let toast = Toast(message: "请选择一条赛道")
-                        ToastManager.shared.show(toast: toast)
-                    }
-                }) {
+                    
+                    Spacer()
+                    
+                    // 组队按钮
                     ZStack {
-                        let gray = appState.competitionManager.isRecording && (!(appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? true))
-                        let overlay = appState.competitionManager.isRecording && (appState.competitionManager.currentCompetitionRecord?.isTeamCompetition ?? false)
                         // 按钮容器
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(gray ? .gray.opacity(0.5) : .orange.opacity(0.5))
+                            .fill(.orange.opacity(0.5))
                             .frame(width: 80, height: 40)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(gray ? .gray.opacity(0.8) : Color.orange.opacity(0.8), lineWidth: 1.5)
+                                    .stroke(Color.orange.opacity(0.8), lineWidth: 1.5)
                             )
                             .shadow(color: Color.orange.opacity(0.1), radius: 3, x: 0, y: 2)
                         
@@ -462,71 +470,71 @@ struct BikeCompetitionView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondText)
                         }
-                        
-                        // 禁用状态蒙版
-                        if overlay {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.green.opacity(0.5))
-                                    .frame(width: 80, height: 40)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.green.opacity(0.8), lineWidth: 1.5)
-                                    )
-                                
-                                HStack(spacing: 4) {
-                                    Image(systemName: "figure.run")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.white)
-                                    
-                                    Text("比赛进行中")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                }
-                            }
-                        }
                     }
+                    .exclusiveTouchTapGesture {
+                        navigationManager.showTeamRegisterSheet = true
+                    }
+                    .disabled(appState.competitionManager.isRecording)
+                    Spacer()
                 }
-                .disabled(appState.competitionManager.isRecording)
-                .sheet(isPresented: $viewModel.showTeamCodeSheet) {
-                    TeamCodeView(viewModel: viewModel)
-                        .presentationDetents([.fraction(0.4)])
-                        .interactiveDismissDisabled() // 防止点击过快导致弹窗高度错误
-                }
-                
-                Spacer()
+                .padding(.vertical, 10)
+                .background(Color.defaultBackground)
             }
-            .padding(.vertical, 10)
-            .background(.ultraThinMaterial)
         }
         .sheet(item: $selectedDetailEvent) { event in
-            EventDetailView(event: event)
+            BikeEventDetailView(event: event)
         }
         .onChange(of: locationManager.region) {
             viewModel.fetchEvents(with: locationManager.region)
         }
-        .onFirstAppear {
-            viewModel.fetchEvents(with: locationManager.region)
+        .onChange(of: viewModel.selectedTrack) {
+            viewModel.selectedRankInfo = nil
+            if let track = viewModel.selectedTrack {
+                viewModel.queryRankInfo(trackID: track.trackID)
+            }
         }
+        .onStableAppear {
+            if firstOnAppear || globalConfig.refreshCompetitionView {
+                viewModel.fetchEvents(with: locationManager.region)
+                globalConfig.refreshCompetitionView  = false
+            }
+            firstOnAppear = false
+        }
+        .ignoresSafeArea(.keyboard)
     }
     
     // 单人报名
     func singleRegister() {
-        // 添加比赛记录
-        if let track = viewModel.selectedTrack, let event = viewModel.selectedEvent {
-            let record = CompetitionRecord(sportType: appState.sport, fee: track.fee, eventName: event.name, trackName: track.name, trackStart: track.from, trackEnd: track.to, isTeamCompetition: false)
-            let exists = appState.competitionManager.competitionRecords.contains { $0.id == record.id && $0.status == record.status }
-            if !exists {
-                appState.competitionManager.competitionRecords.append(record)
-            }
-            viewModel.currentRecord = record
+        guard let track = viewModel.selectedTrack else {
+            let toast = Toast(message: "请选择一条赛道")
+            ToastManager.shared.show(toast: toast)
+            return
         }
-        viewModel.showSingleRegisterAlert = true
+        
+        guard var components = URLComponents(string: "/competition/bike/single_register") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "track_id", value: track.trackID)
+        ]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: BikeRegisterResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
+                        viewModel.currentRecord = BikeRaceRecord(from: unwrappedData.record)
+                        viewModel.showSingleRegisterAlert = true
+                    }
+                }
+            default: break
+            }
+        }
     }
 }
 
-struct EventDetailView: View {
+struct BikeEventDetailView: View {
     let event: BikeEvent
     @Environment(\.dismiss) private var dismiss
     
@@ -554,7 +562,7 @@ struct EventDetailView: View {
                         // 比赛时间
                         HStack {
                             Image(systemName: "calendar")
-                            Text("\(event.startDate) - \(event.endDate)")
+                            Text("\(DateDisplay.formattedDate(event.startDate)) - \(DateDisplay.formattedDate(event.endDate))")
                                 .foregroundColor(.secondary)
                         }
                         
@@ -600,469 +608,436 @@ struct EventDetailView: View {
     }
 }
 
-// 赛道信息项组件
-struct InfoItemView: View {
-    let iconName: String
-    let iconColor: Color
-    let text: String
-    
-    var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: iconName)
-                .font(.system(size: 15))
-                .foregroundColor(iconColor)
-                .frame(width: 24, height: 24, alignment: .center)
-            
-            Text(text)
-                .font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
-                .foregroundColor(.secondText)
-        }
-    }
-}
-
-// 组队报名页面
-struct TeamCodeView: View {
+// 创建队伍页面
+struct BikeTeamCreateView: View {
     @EnvironmentObject var appState: AppState
-    //@ObservedObject var centerViewModel: SportCenterViewModel
-    @ObservedObject var viewModel: BikeCompetitionViewModel
-    @ObservedObject var currencyManager = CurrencyManager.shared
-    @Environment(\.presentationMode) var presentationMode
+    let assetManager = AssetManager.shared
+    let trackID: String
+    let competitionDate: Date
     
-    @State var teamCode: String = ""
-    
-    let user = UserManager.shared
+    // 添加队伍字段
+    @State var teamTitle: String = ""
+    @State var teamDescription: String = ""
+    @State var teamSize: Int = 5 // 默认值
+    @State var teamCompetitionDate = Date().addingTimeInterval(86400 * 7) // 默认一周后
+    @State var isPublic: Bool = false
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                // 队伍码输入框
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("请输入队伍码")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    TextField("6位队伍码", text: $teamCode)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .font(.system(.body, design: .monospaced))
-                        .textInputAutocapitalization(.characters)
-                        .keyboardType(.asciiCapable)
+        VStack(spacing: 10) {
+            ZStack {
+                HStack {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .exclusiveTouchTapGesture {
+                            appState.navigationManager.removeLast()
+                        }
+                    Spacer()
+                    Text("创建")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .exclusiveTouchTapGesture {
+                            submitCreateTeamForm()
+                        }
                 }
-                .padding(.horizontal)
-                
-                // 提交按钮
-                Button(action: {
-                    if let track = viewModel.selectedTrack {
-                        if registerWithTeamCode() {
-                            // 检查是否有足够的货币
-                            if currencyManager.consume(currency: "coinB", amount: track.fee) {
-                                handleRegister()
-                            } else {
-                                viewModel.alertMessage = "货币不足，无法报名"
-                                viewModel.teamRegisterSuccessAlert = false
-                                viewModel.showAlert = true
+                Text("创建队伍")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .padding(.horizontal)
+            
+            ScrollView {
+                VStack(alignment: .leading) {
+                    // 队伍名称
+                    Text("基本信息")
+                        .font(.title)
+                        .foregroundStyle(.white)
+                        .padding(.top, 20)
+                        .padding(.bottom, 10)
+                    
+                    TextField(text: $teamTitle) {
+                        Text("队伍名称")
+                            .foregroundColor(.thirdText)
+                    }
+                    .padding()
+                    .foregroundColor(.white)
+                    .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(20)
+                    .onChange(of: teamTitle) {
+                        DispatchQueue.main.async {
+                            if teamTitle.count > 10 {
+                                teamTitle = String(teamTitle.prefix(10)) // 限制为最多10个字符
                             }
-                        } else {
-                            viewModel.teamRegisterSuccessAlert = false
-                            viewModel.showAlert = true
                         }
                     }
-                }) {
-                    Text("提交")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                
-                
-                Spacer()
-            }
-            .padding(.top, 20)
-            .navigationTitle("输入队伍码")
-            .navigationBarItems(
-                trailing: Button("取消") {
-                    viewModel.showTeamCodeSheet = false
-                }
-            )
-            .alert(isPresented: $viewModel.showAlert) {
-                if viewModel.teamRegisterSuccessAlert {
-                    return Alert(
-                        title: Text("报名成功"),
-                        message: Text("组队模式"),
-                        primaryButton: .default(Text("去看看")) {
-                            viewModel.showTeamCodeSheet = false
-                            appState.navigationManager.append(.recordManagementView)
-                        },
-                        secondaryButton: .default(Text("确定")) {
-                            viewModel.showTeamCodeSheet = false
-                        }
-                    )
-                } else {
-                    return Alert(
-                        title: Text("提示"),
-                        message: Text(viewModel.alertMessage),
-                        dismissButton: .default(Text("确定"))
-                    )
-                }
-            }
-        }
-    }
-    
-    // 使用队伍码报名
-    func registerWithTeamCode() -> Bool {
-        guard !teamCode.isEmpty else {
-            viewModel.alertMessage = "请输入队伍码"
-            return false
-        }
-        
-        if teamCode.count != 6 {
-            viewModel.alertMessage = "请输入合法的6位队伍码"
-            return false
-        }
-        
-        if !viewModel.verifyTrack() {
-            viewModel.alertMessage = "所选赛道内没有此队伍"
-            return false
-        }
-        
-        if !viewModel.verifyInTeam(teamCode: teamCode) {
-            viewModel.alertMessage = "您不在此队伍中"
-            return false
-        }
-        
-        if viewModel.verifyRepeatRegister(teamCode: teamCode) {
-            viewModel.alertMessage = "您已在此队伍中报名成功，无需重复报名"
-            return false
-        }
-        
-        return true
-    }
-    
-    // 处理组队报名成功的逻辑
-    func handleRegister() {
-        // 修改队伍内用户的报名状态
-        if let indexCreated = appState.competitionManager.myCreatedTeams.firstIndex(where: {$0.teamCode == teamCode}) {
-            if let userIndex = appState.competitionManager.myCreatedTeams[indexCreated].members.firstIndex(where: {$0.userID == user.user.userID}) {
-                appState.competitionManager.myCreatedTeams[indexCreated].members[userIndex].isRegistered = true
-            }
-        }
-        if let indexJoined = appState.competitionManager.myJoinedTeams.firstIndex(where: {$0.teamCode == teamCode}) {
-            if let userIndex = appState.competitionManager.myJoinedTeams[indexJoined].members.firstIndex(where: {$0.userID == user.user.userID}) {
-                appState.competitionManager.myJoinedTeams[indexJoined].members[userIndex].isRegistered = true
-            }
-        }
-        
-        // 添加比赛记录
-        if let track = viewModel.selectedTrack, let event = viewModel.selectedEvent {
-            let record = CompetitionRecord(sportType: appState.sport, fee: track.fee, eventName: event.name, trackName: track.name, trackStart: track.from, trackEnd: track.to, isTeamCompetition: true, teamCode: teamCode)
-            let exists = appState.competitionManager.competitionRecords.contains { $0.id == record.id && $0.status == record.status }
-            if !exists {
-                appState.competitionManager.competitionRecords.append(record)
-            }
-        }
-        
-        // 显示成功提示框
-        viewModel.teamRegisterSuccessAlert = true
-        viewModel.showAlert = true
-    }
-}
-
-// 创建队伍页面
-struct TeamCreateView: View {
-    @ObservedObject var viewModel: BikeCompetitionViewModel
-    @Environment(\.presentationMode) var presentationMode
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                // 队伍名称
-                Section(header: Text("基本信息")) {
-                    TextField("队伍名称", text: $viewModel.teamTitle)
                     
-                    TextEditor(text: $viewModel.teamDescription)
-                        .frame(height: 100)
-                        .overlay(
-                            Group {
-                                if viewModel.teamDescription.isEmpty {
-                                    Text("队伍描述")
-                                        .foregroundColor(.gray)
-                                        .padding(.leading, 5)
-                                        .padding(.top, 8)
+                    HStack {
+                        Text("最多输入10个字符")
+                            .font(.footnote)
+                            .foregroundStyle(Color.thirdText)
+                        
+                        Spacer()
+                        
+                        Text("已输入\(teamTitle.count)/10字符")
+                            .font(.footnote)
+                            .foregroundStyle(Color.thirdText)
+                    }
+                    .padding(.bottom, 10)
+                    
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: $teamDescription)
+                            .frame(maxHeight: 120)
+                            .padding(16)
+                            .foregroundColor(.white)
+                            .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(20)
+                            .onChange(of: teamDescription) {
+                                DispatchQueue.main.async {
+                                    if teamDescription.count > 50 {
+                                        teamDescription = String(teamDescription.prefix(50)) // 限制为最多50个字符
+                                    }
                                 }
-                            },
-                            alignment: .topLeading
-                        )
-                }
-                
-                // 队伍设置
-                Section(header: Text("队伍设置")) {
-                    Stepper("队伍人数: \(viewModel.teamSize)人", value: $viewModel.teamSize, in: 2...10)
+                            }
+                        if teamDescription.isEmpty {
+                            Text("队伍简介（50字以内）")
+                                .foregroundColor(.thirdText)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 24)
+                        }
+                    }
                     
-                    DatePicker("比赛时间", selection: $viewModel.teamCompetitionDate, in: Date()...Date().addingTimeInterval(86400 * 30))
+                    HStack {
+                        Text("最多输入50个字符")
+                            .font(.footnote)
+                            .foregroundStyle(Color.thirdText)
+                        
+                        Spacer()
+                        
+                        Text("已输入\(teamDescription.count)/50字符")
+                            .font(.footnote)
+                            .foregroundStyle(Color.thirdText)
+                    }
+                    
+                    // 队伍设置
+                    Text("队伍设置")
+                        .font(.title)
+                        .foregroundStyle(.white)
+                        .padding(.top, 20)
+                        .padding(.bottom, 10)
+                    
+                    Stepper("队伍人数: \(teamSize)人", value: $teamSize, in: 2...10)
+                        .foregroundStyle(Color.secondText)
+                    
+                    DatePicker("比赛时间", selection: $teamCompetitionDate, in: Date()...competitionDate)
+                        .foregroundStyle(Color.secondText)
+                        .tint(Color.orange)
                     
                     // 添加一个开关允许用户选择是否公开队伍信息，开关直接控制viewModel.isPublic
-                    Toggle("公开队伍信息", isOn: $viewModel.isPublic)
-                        .tint(.blue)
+                    Toggle("公开队伍信息", isOn: $isPublic)
+                        .tint(.green)
+                        .foregroundStyle(Color.secondText)
                 }
-                
-                // 提交按钮
-                Section {
-                    Button(action: {
-                        if viewModel.teamTitle.isEmpty {
-                            viewModel.alertMessage = "请输入队伍名称"
-                            viewModel.showAlert = true
-                            return
-                        }
-                        
-                        viewModel.submitCreateTeamForm()
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Text("创建队伍")
-                            .frame(maxWidth: .infinity)
-                            .foregroundColor(.white)
-                    }
-                    .listRowBackground(Color.blue)
-                }
+                .padding(.horizontal)
             }
-            .navigationTitle("创建队伍")
-            .navigationBarItems(trailing: Button("取消") {
-                presentationMode.wrappedValue.dismiss()
-            })
-            .alert(isPresented: $viewModel.showAlert) {
-                Alert(
-                    title: Text("提示"),
-                    message: Text(viewModel.alertMessage),
-                    dismissButton: .default(Text("确定"))
-                )
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .enableBackGesture()
+        .background(Color.defaultBackground)
+        .hideKeyboardOnScroll()
+        .environment(\.colorScheme, .dark)
+    }
+    
+    func submitCreateTeamForm() {
+        guard !teamTitle.isEmpty else {
+            let toast = Toast(message: "请输入队伍名称")
+            ToastManager.shared.show(toast: toast)
+            return
+        }
+        
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        let body: [String: String] = [
+            "track_id": trackID,
+            "title": teamTitle,
+            "description": teamDescription,
+            "team_size": "\(teamSize)",
+            "competition_date": ISO8601DateFormatter().string(from: teamCompetitionDate),
+            "is_public": "\(isPublic)"
+        ]
+        guard let encodedBody = try? JSONEncoder().encode(body) else {
+            return
+        }
+        let request = APIRequest(path: "/competition/bike/create_team", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: TeamCreatedResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
+                        UIPasteboard.general.string = unwrappedData.team_code
+                        self.appState.navigationManager.removeLast()
+                    }
+                }
+            default: break
             }
         }
     }
 }
 
 // 加入队伍页面
-struct TeamJoinView: View {
+struct BikeTeamJoinView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var viewModel: BikeCompetitionViewModel
-    @Environment(\.presentationMode) var presentationMode
-    @State var teamCode: String = ""
+    @StateObject var viewModel: BikeTeamJoinViewModel
+    @ObservedObject var navigationManager = NavigationManager.shared
+    
+    
+    init(trackID: String) {
+        _viewModel = StateObject(wrappedValue: BikeTeamJoinViewModel(trackID: trackID))
+    }
     
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                // 平衡布局的空按钮
-                Button(action: {}) {
-                    Image(systemName: "xmark.circle")
-                        .font(.system(size: 25, weight: .semibold))
-                        .foregroundColor(.clear)
-                }
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.white)
+                    .exclusiveTouchTapGesture {
+                        navigationManager.removeLast()
+                    }
                 
                 Spacer()
                 
                 Text("加入队伍")
-                    .font(.title)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
                 
                 Spacer()
                 
-                Button(action: {
-                    viewModel.showJoinTeamSheet = false
-                }) {
-                    Image(systemName: "xmark.circle")
-                        .font(.system(size: 25, weight: .semibold))
-                        .foregroundColor(.gray)
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
                 }
             }
             .padding(.horizontal)
-            .padding(.vertical, 20)
-            .background(Color(.systemGroupedBackground))
+            .padding(.bottom, 10)
             
             // 队伍码输入区域
-            HStack {
-                TextField("输入6位队伍码直接加入", text: $teamCode)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .font(.system(.body, design: .monospaced))
-                    .textInputAutocapitalization(.characters)
-                    .keyboardType(.asciiCapable)
-                    .padding(.horizontal)
-                
-                Spacer()
-                
-                Button(action: {
-                    if JoinWithTeamCode() {
-                        joinTeam(teamCode: teamCode)
-                    } else {
-                        viewModel.showAlert = true
-                    }
-                }) {
-                    Text("一键加入")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 15)
-                        .background(Color.blue.opacity(0.8))
-                        .cornerRadius(8)
+            HStack(spacing: 20) {
+                TextField(text: $viewModel.teamCode) {
+                    Text("输入8位队伍码直接加入")
+                        .foregroundStyle(Color.thirdText)
                 }
-                .padding(.vertical, 10)
-                .padding(.horizontal)
+                .padding(8)
+                .foregroundColor(.white)
+                .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+                .keyboardType(.asciiCapable)
+                
+                Text("一键加入")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 15)
+                    .background(Color.blue.opacity(0.8))
+                    .cornerRadius(8)
+                    .onTapGesture {
+                        guard viewModel.teamCode.count == 8 else {
+                            let toast = Toast(message: "请输入合法的8位队伍码")
+                            ToastManager.shared.show(toast: toast)
+                            return
+                        }
+                        viewModel.joinTeam()
+                    }
             }
+            .padding()
             .background(.blue.opacity(0.2))
             
-            if viewModel.availableTeams.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "person.3.slash")
-                        .font(.system(size: 60))
-                        .foregroundColor(.gray.opacity(0.7))
-                        .padding(.bottom, 10)
-                    
-                    Text("暂无可加入的队伍")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text("当前赛道还没有可加入的队伍，您可以创建一个新队伍")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemGroupedBackground))
-            } else {
-                ScrollView {
+            ScrollView {
+                if viewModel.publicTeams.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "person.3")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(.bottom, 10)
+                        
+                        Text("暂无可加入的队伍")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        Text("当前赛道还没有可加入的队伍，您可以创建一个新队伍")
+                            .font(.subheadline)
+                            .foregroundColor(.thirdText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.top, 200)
+                } else {
                     LazyVStack(spacing: 15) {
-                        ForEach(viewModel.availableTeams) { team in
-                            TeamPublicCard(
-                                viewModel: viewModel,
-                                type: team.getRelationship(for: viewModel.user.user.userID),
-                                team: team
-                            )
+                        ForEach(viewModel.publicTeams) { team in
+                            BikeTeamPublicCard(team: team, viewModel: viewModel)
+                                .onAppear {
+                                    if team == viewModel.publicTeams.last && viewModel.hasMore{
+                                        Task {
+                                            await viewModel.queryPublicTeams(withLoadingToast: false, reset: false)
+                                        }
+                                    }
+                                }
+                        }
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .padding()
                         }
                     }
                     .padding(.horizontal)
                     .padding(.top)
                 }
-                .background(Color(.systemGroupedBackground))
+            }
+            .refreshable {
+                await viewModel.queryPublicTeams(withLoadingToast: false, reset: true)
             }
         }
-        .sheet(item: $viewModel.selectedTeamDetail) { _ in
-            TeamDetailView(selectedTeam: viewModel.selectedTeamDetail, type: viewModel.selectedTeamDetail?.getRelationship(for: viewModel.user.user.userID) ?? .unrelated)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableBackGesture()
+        .sheet(isPresented: $viewModel.showDetailSheet) {
+            TeamDescriptionView(showDetailSheet: $viewModel.showDetailSheet, selectedDescription: $viewModel.selectedDescription)
+                .presentationDetents([.fraction(0.4)])
+                .interactiveDismissDisabled()
         }
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(
-                title: Text("提示"),
-                message: Text(viewModel.alertMessage),
-                dismissButton: .default(Text("确定"))
-            )
+        .bottomSheet(isPresented: $viewModel.showIntroSheet, size: .medium) {
+            BikeTeamAppliedView(viewModel: viewModel)
         }
-        .onAppear {
-            viewModel.fetchAvailableTeams()
-        }
-        .onDisappear {
-            viewModel.availableTeams = []
-        }
-    }
-    
-    func JoinWithTeamCode() -> Bool {
-        guard !teamCode.isEmpty else {
-            viewModel.alertMessage = "请输入队伍码"
-            return false
-        }
-        
-        if teamCode.count != 6 {
-            viewModel.alertMessage = "请输入合法的6位队伍码"
-            return false
-        }
-        
-        // 检查队伍是否存在
-        if !viewModel.verifyTeamCode(teamCode: teamCode) {
-            viewModel.alertMessage = "找不到队伍，请输入正确的队伍码"
-            return false
-        }
-        
-        // 检查是否已经在队伍中
-        if viewModel.verifyInTeam(teamCode: teamCode) {
-            viewModel.alertMessage = "您已在此队伍中"
-            return false
-        }
-        
-        // 检查是否处于锁定状态
-        if viewModel.verifyTeamLocked(teamCode: teamCode) {
-            viewModel.alertMessage = "队伍已锁定，无法加入"
-            return false
-        }
-        
-        return true
-    }
-    
-    // 直接通过队伍码加入队伍
-    func joinTeam(teamCode: String) {
-        // 清空输入框
-        self.teamCode = ""
-        
-        // 修改服务端的team数据然后拉取更新viewModel.availableTeams
-        let newMember = TeamMember(
-            userID: viewModel.user.user.userID,
-            name: viewModel.user.user.nickname,
-            avatar: viewModel.user.user.avatarImageURL,
-            isLeader: false,
-            joinTime: Date(),
-            isRegistered: false
-        )
-
-        if let index = appState.competitionManager.myAppliedTeams.firstIndex(where: { $0.teamCode == teamCode }), let member = appState.competitionManager.myAppliedTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user.userID }) {
-            let copyMember = appState.competitionManager.myAppliedTeams[index].pendingRequests[member]
-            appState.competitionManager.myAppliedTeams[index].pendingRequests.remove(at: member)
-            appState.competitionManager.myAppliedTeams[index].members.append(copyMember)
-            let copyTeam = appState.competitionManager.myAppliedTeams[index]
-            appState.competitionManager.myAppliedTeams.remove(at: index)
-            appState.competitionManager.myJoinedTeams.append(copyTeam)
-        } else {
-            if let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.teamCode == teamCode }) {
-                var copyTeam = appState.competitionManager.availableTeams[index]
-                copyTeam.members.append(newMember)
-                appState.competitionManager.myJoinedTeams.append(copyTeam)
+        .onFirstAppear {
+            Task {
+                await viewModel.queryPublicTeams(withLoadingToast: true, reset: true)
             }
         }
-        
-        if let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.teamCode == teamCode }) {
-            if let member = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user.userID }) {
-                let copyMember = appState.competitionManager.availableTeams[index].pendingRequests[member]
-                appState.competitionManager.availableTeams[index].pendingRequests.remove(at: member)
-                appState.competitionManager.availableTeams[index].members.append(copyMember)
-            } else {
-                appState.competitionManager.availableTeams[index].members.append(newMember)
-            }
-        }
-        
-        if let index = viewModel.availableTeams.firstIndex(where: { $0.teamCode == teamCode }) {
-            if let member = viewModel.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == viewModel.user.user.userID }) {
-                let copyMember = viewModel.availableTeams[index].pendingRequests[member]
-                viewModel.availableTeams[index].pendingRequests.remove(at: member)
-                viewModel.availableTeams[index].members.append(copyMember)
-            } else {
-                viewModel.availableTeams[index].members.append(newMember)
-            }
-        }
-        
-        // 显示成功提示
-        viewModel.alertMessage = "加入队伍成功"
-        viewModel.showAlert = true
     }
 }
 
-struct TeamPublicCard: View {
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var viewModel: BikeCompetitionViewModel
-    @State var type: TeamRelationship
-
+struct BikeTeamAppliedView: View {
+    @State var introduction: String = ""
+    @ObservedObject var viewModel: BikeTeamJoinViewModel
     
-    let team: Team
-    let user = UserManager.shared
+    var body: some View {
+        VStack(spacing: 30) {
+            HStack {
+                Button(action: {
+                    viewModel.showIntroSheet = false
+                }) {
+                    Text("取消")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.secondText)
+                }
+                
+                Spacer()
+                
+                Text("编辑申请信息")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.white)
+                
+                Spacer()
+                
+                Button(action:{
+                    //UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    appliedJoinTeam()
+                }) {
+                    Text("申请")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.orange)
+                }
+            }
+            //.padding()
+            
+            VStack {
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $introduction)
+                        .frame(maxHeight: 120)
+                        .padding(16)
+                        .foregroundColor(.white)
+                        .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .onChange(of: introduction) {
+                            DispatchQueue.main.async {
+                                if introduction.count > 50 {
+                                    introduction = String(introduction.prefix(50)) // 限制为最多50个字符
+                                }
+                            }
+                        }
+                    if introduction.isEmpty {
+                        Text("申请信息（50字以内）")
+                            .foregroundColor(.thirdText)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 24)
+                    }
+                }
+                
+                HStack {
+                    Text("最多输入50个字符")
+                        .font(.footnote)
+                        .foregroundStyle(Color.thirdText)
+                    
+                    Spacer()
+                    
+                    Text("已输入\(introduction.count)/50字符")
+                        .font(.footnote)
+                        .foregroundStyle(Color.thirdText)
+                }
+                Spacer()
+            }
+            //.padding()
+        }
+        .padding()
+        .background(Color.defaultBackground)
+        //.hideKeyboardOnScroll()
+        .onChange(of: viewModel.showIntroSheet) {
+            if !viewModel.showIntroSheet {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            } else {
+                introduction = ""
+            }
+        }
+    }
+    
+    func appliedJoinTeam() {
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        var body: [String: String] = [
+            "team_id": viewModel.selectedTeamID
+        ]
+        if !introduction.isEmpty {
+            body["introduction"] = introduction
+        }
+        guard let encodedBody = try? JSONEncoder().encode(body) else {
+            return
+        }
+        
+        let request = APIRequest(path: "/competition/bike/applied_join_team", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success:
+                DispatchQueue.main.async {
+                    viewModel.showIntroSheet = false
+                }
+            default: break
+            }
+        }
+    }
+}
+
+struct BikeTeamPublicCard: View {
+    @EnvironmentObject var appState: AppState
+    let team: BikeTeamAppliedCard
+    @ObservedObject var viewModel: BikeTeamJoinViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -1070,13 +1045,13 @@ struct TeamPublicCard: View {
             HStack {
                 Text(team.title)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.white)
                 
                 Spacer()
                 
-                Text("\(team.currentMemberCount)/\(team.maxMembers) 人")
+                Text("\(team.member_count)/\(team.max_member_size) 人")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondText)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 3)
                     .background(
@@ -1087,228 +1062,66 @@ struct TeamPublicCard: View {
             
             // 队长信息
             HStack(spacing: 8) {
-                Image(systemName: team.captainAvatar)
-                    .font(.system(size: 16))
-                    .foregroundColor(.gray)
-                
-                Text("队长: \(team.captainName)")
+                Text("队长")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondText)
+                CachedAsyncImage(
+                    urlString: team.leader_avatar_url,
+                    placeholder: Image(systemName: "person"),
+                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                )
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+                .exclusiveTouchTapGesture {
+                    appState.navigationManager.append(.userView(id: team.leader_id, needBack: true))
+                }
+                
+                Text("\(team.leader_name)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondText)
             }
-            
-            // 描述
-            Text(team.description)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-                .padding(.top, 2)
             
             // 分隔线
             Divider()
-                .padding(.vertical, 6)
             
             // 底部信息
             HStack {
-                if type == .created || type == .joined {
-                    HStack(spacing: 4) {
-                        // 显示队伍码
-                        Text("队伍码: \(team.teamCode)")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                        
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 8))
-                            .foregroundColor(.blue)
-                    }
-                    .onTapGesture {
-                        UIPasteboard.general.string = team.teamCode
-                        
-                        let toast = Toast(message: "已复制: \(team.teamCode)", duration: 2)
-                        ToastManager.shared.show(toast: toast)
-                    }
-                }
-                
+                Text("比赛时间: \(DateDisplay.formattedDate(team.competition_date))")
+                    .font(.caption)
+                    .foregroundColor(Color.thirdText)
                 Spacer()
-                
-                // 按钮区域
-                if type == .created {
-                    Text("我的队伍")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.orange.opacity(0.1))
-                                .strokeBorder(Color.orange.opacity(0.3), lineWidth: 1)
-                        )
-                } else if type == .joined {
-                    // 详情按钮
-                    Button(action: {
-                        viewModel.selectedTeamDetail = team
-                    }) {
-                        Text("详情")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                    }
-                    
-                    Text("已加入")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.green.opacity(0.1))
-                                .strokeBorder(Color.green.opacity(0.3), lineWidth: 1)
-                        )
-                } else if type == .applied {
-                    // 详情按钮
-                    Button(action: {
-                        viewModel.selectedTeamDetail = team
-                    }) {
-                        Text("详情")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                    }
-                    
-                    // "取消申请"按钮
-                    Button(action: {
-                        cancelApplied()
-                    }) {
-                        Text("取消申请")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.red)
-                            .cornerRadius(8)
-                    }
-                    
-                    // 申请状态
-                    Text("申请中")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.orange.opacity(0.1))
-                                .strokeBorder(Color.orange.opacity(0.3), lineWidth: 1)
-                        )
-                } else {
-                    // 详情按钮
-                    Button(action: {
-                        viewModel.selectedTeamDetail = team
-                    }) {
-                        Text("详情")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                    }
-                    
-                    // 申请加入按钮
-                    Button(action: {
-                        applyToJoinTeam()
-                    }) {
-                        Text("申请加入")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                    }
+                // 详情按钮
+                CommonTextButton(text: "详情") {
+                    viewModel.selectedDescription = team.description
+                    viewModel.showDetailSheet = true
                 }
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.green)
+                .cornerRadius(8)
+                
+                // 申请加入按钮
+                CommonTextButton(text: "申请加入") {
+                    viewModel.selectedTeamID = team.team_id
+                    viewModel.showIntroSheet = true
+                }
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.green)
+                .cornerRadius(8)
             }
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(Color.gray)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-    }
-    
-    // 申请加入队伍
-    func applyToJoinTeam() {
-        if team.isLocked {
-            viewModel.alertMessage = "队伍已锁定，无法申请加入"
-            viewModel.showAlert = true
-            return
-        }
-        
-        type = .applied
-        
-        // 添加申请
-        let newMember = TeamMember(
-            userID: user.user.userID,
-            name: user.user.nickname,
-            avatar: user.user.avatarImageURL,
-            isLeader: false,
-            joinTime: Date(),
-            isRegistered: false
-        )
-        
-        // 在实际应用中，这里应该向服务器发起请求
-        // 模拟添加申请
-        var teamCopy = team
-        teamCopy.pendingRequests.append(newMember)
-        
-        // 添加到我申请的队伍列表
-        if !appState.competitionManager.myAppliedTeams.contains(where: { $0.id == team.id }) {
-            appState.competitionManager.myAppliedTeams.append(teamCopy)
-        }
-        
-        if let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.id == team.id }) {
-            appState.competitionManager.availableTeams[index].pendingRequests.append(newMember)
-        }
-        
-        if let index = viewModel.availableTeams.firstIndex(where: { $0.id == team.id }) {
-            viewModel.availableTeams[index].pendingRequests.append(newMember)
-        }
-    }
-    
-    // 取消申请加入
-    func cancelApplied() {
-        type = .unrelated
-        
-        if let index = viewModel.availableTeams.firstIndex(where: { $0.id == team.id }),
-           let memberIndex = viewModel.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user.userID }) {
-            viewModel.availableTeams[index].pendingRequests.remove(at: memberIndex)
-        }
-        
-        if let index = appState.competitionManager.availableTeams.firstIndex(where: { $0.id == team.id }),
-           let memberIndex = appState.competitionManager.availableTeams[index].pendingRequests.firstIndex(where: { $0.userID == user.user.userID }) {
-            appState.competitionManager.availableTeams[index].pendingRequests.remove(at: memberIndex)
-        }
-        
-        if let index = appState.competitionManager.myAppliedTeams.firstIndex(where: { $0.id == team.id }) {
-            appState.competitionManager.myAppliedTeams.remove(at: index)
-        }
     }
 }
 
-#Preview {
-    let appState = AppState.shared
-    //let rvr = RVRCompetitionViewModel()
-    let center = CompetitionCenterViewModel()
-    //rvr.fetchEventsByCity("上海市")
-    return BikeCompetitionView(centerViewModel: center)
-        .environmentObject(appState)
-        .preferredColorScheme(.dark)
-}
+

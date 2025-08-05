@@ -321,7 +321,7 @@ struct SetUpItemView<Content: View>: View {
             }
         }
         .background(.ultraThinMaterial)
-        .onTapGesture {
+        .exclusiveTouchTapGesture {
             onEdit()
         }
     }

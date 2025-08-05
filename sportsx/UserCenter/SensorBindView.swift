@@ -25,7 +25,7 @@ struct SensorBindView: View {
                         Text("已绑定设备: \(device.deviceName)")
                             .foregroundColor(.green)
                         
-                        Button("点击解绑") {
+                        CommonTextButton(text: "点击解绑") {
                             deviceManager.unbindDevice(at: position)
                         }
                         .padding(.vertical, 4)
@@ -35,7 +35,7 @@ struct SensorBindView: View {
                         Text("未绑定")
                             .foregroundColor(.red)
                         
-                        Button("点击绑定") {
+                        CommonTextButton(text: "点击绑定") {
                             // 模拟创建一个 AppleWatchDevice 并绑定
                             // 实际项目中可让用户选择不同设备(Apple/Huawei等)
                             let newWatch = AppleWatchDevice(

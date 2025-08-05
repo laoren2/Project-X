@@ -19,8 +19,8 @@ enum AppRoute: Hashable {
     case sensorBindView
     case skillView
     case activityView
-    case recordManagementView
-    case teamManagementView
+    case bikeRecordManagementView
+    case bikeTeamManagementView
     case userSetUpView
     case instituteView
     case userView(id: String, needBack: Bool)
@@ -29,6 +29,19 @@ enum AppRoute: Hashable {
     case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
+    case bikeRankingListView(trackID: String)
+    case bikeTeamCreateView(trackID: String, competitionDate: Date)
+    case bikeTeamJoinView(trackID: String)
+    case bikeTeamManageView(teamID: String)
+    case bikeTeamDetailView(teamID: String)
+    case runningRecordManagementView
+    case runningTeamManagementView
+    case runningRankingListView(trackID: String)
+    case runningTeamCreateView(trackID: String, competitionDate: Date)
+    case runningTeamJoinView(trackID: String)
+    case runningTeamManageView(teamID: String)
+    case runningTeamDetailView(teamID: String)
+#if DEBUG
     case adminPanelView
     case seasonBackendView
     case runningEventBackendView
@@ -36,6 +49,10 @@ enum AppRoute: Hashable {
     case bikeEventBackendView
     case bikeTrackBackendView
     case regionSelectedView
+    case cpAssetBackendView
+    case cpAssetPriceBackendView
+    case userAssetManageBackendView
+#endif
     
     var string: String {
         switch self {
@@ -51,10 +68,10 @@ enum AppRoute: Hashable {
             return "skillView"
         case .activityView:
             return "activityView"
-        case .recordManagementView:
-            return "recordManagementView"
-        case .teamManagementView:
-            return "teamManagementView"
+        case .bikeRecordManagementView:
+            return "bikeRecordManagementView"
+        case .bikeTeamManagementView:
+            return "bikeTeamManagementView"
         case .userSetUpView:
             return "userSetUpView"
         case .instituteView:
@@ -71,6 +88,31 @@ enum AppRoute: Hashable {
             return "identityAuthView"
         case .userSetUpAccountView:
             return "userSetUpAccountView"
+        case .bikeRankingListView:
+            return "bikeRankingListView"
+        case .bikeTeamCreateView:
+            return "bikeTeamCreateView"
+        case .bikeTeamJoinView:
+            return "bikeTeamJoinView"
+        case .bikeTeamManageView:
+            return "bikeTeamManageView"
+        case .bikeTeamDetailView:
+            return "bikeTeamDetailView"
+        case .runningRecordManagementView:
+            return "runningRecordManagementView"
+        case .runningTeamManagementView:
+            return "runningTeamManagementView"
+        case .runningRankingListView:
+            return "runningRankingListView"
+        case .runningTeamCreateView:
+            return "runningTeamCreateView"
+        case .runningTeamJoinView:
+            return "runningTeamJoinView"
+        case .runningTeamManageView:
+            return "runningTeamManageView"
+        case .runningTeamDetailView:
+            return "runningTeamDetailView"
+#if DEBUG
         case .adminPanelView:
             return "adminPanelView"
         case .seasonBackendView:
@@ -85,6 +127,13 @@ enum AppRoute: Hashable {
             return "bikeTrackBackendView"
         case .regionSelectedView:
             return "regionSelectedView"
+        case .cpAssetBackendView:
+            return "cpAssetBackendView"
+        case .cpAssetPriceBackendView:
+            return "cpAssetPriceBackendView"
+        case .userAssetManageBackendView:
+            return "userAssetManageBackendView"
+#endif
         }
     }
 }
@@ -98,6 +147,12 @@ class NavigationManager: ObservableObject {
     
     // 主页tab的导航
     @Published var selectedTab: Tab = .home
+    
+    // 运动选择侧边栏
+    @Published var showSideBar: Bool = false
+    
+    // 组队底部sheet
+    @Published var showTeamRegisterSheet: Bool = false
     
     // 运动中心状态
     @Published var isTrainingView: Bool = false
