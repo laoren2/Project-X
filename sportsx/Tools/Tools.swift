@@ -72,11 +72,43 @@ struct CoordinateConverter {
     }
 }
 
+struct DateDisplay {
+    static func formattedDate(_ date: Date?) -> String {
+        guard let date = date else {
+            return "未知"
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
+        formatter.locale = Locale(identifier: "zh_CN")
+        
+        return formatter.string(from: date)
+    }
+}
+
 struct TimeDisplay {
-    static func formattedTime(_ interval: TimeInterval) -> String {
-        let minutes = Int(interval) / 60
-        let seconds = Int(interval) % 60
-        return String(format: "%02dm %02ds", minutes, seconds)
+    static func formattedTime(_ interval: TimeInterval?, showFraction: Bool = false) -> String {
+        guard let duration = interval else { return "未知" }
+        
+        let totalSeconds = Int(duration)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        let fraction = duration - Double(totalSeconds)
+        
+        if showFraction {
+            let fractionalSeconds = Double(seconds) + fraction
+            if hours > 0 {
+                return String(format: "%02d:%02d:%05.2f", hours, minutes, fractionalSeconds)
+            } else {
+                return String(format: "%02d:%05.2f", minutes, fractionalSeconds)
+            }
+        } else {
+            if hours > 0 {
+                return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+            } else {
+                return String(format: "%02d:%02d", minutes, seconds)
+            }
+        }
     }
 }
 

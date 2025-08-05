@@ -66,28 +66,6 @@ class HomeViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 }
 
-struct LeaderboardEntry: Identifiable, Codable, Equatable {
-    let id: UUID
-    let user_id: String
-    let nickname: String
-    let best_time: TimeInterval
-    let avatarImageURL: String
-    let predictBonus: Int
-    
-    init(id: UUID = UUID(), user_id: String = "null", nickname: String = "null", best_time: TimeInterval = 0.0, avatarImageURL: String, predictBonus: Int = 0) {
-        self.id = id
-        self.user_id = user_id
-        self.nickname = nickname
-        self.best_time = best_time
-        self.avatarImageURL = avatarImageURL
-        self.predictBonus = predictBonus
-    }
-    
-    static func == (lhs: LeaderboardEntry, rhs: LeaderboardEntry) -> Bool {
-        return lhs.user_id == rhs.user_id
-    }
-}
-
 struct Ad: Identifiable {
     let id = UUID()
     let imageURL: String

@@ -126,7 +126,9 @@ struct RunningTrackBackendView: View {
         let request = APIRequest(path: urlPath, method: .get, isInternal: true)
         
         NetworkService.sendRequest(with: request, decodingType: RunningTracksInternalResponse.self, showSuccessToast: true, showErrorToast: true) { result in
-            isLoading = false
+            DispatchQueue.main.async {
+                isLoading = false
+            }
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -166,7 +168,6 @@ struct RunningTrackCreateView: View {
     
     @State var elevationDifference: String = ""
     @State var subRegioName: String = ""
-    @State var fee: String = ""
     @State var prizePool: String = ""
     @State var distance: String = ""
     
@@ -202,8 +203,6 @@ struct RunningTrackCreateView: View {
                     TextField("海拔差", text: $elevationDifference)
                         .keyboardType(.numberPad)
                     TextField("子区域", text: $subRegioName)
-                    TextField("报名费", text: $fee)
-                        .keyboardType(.numberPad)
                     TextField("奖金池", text: $prizePool)
                         .keyboardType(.numberPad)
                     TextField("路程", text: $distance)
@@ -232,7 +231,7 @@ struct RunningTrackCreateView: View {
                     .disabled(
                         name.isEmpty || eventName.isEmpty || seasonName.isEmpty || regionName.isEmpty
                         || from_la.isEmpty || from_lo.isEmpty || to_la.isEmpty || to_lo.isEmpty
-                        || elevationDifference.isEmpty || subRegioName.isEmpty || fee.isEmpty || prizePool.isEmpty
+                        || elevationDifference.isEmpty || subRegioName.isEmpty || prizePool.isEmpty
                     )
                 }
             }
@@ -274,7 +273,6 @@ struct RunningTrackCreateView: View {
         if !to_lo.isEmpty { textFields["to_longitude"] = to_lo }
         if !elevationDifference.isEmpty { textFields["elevationDifference"] = elevationDifference }
         if !subRegioName.isEmpty { textFields["subRegioName"] = subRegioName }
-        if !fee.isEmpty { textFields["fee"] = fee }
         if !prizePool.isEmpty { textFields["prizePool"] = prizePool }
         if !distance.isEmpty { textFields["distance"] = distance }
         
@@ -339,8 +337,6 @@ struct RunningTrackUpdateView: View {
                     TextField("海拔差", text: $viewModel.elevationDifference)
                         .keyboardType(.numberPad)
                     TextField("子区域", text: $viewModel.subRegioName)
-                    TextField("报名费", text: $viewModel.fee)
-                        .keyboardType(.numberPad)
                     TextField("奖金池", text: $viewModel.prizePool)
                         .keyboardType(.numberPad)
                     TextField("路程", text: $viewModel.distance)
@@ -411,7 +407,6 @@ struct RunningTrackUpdateView: View {
             "to_longitude": viewModel.to_lo,
             "elevationDifference": viewModel.elevationDifference,
             "subRegioName": viewModel.subRegioName,
-            "fee": viewModel.fee,
             "prizePool": viewModel.prizePool,
             "distance": viewModel.distance
         ]
@@ -475,7 +470,6 @@ struct RunningTrackCardView: View {
         
         viewModel.elevationDifference = track.elevationDifference
         viewModel.subRegioName = track.subRegioName
-        viewModel.fee = track.fee
         viewModel.prizePool = track.prizePool
         viewModel.distance = track.distance
     }

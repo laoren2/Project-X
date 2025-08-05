@@ -73,7 +73,7 @@ struct ImageTool {
             } else {
                 break
             }
-            print("size: \(data.count) compression: \(compression)")
+            //print("size: \(data.count) compression: \(compression)")
         }
         return data
     }

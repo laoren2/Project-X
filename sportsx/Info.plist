@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleLightContent</string>
+	<string>UIStatusBarStyleDefault</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>UISupportedInterfaceOrientations</key>

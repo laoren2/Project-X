@@ -41,7 +41,7 @@ struct UserIntroEditView: View {
                 )
                 .ignoresSafeArea()
             
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
                     ZStack(alignment: .bottom) {
                         // 封面
@@ -77,18 +77,17 @@ struct UserIntroEditView: View {
                                         .clipShape(Circle())
                                 }
                                 
-                                Button(action: {
-                                    showAvatarPicker = true
-                                }) {
-                                    Text("更换头像")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white)
-                                        .padding(.vertical, 5)
-                                        .padding(.horizontal, 10)
-                                        .background(.ultraThinMaterial)
-                                        .cornerRadius(15)
-                                        .offset(y: 10)
-                                }
+                                Text("更换头像")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 5)
+                                    .padding(.horizontal, 10)
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(15)
+                                    .offset(y: 10)
+                                    .exclusiveTouchTapGesture {
+                                        showAvatarPicker = true
+                                    }
                             }
                             .padding(.top, 30)
                         }
@@ -111,7 +110,7 @@ struct UserIntroEditView: View {
                         }
                         
                         // 性别
-                        EditItemView(title: "性别", value: viewModel.currentUser.gender ?? "未设置") {
+                        EditItemView(title: "性别", value: viewModel.currentUser.gender?.rawValue ?? "未设置") {
                             showGenderEditor = true
                         }
                         
@@ -133,50 +132,41 @@ struct UserIntroEditView: View {
                     .cornerRadius(20)
                     .padding()
                     
-                    Button(action: {
-                        viewModel.saveMeInfo()
-                    }) {
-                        Text("保存")
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 20)
-                            .foregroundStyle(.white)
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(20)
-                            //.border(.red)
-                    }
-                    .padding(.bottom, 80)
+                    Text("保存")
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .foregroundStyle(.white)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .exclusiveTouchTapGesture {
+                            viewModel.saveMeInfo()
+                        }
                 }
                 .padding(.top, 56)
-                //.border(.green)
             }
-            //.border(.red)
             
             // 顶部导航栏
             HStack(alignment: .center) {
-                Button(action: {
-                    appState.navigationManager.removeLast()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                        .padding(10)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
-                }
-                
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .padding(10)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .exclusiveTouchTapGesture {
+                        appState.navigationManager.removeLast()
+                    }
                 Spacer()
-                
-                Button(action: {
-                    showBackgroundPicker = true
-                }) {
-                    Text("更换封面")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 15)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
-                }
+                Text("更换封面")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 15)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(20)
+                    .exclusiveTouchTapGesture {
+                        showBackgroundPicker = true
+                    }
             }
             .padding(.horizontal)
             .frame(height: 40)
@@ -275,7 +265,7 @@ struct EditItemView: View {
                 .padding(.leading, 80)
         }
         .background(.ultraThinMaterial)
-        .onTapGesture {
+        .exclusiveTouchTapGesture {
             onEdit()
         }
     }
@@ -490,7 +480,7 @@ struct GenderEditorView: View {
                         Spacer()
                         
                         if viewModel.currentUser.isRealnameAuth {
-                            Text("\(viewModel.currentUser.gender ?? "未知")")
+                            Text("\(viewModel.currentUser.gender?.rawValue ?? "未知")")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white)
                         } else {
@@ -499,9 +489,10 @@ struct GenderEditorView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .foregroundStyle(.white)
-                                .background(.pink)
+                                .background(.orange)
                                 .cornerRadius(10)
-                                .onTapGesture {
+                                .exclusiveTouchTapGesture {
+                                    showGenderEditor = false
                                     appState.navigationManager.append(.realNameAuthView)
                                 }
                         }
@@ -510,6 +501,7 @@ struct GenderEditorView: View {
             }
             .padding(.horizontal)
         }
+        .preferredColorScheme(.dark)
         .onAppear {
             tempDisplayStatus = viewModel.currentUser.isDisplayGender
         }
@@ -582,9 +574,10 @@ struct AgeEditorView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .foregroundStyle(.white)
-                                .background(.pink)
+                                .background(.orange)
                                 .cornerRadius(10)
-                                .onTapGesture {
+                                .exclusiveTouchTapGesture {
+                                    showAgeEditor = false
                                     appState.navigationManager.append(.realNameAuthView)
                                 }
                         }
@@ -593,6 +586,7 @@ struct AgeEditorView: View {
             }
             .padding(.horizontal)
         }
+        .preferredColorScheme(.dark)
         .onAppear {
             tempDisplayStatus = viewModel.currentUser.isDisplayAge
         }
@@ -691,6 +685,7 @@ struct LocationEditorView: View {
             }
             .padding(.horizontal)
         }
+        .preferredColorScheme(.dark)
         .onAppear {
             tempDisplayStatus = viewModel.currentUser.isDisplayLocation
         }
@@ -763,9 +758,10 @@ struct IdentityEditorView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .foregroundStyle(.white)
-                                .background(.pink)
+                                .background(.orange)
                                 .cornerRadius(10)
-                                .onTapGesture {
+                                .exclusiveTouchTapGesture {
+                                    showIdentityEditor = false
                                     appState.navigationManager.append(.identityAuthView)
                                 }
                         }
@@ -774,6 +770,7 @@ struct IdentityEditorView: View {
             }
             .padding(.horizontal)
         }
+        .preferredColorScheme(.dark)
         .onAppear {
             tempDisplayStatus = viewModel.currentUser.isDisplayIdentity
         }

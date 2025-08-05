@@ -41,7 +41,7 @@ class UserIntroEditViewModel: ObservableObject {
         let textFields: [String: String?] = [
             "nickname": currentUser.nickname,
             "introduction": currentUser.introduction,
-            "gender": currentUser.gender,
+            "gender": currentUser.gender?.rawValue,
             "birthday": currentUser.birthday,
             "location": currentUser.location,
             "identity_auth_name": currentUser.identityAuthName,

@@ -14,10 +14,12 @@
 		A911DBB42C47024E0033D809 /* sportsxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBB32C47024E0033D809 /* sportsxTests.swift */; };
 		A911DBBE2C47024E0033D809 /* sportsxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBD2C47024E0033D809 /* sportsxUITests.swift */; };
 		A911DBC02C47024E0033D809 /* sportsxUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */; };
+		A912CD872E1D6F6A009062AD /* StoreHouseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A912CD862E1D6F62009062AD /* StoreHouseView.swift */; };
 		A933C48D2DBDE1ED000C51D8 /* GlobalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */; };
 		A95064892D0239B600998E30 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95064882D0239AE00998E30 /* LocationManager.swift */; };
 		A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95721702D2FBCE300286592 /* NavigationManager.swift */; };
-		A96640092D832DB700A94B73 /* CurrencyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96640082D832DB700A94B73 /* CurrencyManager.swift */; };
+		A96640092D832DB700A94B73 /* AssetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96640082D832DB700A94B73 /* AssetManager.swift */; };
+		A966BA042E14B99D009BF4CB /* ShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966BA032E14B995009BF4CB /* ShopView.swift */; };
 		A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A9697C1F2D23CEC60053E4DC /* SDWebImageSwiftUI */; };
 		A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */; };
 		A99A6AE62C9CB01900FAC86D /* test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A6AE52C9CB01900FAC86D /* test.swift */; };
@@ -89,11 +91,13 @@
 		A911DBB92C47024E0033D809 /* sportsxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sportsxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A911DBBD2C47024E0033D809 /* sportsxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITests.swift; sourceTree = "<group>"; };
 		A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		A912CD862E1D6F62009062AD /* StoreHouseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreHouseView.swift; sourceTree = "<group>"; };
 		A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalConfig.swift; sourceTree = "<group>"; };
 		A95064872D0133C400998E30 /* sportsx.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = sportsx.entitlements; sourceTree = "<group>"; };
 		A95064882D0239AE00998E30 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		A95721702D2FBCE300286592 /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
-		A96640082D832DB700A94B73 /* CurrencyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyManager.swift; sourceTree = "<group>"; };
+		A96640082D832DB700A94B73 /* AssetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetManager.swift; sourceTree = "<group>"; };
+		A966BA032E14B995009BF4CB /* ShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopView.swift; sourceTree = "<group>"; };
 		A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompetitionWidget.swift; sourceTree = "<group>"; };
 		A99A6AE52C9CB01900FAC86D /* test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test.swift; sourceTree = "<group>"; };
 		A99D9A972C4B028D004F72BF /* NaviView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviView.swift; sourceTree = "<group>"; };
@@ -195,6 +199,8 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A912CD862E1D6F62009062AD /* StoreHouseView.swift */,
+				A966BA032E14B995009BF4CB /* ShopView.swift */,
 				A9350C6D2DF748E9005A424F /* Components */,
 				A90021742DEF3F9A00B34847 /* AdminSevice */,
 				A9B2825A2DD9101A00DCBCBD /* Extensions */,
@@ -204,7 +210,7 @@
 				A97D147F2DAFAAB7002F0B1E /* UserCenter */,
 				A97D147D2DAFA80E002F0B1E /* SportCenter */,
 				A9E269EF2D873003002C2033 /* CompetitionLink */,
-				A96640082D832DB700A94B73 /* CurrencyManager.swift */,
+				A96640082D832DB700A94B73 /* AssetManager.swift */,
 				A95721702D2FBCE300286592 /* NavigationManager.swift */,
 				A9D812762D2EEF6600185548 /* SensorManager */,
 				A95064872D0133C400998E30 /* sportsx.entitlements */,
@@ -503,9 +509,11 @@
 				A95064892D0239B600998E30 /* LocationManager.swift in Sources */,
 				A933C48D2DBDE1ED000C51D8 /* GlobalConfig.swift in Sources */,
 				A911DBA32C47024D0033D809 /* sportsxApp.swift in Sources */,
-				A96640092D832DB700A94B73 /* CurrencyManager.swift in Sources */,
+				A96640092D832DB700A94B73 /* AssetManager.swift in Sources */,
 				A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */,
+				A912CD872E1D6F6A009062AD /* StoreHouseView.swift in Sources */,
 				A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */,
+				A966BA042E14B99D009BF4CB /* ShopView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

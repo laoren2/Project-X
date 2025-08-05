@@ -32,17 +32,25 @@ struct AdsBannerView: View {
     
     @State var ads: [Ad]
     @State var currentIndex = 1
-    @State var tempOffset: CGFloat = 0
-    var totalOffset: CGFloat {
-        return -CGFloat(self.currentIndex) * width + self.tempOffset
-    }
     @State private var cancellable: AnyCancellable? = nil
-    
-    @GestureState var dragOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            HStack(spacing: 0) {
+            HorizontalScrollView(
+                currentIndex: $currentIndex,
+                adsCount: ads.count,
+                width: width,
+                onScrollWillBegin: {
+                    if cancellable != nil {
+                        stopAutoScroll()
+                    }
+                },
+                onScrollDidEnd: {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        startAutoScroll()
+                    }
+                }
+            ) {
                 // 添加一个重复的最后一页用于无限循环
                 AdsCard(width: width, height: height, image: ads.last?.imageURL ?? "")
                     .frame(width: width, height: height)
@@ -55,63 +63,13 @@ struct AdsBannerView: View {
                 AdsCard(width: width, height: height, image: ads.first?.imageURL ?? "")
                     .frame(width: width, height: height)
             }
-            .frame(width: width, height: height, alignment: .leading)
-            .offset(x: totalOffset)
-            .onChange(of: currentIndex) {
-                if currentIndex == ads.count + 1 {
-                    currentIndex = 1
-                } else if currentIndex == 0 {
-                    currentIndex = ads.count
-                }
-            }
-            // 拖动事件
-            .gesture(
-                DragGesture()
-                    .updating(self.$dragOffset, body: { value, state, transaction in
-                        if cancellable != nil {
-                            stopAutoScroll()
-                        }
-                        state = value.translation.width
-                        tempOffset = state
-                    })
-                    .onEnded({ value in
-                        let threshold = width * 0.25
-                        // 速度阈值，单位是点/秒
-                        let velocityThreshold: CGFloat = 200
-                        
-                        if value.translation.width < -threshold || value.velocity.width < -velocityThreshold {
-                            withAnimation {
-                                currentIndex += 1
-                                tempOffset = 0
-                            }
-                        } else if value.translation.width > threshold || value.velocity.width > velocityThreshold {
-                            withAnimation {
-                                currentIndex -= 1
-                                tempOffset = 0
-                            }
-                        } else {
-                            withAnimation {
-                                tempOffset = 0
-                            }
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            startAutoScroll()
-                        }
-                    })
-            )
-            .onAppear() {
-                startAutoScroll()
-            }
-            .onDisappear {
-                stopAutoScroll()
-            }
-            //.border(.red)
+            .frame(width: width, height: height)
             
             // 分页指示器
             HStack(spacing: 8) {
                 ForEach(ads.indices, id: \.self) { index in
                     Circle()
-                        .fill(index + 1 == currentIndex ? Color.gray : Color.gray.opacity(0.5))
+                        .fill(index + 1 == currentIndex ? Color.white : Color.gray.opacity(0.5))
                         .frame(width: 8, height: 8)
                 }
             }
@@ -120,13 +78,18 @@ struct AdsBannerView: View {
         .frame(width: width, height: height)
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .contentShape(RoundedRectangle(cornerRadius: 20))
+        .onStableAppear() {
+            startAutoScroll()
+        }
+        .onStableDisappear {
+            stopAutoScroll()
+        }
     }
     
     // 开始自动滚动
     func startAutoScroll() {
-        //print("startAutoScroll")
         guard ads.count > 0 else { return }
-
+        
         // 如果 Timer 已经存在，则不再创建新的 Timer
         if cancellable != nil {
             return
@@ -135,27 +98,148 @@ struct AdsBannerView: View {
         cancellable = Timer.publish(every: 3, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                if currentIndex == ads.count + 1 {
-                    currentIndex = 1
-                }
-                // 比赛进行中主线程繁忙，切换动画可能不流畅
-                if appState.competitionManager.isRecording {
-                    currentIndex += 1
-                } else {
-                    withAnimation(.smooth) {
-                        currentIndex += 1 //= (currentIndex + 1) % ads.count
-                    }
-                }
+                currentIndex += 1
             }
     }
     
     // 停止自动滚动
     func stopAutoScroll() {
-        //print("stopAutoScroll")
         cancellable?.cancel()
         cancellable = nil
     }
 }
+
+struct HorizontalScrollView<Content: View>: UIViewRepresentable {
+    @Binding var currentIndex: Int
+    let adsCount: Int
+    let width: CGFloat
+    let onScrollWillBegin: (() -> Void)?
+    let onScrollDidEnd: (() -> Void)?
+    let content: () -> Content
+
+    init(
+        currentIndex: Binding<Int>,
+        adsCount: Int,
+        width: CGFloat,
+        onScrollWillBegin: (() -> Void)? = nil,
+        onScrollDidEnd: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self._currentIndex = currentIndex
+        self.adsCount = adsCount
+        self.width = width
+        self.onScrollWillBegin = onScrollWillBegin
+        self.onScrollDidEnd = onScrollDidEnd
+        self.content = content
+    }
+
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.isPagingEnabled = true
+        scrollView.bounces = true
+        scrollView.alwaysBounceHorizontal = true
+        scrollView.backgroundColor = .clear
+        scrollView.delegate = context.coordinator
+        scrollView.tag = 99
+
+        let hostingController = UIHostingController(rootView: HStack(spacing: 0, content: content))
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        hostingController.view.backgroundColor = .clear
+
+        scrollView.addSubview(hostingController.view)
+
+        NSLayoutConstraint.activate([
+            hostingController.view.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            hostingController.view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            hostingController.view.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
+        ])
+
+        // 初始滚动到 currentIndex
+        scrollView.contentOffset.x = CGFloat(currentIndex) * width
+
+        return scrollView
+    }
+
+    func updateUIView(_ uiView: UIScrollView, context: Context) {
+        let expectedOffset = CGFloat(currentIndex) * width
+        if abs(uiView.contentOffset.x - expectedOffset) > 1 {
+            uiView.setContentOffset(CGPoint(x: expectedOffset, y: 0), animated: true)
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIScrollViewDelegate {
+        var parent: HorizontalScrollView
+
+        init(_ parent: HorizontalScrollView) {
+            self.parent = parent
+        }
+
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            parent.onScrollWillBegin?()
+        }
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            let offsetX = scrollView.contentOffset.x
+            let pageWidth = parent.width
+            let totalPages = parent.adsCount + 2 // 多加首尾
+
+            // 如果滑到最前面（第0页），跳转到倒数第1页（adsCount页）
+            if offsetX <= 0 {
+                scrollView.setContentOffset(CGPoint(x: CGFloat(parent.adsCount) * pageWidth, y: 0), animated: false)
+                DispatchQueue.main.async {
+                    self.parent.currentIndex = self.parent.adsCount
+                }
+            }
+            // 如果滑到最后一页（adsCount+1），跳转到第一页（index 1）
+            else if offsetX >= CGFloat(totalPages - 1) * pageWidth {
+                scrollView.setContentOffset(CGPoint(x: pageWidth, y: 0), animated: false)
+                DispatchQueue.main.async {
+                    self.parent.currentIndex = 1
+                }
+            }
+        }
+        
+        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+            if !decelerate {
+                parent.onScrollDidEnd?()
+            }
+        }
+
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            let page = Int((scrollView.contentOffset.x / parent.width).rounded())
+            DispatchQueue.main.async {
+                if page == 0 {
+                    self.parent.currentIndex = self.parent.adsCount
+                    scrollView.setContentOffset(CGPoint(x: CGFloat(self.parent.adsCount) * self.parent.width, y: 0), animated: false)
+                } else if page == self.parent.adsCount + 1 {
+                    self.parent.currentIndex = 1
+                    scrollView.setContentOffset(CGPoint(x: self.parent.width, y: 0), animated: false)
+                } else {
+                    self.parent.currentIndex = page
+                }
+                self.parent.onScrollDidEnd?()
+            }
+        }
+        
+        func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+            let page = Int((scrollView.contentOffset.x / parent.width).rounded())
+            if page == parent.adsCount + 1 {
+                DispatchQueue.main.async {
+                    self.parent.currentIndex = 1
+                }
+                scrollView.setContentOffset(CGPoint(x: parent.width, y: 0), animated: false)
+            }
+        }
+    }
+}
+
 
 
 

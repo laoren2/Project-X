@@ -15,16 +15,16 @@ struct UserSetUpView: View {
     @State var isComputingCacheSize: Bool = false
     @State var isCleaning: Bool = false
     
+    @State var tapCnt: Int = 0
+    
     var body: some View {
         VStack {
             HStack {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
                 
                 Spacer()
                 
@@ -66,9 +66,13 @@ struct UserSetUpView: View {
                     }
                     
                     SetUpItemView(icon: "iphone.and.arrow.forward.outward", title: "退出登录", showChevron: false, showDivider: false) {
+                        guard !appState.competitionManager.isRecording else {
+                            let toast = Toast(message: "比赛进行中,无法退出")
+                            ToastManager.shared.show(toast: toast)
+                            return
+                        }
                         logoutUser()
                     }
-                    .disabled(appState.competitionManager.isRecording)
                 }
                 .cornerRadius(20)
                 .padding()
@@ -82,6 +86,27 @@ struct UserSetUpView: View {
                     .cornerRadius(20)
                     .padding()
                 }
+                Spacer()
+                VStack {
+                    HStack(spacing: 10) {
+                        Spacer()
+                        Text("version: 0.0.1")
+                            .onTapGesture {
+                                tapCnt += 1
+                            }
+                        Spacer()
+                    }
+                    if tapCnt >= 5 {
+                        Text("uid: \(userManager.user.userID)")
+                            .onTapGesture {
+                                UIPasteboard.general.string = userManager.user.userID
+                                let toast = Toast(message: "uid已复制", duration: 2)
+                                ToastManager.shared.show(toast: toast)
+                            }
+                    }
+                }
+                .foregroundStyle(Color.secondText)
+                .font(.footnote)
             }
         }
         .background(Color.defaultBackground)
@@ -89,6 +114,9 @@ struct UserSetUpView: View {
         .enableBackGesture()
         .onStableAppear {
             updateCacheSize()
+#if DEBUG
+            userManager.fetchMeRole()
+#endif
         }
     }
     
@@ -127,13 +155,11 @@ struct UserSetUpAccountView: View {
     var body: some View {
         VStack {
             HStack {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
                 
                 Spacer()
                 

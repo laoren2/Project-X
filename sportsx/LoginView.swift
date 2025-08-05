@@ -120,30 +120,13 @@ struct LoginView: View {
                         userManager.friendCount = relation.friends
                         userManager.followerCount = relation.follower
                         userManager.followedCount = relation.followed
-                        userManager.user = User(
-                            userID: user.user_id,
-                            nickname: user.nickname,
-                            phoneNumber: user.phone_number,
-                            avatarImageURL: user.avatar_image_url,
-                            backgroundImageURL: user.background_image_url,
-                            introduction: user.introduction,
-                            gender: user.gender,
-                            birthday: user.birthday,
-                            location: user.location,
-                            identityAuthName: user.identity_auth_name,
-                            isRealnameAuth: user.is_realname_auth,
-                            isIdentityAuth: user.is_identity_auth,
-                            isDisplayGender: user.is_display_gender,
-                            isDisplayAge: user.is_display_age,
-                            isDisplayLocation: user.is_display_location,
-                            enableAutoLocation: user.enable_auto_location,
-                            isDisplayIdentity: user.is_display_identity
-                        )
+                        userManager.user = User(from: user)
                         userManager.role = unwrappedData.role
                         userManager.saveUserInfoToCache()
                         if userManager.user.enableAutoLocation {
                             userManager.user.location = config.location
                         }
+                        config.refreshAll()
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
                     }

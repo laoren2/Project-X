@@ -10,8 +10,9 @@ import SwiftUI
 
 struct SportCenterView: View {
     @EnvironmentObject var appState: AppState
+    
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             TrainingCenterView()
             CompetitionCenterView()
                 .opacity(appState.navigationManager.isTrainingView ? 0 : 1)
@@ -22,11 +23,12 @@ struct SportCenterView: View {
 struct CompetitionCenterView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel = CompetitionCenterViewModel()
-    @ObservedObject var currencyManager = CurrencyManager.shared
+    @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject var locationManager = LocationManager.shared
     
     @State private var showSportPicker = false
     @State private var showingCitySelection = false
+    @State private var isDragging: Bool = false     // 是否处于拖动中
     
     var body: some View {
         ZStack {
@@ -58,13 +60,12 @@ struct CompetitionCenterView: View {
                                 .font(.system(size: 18))
                         }
                         .foregroundStyle(.white)
-                        .onTapGesture {
-                            withAnimation {
-                                showSportPicker.toggle()
+                        .exclusiveTouchTapGesture {
+                            if !isDragging {
+                                withAnimation(.easeIn(duration: 0.3)) {
+                                    appState.navigationManager.showSideBar = true
+                                }
                             }
-                        }
-                        .sheet(isPresented: $showSportPicker) {
-                            SportPickerView()
                         }
                         
                         Spacer()
@@ -76,7 +77,7 @@ struct CompetitionCenterView: View {
                             Text(locationManager.region)
                                 .foregroundColor(.white)
                         }
-                        .onTapGesture {
+                        .exclusiveTouchTapGesture {
                             appState.navigationManager.append(.regionSelectedView)
                         }
                     }
@@ -89,15 +90,16 @@ struct CompetitionCenterView: View {
                             .foregroundStyle(.red.opacity(0.8))
                     }
                 }
-                .padding(.bottom, 10)
+                .padding(.bottom, 5)
                 
                 if appState.sport == .Bike {
-                    BikeCompetitionView(centerViewModel: viewModel)
+                    BikeCompetitionView(centerViewModel: viewModel, isDragging: $isDragging)
                 } else if appState.sport == .Running {
-                    RunningCompetitionView(centerViewModel: viewModel)
+                    RunningCompetitionView(centerViewModel: viewModel, isDragging: $isDragging)
                 }
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .onFirstAppear {
             viewModel.fetchCurrentSeason()
             viewModel.setupLocationSubscription()
@@ -118,8 +120,173 @@ struct TrainingCenterView: View {
                 .fontWeight(.bold)
             // 添加更多的训练页面内容
         }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
+
+struct TeamDescriptionView: View {
+    @Binding var showDetailSheet: Bool
+    @Binding var selectedDescription: String
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            HStack {
+                Text("取消")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.clear)
+                
+                Spacer()
+                
+                Text("队伍描述")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.white)
+                
+                Spacer()
+                
+                Button(action:{
+                    showDetailSheet = false
+                }) {
+                    Text("完成")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.secondText)
+                }
+            }
+            ScrollView {
+                Text(selectedDescription.isEmpty ? "暂无内容" : selectedDescription)
+                    .font(.system(size: 15))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(5)
+            }
+            .frame(height: 100)
+            .padding(10)
+            .background(Color.gray.opacity(0.8))
+            .cornerRadius(20)
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color.defaultBackground)
+    }
+}
+
+// 赛道信息项组件
+struct InfoItemView: View {
+    let iconName: String
+    let iconColor: Color
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: iconName)
+                .font(.system(size: 15))
+                .foregroundColor(iconColor)
+                .frame(width: 24, height: 24, alignment: .center)
+            
+            Text(text)
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
+                .foregroundColor(.secondText)
+        }
+    }
+}
+
+// 组队报名页面
+struct TeamRegisterView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var assetManager = AssetManager.shared
+    
+    @State var teamCode: String = ""
+    @Binding var showSheet: Bool
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            HStack {
+                Button(action: {
+                    showSheet = false
+                }) {
+                    Text("取消")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.thirdText)
+                }
+                
+                Spacer()
+                
+                Text("组队报名")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.secondText)
+                
+                Spacer()
+                
+                Button(action: {
+                    registerWithTeamCode()
+                }) {
+                    Text("报名")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.orange)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text("使用队伍码报名队伍所在比赛")
+                    .font(.subheadline)
+                    .foregroundColor(.secondText)
+                TextField(text: $teamCode) {
+                    Text("请输入8位队伍码")
+                        .foregroundStyle(Color.thirdText)
+                }
+                .padding()
+                .foregroundColor(.white)
+                .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+            }
+            Spacer()
+        }
+        .padding()
+        .background(Color.defaultBackground)
+        //.hideKeyboardOnScroll()
+        .onChange(of: showSheet) {
+            if showSheet {
+                teamCode = ""
+            } else {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        }
+    }
+    
+    // 使用队伍码报名
+    func registerWithTeamCode() {
+        guard teamCode.count == 8 else {
+            let toast = Toast(message: "请输入合法的8位队伍码")
+            ToastManager.shared.show(toast: toast)
+            return
+        }
+        guard var components = URLComponents(string: "/competition/\(appState.sport.rawValue)/team_register") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "team_code", value: teamCode)
+        ]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        showSheet = false
+                        assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
+                    }
+                }
+            default: break
+            }
+        }
+    }
+}
+
+
 
 #Preview {
     let appState = AppState.shared

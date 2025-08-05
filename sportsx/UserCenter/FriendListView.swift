@@ -12,45 +12,44 @@ struct FriendListView: View {
     @StateObject var viewModel: FriendListViewModel
     
     // 当前选择的Tab
-    @State var selectedTab: Int = 0
+    @State var selectedTab: Int
     
     @State private var searchFriendText: String = ""
     @State private var searchIdolText: String = ""
     @State private var searchFanText: String = ""
     
+    init(id: String, selectedTab: Int) {
+        _viewModel = StateObject(wrappedValue: FriendListViewModel(id: id))
+        self.selectedTab = selectedTab
+    }
     
     var body: some View {
         VStack(spacing: 0) {
             // 顶部导航栏
             HStack(alignment: .top) {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
                 
                 Spacer()
                 
                 // 选项卡
                 HStack(spacing: 20) {
                     ForEach(["好友", "关注", "粉丝"].indices, id: \.self) { index in
-                        Button(action: {
-                            withAnimation {
-                                selectedTab = index
-                            }
-                        }) {
-                            VStack(spacing: 10) {
-                                Text(["好友", "关注", "粉丝"][index])
-                                    .font(.system(size: 16, weight: selectedTab == index ? .semibold : .regular))
-                                    .foregroundColor(selectedTab == index ? Color.white : Color.thirdText)
-                                
-                                // 选中指示器
-                                Rectangle()
-                                    .fill(selectedTab == index ? Color.white : Color.clear)
-                                    .frame(width: 40, height: 2)
-                            }
+                        VStack(spacing: 10) {
+                            Text(["好友", "关注", "粉丝"][index])
+                                .font(.system(size: 16, weight: selectedTab == index ? .semibold : .regular))
+                                .foregroundColor(selectedTab == index ? Color.white : Color.thirdText)
+                            
+                            // 选中指示器
+                            Rectangle()
+                                .fill(selectedTab == index ? Color.white : Color.clear)
+                                .frame(width: 40, height: 2)
+                        }
+                        .onTapGesture {
+                            selectedTab = index
                         }
                     }
                 }
@@ -93,15 +92,13 @@ struct FriendListView: View {
                                 .font(.system(size: 15))
                                 
                                 if !searchFriendText.isEmpty {
-                                    Button(action: {
+                                    CommonIconButton(icon: "xmark.circle.fill") {
                                         searchFriendText = ""
                                         viewModel.myFilteredFriends.removeAll()
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 12)
                                     }
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 12)
                                     .transition(.opacity)
                                 } else {
                                     // 占位，保持布局一致
@@ -115,7 +112,7 @@ struct FriendListView: View {
                         .padding(.vertical, 16)
                         .padding(.trailing, 8)
                         
-                        Button("搜索"){
+                        CommonTextButton(text: "搜索") {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             viewModel.myFilteredFriends.removeAll()
                             if !searchFriendText.isEmpty {
@@ -222,15 +219,13 @@ struct FriendListView: View {
                                 .font(.system(size: 15))
                                 
                                 if !searchIdolText.isEmpty {
-                                    Button(action: {
+                                    CommonIconButton(icon: "xmark.circle.fill") {
                                         searchIdolText = ""
                                         viewModel.myFilteredIdols.removeAll()
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 12)
                                     }
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 12)
                                     .transition(.opacity)
                                 } else {
                                     // 占位，保持布局一致
@@ -245,7 +240,7 @@ struct FriendListView: View {
                         .padding(.vertical, 16)
                         .padding(.trailing, 8)
                         
-                        Button("搜索"){
+                        CommonTextButton(text: "搜索") {
                             viewModel.myFilteredIdols.removeAll()
                             if !searchIdolText.isEmpty {
                                 viewModel.searchIdolsCursorDatetime = nil
@@ -350,15 +345,13 @@ struct FriendListView: View {
                                 .font(.system(size: 15))
                                 
                                 if !searchFanText.isEmpty {
-                                    Button(action: {
+                                    CommonIconButton(icon: "xmark.circle.fill") {
                                         searchFanText = ""
                                         viewModel.myFilteredFans.removeAll()
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 12)
                                     }
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 12)
                                     .transition(.opacity)
                                 } else {
                                     // 占位，保持布局一致
@@ -373,7 +366,8 @@ struct FriendListView: View {
                         .padding(.vertical, 16)
                         .padding(.trailing, 8)
                         
-                        Button("搜索"){
+                        
+                        CommonTextButton(text: "搜索") {
                             viewModel.myFilteredFans.removeAll()
                             if !searchFanText.isEmpty {
                                 viewModel.searchFansCursorDatetime = nil
@@ -484,14 +478,14 @@ struct PersonInfoCardView: View {
                     .font(.system(size: 15))
                     .bold()
             }
-            .onTapGesture {
+            .exclusiveTouchTapGesture {
                 appState.navigationManager.append(.userView(id: person.userID, needBack: true))
             }
             
             Spacer()
             
             Image(systemName: "ellipsis")
-                .foregroundStyle(.black)
+                .foregroundStyle(.white)
                 .font(.system(size: 18))
                 .padding(.vertical,10)
         }

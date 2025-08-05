@@ -26,7 +26,7 @@ struct CompetitionWidget: View {
             .background(Color.gray.opacity(0.8))
             .cornerRadius(10)
             .shadow(radius: 8)
-            .onTapGesture {
+            .exclusiveTouchTapGesture {
                 appState.navigationManager.append(.competitionRealtimeView) // 触发导航
             }
             //.padding(.bottom, 100) // 调整与屏幕边缘的距离

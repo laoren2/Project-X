@@ -89,17 +89,38 @@ enum Tab: Int, CaseIterable {
 }
 
 struct NaviView: View {
+    @EnvironmentObject var appState: AppState
     @ObservedObject var user = UserManager.shared
+    let sidebarWidth: CGFloat = 300
+    
     var body: some View {
         ToastContainerView() {
-            ZStack {
-                RealNaviView()
+            ZStack(alignment: .topLeading) {
+                RealNaviView(sidebarWidth: sidebarWidth)
                     .overlay(
                         CompetitionWidget()
                             .padding()
                             .offset(y: -50),
                         alignment: .bottomTrailing // 右下角对齐
                     )
+                
+                Color.gray
+                    .opacity((appState.navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
+                    .ignoresSafeArea()
+                    .exclusiveTouchTapGesture {
+                        withAnimation(.easeIn(duration: 0.3)) {
+                            appState.navigationManager.showSideBar = false
+                        }
+                    }
+                
+                // 运动选择侧边栏
+                SportSelectionSidebar()
+                    .frame(width: sidebarWidth)
+                    .offset(x: (appState.navigationManager.showSideBar ? 0 : -sidebarWidth))
+                
+                // 自定义弹窗
+                
+                // 登录页
                 LoginView()
                     .opacity(user.showingLogin ? 1 : 0)
                     .animation(.easeInOut(duration: 0.3), value: user.showingLogin)
@@ -114,6 +135,8 @@ struct RealNaviView: View {
     @ObservedObject var user = UserManager.shared
     @State private var isAppLaunching = true // 用于区分冷启动和后台恢复
     
+    let sidebarWidth: CGFloat
+    
     var body: some View {
         NavigationStack(path: appState.navigationManager.binding) {
             ZStack(alignment: .bottom) {
@@ -121,16 +144,16 @@ struct RealNaviView: View {
                     HomeView()
                         .tag(Tab.home)
                     
-                    ShopView(title: "商店")
+                    ShopView()
                         .tag(Tab.shop)
                     
                     SportCenterView()
                         .tag(Tab.sportCenter)
                     
-                    StoreHouseView(title: "仓库")
+                    StoreHouseView()
                         .tag(Tab.storeHouse)
                     
-                    UserView(viewModel: UserViewModel(id: user.user.userID, needBack: false))
+                    UserView(id: user.user.userID, needBack: false)
                         .tag(Tab.user)
                 }
                 
@@ -161,6 +184,9 @@ struct RealNaviView: View {
                 UserDefaults.standard.set(appState.navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
                 print("set key: SelectedTab value: ",appState.navigationManager.selectedTab)
             }
+            .bottomSheet(isPresented: $appState.navigationManager.showTeamRegisterSheet, customizeHeight: 0.4) {
+                TeamRegisterView(showSheet: $appState.navigationManager.showTeamRegisterSheet)
+            }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
                 case .competitionResultView:
@@ -175,18 +201,18 @@ struct RealNaviView: View {
                     SportSkillView()
                 case .activityView:
                     ActivityView()
-                case .recordManagementView:
-                    CompetitionRecordManagementView()
-                case .teamManagementView:
-                    TeamManagementView()
+                case .bikeRecordManagementView:
+                    BikeRaceRecordManagementView()
+                case .bikeTeamManagementView:
+                    BikeTeamManagementView()
                 case .userSetUpView:
                     UserSetUpView()
                 case .instituteView:
                     InstituteView()
                 case .userView(let id, let isNeedBack):
-                    UserView(viewModel: UserViewModel(id: id, needBack: isNeedBack))
+                    UserView(id: id, needBack: isNeedBack)
                 case .friendListView(let id, let selectedTab):
-                    FriendListView(viewModel:FriendListViewModel(id: id), selectedTab: selectedTab)
+                    FriendListView(id: id, selectedTab: selectedTab)
                 case .userIntroEditView:
                     UserIntroEditView()
                 case .realNameAuthView:
@@ -195,6 +221,31 @@ struct RealNaviView: View {
                     IdentityAuthView()
                 case .userSetUpAccountView:
                     UserSetUpAccountView()
+                case .bikeRankingListView(let id):
+                    BikeRankingListView(trackID: id)
+                case .bikeTeamCreateView(let id, let date):
+                    BikeTeamCreateView(trackID: id, competitionDate: date)
+                case .bikeTeamJoinView(let id):
+                    BikeTeamJoinView(trackID: id)
+                case .bikeTeamManageView(let id):
+                    BikeTeamManageView(teamID: id)
+                case .bikeTeamDetailView(let id):
+                    BikeTeamDetailView(teamID: id)
+                case .runningRecordManagementView:
+                    RunningRaceRecordManagementView()
+                case .runningTeamManagementView:
+                    RunningTeamManagementView()
+                case .runningRankingListView(let id):
+                    RunningRankingListView(trackID: id)
+                case .runningTeamCreateView(let id, let date):
+                    RunningTeamCreateView(trackID: id, competitionDate: date)
+                case .runningTeamJoinView(let id):
+                    RunningTeamJoinView(trackID: id)
+                case .runningTeamManageView(let id):
+                    RunningTeamManageView(teamID: id)
+                case .runningTeamDetailView(let id):
+                    RunningTeamDetailView(teamID: id)
+#if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
                 case .seasonBackendView:
@@ -209,6 +260,13 @@ struct RealNaviView: View {
                     BikeTrackBackendView()
                 case .regionSelectedView:
                     RegionSelectedView()
+                case .cpAssetBackendView:
+                    CPAssetBackendView()
+                case .cpAssetPriceBackendView:
+                    CPAssetPriceBackendView()
+                case .userAssetManageBackendView:
+                    UserAssetManageBackendView()
+#endif
                 }
             }
         }
@@ -223,20 +281,25 @@ struct CustomTabBar: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
             ForEach(Tab.allCases, id: \.self) { tab in
-                Spacer()
-                
-                VStack {
-                    Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
-                        .padding(.bottom, 1)
+                HStack {
+                    Spacer()
                     
-                    Text((tab == appState.navigationManager.selectedTab && tab == .sportCenter) ? (appState.navigationManager.isTrainingView ? "训练中心" : "竞技中心") : tab.title)
-                        .font(.caption)
-                        .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
+                    VStack(spacing: 4) {
+                        Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
+                            .font(.system(size: 22, weight: .regular))
+                            .frame(height: 20)
+                        
+                        Text((tab == appState.navigationManager.selectedTab && tab == .sportCenter) ? (appState.navigationManager.isTrainingView ? "训练中心" : "竞技中心") : tab.title)
+                            .font(.system(size: 15))
+                    }
+                    .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity)
+                    
+                    Spacer()
                 }
-                .padding(.vertical, 8)
-                .onTapGesture {
+                .contentShape(Rectangle())
+                .exclusiveTouchTapGesture {
                     if tab == appState.navigationManager.selectedTab && tab == .sportCenter {
                         appState.navigationManager.isTrainingView.toggle()
                     }
@@ -244,23 +307,18 @@ struct CustomTabBar: View {
                         appState.navigationManager.selectedTab = tab
                     }
                 }
-                .frame(width: 50)
-                
-                Spacer()
             }
         }
-        .padding(.horizontal, 5)
         .padding(.bottom, 25)
         .frame(height: 85)
         .background(appState.navigationManager.selectedTab == .user ? userManager.backgroundColor : .defaultBackground)
-        .background(appState.navigationManager.selectedTab == .user ? .ultraThickMaterial : .ultraThinMaterial)
     }
 
     func shouldAllowSwitch(to tab: Tab) -> Bool {
         if tab == .home || tab == .sportCenter { return true }
         // 如果离开首页，必须登录
         if !userManager.isLoggedIn {
-            print("未登录，禁止切换tab")
+            //print("未登录，禁止切换tab")
             // 弹出登录页
             userManager.showingLogin = true
             return false
@@ -269,158 +327,60 @@ struct CustomTabBar: View {
     }
 }
 
-struct StoreHouseView: View {
+struct SportSelectionSidebar: View {
     @EnvironmentObject var appState: AppState
-    let title: String
     
     var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
-                            .defaultBackground
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .ignoresSafeArea()
-            
-            VStack{
-                Text(title)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+        VStack(alignment: .leading, spacing: 0) {
+            // 顶部标题区域
+            VStack(alignment: .leading, spacing: 0) {
+                Text("选择运动")
+                    .font(.title2)
+                    .bold()
                     .foregroundStyle(.white)
-                    .padding()
+                    .padding(.top, 50)
+                    .padding(.bottom, 10)
+                    .padding(.horizontal, 20)
+                
+                Text("选择进入不同的运动世界")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.8))
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+                
+                Divider()
+                    .padding(.bottom, 10)
             }
-        }
-    }
-}
-
-struct ShopView: View {
-    @EnvironmentObject var appState: AppState
-    @State private var searchText: String = ""
-    
-    let title: String
-    @State private var filteredPersonInfos: [PersonInfoCard] = []
-    
-    var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
-                            .defaultBackground
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .ignoresSafeArea()
             
-            VStack {
-                HStack {
-                    // 搜索框
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(.gray.opacity(0.1))
-                            .frame(height: 30)
-                        
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                                .padding(.leading, 12)
-                            
-                            TextField(text: $searchText) {
-                                Text("搜索用户")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 15))
-                            }
-                            .foregroundStyle(.white)
-                            .font(.system(size: 15))
-                            
-                            if !searchText.isEmpty {
-                                Button(action: {
-                                    withAnimation {
-                                        searchText = ""
-                                    }
-                                    filteredPersonInfos.removeAll()
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.gray)
-                                        .padding(.trailing, 12)
+            // 选项列表
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 15) {
+                    ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
+                        HStack {
+                            PressableButton(icon: sport.iconName, title: sport.name, action: {
+                                withAnimation(.easeIn(duration: 0.3)) {
+                                    appState.navigationManager.showSideBar = false
+                                    appState.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
                                 }
-                                .transition(.opacity)
-                            } else {
-                                // 占位，保持布局一致
-                                Spacer().frame(width: 12)
+                            })
+                            
+                            Spacer()
+                            
+                            if sport.name == appState.sport.name {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.white)
                             }
                         }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .background(sport == appState.sport ? Color.gray.opacity(0.1) : Color.clear)
+                        .cornerRadius(8)
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
-                    .padding(.trailing, 8)
-                    
-                    Button("搜索"){
-                        filteredPersonInfos.removeAll()
-                        searchAnyPersonInfoCard()
-                    }
-                    .foregroundStyle(.white)
                 }
-                
-                ScrollView {
-                    LazyVStack(spacing: 15) {
-                        ForEach(filteredPersonInfos) { person in
-                            PersonInfoCardView(person: person)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
-                }
-                
-                Text(title)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .padding()
-                
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-        }
-        .ignoresSafeArea(.keyboard)
-        .hideKeyboardOnTap()
-    }
-    
-    func searchAnyPersonInfoCard() {
-        guard var components = URLComponents(string: "/user/anyone_card") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "phone_number", value: searchText)
-        ]
-        guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
-        NetworkService.sendRequest(with: request, decodingType: PersonInfoDTO.self, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    filteredPersonInfos.append(
-                        PersonInfoCard(
-                            userID: unwrappedData.user_id,
-                            avatarUrl: unwrappedData.avatar_image_url,
-                            name: unwrappedData.nickname)
-                    )
-                }
-            default: break
+                .padding(.horizontal, 20)
             }
         }
+        .background(Color.defaultBackground)
     }
 }
 

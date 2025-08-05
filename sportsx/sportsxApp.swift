@@ -48,12 +48,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct sportsxApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @ObservedObject var appState = AppState.shared
+    @StateObject private var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
     //@StateObject private var navigationManager = NManager()
     //@StateObject var nm = NManager()
     
+    func clearKeychainAfterInstall() {
+        let defaults = UserDefaults.standard
+        let installFlagKey = "hasInstalledApp"
+
+        if !defaults.bool(forKey: installFlagKey) {
+            print("Detected fresh install. Clearing keychain...")
+            KeychainHelper.standard.delete(forKey: "access_token")
+            defaults.set(true, forKey: installFlagKey)
+        }
+    }
+    
     init() {
+        clearKeychainAfterInstall()
         // 设置共享缓存，50MB内存 + 200MB磁盘
         let cache = URLCache(
             memoryCapacity: 50 * 1024 * 1024,

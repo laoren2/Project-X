@@ -20,19 +20,19 @@ private struct BackGestureModifier: ViewModifier {
     @EnvironmentObject var appState: AppState
     let enabled: Bool
     let onBack: (() -> Void)?
-    @State private var isDragging: Bool = false
+    @GestureState private var isDragging: Bool = false
 
     func body(content: Content) -> some View {
         content
             .allowsHitTesting(!isDragging)
+            .disabled(isDragging)
             .gesture(
                 enabled ?
                 DragGesture()
-                    .onChanged { _ in
-                        isDragging = true
+                    .updating($isDragging) {_, state, _ in
+                        state = true
                     }
                     .onEnded { value in
-                        isDragging = false
                         let translation = value.translation.width
                         let distanceThreshold: CGFloat = 150  // 距离阈值，超过这个距离就触发动作
                         
@@ -149,6 +149,69 @@ struct FirstAppearModifier: ViewModifier {
     }
 }
 
+struct ScrollDragObserver: UIViewRepresentable {
+    @Binding var isDragging: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(isDragging: $isDragging)
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        DispatchQueue.main.async {
+            if let scrollView = findScrollView(from: view) {
+                scrollView.delegate = context.coordinator
+            }
+        }
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+
+    private func findScrollView(from view: UIView) -> UIScrollView? {
+        var responder: UIResponder? = view
+        while let next = responder?.next {
+            if let scrollView = next as? UIScrollView {
+                return scrollView
+            }
+            responder = next
+        }
+        return nil
+    }
+
+    class Coordinator: NSObject, UIScrollViewDelegate {
+        @Binding var isDragging: Bool
+
+        init(isDragging: Binding<Bool>) {
+            self._isDragging = isDragging
+        }
+
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            isDragging = true
+        }
+
+        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+            if !decelerate {
+                isDragging = false
+            }
+        }
+
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            isDragging = false
+        }
+    }
+}
+
+// MARK: 监听 ScrollView 拖动状态变化
+extension View {
+    func onScrollDragChanged(_ isDragging: Binding<Bool>) -> some View {
+        self.background(
+            ScrollDragObserver(isDragging: isDragging)
+                .frame(width: 0, height: 0)
+        )
+    }
+}
+
 // MARK: UIColor
 extension UIColor {
     var rgbComponents: (CGFloat, CGFloat, CGFloat) {
@@ -245,3 +308,146 @@ extension Data {
     }
 }
 
+// MARK: 自定义sheet（尽量放在enableBackGesture后使用，防止系统button与返回手势的冲突bug）
+enum BottomSheetSize {
+    case short      // 屏幕高度的 30%
+    case medium     // 屏幕高度的 50%
+    case large      // 屏幕高度的 85%
+}
+
+final class KeyboardObserver: ObservableObject {
+    @Published var keyboardHeight: CGFloat = 0
+
+    init() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillChange(notification:)),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+    }
+
+    @objc private func keyboardWillChange(notification: Notification) {
+        guard let info = notification.userInfo,
+              let endFrame = info[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = info[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+
+        let height = endFrame.origin.y >= UIScreen.main.bounds.height ? 0 : endFrame.height
+
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: duration)) {
+                self.keyboardHeight = height
+            }
+        }
+    }
+}
+
+struct BottomSheetView<Content: View>: View {
+    @Binding var isPresented: Bool
+    let size: BottomSheetSize?
+    let customizeHeight: CGFloat?
+    let content: Content
+
+    @State private var offsetY: CGFloat = 0
+
+    init(isPresented: Binding<Bool>, size: BottomSheetSize?, customizeHeight: CGFloat?, @ViewBuilder content: () -> Content) {
+        self._isPresented = isPresented
+        self.size = size
+        self.customizeHeight = customizeHeight
+        self.content = content()
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let totalHeight = geometry.size.height
+            let sheetHeight = calculatedHeight(total: totalHeight)
+            
+            ZStack(alignment: .bottom) {
+                // 背景遮罩
+                Color.black.opacity(isPresented ? 0.4 : 0)
+                    .ignoresSafeArea()
+                    .exclusiveTouchTapGesture {
+                        isPresented = false
+                    }
+                
+                // 内容区域
+                content
+                    .frame(maxWidth: .infinity)
+                    .frame(height: sheetHeight)
+                    .clipShape(.rect(topLeadingRadius: 10, topTrailingRadius: 10, style: .continuous))
+                    .offset(y: isPresented ? 0 : sheetHeight)
+            }
+            .ignoresSafeArea(.container, edges: .bottom)
+            .animation(.easeInOut(duration: 0.3), value: isPresented)
+        }
+    }
+
+    private func calculatedHeight(total: CGFloat) -> CGFloat {
+        if let height = customizeHeight {
+            if height <= 0 || height > 1 {
+                return total
+            } else {
+                return total * height
+            }
+        }
+        if let size = size {
+            switch size {
+            case .short:
+                return total * 0.3
+            case .medium:
+                return total * 0.5
+            case .large:
+                return total * 0.85
+            }
+        }
+        return total
+    }
+}
+
+extension View {
+    func bottomSheet<SheetContent: View>(
+        isPresented: Binding<Bool>,
+        size: BottomSheetSize? = nil,
+        customizeHeight: CGFloat? = nil,
+        @ViewBuilder content: @escaping () -> SheetContent
+    ) -> some View {
+        self.modifier(BottomSheetModifier(isPresented: isPresented, size: size, customizeHeight: customizeHeight, content: content))
+    }
+}
+
+struct BottomSheetModifier<SheetContent: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let size: BottomSheetSize?
+    let customizeHeight: CGFloat?
+    let content: () -> SheetContent
+
+    func body(content base: Content) -> some View {
+        ZStack {
+            base
+            BottomSheetView(isPresented: $isPresented, size: size, customizeHeight: customizeHeight, content: self.content)
+        }
+    }
+}
+
+// MARK: 自定义互斥点击修饰符
+extension View {
+    func exclusiveTouchTapGesture(perform action: @escaping () -> Void) -> some View {
+        modifier(ExclusiveTouchTapModifier(action: action))
+    }
+}
+
+struct ExclusiveTouchTapModifier: ViewModifier {
+    let action: () -> Void
+    static private var isTapped = false
+
+    func body(content: Content) -> some View {
+        content.onTapGesture {
+            guard !Self.isTapped else { return }
+            Self.isTapped = true
+            action()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                Self.isTapped = false
+            }
+        }
+    }
+}

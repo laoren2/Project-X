@@ -11,18 +11,21 @@ struct Toast: Identifiable, Equatable {
     let id = UUID()
     var message: String
     var duration: TimeInterval
-    var isProgressing: Bool
-    var allowsInteraction: Bool
     
     init(
         message: String = "提示",
-        duration: TimeInterval = 2,
-        isProgressing: Bool = false,
-        allowsInteraction: Bool = true
+        duration: TimeInterval = 2
     ) {
         self.message = message
         self.duration = duration
-        self.isProgressing = isProgressing
+    }
+}
+
+struct LoadingToast: Identifiable, Equatable {
+    let id = UUID()
+    var allowsInteraction: Bool
+    
+    init(allowsInteraction: Bool = false) {
         self.allowsInteraction = allowsInteraction
     }
 }
@@ -33,6 +36,8 @@ class ToastManager: ObservableObject {
     private init() {}
 
     @Published var currentToast: Toast?
+    @Published var currentLoadingToast: LoadingToast?
+    
     private var currentTask: Task<Void, Never>?
 
     func show(toast: Toast) {
@@ -49,14 +54,14 @@ class ToastManager: ObservableObject {
         }
     }
 
-    func start(toast: Toast) {
-        currentTask?.cancel()
-        currentToast = toast
+    func start(toast: LoadingToast) {
+        //currentTask?.cancel()
+        currentLoadingToast = toast
     }
 
     func finish() {
-        currentTask?.cancel()
-        currentToast = nil
+        //currentTask?.cancel()
+        currentLoadingToast = nil
     }
 }
 
@@ -64,21 +69,23 @@ struct ToastView: View {
     let toast: Toast
 
     var body: some View {
-        if toast.isProgressing {
-            ProgressView()
-                .padding()
-                .background(Color.white.opacity(0.2))
-                .foregroundColor(.black)
-                .cornerRadius(8)
-        } else {
-            Text(toast.message)
-                .padding()
-                .background(Color.black.opacity(0.6))
-                .foregroundColor(.white)
-                .cornerRadius(8)
-                .padding(.horizontal, 16)
-                .transition(.move(edge: .top).combined(with: .opacity))
-        }
+        Text(toast.message)
+            .padding()
+            .background(Color.black.opacity(0.6))
+            .foregroundColor(.white)
+            .cornerRadius(8)
+            .padding(.horizontal, 16)
+            .transition(.move(edge: .top).combined(with: .opacity))
+    }
+}
+
+struct LoadingToastView: View {
+    var body: some View {
+        ProgressView()
+            .padding()
+            .background(Color.black.opacity(0.5))
+            .foregroundColor(.white)
+            .cornerRadius(8)
     }
 }
 
@@ -93,9 +100,16 @@ struct ToastContainerView<Content: View>: View {
     var body: some View {
         ZStack {
             content
-                .disabled(toastManager.currentToast?.allowsInteraction == false)
-                .blur(radius: toastManager.currentToast?.allowsInteraction == false ? 1 : 0)
-
+                .disabled(toastManager.currentLoadingToast?.allowsInteraction == false)
+            if let toast = toastManager.currentLoadingToast {
+                VStack {
+                    Spacer()
+                    LoadingToastView()
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .animation(.easeInOut, value: toast)
+            }
             if let toast = toastManager.currentToast {
                 VStack {
                     Spacer()

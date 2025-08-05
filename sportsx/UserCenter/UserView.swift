@@ -14,10 +14,9 @@ struct UserView: View {
     @ObservedObject var userManager = UserManager.shared
     @StateObject var viewModel: UserViewModel
     
-    @State private var dragOffset: CGFloat = 0      // 当前拖动偏移量
-    @State private var disableScroll = false        // 是否禁用滚动(拖动时禁用)
-    @GestureState private var drag = CGFloat.zero   // 手势状态
-    @State private var isDragging: Bool = false     // 是否处于拖动中
+    //@State private var dragOffset: CGFloat = 0      // 当前拖动偏移量
+    //@GestureState private var drag = CGFloat.zero   // 手势状态
+    //@State private var isDragging: Bool = false     // 是否处于拖动中
     
     // 是否是已登陆用户
     var isUserSelf: Bool {
@@ -29,21 +28,26 @@ struct UserView: View {
         }
     }
     
+    init(id: String, needBack: Bool) {
+        _viewModel = StateObject(wrappedValue: UserViewModel(id: id, needBack: needBack))
+    }
     
     var body: some View {
         // 无需返回场景支持右划弹出运动选择页
         // 返回场景支持左划弹出运动选择页,右划返回上一视图层级
+        // 拖动手势暂不实现，因存在与ScrollView的手势冲突bug会引入空白区域填充
         GeometryReader { geometry in
             // 主内容
-            MainUserView(viewModel: viewModel, isDisableScroll: $disableScroll, dragOffset: $dragOffset, isUserSelf: isUserSelf)
-                .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? -viewModel.sidebarWidth : viewModel.sidebarWidth) : 0) + dragOffset)
+            MainUserView(viewModel: viewModel/*, dragOffset: $dragOffset*/, isUserSelf: isUserSelf)
+                .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? -viewModel.sidebarWidth : viewModel.sidebarWidth) : 0)/* + dragOffset*/)
             
             // 侧边栏
-            SportSelectionSidebar(viewModel: viewModel, isDisableScroll: $disableScroll, isUserSelf: isUserSelf)
+            UserSportSelectedBar(viewModel: viewModel, isUserSelf: isUserSelf)
                 .frame(width: viewModel.sidebarWidth)
-                .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? UIScreen.main.bounds.width - viewModel.sidebarWidth : 0) : (viewModel.isNeedBack ? UIScreen.main.bounds.width : -viewModel.sidebarWidth)) + dragOffset)
+                .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? UIScreen.main.bounds.width - viewModel.sidebarWidth : 0) : (viewModel.isNeedBack ? UIScreen.main.bounds.width : -viewModel.sidebarWidth))/* + dragOffset*/)
         }
-        .allowsHitTesting(!isDragging)
+        /*.allowsHitTesting(!isDragging)
+        .disabled(isDragging)
         .gesture(
             DragGesture(minimumDistance: 10) // 设置最小拖动距离，防止误触
                 .onChanged { _ in
@@ -57,27 +61,17 @@ struct UserView: View {
                     if viewModel.isNeedBack {
                         if !viewModel.showSidebar && translation < 0 {
                             // 当隐藏侧边栏时向左拖动打开侧边栏
-                            //dampenedTranslation = max(translation * 0.95, -viewModel.sidebarWidth) // 限制最大拖动距离
-                            disableScroll = true
                             dragOffset = max(translation * 0.95, -viewModel.sidebarWidth) // 限制最大拖动距离
-                        } else if !viewModel.showSidebar && translation > 0 {
-                            disableScroll = true
                         } else if viewModel.showSidebar && translation > 0 {
                             // 当显示侧边栏时向右拖动收起侧边栏
-                            //dampenedTranslation = min(translation * 0.95, viewModel.sidebarWidth) // 限制最大拖动距离
-                            disableScroll = true
                             dragOffset = min(translation * 0.95, viewModel.sidebarWidth)
                         }
                     } else {
                         if !viewModel.showSidebar && translation > 0 {
                             // 当隐藏侧边栏时向右拖动打开侧边栏
-                            //dampenedTranslation = min(translation * 0.95, viewModel.sidebarWidth) // 限制最大拖动距离
-                            disableScroll = true
                             dragOffset = min(translation * 0.95, viewModel.sidebarWidth)
                         } else if viewModel.showSidebar && translation < 0 {
                             // 当显示侧边栏时向左拖动收起侧边栏
-                            //dampenedTranslation = max(translation * 0.95, -viewModel.sidebarWidth) // 限制最大拖动距离
-                            disableScroll = true
                             dragOffset = max(translation * 0.95, -viewModel.sidebarWidth)
                         }
                     }
@@ -135,9 +129,8 @@ struct UserView: View {
                             }
                         }
                     }
-                    disableScroll = false
                 }
-        )
+        )*/
     }
 }
 
@@ -148,9 +141,9 @@ struct MainUserView: View {
     
     @State private var selectedTab = 0
     @State private var toolbarTop: CGFloat = 0
+    @State private var isDragging: Bool = false     // 是否处于拖动中
     
-    @Binding var isDisableScroll: Bool
-    @Binding var dragOffset: CGFloat
+    //@Binding var dragOffset: CGFloat
     
     let isUserSelf: Bool
     
@@ -189,7 +182,7 @@ struct MainUserView: View {
                                         .scaledToFill()
                                         .frame(width: UIScreen.main.bounds.width - 32, height: 200)
                                         .cornerRadius(20)
-                                        
+                                    
                                 }
                                 
                                 // 资料展示区
@@ -205,12 +198,9 @@ struct MainUserView: View {
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
-                                        .simultaneousGesture(
-                                            TapGesture()
-                                                .onEnded {
-                                                    appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 0))
-                                                }
-                                        )
+                                        .exclusiveTouchTapGesture {
+                                            appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 0))
+                                        }
                                         
                                         // 关注
                                         VStack(spacing: 2) {
@@ -221,12 +211,9 @@ struct MainUserView: View {
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
-                                        .simultaneousGesture(
-                                            TapGesture()
-                                                .onEnded {
-                                                    appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 1))
-                                                }
-                                        )
+                                        .exclusiveTouchTapGesture {
+                                            appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 1))
+                                        }
                                         
                                         // 粉丝
                                         VStack(spacing: 2) {
@@ -237,54 +224,48 @@ struct MainUserView: View {
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
-                                        .simultaneousGesture(
-                                            TapGesture()
-                                                .onEnded {
-                                                    appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 2))
-                                                }
-                                        )
+                                        .exclusiveTouchTapGesture {
+                                            appState.navigationManager.append(.friendListView(id: isUserSelf ? userManager.user.userID : viewModel.userID, selectedTab: 2))
+                                        }
                                         
                                         Spacer()
                                         
                                         if isUserSelf {
-                                            Button(action: {
-                                                appState.navigationManager.append(.userIntroEditView)
-                                            }) {
-                                                Text("编辑资料")
-                                                    .font(.system(size: 14))
-                                                    .foregroundColor(.white)
-                                                    .padding(.vertical, 8)
-                                                    .padding(.horizontal, 20)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(8)
-                                            }
+                                            Text("编辑资料")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.white)
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 20)
+                                                .background(.ultraThinMaterial)
+                                                .cornerRadius(8)
+                                                .exclusiveTouchTapGesture {
+                                                    appState.navigationManager.append(.userIntroEditView)
+                                                }
                                         } else {
                                             if viewModel.relationship == .follower || viewModel.relationship == .none {
-                                                Button(action: {
+                                                Text("关注")
+                                                .font(.system(size: 16))
+                                                .bold()
+                                                .foregroundColor(.white)
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 30)
+                                                .background(.pink.opacity(0.8))
+                                                .cornerRadius(8)
+                                                .exclusiveTouchTapGesture {
                                                     viewModel.follow()
-                                                }) {
-                                                    Text("关注")
-                                                        .font(.system(size: 16))
-                                                        .bold()
-                                                        .foregroundColor(.white)
-                                                        .padding(.vertical, 8)
-                                                        .padding(.horizontal, 30)
-                                                        .background(.pink.opacity(0.8))
-                                                        .cornerRadius(8)
                                                 }
                                             } else {
-                                                Button(action: {
-                                                    viewModel.cancelFollow()
-                                                }) {
-                                                    Text("取消关注")
-                                                        .font(.system(size: 16))
-                                                        .bold()
-                                                        .foregroundColor(.white)
-                                                        .padding(.vertical, 8)
-                                                        .padding(.horizontal, 30)
-                                                        .background(.gray.opacity(0.8))
-                                                        .cornerRadius(8)
-                                                }
+                                                Text("取消关注")
+                                                    .font(.system(size: 16))
+                                                    .bold()
+                                                    .foregroundColor(.white)
+                                                    .padding(.vertical, 8)
+                                                    .padding(.horizontal, 30)
+                                                    .background(.gray.opacity(0.8))
+                                                    .cornerRadius(8)
+                                                    .exclusiveTouchTapGesture {
+                                                        viewModel.cancelFollow()
+                                                    }
                                             }
                                         }
                                     }
@@ -309,7 +290,7 @@ struct MainUserView: View {
                                                     Image(systemName: "pencil.line")
                                                         .foregroundStyle(Color.secondText)
                                                 }
-                                                .onTapGesture {
+                                                .exclusiveTouchTapGesture {
                                                     appState.navigationManager.append(.userIntroEditView)
                                                 }
                                             }
@@ -324,7 +305,7 @@ struct MainUserView: View {
                                         HStack {
                                             if isUserSelf {
                                                 if userManager.user.isDisplayGender == true, let gender = userManager.user.gender {
-                                                    Text(gender)
+                                                    Text(gender.rawValue)
                                                         .padding(.vertical, 4)
                                                         .padding(.horizontal, 8)
                                                         .background(.ultraThinMaterial)
@@ -356,7 +337,7 @@ struct MainUserView: View {
                                                 }
                                             } else {
                                                 if viewModel.currentUser.isDisplayGender == true, let gender = viewModel.currentUser.gender {
-                                                    Text(gender)
+                                                    Text(gender.rawValue)
                                                         .padding(.vertical, 4)
                                                         .padding(.horizontal, 8)
                                                         .background(.ultraThinMaterial)
@@ -458,12 +439,9 @@ struct MainUserView: View {
                                 .frame(maxWidth: .infinity)
                                 //.border(.orange)
                                 .opacity(opacityFor(offset: toolbarTop))
-                                .simultaneousGesture(
-                                    TapGesture()
-                                        .onEnded {
-                                            appState.navigationManager.append(.sensorBindView)
-                                        }
-                                )
+                                .exclusiveTouchTapGesture {
+                                    appState.navigationManager.append(.sensorBindView)
+                                }
                                 
                                 // 研究所模块
                                 VStack(spacing: 6) {
@@ -477,18 +455,15 @@ struct MainUserView: View {
                                 .frame(maxWidth: .infinity)
                                 //.border(.yellow)
                                 .opacity(opacityFor(offset: toolbarTop))
-                                .simultaneousGesture(
-                                    TapGesture()
-                                        .onEnded {
-                                            appState.navigationManager.append(.instituteView)
-                                        }
-                                )
+                                .exclusiveTouchTapGesture {
+                                    appState.navigationManager.append(.instituteView)
+                                }
                                 
                                 // 预留三个空位，保证总共5个位置
                                 ForEach(0..<3) { _ in
                                     Spacer()
                                         .frame(maxWidth: .infinity)
-                                        //.border(.red)
+                                    //.border(.red)
                                 }
                             }
                             .padding(.vertical, 15)
@@ -509,14 +484,9 @@ struct MainUserView: View {
                                             .foregroundColor(selectedTab == 0 ? .white : .clear),
                                         alignment: .bottom
                                     )
-                                    .simultaneousGesture(
-                                        TapGesture()
-                                            .onEnded {
-                                                withAnimation {
-                                                    selectedTab = 0
-                                                }
-                                            }
-                                    )
+                                    .exclusiveTouchTapGesture {
+                                        selectedTab = 0
+                                    }
                                 
                                 Text("赛事")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
@@ -529,14 +499,9 @@ struct MainUserView: View {
                                             .foregroundColor(selectedTab == 1 ? .white : .clear),
                                         alignment: .bottom
                                     )
-                                    .simultaneousGesture(
-                                        TapGesture()
-                                            .onEnded {
-                                                withAnimation {
-                                                    selectedTab = 1
-                                                }
-                                            }
-                                    )
+                                    .exclusiveTouchTapGesture {
+                                        selectedTab = 1
+                                    }
                             }
                             
                             GeometryReader { geo in
@@ -558,10 +523,8 @@ struct MainUserView: View {
                         }
                     }
                     .padding(.bottom, 100)
-                    //.border(.red)
+                    .onScrollDragChanged($isDragging)
                 }
-                //.border(.red)
-                .disabled(isDisableScroll)
                 
                 // 顶部操作栏
                 GeometryReader { geo in
@@ -573,15 +536,14 @@ struct MainUserView: View {
                             ZStack {
                                 HStack(alignment: .center) {
                                     if viewModel.isNeedBack {
-                                        Button(action: {
+                                        Image(systemName: "chevron.left")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.white)
+                                        .padding(10)
+                                        .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
+                                        .clipShape(Circle())
+                                        .exclusiveTouchTapGesture {
                                             appState.navigationManager.removeLast()
-                                        }) {
-                                            Image(systemName: "chevron.left")
-                                                .font(.system(size: 20))
-                                                .foregroundColor(.white)
-                                                .padding(10)
-                                                .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
-                                                .clipShape(Circle())
                                         }
                                     } else {
                                         HStack {
@@ -594,14 +556,13 @@ struct MainUserView: View {
                                         .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
                                         .cornerRadius(18)
                                         .foregroundColor(.white)
-                                        .simultaneousGesture(
-                                            TapGesture()
-                                                .onEnded {
-                                                    withAnimation(.easeIn(duration: 0.3)) {
-                                                        viewModel.showSidebar = true
-                                                    }
+                                        .exclusiveTouchTapGesture {
+                                            if !isDragging {
+                                                withAnimation(.easeIn(duration: 0.3)) {
+                                                    viewModel.showSidebar = true
                                                 }
-                                        )
+                                            }
+                                        }
                                     }
                                     
                                     Spacer()
@@ -617,26 +578,24 @@ struct MainUserView: View {
                                         .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
                                         .cornerRadius(18)
                                         .foregroundColor(.white)
-                                        .simultaneousGesture(
-                                            TapGesture()
-                                                .onEnded {
-                                                    withAnimation(.easeIn(duration: 0.3)) {
-                                                        viewModel.showSidebar = true
-                                                    }
+                                        .exclusiveTouchTapGesture {
+                                            if !isDragging {
+                                                withAnimation(.easeIn(duration: 0.3)) {
+                                                    viewModel.showSidebar = true
                                                 }
-                                        )
+                                            }
+                                        }
                                     }
                                     
                                     if isUserSelf {
-                                        Button(action: {
+                                        Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.white)
+                                        .padding(6)
+                                        .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
+                                        .clipShape(Circle())
+                                        .exclusiveTouchTapGesture {
                                             appState.navigationManager.append(.userSetUpView)
-                                        }) {
-                                            Image(systemName: "gearshape.fill")
-                                                .font(.system(size: 20))
-                                                .foregroundColor(.white)
-                                                .padding(6)
-                                                .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
-                                                .clipShape(Circle())
                                         }
                                     }
                                 }
@@ -668,14 +627,9 @@ struct MainUserView: View {
                                             .foregroundColor(selectedTab == 0 ? .white : .clear),
                                         alignment: .bottom
                                     )
-                                    .simultaneousGesture(
-                                        TapGesture()
-                                            .onEnded {
-                                                withAnimation {
-                                                    selectedTab = 0
-                                                }
-                                            }
-                                    )
+                                    .exclusiveTouchTapGesture {
+                                        selectedTab = 0
+                                    }
                                 
                                 Text("赛事")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
@@ -688,14 +642,9 @@ struct MainUserView: View {
                                             .foregroundColor(selectedTab == 1 ? .white : .clear),
                                         alignment: .bottom
                                     )
-                                    .simultaneousGesture(
-                                        TapGesture()
-                                            .onEnded {
-                                                withAnimation {
-                                                    selectedTab = 1
-                                                }
-                                            }
-                                    )
+                                    .exclusiveTouchTapGesture {
+                                        selectedTab = 1
+                                    }
                             }
                             .background(isUserSelf ? userManager.backgroundColor : viewModel.backgroundColor)
                             //.border(.pink)
@@ -707,21 +656,18 @@ struct MainUserView: View {
                     .ignoresSafeArea()
                 }
             }
-            //.border(.green)
+            .enableBackGesture(viewModel.isNeedBack)
             
             Color.gray
-                .opacity(((viewModel.showSidebar ? viewModel.sidebarWidth : 0) + (viewModel.isNeedBack ? -dragOffset : dragOffset)) / (2 * viewModel.sidebarWidth))
+                .opacity((viewModel.showSidebar ? viewModel.sidebarWidth : 0) / (2 * viewModel.sidebarWidth))
                 .ignoresSafeArea()
-                .simultaneousGesture(
-                    TapGesture()
-                        .onEnded {
-                            withAnimation(.easeIn(duration: 0.3)) {
-                                viewModel.showSidebar = false
-                            }
-                        }
-                )
+                .exclusiveTouchTapGesture {
+                    withAnimation(.easeIn(duration: 0.3)) {
+                        viewModel.showSidebar = false
+                    }
+                }
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
     }
     
     func updateOffset(_ geo: GeometryProxy) {
@@ -736,10 +682,10 @@ struct MainUserView: View {
     }
 }
 
-struct SportSelectionSidebar: View {
+struct UserSportSelectedBar: View {
+    @EnvironmentObject var appState: AppState
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
-    @Binding var isDisableScroll: Bool
     
     let isUserSelf: Bool
     
@@ -755,7 +701,7 @@ struct SportSelectionSidebar: View {
                     .padding(.bottom, 10)
                     .padding(.horizontal, 20)
                 
-                Text("选择你要展示的运动项目")
+                Text("显示你的运动主页")
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.8))
                     .padding(.horizontal, 20)
@@ -788,12 +734,10 @@ struct SportSelectionSidebar: View {
                         .padding(.horizontal, 20)
                         .background(sport == viewModel.sport ? Color.gray.opacity(0.1) : Color.clear)
                         .cornerRadius(8)
-                        //.border(.red)
                     }
                 }
                 .padding(.horizontal, 20)
             }
-            .disabled(isDisableScroll)
         }
         .background(isUserSelf ? userManager.backgroundColor : viewModel.backgroundColor)
     }
@@ -839,14 +783,14 @@ struct PressableButton: View {
 
 
 
-#Preview {
+/*#Preview {
     let appState = AppState.shared
     let userManager = UserManager.shared
     let vm = UserViewModel(id: userManager.user.userID, needBack: false)
     
     UserView(viewModel: vm)
         .environmentObject(appState)
-}
+}*/
 
 
 // 生涯内容

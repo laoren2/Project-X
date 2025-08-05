@@ -13,13 +13,11 @@ struct CompetitionResultView: View {
     var body: some View {
         VStack {
             HStack {
-                Button(action: {
+                CommonIconButton(icon: "chevron.left") {
                     adjustNavigationPath()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
                 Spacer()
                 Text("result")
                     .font(.system(size: 18, weight: .bold))

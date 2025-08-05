@@ -69,11 +69,7 @@ class CompetitionCenterViewModel: ObservableObject {
     }
     
     func fetchCurrentSeason() {
-        guard var components = URLComponents(string: "/competition/query_season") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "sport_type", value: AppState.shared.sport.rawValue)
-        ]
-        guard let urlPath = components.string else { return }
+        let urlPath = "/competition/\(AppState.shared.sport.rawValue)/query_season"
             
         let request = APIRequest(path: urlPath, method: .get)
         NetworkService.sendRequest(with: request, decodingType: SeasonResponse.self) { result in
@@ -90,19 +86,6 @@ class CompetitionCenterViewModel: ObservableObject {
     }
     
     func updateCity(from location: CLLocation, enforce: Bool = false) {
-        /*if !enforce {
-            // 位置截流
-            if let lastLocation = lastLocation, location.distance(from: lastLocation) < 100 {
-                return
-            }
-            // 时间截流
-            if let lastLocationUpdateTime = lastLocationUpdateTime, Date().timeIntervalSince(lastLocationUpdateTime) < 2 {
-                return
-            }
-        }
-        lastLocation = location
-        lastLocationUpdateTime = Date()*/
-        
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] (placemarks, error) in
             guard let self = self else { return }
