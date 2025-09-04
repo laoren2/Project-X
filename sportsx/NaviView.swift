@@ -165,12 +165,6 @@ struct RealNaviView: View {
                 CustomTabBar()
             }
             .ignoresSafeArea(edges: .bottom)
-            .onChange(of: appState.competitionManager.isRecording) {
-                if !appState.competitionManager.isRecording {
-                    // 跳转比赛结果清算页面
-                    appState.navigationManager.append(.competitionResultView)
-                }
-            }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 // 应用从后台恢复时，加载之前的 Tab 状态
                 let rawValue = UserDefaults.standard.integer(forKey: "SelectedTab")
@@ -189,8 +183,10 @@ struct RealNaviView: View {
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
-                case .competitionResultView:
-                    CompetitionResultView()
+                case .bikeRecordDetailView(let id):
+                    BikeRecordDetailView(recordID: id)
+                case .runningRecordDetailView(let id):
+                    RunningRecordDetailView(recordID: id)
                 case .competitionCardSelectView:
                     CompetitionCardSelectView()
                 case .competitionRealtimeView:
@@ -201,6 +197,8 @@ struct RealNaviView: View {
                     SportSkillView()
                 case .activityView:
                     ActivityView()
+                case .regionSelectedView:
+                    RegionSelectedView()
                 case .bikeRecordManagementView:
                     BikeRaceRecordManagementView()
                 case .bikeTeamManagementView:
@@ -258,14 +256,16 @@ struct RealNaviView: View {
                     BikeEventBackendView()
                 case .bikeTrackBackendView:
                     BikeTrackBackendView()
-                case .regionSelectedView:
-                    RegionSelectedView()
                 case .cpAssetBackendView:
                     CPAssetBackendView()
                 case .cpAssetPriceBackendView:
                     CPAssetPriceBackendView()
                 case .userAssetManageBackendView:
                     UserAssetManageBackendView()
+                case .magicCardBackendView:
+                    MagicCardBackendView()
+                case .magicCardPriceBackendView:
+                    MagicCardPriceBackendView()
 #endif
                 }
             }

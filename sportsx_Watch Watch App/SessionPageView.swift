@@ -20,13 +20,13 @@ struct SessionPageView: View {
             MetricsView().tag(1)
         }
         .navigationBarBackButtonHidden(true)
-        .onChange(of: workoutManager.running) { _ in
+        .onChange(of: workoutManager.running) {
             displayMetricsView()
         }
         .tabViewStyle(
             PageTabViewStyle(indexDisplayMode: isLuminanceReduced ? .never : .automatic)
         )
-        .onChange(of: isLuminanceReduced) { _ in
+        .onChange(of: isLuminanceReduced) {
             displayMetricsView()
         }
     }

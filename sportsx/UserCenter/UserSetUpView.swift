@@ -90,7 +90,7 @@ struct UserSetUpView: View {
                 VStack {
                     HStack(spacing: 10) {
                         Spacer()
-                        Text("version: 0.0.1")
+                        Text("version: \(AppVersionManager.shared.currentVersion.toString())")
                             .onTapGesture {
                                 tapCnt += 1
                             }

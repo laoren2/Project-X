@@ -19,7 +19,7 @@ struct DataSnapshot {
 class DataFusionManager: ObservableObject {
     static let shared = DataFusionManager()
     
-    // 比赛已进行时间（秒）
+    // 比赛进行的原始时间（秒）
     @Published var elapsedTime: TimeInterval = 0
     // 监测是否到达最大延迟
     @Published var isDelayed: Bool = false
@@ -69,17 +69,19 @@ class DataFusionManager: ObservableObject {
     }
     
     func setPredictWindow(maxWindow: Int) {
-        maxPredictWindow = maxWindow
-        phoneCapacity = maxPredictWindow + delayThreshold
-        sensorCapacity = phoneCapacity
-        
-        phoneWindow = Array(repeating: nil, count: phoneCapacity)
-        sensorPhoneWindow = Array(repeating: nil, count: phoneCapacity)
-        
-        sensorWindows = Array(
-            repeating: Array(repeating: nil, count: sensorCapacity),
-            count: sensorDeviceCount
-        )
+        if maxWindow > maxPredictWindow {
+            maxPredictWindow = maxWindow
+            phoneCapacity = maxPredictWindow + delayThreshold
+            sensorCapacity = phoneCapacity
+            
+            phoneWindow = Array(repeating: nil, count: phoneCapacity)
+            sensorPhoneWindow = Array(repeating: nil, count: phoneCapacity)
+            
+            sensorWindows = Array(
+                repeating: Array(repeating: nil, count: sensorCapacity),
+                count: sensorDeviceCount
+            )
+        }
     }
     
     // 添加手机数据
@@ -147,13 +149,16 @@ class DataFusionManager: ObservableObject {
             // 需要预测 predictTime 次
             let predictTime = windowLen + shiftSum - preWindowLen
             
+            //Logger.competition.notice_public("phonecapacity: \(self.phoneCapacity) sensorCapacity: \(self.sensorCapacity)")
+            //Logger.competition.notice_public("sparsity: \(self.sparsity) from addSensorData")
+            //Logger.competition.notice_public("windowLen: \(windowLen) predictTime: \(predictTime) isMinWindowOnly: \(isMinWindowOnly)")
             // 发布预测信号
             if windowLen >= 0 && isMinWindowOnly {
                 let snapshot = self.makeSnapshot(upTo: windowLen, time: predictTime)
-                Logger.competition.notice_public("windowlen: \(windowLen)")
+                //Logger.competition.notice_public("windowlen: \(windowLen)")
                 // 发布快照
                 self.predictionSubject.send(snapshot)
-                Logger.competition.notice_public("sparsity: \(self.sparsity) from addSensorData")
+                //Logger.competition.notice_public("sparsity: \(self.sparsity) from addSensorData")
             }
         }
     }
@@ -410,6 +415,9 @@ class DataFusionManager: ObservableObject {
     }
     
     func resetAll() {
+        maxPredictWindow = 0
+        phoneCapacity = 0
+        sensorCapacity = 0
         elapsedTime = 0
         sparsity = Array(repeating: 0, count: 6)
         deviceNeedToWork = 0
@@ -420,6 +428,81 @@ class DataFusionManager: ObservableObject {
         for sIndex in 0..<sensorDeviceCount {
             sensorWindows[sIndex] = Array(repeating: nil, count: sensorCapacity)
         }
+    }
+    
+    // 返回手机端原始最新待预测数据
+    static func getLastPhoneSamples(count: Int, data: [PhoneData?], before: Int) -> [Float] {
+        let total = data.count - before
+        let startIndex = max(total - count, 0)
+        let recentData = Array(data[startIndex..<total])
+        let recentDataFloat = convertPhoneToFloatArray(phoneData: recentData)
+        
+        return recentDataFloat
+    }
+    
+    // 返回多设备端传感器最新待预测数据并预处理
+    static func getLastSensorSamples(sensorLocation: Int, count: Int, data: [[SensorTrainingData?]], before: Int) -> [Float] {
+        var result: [SensorTrainingData?] = []
+        let deviceNum = DataFusionManager.shared.sensorDeviceCount
+        // 依次检查 sensorLocation 的 bit0 ~ bit5
+        for i in 0..<deviceNum + 1 {
+            // (1 << i) 表示第 i 位的掩码(1,2,4,8,16)，与 sensorLocation 做与运算检查是否为 1
+            if (sensorLocation & (1 << i)) != 0 {
+                let sourceArray = data[i]
+                // 若 sourceArray 数量不足 count，则直接全部取；否则取后 count 个
+                let total = sourceArray.count - before
+                let startIndex = max(0, total - count)
+                let lastPart = sourceArray[startIndex..<total]
+                result.append(contentsOf: lastPart)
+            }
+        }
+        let resultFloat = convertSensorToFloatArray(sensorData: result)
+        return resultFloat
+    }
+    
+    static func convertPhoneToFloatArray(phoneData: [PhoneData?]) -> [Float] {
+        var result: [Float] = []
+        for data in phoneData {
+            if let data = data {
+                // 如果数据不为 nil，则将其值转换为 Float 并加入结果数组
+                result.append(contentsOf: [
+                    Float(data.accX),
+                    Float(data.accY),
+                    Float(data.accZ),
+                    Float(data.gyroX),
+                    Float(data.gyroY),
+                    Float(data.gyroZ),
+                    Float(data.magX),
+                    Float(data.magY),
+                    Float(data.magZ)
+                ])
+            } else {
+                // 如果数据为 nil，则用 0 来占位
+                result.append(contentsOf: [0, 0, 0, 0, 0, 0, 0, 0, 0])
+            }
+        }
+        return result
+    }
+    
+    static func convertSensorToFloatArray(sensorData: [SensorTrainingData?]) -> [Float] {
+        var result: [Float] = []
+        for data in sensorData {
+            if let data = data {
+                // 如果数据不为 nil，则将其值转换为 Float 并加入结果数组
+                result.append(contentsOf: [
+                    Float(data.accX),
+                    Float(data.accY),
+                    Float(data.accZ),
+                    Float(data.gyroX),
+                    Float(data.gyroY),
+                    Float(data.gyroZ)
+                ])
+            } else {
+                // 如果数据为 nil，则用 0 来占位
+                result.append(contentsOf: [0, 0, 0, 0, 0, 0])
+            }
+        }
+        return result
     }
 }
 

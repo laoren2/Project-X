@@ -87,7 +87,7 @@ struct DateDisplay {
 
 struct TimeDisplay {
     static func formattedTime(_ interval: TimeInterval?, showFraction: Bool = false) -> String {
-        guard let duration = interval else { return "未知" }
+        guard let duration = interval else { return "无数据" }
         
         let totalSeconds = Int(duration)
         let hours = totalSeconds / 3600
@@ -129,4 +129,122 @@ struct AgeDisplay {
     }
 }
 
+// MARK: - 通用的 JSON 枚举类型，可表示任意 JSON 结构
+enum JSONValue: Codable {
+    case string(String)
+    case number(Double)
+    case object([String: JSONValue])
+    case array([JSONValue])
+    case bool(Bool)
+    case null
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let value = try? container.decode(String.self) {
+            self = .string(value)
+        } else if let value = try? container.decode(Double.self) {
+            self = .number(value)
+        } else if let value = try? container.decode([String: JSONValue].self) {
+            self = .object(value)
+        } else if let value = try? container.decode([JSONValue].self) {
+            self = .array(value)
+        } else if let value = try? container.decode(Bool.self) {
+            self = .bool(value)
+        } else if container.decodeNil() {
+            self = .null
+        } else {
+            throw DecodingError.typeMismatch(
+                JSONValue.self,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported JSON type")
+            )
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let v): try container.encode(v)
+        case .number(let v): try container.encode(v)
+        case .object(let v): try container.encode(v)
+        case .array(let v): try container.encode(v)
+        case .bool(let v): try container.encode(v)
+        case .null: try container.encodeNil()
+        }
+    }
+}
+
+// 便捷取值方法
+extension JSONValue {
+    var stringValue: String? {
+        if case .string(let v) = self { return v }
+        return nil
+    }
+    
+    var doubleValue: Double? {
+        if case .number(let v) = self { return v }
+        return nil
+    }
+    
+    var intValue: Int? {
+        if case .number(let v) = self { return Int(v) }
+        return nil
+    }
+    
+    var boolValue: Bool? {
+        if case .bool(let v) = self { return v }
+        return nil
+    }
+    
+    var objectValue: [String: JSONValue]? {
+        if case .object(let v) = self { return v }
+        return nil
+    }
+    
+    var arrayValue: [JSONValue]? {
+        if case .array(let v) = self { return v }
+        return nil
+    }
+    
+    // 从嵌套路径里取值（支持多级 key）
+    subscript(path: String...) -> JSONValue? {
+        /*var current: JSONValue? = self
+         for key in path {
+         if case .object(let dict)? = current {
+         current = dict[key]
+         } else {
+         return nil
+         }
+         }
+         return current*/
+        return self.value(for: path)
+    }
+    
+    func value(for keys: [String]) -> JSONValue? {
+        var current = self
+        for key in keys {
+            if case .object(let dict) = current, let next = dict[key] {
+                current = next
+            } else {
+                return nil
+            }
+        }
+        return current
+    }
+    
+    // 将 JSONValue 转成 JSON 字符串
+    func toJSONString(prettyPrinted: Bool = true) -> String? {
+        let encoder = JSONEncoder()
+        if prettyPrinted {
+            encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+        } else {
+            encoder.outputFormatting = [.withoutEscapingSlashes]
+        }
+        do {
+            let data = try encoder.encode(self)
+            return String(data: data, encoding: .utf8)
+        } catch {
+            print("❌ JSONValue 转字符串失败: \(error)")
+            return nil
+        }
+    }
+}

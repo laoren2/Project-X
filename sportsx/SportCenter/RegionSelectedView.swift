@@ -180,8 +180,13 @@ struct RegionSelectedView: View {
     func getCityName(from location: CLLocation) {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
-            if let placemark = placemarks?.first, let city = placemark.locality, !city.isEmpty, city != locationManager.region {
-                locationManager.region = city
+            if let placemark = placemarks?.first {
+                if let city = placemark.locality, !city.isEmpty, city != locationManager.region {
+                    locationManager.region = city
+                }
+                if let country = placemark.isoCountryCode, country != locationManager.countryCode {
+                    locationManager.countryCode = country
+                }
             }
         }
     }

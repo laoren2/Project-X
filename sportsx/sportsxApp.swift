@@ -39,32 +39,22 @@ class AppStateTest: ObservableObject {
 }
 
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+/*class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return .portrait
     }
-}
+}*/
 
 @main
 struct sportsxApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    //@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
     //@StateObject private var navigationManager = NManager()
     //@StateObject var nm = NManager()
     
-    func clearKeychainAfterInstall() {
-        let defaults = UserDefaults.standard
-        let installFlagKey = "hasInstalledApp"
-
-        if !defaults.bool(forKey: installFlagKey) {
-            print("Detected fresh install. Clearing keychain...")
-            KeychainHelper.standard.delete(forKey: "access_token")
-            defaults.set(true, forKey: installFlagKey)
-        }
-    }
-    
     init() {
+        checkVersion()
         clearKeychainAfterInstall()
         // 设置共享缓存，50MB内存 + 200MB磁盘
         let cache = URLCache(
@@ -80,6 +70,11 @@ struct sportsxApp: App {
         } else {
             print("region_language: UNKNOWN")
         }
+        registerAllCardTypes()
+        ModelManager.shared.loadIndex()
+        ModelManager.shared.syncModels()
+        // 激活WCSession
+        DeviceManager.shared.activateWCSession()
     }
     
     var body: some Scene {
@@ -90,6 +85,51 @@ struct sportsxApp: App {
             //TestView()
             //    .environmentObject(appState)
             //CompetitionView()
+        }
+    }
+    
+    func clearKeychainAfterInstall() {
+        let defaults = UserDefaults.standard
+        let installFlagKey = "hasInstalledApp"
+
+        if !defaults.bool(forKey: installFlagKey) {
+            print("Detected fresh install. Clearing keychain...")
+            KeychainHelper.standard.delete(forKey: "access_token")
+            defaults.set(true, forKey: installFlagKey)
+        }
+    }
+    
+    func registerAllCardTypes() {
+        MagicCardFactory.register(type: "avg_pedal_rpm_1") { cardID, level, params in
+            return PedalRPMEffect(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(type: "avg_heart_rate_1") { cardID, level, params in
+            return HeartRateBoostEffect(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(type: "xpose_test_1") { cardID, level, params in
+            return XposeTestEffect(cardID: cardID, level: level, with: params)
+        }
+    }
+    
+    func checkVersion() {
+        // 从服务端拉取最低支持版本
+        let request = APIRequest(path: "/common/query_min_version", method: .get)
+        
+        NetworkService.sendRequest(with: request, decodingType: String.self) { result in
+            switch result {
+            case .success(let data):
+                if let minVersionString = data {
+                    let minVersion = AppVersion(minVersionString)
+                    if !AppVersionManager.shared.checkMinimumVersion(minVersion) {
+                        print("version invalid")
+                    } else {
+                        print("version valid")
+                    }
+                    print("local version: \(AppVersionManager.shared.currentVersion.toString())")
+                    print("server version: \(minVersionString)")
+                }
+            default: break
+            }
         }
     }
 }

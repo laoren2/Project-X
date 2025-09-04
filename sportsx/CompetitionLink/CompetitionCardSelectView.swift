@@ -10,7 +10,7 @@ import SwiftUI
 
 struct CompetitionCardSelectView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var cardManager = MagicCardManager.shared
+    @ObservedObject var assetManager = AssetManager.shared
     @State private var showCardSelection = false
     
     // 卡牌容器的常量
@@ -76,7 +76,7 @@ struct CompetitionCardSelectView: View {
                 ForEach(0..<maxCards, id: \.self) { index in
                     if index < appState.competitionManager.selectedCards.count {
                         // 显示已选择的卡牌
-                        CardView(card: appState.competitionManager.selectedCards[index])
+                        MagicCardView(card: appState.competitionManager.selectedCards[index])
                             .frame(width: cardWidth, height: cardHeight)
                     } else {
                         // 显示占位卡牌
@@ -91,18 +91,8 @@ struct CompetitionCardSelectView: View {
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 .foregroundColor(.white)
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.7)]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .background(Color.blue)
                 .cornerRadius(12)
-                .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
-                .sheet(isPresented: $showCardSelection) {
-                    CardSelectionView()
-                }
                 .exclusiveTouchTapGesture {
                     showCardSelection = true
                 }
@@ -111,16 +101,9 @@ struct CompetitionCardSelectView: View {
             Text("我准备好了")
                 .frame(minWidth: 180)
                 .padding(.vertical, 15)
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [Color.green, Color.green.opacity(0.7)]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .background(Color.green)
                 .cornerRadius(12)
                 .foregroundColor(.white)
-                .shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
                 .padding(.top, 10)
                 .exclusiveTouchTapGesture {
                     appState.navigationManager.append(.competitionRealtimeView)
@@ -140,21 +123,26 @@ struct CompetitionCardSelectView: View {
             }
         }
         .onFirstAppear {
-            if cardManager.availableCards.isEmpty {
-                cardManager.fetchUserCards()
-            }
+            //if assetManager.magicCards.isEmpty {
+            //    assetManager.queryMagicCards(withLoadingToast: false)
+            //}
             // 如果是组队模式，启动计时器a
             if appState.competitionManager.isTeam {
                 appState.competitionManager.startTeamJoinTimerA()
             }
+        }
+        .bottomSheet(isPresented: $showCardSelection, size: .large) {
+            CardSelectionView(showCardSelection: $showCardSelection)
         }
     }
 }
 
 
 
-#Preview {
+/*#Preview {
     let appState = AppState.shared
+    let card = MagicCard(cardID: "qwe", name: "踏频仙人", sportType: .Bike, level: 5, levelSkill1: 2, levelSkill2: 3, levelSkill3: nil, imageURL: "Ads", sensorType: .heartSensor, sensorLocation: 7, lucky: 67.3, rarity: "A", description: "这是一段描述", descriptionSkill1: "技能1的描述", descriptionSkill2: "技能2的描述", descriptionSkill3: nil, version: AppVersion("1.0.0"), tags: ["team"], effectDef: MagicCardDef(cardID: "qwe", typeName: "pedal", params: .string("")))
+    AssetManager.shared.magicCards.append(card)
     return CompetitionCardSelectView()
         .environmentObject(appState)
-}
+}*/

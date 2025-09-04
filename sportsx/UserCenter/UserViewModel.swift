@@ -65,21 +65,15 @@ class UserViewModel: ObservableObject {
         cups.append(Cup(level: .top1, image: "medal.fill"))
         cups.append(Cup(level: .top10, image: "medal.fill"))
         cups.append(Cup(level: .top10percent, image: "medal.fill"))
-        let cards1: [MagicCard] = [
-            MagicCard(id: "card2", modelID: "model_001", name: "Water Serpent", type: "魔法", level: "3", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 31.2, energy: 80, grade: "B", description: "test"),
-            MagicCard(id: "card3", modelID: "model_002", name: "Earth Golem", type: "动作", level: "4", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000010, lucky: 96.5, energy: 100, grade: "S", description: "test"),
-            MagicCard(id: "card1", modelID: "model_001", name: "Fire Dragon", type: "团队", level: "5", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 86.7, energy: 91, grade: "B+", description: "test")
+        /*let cards1: [MagicCard] = [
+            MagicCard(cardID: "model_001", name: "Water Serpent", sportType: .Bike, level: 10, levelSkill1: 2, levelSkill2: 2, levelSkill3: 5, imageURL: "Ads", sensorType: nil, sensorLocation: nil, lucky: 31.2, rarity: "B", description: "test", descriptionSkill1: "test1", descriptionSkill2: "test2", descriptionSkill3: "test3", version: AppVersion("1.0.0"), tags: [], effectDef: MagicCardDef(cardID: "", typeName: "", params: .string("")))
         ]
         let cards2: [MagicCard] = [
-            MagicCard(id: "card2", modelID: "model_001", name: "Water Serpent", type: "魔法", level: "3", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 31.2, energy: 80, grade: "B", description: "test"),
-            MagicCard(id: "card3", modelID: "model_002", name: "Earth Golem", type: "动作", level: "4", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000010, lucky: 96.5, energy: 100, grade: "S", description: "test"),
-            MagicCard(id: "card1", modelID: "model_001", name: "Fire Dragon", type: "团队", level: "5", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 86.7, energy: 91, grade: "B+", description: "test"),
-            MagicCard(id: "card4", modelID: "model_001", name: "Fire Dragon", type: "团队", level: "5", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 86.7, energy: 91, grade: "B+", description: "test"),
-            MagicCard(id: "card5", modelID: "model_001", name: "Water Serpent", type: "魔法", level: "3", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 31.2, energy: 80, grade: "B", description: "test")
+            MagicCard(cardID: "model_001", name: "Water Serpent", sportType: .Bike, level: 10, levelSkill1: 2, levelSkill2: 2, levelSkill3: 5, imageURL: "Ads", sensorType: nil, sensorLocation: nil, lucky: 31.2, rarity: "B", description: "test", descriptionSkill1: "test1", descriptionSkill2: "test2", descriptionSkill3: "test3", version: AppVersion("1.0.0"), tags: [], effectDef: MagicCardDef(cardID: "", typeName: "", params: .string("")))
         ]
         gameSummaryCards.append(GameSummaryCard(eventname: "赛事1", trackName: "赛道1", cityName: "上海", best_time: 55.55, rank: 5, previewBonus: 288, magicCards: cards1))
         gameSummaryCards.append(GameSummaryCard(eventname: "赛事1", trackName: "赛道2", cityName: "上海", best_time: 96.20, rank: 155, previewBonus: 40, magicCards: cards2))
-        gameSummaryCards.append(GameSummaryCard(eventname: "赛事2", trackName: "赛道1", cityName: "上海", best_time: 105.11, rank: 862, previewBonus: 10, magicCards: cards2))
+        gameSummaryCards.append(GameSummaryCard(eventname: "赛事2", trackName: "赛道1", cityName: "上海", best_time: 105.11, rank: 862, previewBonus: 10, magicCards: cards2))*/
         
         // 外部入口且不是已登录用户请求数据存入currentUser
         if isNeedBack {

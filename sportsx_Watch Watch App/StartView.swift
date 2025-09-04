@@ -15,9 +15,13 @@ struct StartView: View {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Button(action:{
+                workoutManager.syncStatus()
+            }){
+                Text("同步")
+                    .foregroundStyle(Color.green)
+            }
         }
-        .padding()
         .onAppear {
             workoutManager.requestAuthorization()
         }
@@ -25,5 +29,7 @@ struct StartView: View {
 }
 
 #Preview {
-    StartView()
+    let obj = WatchDataManager()
+    return StartView()
+        .environmentObject(obj)
 }

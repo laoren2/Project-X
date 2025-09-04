@@ -16,6 +16,9 @@ struct sportsx_Watch_Watch_AppApp: App {
                 .sheet(isPresented: $dataManager.showingSummaryView) {
                     SummaryView()
                 }
+                .onChange(of: dataManager.showingSummaryView) {
+                    dataManager.summaryViewData = nil
+                }
                 .environmentObject(dataManager)
         }
     }

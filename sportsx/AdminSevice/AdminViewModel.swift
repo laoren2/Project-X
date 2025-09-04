@@ -442,3 +442,124 @@ struct CPAssetPriceInternalResponse: Codable {
     let assets: [CPAssetPriceDTO]
 }
 
+class MagicCardBackendViewModel: ObservableObject {
+    @Published var cards: [MagicCardEntry] = []
+    @Published var showCreateSheet = false
+    @Published var showUpdateSheet = false
+    
+    var hasMoreEvents: Bool = true
+    var currentPage: Int = 1
+    
+    var selectedCardID: String = ""
+    
+    // 更新的asset信息
+    @Published var name: String = ""
+    @Published var description: String = ""
+    @Published var startDate: Date = Date()
+    @Published var endDate: Date = Date().addingTimeInterval(3600*24)
+    var image_url: String = ""
+}
+
+struct MagicCardEntry: Identifiable, Equatable {
+    var id: String {def_id}
+    let def_id: String
+    let sport_type: SportName
+    let name: String
+    let description: String
+    let image_url: String
+    let rarity: String
+    
+    init(from card: MagicCardDefDTO) {
+        self.def_id = card.def_id
+        self.name = card.name
+        self.image_url = card.image_url
+        self.sport_type = card.sport_type
+        self.rarity = card.rarity
+        self.description = card.description
+    }
+    
+    static func == (lhs: MagicCardEntry, rhs: MagicCardEntry) -> Bool {
+        return lhs.def_id == rhs.def_id
+    }
+}
+
+struct MagicCardDefDTO: Codable {
+    let def_id: String
+    let name: String
+    let image_url: String
+    let sport_type: SportName
+    let rarity: String
+    let description: String
+    let skill1_description: String?
+    let skill2_description: String?
+    let skill3_description: String?
+    let version: String
+    let type_name: String
+    let tags: [String]
+    let effect_config: JSONValue
+}
+
+struct MagicCardInternalResponse: Codable {
+    let defs: [MagicCardDefDTO]
+}
+
+class MagicCardPriceBackendViewModel: ObservableObject {
+    @Published var cards: [MagicCardPriceCardEntry] = []
+    @Published var showCreateSheet = false
+    @Published var showUpdateSheet = false
+    
+    var hasMoreEvents: Bool = true
+    var currentPage: Int = 1
+    
+    var selectedCardID: String = ""
+    
+    // 更新的card信息
+    @Published var name: String = ""
+    @Published var description: String = ""
+    var image_url: String = ""
+}
+
+struct MagicCardPriceCardEntry: Identifiable, Equatable {
+    var id: String {def_id}
+    let def_id: String
+    let name: String
+    let image_url: String
+    let ccasset_type: CCAssetType
+    let price: Int
+    let is_on_shelves: Bool
+    
+    init(from card: MagicCardPriceDTO) {
+        self.def_id = card.def_id
+        self.name = card.name
+        self.image_url = card.image_url
+        self.ccasset_type = card.ccasset_type
+        self.price = card.price
+        self.is_on_shelves = card.is_on_shelves
+    }
+    
+    static func == (lhs: MagicCardPriceCardEntry, rhs: MagicCardPriceCardEntry) -> Bool {
+        return lhs.def_id == rhs.def_id
+    }
+}
+
+struct MagicCardPriceDTO: Codable {
+    let def_id: String
+    let name: String
+    let image_url: String
+    let sport_type: SportName
+    let rarity: String
+    let description: String
+    let skill1_description: String?
+    let skill2_description: String?
+    let skill3_description: String?
+    let version: String
+    let effect_config: JSONValue
+    
+    let ccasset_type: CCAssetType
+    let price: Int
+    let is_on_shelves: Bool
+}
+
+struct MagicCardPriceInternalResponse: Codable {
+    let cards: [MagicCardPriceDTO]
+}

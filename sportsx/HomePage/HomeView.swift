@@ -308,5 +308,4 @@ struct SquareView: View {
     return HomeView()
         .environmentObject(appState)
         .preferredColorScheme(.dark)
-    //CompetitionResultView()
 }

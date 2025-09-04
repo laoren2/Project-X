@@ -35,20 +35,20 @@ struct SummaryView: View {
     }()
     
     var body: some View {
-        if workoutManager.workout == nil {
-            ProgressView("Saving workout")
-                .navigationBarHidden(true)
-        } else {
+        if let data = workoutManager.summaryViewData {
             ScrollView(.vertical) {
                 VStack(alignment: .leading) {
                     SummaryMetricView(
                         title: "Total Time",
                         value: durationFormatter
-                            .string(from: workoutManager.workout?.duration ?? 0.0) ?? ""
+                            .string(from: data.totalTime) ?? ""
                     ).accentColor(Color.yellow)
-                    Text("Activity Rings")
-                    ActivityRingsView(healthStore: workoutManager.healthStore)
-                                    .frame(width: 50, height: 50)
+                    SummaryMetricView(title: "Avg HeartRate", value: "\(data.avgHeartRate)")
+                    SummaryMetricView(title: "Total Energy", value: "\(data.totalEnergy)")
+                    SummaryMetricView(title: "Avg Power", value: "\(data.avgPower)")
+                    //Text("Activity Rings")
+                    //ActivityRingsView(healthStore: workoutManager.healthStore)
+                    //                .frame(width: 50, height: 50)
                     Button("Done") {
                         dismiss()
                     }
@@ -57,6 +57,9 @@ struct SummaryView: View {
             }
             .navigationTitle("Summary")
             .navigationBarTitleDisplayMode(.inline)
+        } else {
+            ProgressView("数据整理中...")
+                .navigationBarHidden(true)
         }
     }
 }

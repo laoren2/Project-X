@@ -44,9 +44,9 @@ struct EmptyResponse: Decodable {}
 
 
 struct NetworkService {
-    static let baseDomain: String = "https://192.168.1.5:8000"
-    static let baseUrl: String = "https://192.168.1.5:8000/api/v1"
-    static let baseUrl_internal: String = "https://192.168.1.5:8000/api/internal"
+    static let baseDomain: String = "https://192.168.1.4:8000"
+    static let baseUrl: String = "https://192.168.1.4:8000/api/v1"
+    static let baseUrl_internal: String = "https://192.168.1.4:8000/api/internal"
     
     static func sendRequest<T: Decodable>(
         with apiRequest: APIRequest,
@@ -64,10 +64,10 @@ struct NetworkService {
             ToastManager.shared.show(toast: toast)
             return
         }
-
+        
         var request = URLRequest(url: url, timeoutInterval: 10)
         request.httpMethod = apiRequest.method.rawValue
-
+        
         // Headers
         var allHeaders = apiRequest.headers ?? [:]
         if (apiRequest.requiresAuth || apiRequest.isInternal), let token = KeychainHelper.standard.read(forKey: "access_token") {
@@ -76,7 +76,7 @@ struct NetworkService {
         for (key, value) in allHeaders {
             request.setValue(value, forHTTPHeaderField: key)
         }
-
+        
         // Body
         if let body = apiRequest.body, apiRequest.method != .get {
             request.httpBody = body
@@ -99,7 +99,7 @@ struct NetworkService {
                 }
             }
             // 检查网络错误
-            if let error = error {
+            if error != nil {
                 let toast = customErrorToast?(.networkError) ?? Toast(message: "网络错误", duration: 2)
                 if showErrorToast {
                     DispatchQueue.main.async {
@@ -201,29 +201,6 @@ struct NetworkService {
         }.resume()
     }
     
-    static func downloadImage(from urlString: String, completion: @escaping (UIImage?) -> Void) {
-        guard let url = URL(string: baseDomain + urlString) else {
-            completion(nil)
-            return
-        }
-        
-        let request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 5)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            // 确保没有错误，且返回的是有效图片数据
-            if let data = data, let image = UIImage(data: data) {
-                DispatchQueue.main.async {
-                    completion(image)
-                }
-            } else {
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-            }
-        }.resume()
-    }
-    
-    
     static func sendAsyncRequest<T: Decodable>(
         with apiRequest: APIRequest,
         decodingType: T.Type,
@@ -244,6 +221,144 @@ struct NetworkService {
                     continuation.resume(returning: result)
                 }
             )
+        }
+    }
+    
+    static func downloadImage(from urlString: String, completion: @escaping (UIImage?) -> Void) {
+        guard let url = URL(string: baseDomain + urlString) else {
+            completion(nil)
+            return
+        }
+        
+        let request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 5)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            // 确保没有错误，且返回的是有效图片数据
+            if let data = data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    completion(image)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+            }
+        }.resume()
+    }
+    
+    static func downloadResource<T: Decodable>(
+        path: String,
+        decodingType: T.Type,
+        completion: @escaping (Result<T, APIError>) -> Void
+    ) {
+        guard let url = URL(string: baseDomain + path) else {
+            completion(.failure(.unknown))
+            return
+        }
+
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if error != nil {
+                completion(.failure(.networkError))
+                return
+            }
+            guard let data = data else {
+                completion(.failure(.noData))
+                return
+            }
+            do {
+                let decoded = try JSONDecoder().decode(T.self, from: data)
+                completion(.success(decoded))
+            } catch {
+                completion(.failure(.decodeError))
+            }
+        }.resume()
+    }
+    
+    static func downloadResourceAsync<T: Decodable>(
+        path: String,
+        decodingType: T.Type
+    ) async -> Result<T, APIError> {
+        guard let url = URL(string: baseDomain + path) else {
+            return .failure(.unknown)
+        }
+
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoded = try JSONDecoder().decode(T.self, from: data)
+            return .success(decoded)
+        } catch let error as DecodingError {
+            return .failure(.decodeError)
+        } catch {
+            return .failure(.networkError)
+        }
+    }
+    
+    static func downloadFile(
+        from url: URL,
+        showSuccessToast: Bool = false,
+        showErrorToast: Bool = false,
+        completion: @escaping (Result<URL, APIError>) -> Void
+    ) {
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+        let task = URLSession.shared.downloadTask(with: request) { tempURL, _, error in
+            if error != nil {
+                let toast = Toast(message: "网络错误")
+                if showErrorToast {
+                    DispatchQueue.main.async {
+                        ToastManager.shared.show(toast: toast)
+                    }
+                }
+                completion(.failure(.networkError))
+                return
+            }
+            guard let tempURL = tempURL else {
+                let toast = Toast(message: "资源下载失败")
+                if showErrorToast {
+                    DispatchQueue.main.async {
+                        ToastManager.shared.show(toast: toast)
+                    }
+                }
+                completion(.failure(.noData))
+                return
+            }
+            let toast = Toast(message: "下载成功")
+            if showSuccessToast {
+                DispatchQueue.main.async {
+                    ToastManager.shared.show(toast: toast)
+                }
+            }
+            completion(.success(tempURL))
+        }
+        task.resume()
+    }
+    
+    static func downloadFileAsync(
+        from url: URL,
+        showSuccessToast: Bool = false,
+        showErrorToast: Bool = false
+    ) async -> Result<URL, APIError> {
+        do {
+            let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
+            let (tempURL, _) = try await URLSession.shared.download(for: request)
+            let toast = Toast(message: "下载成功")
+            if showSuccessToast {
+                DispatchQueue.main.async {
+                    ToastManager.shared.show(toast: toast)
+                }
+            }
+            return .success(tempURL)
+        } catch {
+            let toast = Toast(message: "资源下载失败")
+            if showErrorToast {
+                DispatchQueue.main.async {
+                    ToastManager.shared.show(toast: toast)
+                }
+            }
+            return .failure(.networkError)
         }
     }
 }
