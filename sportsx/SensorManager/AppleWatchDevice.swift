@@ -13,120 +13,120 @@ import WatchConnectivity
 
 class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     // 协议要求
-    var deviceID: String
-    var deviceName: String
-    var sensorPos: Int
-    var dataFusionManager: DataFusionManager
+    let deviceID: String
+    let deviceName: String
+    let sensorPos: Int
+    let dataFusionManager = DataFusionManager.shared
+    let competitionManager = CompetitionManager.shared
     
-    @Published var isConnected: Bool = false
+    var canReceiveData: Bool
+    var enableIMU: Bool
     
-    private var session: WCSession?
+    private var session: WCSession
     
     // 仅用于保存传感器数据到本地调试
     private var competitionData: [SensorData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
     
+    
+    
     /// 初始化时，激活 WCSession
-    init(deviceID: String, deviceName: String, sensorPos: Int, dataFusionManager: DataFusionManager) {
+    init(deviceID: String, deviceName: String, sensorPos: Int) {
         self.deviceID = deviceID
         self.deviceName = deviceName
         self.sensorPos = sensorPos
-        self.dataFusionManager = dataFusionManager
-        super.init()
-        
-        if WCSession.isSupported() {
-            let s = WCSession.default
-            s.delegate = self
-            s.activate() // 异步激活
-            self.session = s
-        } else {
-            print("[AppleWatchDevice] WCSession not supported on this device.")
-        }
+        self.canReceiveData = false
+        self.enableIMU = false
+        self.session = WCSession.default
+    }
+    
+    // 销毁前重置代理，否则session状态会发生变化
+    deinit {
+        self.session.delegate = DeviceManager.shared
     }
     
     func connect() -> Bool {
-        guard let session = session else {
-            print("[AppleWatchDevice] connect() failed: session is nil.")
-            //self.isConnected = false
-            return false
-        }
-        
         // 先检查是否配对
         guard session.isPaired else {
             print("[AppleWatchDevice] connect() failed: Apple Watch not paired.")
-            //self.isConnected = false
             return false
         }
         
         // 检查是否安装了 Watch App
         guard session.isWatchAppInstalled else {
             print("[AppleWatchDevice] connect() failed: Watch App is not installed.")
-            //self.isConnected = false
             return false
         }
         
-        // 检查 isReachable
-        if session.activationState == .activated && isConnected {
+        // 检查 activationState
+        if session.activationState == .activated {
             print("[AppleWatchDevice] connect() success.")
-            //self.isConnected = true
             return true
         } else {
             print("[AppleWatchDevice] connect() failed.")
-            //self.isConnected = false
             return false
-            /*DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                if session.isReachable {
-                    self.isConnected = true
-                    completion(true)
-                } else {
-                    print("[AppleWatchDevice] connect() - still not reachable after wait.")
-                    completion(false)
-                }
-            }*/
         }
     }
     
     func disconnect() {
         // WatchConnectivity 可能无法像BLE那样“主动断开”，可以做一些标记
-        self.isConnected = false
     }
     
-    func startCollection() {
+    func startCollection(activityType: String, locationType: String) {
+        guard session.activationState == .activated else {
+            let toast = Toast(message: "watch连接失败")
+            ToastManager.shared.show(toast: toast)
+            print("[AppleWatchDevice] WCSession not activated, cannot update start context.")
+            return
+        }
+        canReceiveData = true
         competitionData = []
-        // 给 Watch 端发消息，表示“请开始采集”
-        guard isConnected, let session = session else {
-            print("[WatchSensorManager] session not reachable, cannot start watch collection.")
-            return
+        do {
+            let context: [String: Any] = [
+                "command": "startCollection",
+                "enableIMU": enableIMU,
+                "activityType": activityType,
+                "locationType": locationType,
+                "timestamp": Date().timeIntervalSince1970  // 给个时间戳避免被认为是旧状态
+            ]
+            try session.updateApplicationContext(context)
+            print("[AppleWatchDevice] Sent startCollecting state via applicationContext.")
+        } catch {
+            print("[AppleWatchDevice] Failed to update start applicationContext: \(error)")
         }
-        print("Start send collect command...")
-        session.sendMessage(["command": "startCollection"], replyHandler: nil, errorHandler: { error in
-            print("[WatchSensorManager] Error sending startCollection command: \(error)")
-        })
     }
-        
+    
     func stopCollection() {
-        guard isConnected, let session = session else {
-            print("[WatchSensorManager] session not reachable, cannot stop watch collection.")
+        guard session.activationState == .activated else {
+            let toast = Toast(message: "watch连接失败,请手动结束watch上的运动")
+            ToastManager.shared.show(toast: toast)
+            print("[AppleWatchDevice] WCSession not activated, cannot update stop context.")
             return
         }
-        
-        session.sendMessage(["command": "stopCollection"], replyHandler: nil, errorHandler: { error in
-            print("[WatchSensorManager] Error sending stopCollection command: \(error)")
-        })
+        do {
+            let context: [String: Any] = [
+                "command": "stopCollection",
+                "timestamp": Date().timeIntervalSince1970  // 给个时间戳避免被认为是旧状态
+            ]
+            try session.updateApplicationContext(context)
+            print("[AppleWatchDevice] Sent stopCollecting state via applicationContext.")
+        } catch {
+            print("[AppleWatchDevice] Failed to update stop applicationContext: \(error)")
+        }
         
         if SAVESENSORDATA {
             self.finalizeCompetitionData()
         }
+        canReceiveData = false
+        enableIMU = false
     }
     
     // 保存批次数据为CSV
     private func saveBatchAsCSV(dataBatch: [SensorData]) {
-        // 定义CSV文件路径
         let fileManager = FileManager.default
         let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
         let fileURL = documentsDirectory.appendingPathComponent("competitionData_watch.csv")
         
-        // 如果文件不存在，创建并写入头部
         if !fileManager.fileExists(atPath: fileURL.path) {
             let csvHeader = "timestamp,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z\n"
             do {
@@ -137,7 +137,6 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
             }
         }
         
-        // 构建CSV内容
         var csvString = ""
         let dateFormatter = ISO8601DateFormatter()
         
@@ -149,22 +148,18 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
             let gyroX = data.gyroX
             let gyroY = data.gyroY
             let gyroZ = data.gyroZ
-            //let magX = data.magX
-            //let magY = data.magY
-            //let magZ = data.magZ
             
             let row = "\(timestamp),\(accX),\(accY),\(accZ),\(gyroX),\(gyroY),\(gyroZ)\n"
             csvString.append(row)
         }
         
-        // 追加到CSV文件
         if let dataToAppend = csvString.data(using: .utf8) {
             do {
                 let fileHandle = try FileHandle(forWritingTo: fileURL)
                 fileHandle.seekToEndOfFile()
                 fileHandle.write(dataToAppend)
                 fileHandle.closeFile()
-                print("watch Batch saved as CSV.")
+                //print("watch Batch saved as CSV.")
             } catch {
                 print("Failed to append watch CSV: \(error)")
             }
@@ -179,7 +174,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         competitionData.removeAll()
         saveBatchAsCSV(dataBatch: batch)
         
-        print("Watch Competition data finalized.")
+        //print("Watch Competition data finalized.")
     }
 }
 
@@ -201,22 +196,12 @@ extension AppleWatchDevice: WCSessionDelegate {
         session.activate()
     }
     
-    func sessionReachabilityDidChange(_ session: WCSession) {
-        if session.isReachable {
-            print("[AppleWatchDevice] Watch is now reachable.")
-            self.isConnected = true
-        } else {
-            print("[AppleWatchDevice] Watch is no longer reachable.")
-            self.isConnected = false
-        }
-    }
-    
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         // Watch 端用 sendMessage(["watchBatch": [ ... ]]) 的场景
-        if let batchArray = message["watchBatch"] as? [[String: Any]] {
+        if let batchArray = message["IMUBatch"] as? [[String: Any]] {
             var batchData = [SensorData]()
             var cnt = 0
-            print("Start convert message...")
+            //print("Start convert message...")
             for item in batchArray {
                 cnt += 1
                 if let timestamp = item["timestamp"] as? Date,
@@ -225,10 +210,7 @@ extension AppleWatchDevice: WCSessionDelegate {
                    let accz = item["accZ"] as? Double,
                    let gyrox = item["gyroX"] as? Double,
                    let gyroy = item["gyroY"] as? Double,
-                   let gyroz = item["gyroZ"] as? Double
-                   /*let magx = item["magX"] as? Double,
-                   let magy = item["magY"] as? Double,
-                   let magz = item["magZ"] as? Double*/ {
+                   let gyroz = item["gyroZ"] as? Double {
                     let sensorData = SensorData(
                         timestamp: timestamp,
                         accX: accx,
@@ -237,9 +219,6 @@ extension AppleWatchDevice: WCSessionDelegate {
                         gyroX: gyrox,
                         gyroY: gyroy,
                         gyroZ: gyroz
-                        //magX: magx,
-                        //magY: magy,
-                        //magZ: magz
                     )
                     batchData.append(sensorData)
                     if SAVESENSORDATA {
@@ -247,8 +226,11 @@ extension AppleWatchDevice: WCSessionDelegate {
                     }
                 }
             }
-            print("batch size : ", cnt)
-            dataFusionManager.addSensorData(sensorPos, batchData)
+            //print("receive batch size : ", cnt)
+            if canReceiveData {
+                //print("add batch data")
+                dataFusionManager.addSensorData(sensorPos, batchData)
+            }
             
             if SAVESENSORDATA {
                 // 批量保存
@@ -258,8 +240,13 @@ extension AppleWatchDevice: WCSessionDelegate {
                     saveBatchAsCSV(dataBatch: batch)
                 }
             }
-        } else {
-            print("Message convert failed")
+        }
+        if let statsData = message["statsData"] as? [String: Any] {
+            //print("receive statsData")
+            if canReceiveData {
+                //print("set statsData")
+                competitionManager.handleStatsData(stats: statsData)
+            }
         }
     }
 }

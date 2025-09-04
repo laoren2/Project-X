@@ -43,7 +43,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     override private init() {
         // 初始化授权状态
-        self.authorizationStatus = CLLocationManager().authorizationStatus
+        self.authorizationStatus = locationManager.authorizationStatus
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
@@ -198,6 +198,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     // MARK: - CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         DispatchQueue.main.async {
+            //print("didChangeAuthorization to : \(status)")
             self.authorizationStatus = status
             // 授权状态改变后，如果有订阅者，应再次检查是否可以启动更新
             if self.subscribersCount > 0 && (status == .authorizedAlways || status == .authorizedWhenInUse) {
@@ -209,7 +210,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         locationSubject.send(location)
-        //print("update location!!")
+        //print("send location \(location)")
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

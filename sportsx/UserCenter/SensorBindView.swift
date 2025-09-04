@@ -10,6 +10,8 @@ import SwiftUI
 struct SensorBindView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var deviceManager = DeviceManager.shared
+    @State private var isLoading: BodyPosition? = nil
+    @State private var selectedPosition: BodyPosition? = nil
     
     var body: some View {
         VStack(spacing: 20) {
@@ -25,29 +27,27 @@ struct SensorBindView: View {
                         Text("已绑定设备: \(device.deviceName)")
                             .foregroundColor(.green)
                         
-                        CommonTextButton(text: "点击解绑") {
-                            deviceManager.unbindDevice(at: position)
-                        }
-                        .padding(.vertical, 4)
-                        .buttonStyle(.bordered)
+                        Text("点击解绑")
+                            .padding(.vertical, 4)
+                            .buttonStyle(.bordered)
+                            .exclusiveTouchTapGesture {
+                                deviceManager.unbindDevice(at: position)
+                            }
                     } else {
                         // 未绑定状态
-                        Text("未绑定")
-                            .foregroundColor(.red)
-                        
-                        CommonTextButton(text: "点击绑定") {
-                            // 模拟创建一个 AppleWatchDevice 并绑定
-                            // 实际项目中可让用户选择不同设备(Apple/Huawei等)
-                            let newWatch = AppleWatchDevice(
-                                deviceID: "applewatch-\(position.rawValue)",
-                                deviceName: "AppleWatch_Pos\(position.rawValue)",
-                                sensorPos: position.rawValue,
-                                dataFusionManager: appState.competitionManager.dataFusionManager
-                            )
-                            deviceManager.bindDevice(newWatch, at: position)
+                        if isLoading == position {
+                            ProgressView()
+                        } else {
+                            Text("未绑定")
+                                .foregroundColor(.red)
+                            
+                            Text("点击绑定")
+                                .padding(.vertical, 4)
+                                .buttonStyle(.bordered)
+                                .exclusiveTouchTapGesture {
+                                    selectedPosition = position
+                                }
                         }
-                        .padding(.vertical, 4)
-                        .buttonStyle(.bordered)
                     }
                 }
                 .padding()
@@ -61,6 +61,65 @@ struct SensorBindView: View {
             }
         }
         .padding()
+        .sheet(item: $selectedPosition) { pos in
+            VStack {
+                Text("选择设备")
+                    .bold()
+                    .padding()
+                List {
+                    if deviceManager.existAvailableAW() && !deviceManager.hasAppleWatchBound() {
+                        Button(action: {
+                            bindDevice(pos: pos)
+                            selectedPosition = nil
+                        }) {
+                            HStack {
+                                Text("Apple Watch")
+                                Spacer()
+                                Image(systemName: "applewatch")
+                            }
+                        }
+                    }
+                    // more device...
+                }
+                .presentationDetents([.medium])
+            }
+        }
+    }
+    
+    func bindDevice(pos: BodyPosition) {
+        // 创建一个 AppleWatchDevice 并绑定
+        // 未来支持更多设备(Xiaomi/Huawei等)
+        let newWatch = AppleWatchDevice(
+            deviceID: "applewatch-\(pos.rawValue)",
+            deviceName: "applewatch",
+            sensorPos: pos.rawValue
+        )
+        isLoading = pos
+        var counter = 0
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+        timer.schedule(deadline: .now(), repeating: 1.0)
+        timer.setEventHandler {
+            if newWatch.connect() {
+                DispatchQueue.main.async {
+                    deviceManager.bindDevice(newWatch, at: pos)
+                    isLoading = nil
+                    let toast = Toast(message: "绑定成功")
+                    ToastManager.shared.show(toast: toast)
+                }
+                timer.cancel()
+            } else {
+                counter += 1
+                if counter >= 10 {
+                    DispatchQueue.main.async {
+                        isLoading = nil
+                        let toast = Toast(message: "绑定失败")
+                        ToastManager.shared.show(toast: toast)
+                    }
+                    timer.cancel()
+                }
+            }
+        }
+        timer.resume()
     }
 }
 

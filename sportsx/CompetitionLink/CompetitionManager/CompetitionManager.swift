@@ -2,7 +2,7 @@
 //  CompetitionManager.swift
 //  sportsx
 //
-//  一个巨大的状态机，管理和控制一场比赛的全过程
+//  全局的比赛引擎，管理和控制一场比赛的全过程
 //
 //  Created by 任杰 on 2024/9/7.
 //
@@ -37,11 +37,15 @@ let SAVESENSORDATA: Bool = {
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = CompetitionManager()
     
+    let navigationManager = NavigationManager.shared
     let dataFusionManager = DataFusionManager.shared
     let modelManager = ModelManager.shared
     let deviceManager = DeviceManager.shared
     let user = UserManager.shared
     let globalConfig = GlobalConfig.shared
+    
+    let eventBus = MatchEventBus()      // 比赛引擎的总线，负责比赛中事件的注册和通知
+    let matchContext = MatchContext()   // 比赛进行中的上下文信息
     
     // 当前进行中的运动和记录
     var sport: SportName = .Default
@@ -59,9 +63,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     @Published var selectedCards: [MagicCard] = []
+    var activeCardEffects: [MagicCardEffect] = []
+    // | 00   +   +   +   +   +    +  |
+    //        |   |   |   |   |    |
+    //       WST  RF  LF  RH  LH  PHONE
     var sensorRequest: Int = 0
-    
-    @Published var predictResultCnt: Int = 0
+    @Published var isEffectsFinishPrepare = true        // 所有cardeffects是否完成准备工作
+    //var expectedStatsWatchCount: Int = 0              // 需要等待接收最后统计数据的外设个数
     
     @Published var isRecording: Bool = false // 当前比赛状态
     @Published var isShowWidget: Bool = false // 是否显示Widget
@@ -70,10 +78,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published var alertTitle = ""
     @Published var alertMessage = ""
     @Published var userLocation: CLLocationCoordinate2D? = nil // 当前用户位置
-    @Published var canStartCompetition: Bool = false // 是否可以开始比赛
-    
-    @Published var compensationTime: Double = 0 // 通过MagicCard拿到的总补偿时间
-    @Published var modelResults: [String: Any] = [:] // 存储每个模型的预测结果
+    @Published var isInValidArea: Bool = false // 是否在比赛出发点
     
     @Published var startCoordinate = CLLocationCoordinate2D(latitude: 31.00550, longitude: 121.40962)
     @Published var endCoordinate = CLLocationCoordinate2D(latitude: 31.03902, longitude: 121.39807)
@@ -88,6 +93,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var competitionData: [PhoneData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
     
+    private var pathData: [PathPoint] = []
+    
     private var timer: DispatchSourceTimer? //定时器
     private var collectionTimer: Timer?
 
@@ -95,7 +102,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var teamJoinTimerB: Timer? // 用于剩余可加入时间倒计时的计时器
     var teamJoinTimeWindow: Int = 180 // 组队模式下的可加入时间窗口
     
-    // todo: 将频繁更新的属性移出competitionManager
+    // todo: 将频繁更新的属性移出competitionManager，否则会影响某些系统ui交互（如alert button）
     @Published var teamJoinRemainingTime: Int = 180 // 剩余可加入时间，频繁更新，暂时无交互受影响，先放在这里
     @Published var isTeamJoinWindowExpired: Bool = false // 是否已过期
 
@@ -170,8 +177,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
+                    let formatter = ISO8601DateFormatter()
+                    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
                     DispatchQueue.main.async {
-                        if let expired_date = unwrappedData.expired_date, let expired = ISO8601DateFormatter().date(from: expired_date) {
+                        if let expired_date = unwrappedData.expired_date, let expired = formatter.date(from: expired_date) {
                             self.stopTeamJoinTimerA()
                             if self.teamJoinTimerB == nil {
                                 let remainingTime = Int(expired.timeIntervalSinceNow)
@@ -191,9 +200,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
     }
 
-    private let dataHandleQueue = DispatchQueue(label: "com.sportsx.competition.dataHandleQueue", qos: .userInitiated) // 串行队列，用于处理数据
-    private let timerQueue = DispatchQueue(label: "com.sportsx.competition.timerQueue", qos: .userInitiated) // 串行队列，用于处理手机端高频计时器的回调
-    private var modelRemainingSamples: [String: Int] = [:] // 记录每个模型的剩余预测条数
+    private let dataHandleQueue = DispatchQueue(label: "com.sportsx.competition.imuHandleQueue", qos: .userInitiated)   // 串行队列，用于处理imu数据
+    private let timerQueue = DispatchQueue(label: "com.sportsx.competition.timerQueue", qos: .userInitiated)            // 串行队列，用于处理手机端高频计时器的回调
+    private let statsQueue = DispatchQueue(label: "com.sportsx.competition.statsHandleQueue")                           // 串行队列，用于处理外设收集的stats数据
     
     // Combine
     private var locationSelectedViewCancellable: AnyCancellable?
@@ -209,7 +218,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         motionManager.magnetometerUpdateInterval = 0.05
         requestMicrophoneAccess()
         setupDataBindings()
-        
         // 嵌套的ObservableObject逐层订阅通知写在这里：
     }
     
@@ -247,8 +255,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         dataFusionManager.predictionSubject
             .receive(on: dataHandleQueue)
             .sink { [weak self] snapshot in
+                guard let self = self else { return }
                 Logger.competition.notice_public("predict time: \(snapshot.predictTime)")
-                self?.checkModelsForPrediction(with: snapshot)
+                self.matchContext.sensorData = snapshot
+                self.eventBus.emit(.matchIMUSensorUpdate, context: self.matchContext)
             }
             .store(in: &dataCancellables)
     }
@@ -276,7 +286,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 let distance = location.distance(from: CLLocation(latitude: startCoordinate_WGS.latitude, longitude: startCoordinate_WGS.longitude))
                 
                 DispatchQueue.main.async {
-                    self.canStartCompetition = distance <= self.safetyRadius
+                    self.isInValidArea = distance <= self.safetyRadius
                 }
             }
         }
@@ -287,138 +297,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         print("模型 \(modelName) 预测结果: \(result)")
         // 这里可以根据需要更新UI或执行其他逻辑
     }*/
-    
-    private func checkModelsForPrediction(with data: DataSnapshot) {
-        guard isRecording else { return }
-
-        for i in 0..<data.predictTime {
-            //let dataPerTime =
-            for model in modelManager.selectedModelInfos {
-                let modelName = model.modelName
-                //print(modelName)
-                if var remaining = modelRemainingSamples[modelName] {
-                    //print(remaining)
-                    remaining -= 1
-                    if remaining <= 0 {
-                        // 到达预测时机
-                        let lastToEnd = data.predictTime - i - 1
-                        let total = data.phoneSlice.count - lastToEnd
-                        // 数据不足时跳过此次预测
-                        if total >= model.inputWindowInSamples {
-                            performPrediction(for: model, with: data, atLast: lastToEnd)
-                        }
-                    } else {
-                        modelRemainingSamples[modelName] = remaining
-                    }
-                }
-            }
-        }
-    }
-        
-    private func performPrediction(for model: AnyPredictionModel, with data: DataSnapshot, atLast lastToEnd: Int) {
-        // 获取模型需要的输入数据(最近model.inputWindowInSamples条数据)
-        let inputData = model.isPhoneData
-        ? getLastPhoneSamples(count: model.inputWindowInSamples, data: data.phoneSlice, before: lastToEnd)
-        : getLastSensorSamples(sensorLocation: model.sensorLocation, count: model.inputWindowInSamples, data: data.sensorSlice, before: lastToEnd)
-        
-        model.predict(inputData: inputData) { [weak self] result in
-            guard let self = self else { return }
-            // 根据结果调整下次预测的时机
-            if model.requiresDecisionBasedInterval {
-                self.modelRemainingSamples[model.modelName] = model.adjustPredictionInterval(basedOn: result)
-            } else {
-                self.modelRemainingSamples[model.modelName] = model.predictionIntervalInSamples
-            }
-            // 处理预测结果，确保在主线程上更新
-            if let resultBool = result as? Bool, resultBool == true {
-                DispatchQueue.main.async {
-                    self.predictResultCnt += 1
-                    //self.modelResults[model.modelName] = result
-                    //self.compensationTime += model.compensationValue
-                }
-            }
-            //self.handleModelPrediction(modelName: model.modelName, result: result)
-        }
-    }
-    
-    // 返回手机端原始最新待预测数据
-    func getLastPhoneSamples(count: Int, data: [PhoneData?], before: Int) -> [Float] {
-        let total = data.count - before
-        let startIndex = max(total - count, 0)
-        let recentData = Array(data[startIndex..<total])
-        let recentDataFloat = convertPhoneToFloatArray(phoneData: recentData)
-        
-        return recentDataFloat
-    }
-    
-    // 返回多设备端传感器最新待预测数据并预处理
-    func getLastSensorSamples(sensorLocation: Int, count: Int, data: [[SensorTrainingData?]], before: Int) -> [Float] {
-        var result: [SensorTrainingData?] = []
-        let deviceNum = dataFusionManager.sensorDeviceCount
-        // 依次检查 sensorLocation 的 bit0 ~ bit5
-        for i in 0..<deviceNum + 1 {
-            // (1 << i) 表示第 i 位的掩码(1,2,4,8,16)，与 sensorLocation 做与运算检查是否为 1
-            if (sensorLocation & (1 << i)) != 0 {
-                let sourceArray = data[i]
-                // 若 sourceArray 数量不足 count，则直接全部取；否则取后 count 个
-                let total = sourceArray.count - before
-                let startIndex = max(0, total - count)
-                let lastPart = sourceArray[startIndex..<total]
-                result.append(contentsOf: lastPart)
-            }
-        }
-        let resultFloat = convertSensorToFloatArray(sensorData: result)
-        
-        return resultFloat
-    }
-    
-    func convertPhoneToFloatArray(phoneData: [PhoneData?]) -> [Float] {
-        var result: [Float] = []
-        
-        for data in phoneData {
-            if let data = data {
-                // 如果数据不为 nil，则将其值转换为 Float 并加入结果数组
-                result.append(contentsOf: [
-                    Float(data.accX),
-                    Float(data.accY),
-                    Float(data.accZ),
-                    Float(data.gyroX),
-                    Float(data.gyroY),
-                    Float(data.gyroZ),
-                    Float(data.magX),
-                    Float(data.magY),
-                    Float(data.magZ)
-                ])
-            } else {
-                // 如果数据为 nil，则用 0 来占位
-                result.append(contentsOf: [0, 0, 0, 0, 0, 0, 0, 0, 0])
-            }
-        }
-        return result
-    }
-    
-    func convertSensorToFloatArray(sensorData: [SensorTrainingData?]) -> [Float] {
-        var result: [Float] = []
-        
-        for data in sensorData {
-            if let data = data {
-                // 如果数据不为 nil，则将其值转换为 Float 并加入结果数组
-                result.append(contentsOf: [
-                    Float(data.accX),
-                    Float(data.accY),
-                    Float(data.accZ),
-                    Float(data.gyroX),
-                    Float(data.gyroY),
-                    Float(data.gyroZ)
-                ])
-            } else {
-                // 如果数据为 nil，则用 0 来占位
-                result.append(contentsOf: [0, 0, 0, 0, 0, 0])
-            }
-        }
-        
-        return result
-    }
     
     // Request microphone access
     private func requestMicrophoneAccess() {
@@ -506,10 +384,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func stopCompetition() {
-        isRecording = false
-        
-        modelRemainingSamples.removeAll()
-        
         // Stop location updates
         deleteCompetitionLocationSubscription()
         LocationManager.shared.backToLastSet()
@@ -524,36 +398,67 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 停止手机和传感器设备的数据收集
         self.stopTimer()
         for (pos, dev) in deviceManager.deviceMap {
-            if let device = dev {
-                stopCollecting(device: device)
+            if let device = dev, (sensorRequest & (1 << (pos.rawValue + 1))) != 0 {
+                //stopCollecting(device: device)
+                Logger.competition.notice_public("\(pos.name) watch stop collecting")
+                device.stopCollection()
             }
         }
-        
+        finalizeCompetition()
+    }
+    
+    // 处理外设发送来的统计数据
+    func handleStatsData(stats: [String: Any]) {
+        statsQueue.async {
+            if let avgHeartRate = stats["avgHeartRate"] as? Double {
+                self.matchContext.avgHeartRate = avgHeartRate
+            }
+            if let totalEnergy = stats["totalEnergy"] as? Double {
+                self.matchContext.totalEnergy = totalEnergy
+            }
+            if let avgPower = stats["avgPower"] as? Double {
+                self.matchContext.avgPower = avgPower
+            }
+            if let latestHeartRate = stats["latestHeartRate"] as? Double {
+                self.matchContext.latestHeartRate = latestHeartRate
+            }
+            if let latestPower = stats["latestPower"] as? Double {
+                self.matchContext.latestPower = latestPower
+            }
+        }
+    }
+    
+    func finalizeCompetition() {
         if SAVEPHONEDATA {
             self.finalizeCompetitionData()
         }
+        eventBus.emit(.matchEnd, context: matchContext)
         
-        finishCometition_server()
+        finishCompetition_server()
         
-        predictResultCnt = 0
         dataFusionManager.resetAll()
-        modelManager.resetAll()
         resetCompetitionProperties()
+        isRecording = false
         Logger.competition.notice_public("competition stop")
     }
     
-    func finishCometition_server() {
+    // todo: 暂时开始时间和结束时间都由客户端决定，未来可在服务端接收到请求后记录时间进行二次验证
+    func finishCompetition_server() {
+        guard let start = startTime else { return }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let endTime = formatter.string(from: Date())
+        
         if let record = currentBikeRecord, sport == .Bike {
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
-            
-            var body: [String: String] = [:]
-            body["record_id"] = record.record_id
-            if let start = startTime {
-                body["end_time"] = ISO8601DateFormatter().string(from: start + dataFusionManager.elapsedTime)
-            }
-            body["duration_seconds"] = "\(dataFusionManager.elapsedTime)"
-            guard let encodedBody = try? JSONEncoder().encode(body) else {
+            let requestData = FinishMatchRequest(
+                record_id: record.record_id,
+                end_time: endTime,
+                bonus_in_cards: matchContext.bonusEachCards,
+                path: pathData
+            )
+            guard let encodedBody = try? JSONEncoder().encode(requestData) else {
                 return
             }
             
@@ -563,6 +468,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 case .success:
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
+                    DispatchQueue.main.async {
+                        self.navigationManager.append(.bikeRecordDetailView(id: record.record_id))
+                    }
                 default: break
                 }
             }
@@ -570,14 +478,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         if let record = currentRunningRecord, sport == .Running {
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
-            
-            var body: [String: String] = [:]
-            body["record_id"] = record.record_id
-            if let start = startTime {
-                body["end_time"] = ISO8601DateFormatter().string(from: start + dataFusionManager.elapsedTime)
-            }
-            body["duration_seconds"] = "\(dataFusionManager.elapsedTime)"
-            guard let encodedBody = try? JSONEncoder().encode(body) else {
+            let requestData = FinishMatchRequest(
+                record_id: record.record_id,
+                end_time: endTime,
+                bonus_in_cards: matchContext.bonusEachCards,
+                path: pathData
+            )
+            guard let encodedBody = try? JSONEncoder().encode(requestData) else {
                 return
             }
             
@@ -587,6 +494,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 case .success:
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
+                    DispatchQueue.main.async {
+                        self.navigationManager.append(.runningRecordDetailView(id: record.record_id))
+                    }
                 default: break
                 }
             }
@@ -594,15 +504,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func startCompetition_server() async -> Bool {
+        startTime = Date()
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let record = currentBikeRecord, sport == .Bike {
-            startTime = Date()
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
             
             var body: [String: String] = [:]
             body["record_id"] = record.record_id
             if let start = startTime {
-                body["start_time"] = ISO8601DateFormatter().string(from: start)
+                body["start_time"] = formatter.string(from: start)
             }
             guard let encodedBody = try? JSONEncoder().encode(body) else {
                 return false
@@ -617,14 +529,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
         }
         if let record = currentRunningRecord, sport == .Running {
-            startTime = Date()
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
             
             var body: [String: String] = [:]
             body["record_id"] = record.record_id
             if let start = startTime {
-                body["start_time"] = ISO8601DateFormatter().string(from: start)
+                body["start_time"] = formatter.string(from: start)
             }
             guard let encodedBody = try? JSONEncoder().encode(body) else {
                 return false
@@ -644,6 +555,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func startRecordingSession() {
+        matchContext.reset()
+        matchContext.isTeam = isTeam
+        eventBus.emit(.matchStart, context: matchContext)
+        
         // 重置组队模式下的计时环境
         stopAllTeamJoinTimers()
         teamJoinRemainingTime = teamJoinTimeWindow
@@ -651,11 +566,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         isRecording = true
         competitionData = []
-        
-        // 初始化模型剩余样本数
-        for model in modelManager.selectedModelInfos {
-            modelRemainingSamples[model.modelName] = model.predictionIntervalInSamples
-        }
         
         // Start location updates
         LocationManager.shared.changeToHighUpdate()
@@ -675,7 +585,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         let isNeedPhoneData = sensorRequest & 0b000001 != 0
         let sensorRequest = sensorRequest >> 1
-        dataFusionManager.setPredictWindow(maxWindow: modelManager.maxInputWindow)
+        //dataFusionManager.setPredictWindow(maxWindow: modelManager.maxInputWindow)
         
         // 所有设备开始收集数据
         if isNeedPhoneData {
@@ -684,39 +594,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         for (pos, dev) in deviceManager.deviceMap {
             if let device = dev, (sensorRequest & (1 << pos.rawValue)) != 0 {
                 dataFusionManager.deviceNeedToWork |= (1 << (pos.rawValue + 1))
-                startCollecting(device: device)
-            }
-        }
-    }
-    
-    func startCollecting(device: SensorDeviceProtocol) {
-        // 每秒检查一次连接状态
-        collectionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
-            // 检查是否连接成功
-            if device.connect() {
-                Logger.competition.notice_public("watch data start collecting")
-                device.startCollection()  // 开始数据收集
-                self.collectionTimer?.invalidate()  // 停止定时器
-            } else {
-                Logger.competition.notice_public("watch not connected, retrying...")
-            }
-        }
-    }
-    
-    func stopCollecting(device: SensorDeviceProtocol) {
-        // 每秒检查一次连接状态
-        collectionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
-            // 检查是否连接成功
-            if device.connect() {
-                Logger.competition.notice_public("watch data stop collecting")
-                device.stopCollection()  // 停止数据收集
-                self.collectionTimer?.invalidate()  // 停止定时器
-            } else {
-                Logger.competition.notice_public("watch not connected, retrying...")
+                //startCollecting(device: device)
+                Logger.competition.notice_public("\(pos.name) watch data start collecting")
+                device.startCollection(activityType: sport.rawValue, locationType: "outdoor")  // 开始数据收集
             }
         }
     }
@@ -726,29 +606,36 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 在比赛开始时已记录下 startTime = Date()
         let timer = DispatchSource.makeTimerSource(queue: timerQueue)
         timer.schedule(deadline: .now(), repeating: 0.05) // 每0.05秒触发一次
-        var counter = 0 // 用于计数，每次事件触发加1
+        var tickCounter = 0 // 用于计数，每次事件触发加1
         
         timer.setEventHandler { [weak self] in
             guard let self = self, self.isRecording, let start = self.startTime else { return }
             
-            // 1. 记录数据
-            self.recordMotionData()
+            // 记录phone端数据
+            if self.sensorRequest & 0b000001 != 0 {
+                self.recordMotionData()
+            }
             
-            // 2. 更新计数器
-            counter += 1
+            // 更新计数器
+            tickCounter += 1
             
-            // 每20次更新一次 elapsedTime，相当于1秒更新一次（20 * 0.05s = 1s）
-            if counter >= 20 {
-                counter = 0
+            // 每 1 秒更新 elapsedTime
+            if tickCounter % 20 == 0 { // 20 * 0.05s = 1s
                 let newElapsedTime = Date().timeIntervalSince(start)
                 DispatchQueue.main.async {
                     self.dataFusionManager.elapsedTime = newElapsedTime
                 }
             }
+            
+            // 每 3 秒记录 path
+            if tickCounter % 60 == 0 { // 60 * 0.05s = 3s
+                self.recordPath()
+                tickCounter = 0 // 重置计数器
+            }
         }
         self.timer = timer
         timer.resume()
-        Logger.competition.notice_public("phone data start collecting.")
+        Logger.competition.notice_public("start phone timer.")
     }
     
     // 停止定时器
@@ -757,7 +644,24 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         collectionTimer = nil
         timer?.cancel()
         timer = nil
-        Logger.competition.notice_public("phone data finish collecting.")
+        recordPath()
+        Logger.competition.notice_public("stop phone timer.")
+    }
+    
+    // 记录path数据
+    private func recordPath() {
+        guard let location = LocationManager.shared.getLocation() else {
+            print("location data missed in path point.")
+            return
+        }
+        let speed = LocationManager.shared.getLocation()?.speed ?? -1
+        let pathPoint = PathPoint(
+            lat: location.coordinate.latitude,
+            lon: location.coordinate.longitude,
+            speed: speed,
+            timestamp: location.timestamp.timeIntervalSince1970
+        )
+        pathData.append(pathPoint)
     }
     
     // 记录运动数据
@@ -897,15 +801,36 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         endCoordinate = record.trackEnd
     }
     
-    func SelectedCards(_ cards: [MagicCard]) {
+    func activateCards(_ cards: [MagicCard]) {
+        isEffectsFinishPrepare = false
         guard cards.count <= 3 else {
             print("最多选择3个卡片")
             return
         }
-        for card in cards {
-            sensorRequest |= card.sensorLocation
+        
+        // 卸载所有effects
+        sensorRequest = 0
+        dataFusionManager.resetAll()
+        
+        selectedCards = cards
+        activeCardEffects = selectedCards.map { card in
+            MagicCardFactory.createEffect(level: card.level, from: card.cardDef)
         }
-        self.selectedCards = cards
+        eventBus.reset()
+        Task {
+            var allPrepared = true
+            for effect in activeCardEffects {
+                effect.register(eventBus: eventBus)
+                let prepared = await effect.load()
+                if !prepared {
+                    allPrepared = false
+                }
+            }
+            let isAllPrepared = allPrepared
+            await MainActor.run {
+                isEffectsFinishPrepare = isAllPrepared
+            }
+        }
     }
     
     func resetCompetitionProperties() {
@@ -914,13 +839,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         currentBikeRecord = nil
         currentRunningRecord = nil
         selectedCards.removeAll()
+        activeCardEffects.removeAll()
+        eventBus.reset()
+        matchContext.reset()
         sensorRequest = 0
         startCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
         endCoordinate = CLLocationCoordinate2D(latitude: 1, longitude: 1)
         startTime = nil
         sport = .Default
+        pathData = []
+        //expectedStatsWatchCount = 0
+        
+        isInValidArea = false
+        isEffectsFinishPrepare = true
     }
     
+    // todo:
     // 服务端需定期处理异常的team
     // 针对prepared状态的已过期team，修改为completed状态
     // 针对ready状态的team，超过比赛时间后修改为completed状态
@@ -930,8 +864,92 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     // 针对recording的record，检查是否已开始超过2h
 }
 
+class MatchEventBus {
+    typealias EventHandler = (MatchContext) -> Void
+    private var listeners: [MatchEvent: [EventHandler]] = [:]
+    
+    func on(_ event: MatchEvent, handler: @escaping EventHandler) {
+        listeners[event, default: []].append(handler)
+    }
+    
+    func emit(_ event: MatchEvent, context: MatchContext) {
+        listeners[event]?.forEach { $0(context) }
+    }
+    
+    func reset() {
+        listeners.removeAll()
+    }
+}
+
+enum MatchEvent {
+    case matchStart
+    case matchCycleUpdate
+    case matchIMUSensorUpdate
+    case matchEnd
+}
+
+class MatchContext {
+    var isTeam: Bool
+    var latestHeartRate: Double
+    var latestPower: Double
+    var avgHeartRate: Double
+    var totalEnergy: Double
+    var avgPower: Double
+    var sensorData: DataSnapshot
+    var bonusEachCards: [CardBonusItem]
+    
+    init() {
+        self.isTeam = false
+        self.latestHeartRate = 0
+        self.latestPower = 0
+        self.avgHeartRate = 0
+        self.totalEnergy = 0
+        self.avgPower = 0
+        self.sensorData = DataSnapshot(phoneSlice: [], sensorSlice: [], predictTime: 0)
+        self.bonusEachCards = []
+    }
+    
+    func reset() {
+        isTeam = false
+        latestHeartRate = 0
+        latestPower = 0
+        avgHeartRate = 0
+        totalEnergy = 0
+        avgPower = 0
+        sensorData = DataSnapshot(phoneSlice: [], sensorSlice: [], predictTime: 0)
+        bonusEachCards = []
+    }
+    
+    func addOrUpdateBonus(cardID: String, bonus: Double) {
+        if let idx = bonusEachCards.firstIndex(where: { $0.card_id == cardID }) {
+            bonusEachCards[idx].bonus_time += bonus
+        } else {
+            bonusEachCards.append(CardBonusItem(card_id: cardID, bonus_time: bonus))
+        }
+    }
+}
+
 struct TeamExpiredResponse: Codable {
     let expired_date: String?
+}
+
+struct PathPoint: Codable {
+    let lat: Double
+    let lon: Double
+    let speed: Double
+    let timestamp: TimeInterval
+}
+
+struct CardBonusItem: Codable {
+    let card_id: String
+    var bonus_time: Double
+}
+
+struct FinishMatchRequest: Codable {
+    let record_id: String
+    let end_time: String
+    let bonus_in_cards: [CardBonusItem]
+    let path: [PathPoint]
 }
 
 // phone端完整数据格式

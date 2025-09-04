@@ -19,6 +19,12 @@ struct PersonInfoCard: Identifiable, Equatable {
         self.name = name
     }
     
+    init(from person: PersonInfoDTO) {
+        self.userID = person.user_id
+        self.avatarUrl = person.avatar_image_url
+        self.name = person.nickname
+    }
+    
     static func == (lhs: PersonInfoCard, rhs: PersonInfoCard) -> Bool {
         return lhs.userID == rhs.userID
     }

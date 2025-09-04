@@ -13,7 +13,8 @@ import Combine
 
 
 enum AppRoute: Hashable {
-    case competitionResultView
+    case bikeRecordDetailView(id: String)
+    case runningRecordDetailView(id: String)
     case competitionCardSelectView
     case competitionRealtimeView
     case sensorBindView
@@ -52,13 +53,17 @@ enum AppRoute: Hashable {
     case cpAssetBackendView
     case cpAssetPriceBackendView
     case userAssetManageBackendView
+    case magicCardBackendView
+    case magicCardPriceBackendView
 #endif
     
     var string: String {
         switch self {
-        case .competitionResultView: 
-            return "competitionResultView"
-        case .competitionCardSelectView: 
+        case .bikeRecordDetailView:
+            return "bikeRecordDetailView"
+        case .runningRecordDetailView:
+            return "runningRecordDetailView"
+        case .competitionCardSelectView:
             return "competitionCardSelectView"
         case .competitionRealtimeView:
             return "competitionRealtimeView"
@@ -133,6 +138,10 @@ enum AppRoute: Hashable {
             return "cpAssetPriceBackendView"
         case .userAssetManageBackendView:
             return "userAssetManageBackendView"
+        case .magicCardBackendView:
+            return "magicCardBackendView"
+        case .magicCardPriceBackendView:
+            return "magicCardPriceBackendView"
 #endif
         }
     }

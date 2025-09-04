@@ -148,8 +148,8 @@ struct LoginView: View {
     
     func loginAfterSuccess() {
         Task {
-            MagicCardManager.shared.fetchUserCards() // 获取MagicCard
-            await ModelManager.shared.updateModels() // 更新本地MLModel
+            //MagicCardManager.shared.fetchUserCards() // 获取MagicCard
+            //await ModelManager.shared.updateModels() // 更新本地MLModel
         }
     }
     

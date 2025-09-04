@@ -62,6 +62,12 @@ struct AdminPanelView: View {
                     SetUpItemView(icon: "pc", title: "cp资产商店管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.cpAssetPriceBackendView)
                     }
+                    SetUpItemView(icon: "pc", title: "卡牌定义管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.magicCardBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "卡牌商店管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.magicCardPriceBackendView)
+                    }
                     SetUpItemView(icon: "pc", title: "用户资产管理",showDivider: false, isDarkScheme: false) {
                         NavigationManager.shared.append(.userAssetManageBackendView)
                     }

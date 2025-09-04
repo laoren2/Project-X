@@ -451,3 +451,48 @@ struct ExclusiveTouchTapModifier: ViewModifier {
         }
     }
 }
+
+extension String {
+    func rendered(with effectDef: JSONValue) -> String {
+        // 支持 {{key}} 或 {{ key.path }}，允许 key 两侧的空白
+        let pattern = #"\{\{\s*([\w\.]+)\s*\}\}"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return self }
+
+        // 用 NSString 计算长度和做替换，避免 Unicode/NSRange 对不齐
+        let nsSelf = self as NSString
+        let fullRange = NSRange(location: 0, length: nsSelf.length)
+        let matches = regex.matches(in: self, range: fullRange)
+        
+        // 从后往前替换，避免 range 位移
+        var result = self
+        for match in matches.reversed() {
+            guard match.numberOfRanges == 2 else { continue }
+            let full = match.range(at: 0)
+            let key = match.range(at: 1)
+
+            let nsResult = result as NSString
+            let keyPath = nsResult.substring(with: key)              // 如 "bonus_time" 或 "skill1.bonus_time"
+            let keys = keyPath.split(separator: ".").map(String.init)
+
+            if let value = effectDef.value(for: keys) {
+                let replacement: String
+                switch value {
+                case .string(let s):
+                    replacement = s
+                case .number(let n):
+                    // 整数不带小数，小数保留两位
+                    replacement = n == floor(n) ? String(Int(n)) : String(format: "%.2f", n)
+                case .bool(let b):
+                    replacement = b ? "true" : "false"
+                default:
+                    replacement = ""
+                }
+                // 用 NSString 的替换，避免 Range 转换问题
+                result = (result as NSString).replacingCharacters(in: full, with: replacement)
+            } else {
+                result = (result as NSString).replacingCharacters(in: full, with: "")
+            }
+        }
+        return result
+    }
+}

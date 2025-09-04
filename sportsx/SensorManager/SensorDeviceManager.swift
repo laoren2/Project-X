@@ -6,8 +6,11 @@
 //
 
 import Foundation
+import WatchConnectivity
 
-enum BodyPosition: Int, CaseIterable {
+enum BodyPosition: Int, CaseIterable, Identifiable {
+    var id: Int { rawValue }
+    
     case posLH = 0
     case posRH
     case posLF
@@ -40,7 +43,13 @@ protocol SensorDeviceProtocol {
     var dataFusionManager: DataFusionManager { get }
     
     // 当前连接状态
-    var isConnected: Bool { get }
+    //var isReady: Bool { get }
+    
+    // 当前可接收数据状态
+    var canReceiveData: Bool { get }
+    
+    // 是否需要收集IMU数据
+    var enableIMU: Bool { get set }
     
     // 连接设备
     func connect() -> Bool
@@ -49,20 +58,14 @@ protocol SensorDeviceProtocol {
     func disconnect()
     
     // 开始采集
-    func startCollection()
+    func startCollection(activityType: String, locationType: String)
     
     // 停止采集
     func stopCollection()
-    
-    // 这里可以定义一个数据流或者回调，供外部拿到实时数据
-    // 例如使用 Combine, 也可以定义 delegate/callback
-    //var dataPublisher: Published<[SensorData]>.Publisher { get }
-    
-    // 如果需要一次性读数据，也可以定义： func fetchLatestData() -> SensorData?
 }
 
-// DeviceManager负责管理传感器设备
-class DeviceManager: ObservableObject {
+// DeviceManager负责管理传感器设备（考虑到AW的特殊性，WCSession的激活和大部分时间的代理放在这里）
+class DeviceManager: NSObject, ObservableObject {
     static let shared = DeviceManager()
     // 利用一个字典存储绑定的设备；如果没有绑定则为 nil
     @Published private(set) var deviceMap: [BodyPosition: SensorDeviceProtocol?] = [
@@ -77,7 +80,7 @@ class DeviceManager: ObservableObject {
     /// bit0 对应 position0, bit1 对应 position1, ...
     @Published private(set) var bindingState: Int = 0
     
-    private init() {}
+    private override init() {}
     
     // 绑定设备
     func bindDevice(_ device: SensorDeviceProtocol, at position: BodyPosition) {
@@ -107,25 +110,64 @@ class DeviceManager: ObservableObject {
         return deviceMap[position] ?? nil
     }
     
-    // 开始比赛：对已绑定的设备先连接再 startCollection
-    /*func startCompetition() {
+    func checkSensorLocation(at sensorLocation: Int, in deviceName: [SensorType]) -> Bool {
         for pos in BodyPosition.allCases {
-            if let dev = deviceMap[pos], dev != nil {
-                dev?.connect { success in
-                    if success {
-                        dev?.startCollection()
-                    }
+            if (sensorLocation & (1 << pos.rawValue)) != 0 {
+                guard let dev = getDevice(at: pos), deviceName.contains(where: { $0.rawValue == dev.deviceName }) else {
+                    return false
                 }
             }
         }
+        return true
     }
     
-    // 停止比赛：对已绑定设备 stopCollection 并可选择是否断开
-    func stopCompetition() {
+    // 激活WCSession
+    func activateWCSession() {
+        if WCSession.isSupported() {
+            let session = WCSession.default
+            session.delegate = self
+            session.activate()
+        } else {
+            print("WCSession not supported")
+        }
+    }
+    
+    // 检测是否有可用的AW
+    func existAvailableAW() -> Bool {
+        let session = WCSession.default
+        if session.activationState != .activated {
+            print("重新激活")
+            session.activate()
+        }
+        if !session.isPaired {
+            print("not paired")
+            return false
+        }
+        return true
+    }
+    
+    // AW只能支持绑定一块（与iphone配对的AW）
+    func hasAppleWatchBound() -> Bool {
         for pos in BodyPosition.allCases {
-            if let dev = deviceMap[pos], dev != nil {
-                dev?.stopCollection()
+            if let dev = getDevice(at: pos), dev.deviceName == "applewatch" {
+                return true
             }
         }
-    }*/
+        return false
+    }
+}
+
+extension DeviceManager: WCSessionDelegate {
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        print("sessionDidBecomeInactive")
+    }
+    
+    func sessionDidDeactivate(_ session: WCSession) {
+        print("sessionDidDeactivate")
+        session.activate()
+    }
+    
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        print("activationState: \(activationState.rawValue)")
+    }
 }

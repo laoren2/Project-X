@@ -105,21 +105,21 @@ struct CompetitionRealtimeView: View {
                 .font(.subheadline)
                 .foregroundColor(.white)
             //Spacer()
-            Text("Xpose: \(appState.competitionManager.predictResultCnt)")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.top, 20)
+            //Text("Xpose: \(appState.competitionManager.predictResultCnt)")
+            //    .font(.headline)
+            //    .foregroundColor(.white)
+            //    .padding(.top, 20)
             
             Spacer()
             
-            if !appState.competitionManager.isRecording && !appState.competitionManager.canStartCompetition {
+            if !appState.competitionManager.isRecording && !appState.competitionManager.isInValidArea {
                 Text("您不在出发点，无法开始比赛")
                     .foregroundColor(Color.secondText)
             }
             
             ZStack {
                 let isDisabledInTeamMode = appState.competitionManager.isTeam && appState.competitionManager.isTeamJoinWindowExpired
-                let isGray = (!appState.competitionManager.canStartCompetition) || isDisabledInTeamMode
+                let isGray = (!appState.competitionManager.isInValidArea) || isDisabledInTeamMode || (!appState.competitionManager.isEffectsFinishPrepare)
                 
                 Text(appState.competitionManager.isRecording ? "进行中" : "开始")
                     .font(.title)
@@ -207,12 +207,25 @@ struct CompetitionRealtimeView: View {
             return
         }
         
-        guard appState.competitionManager.canStartCompetition else {
+        guard appState.competitionManager.isInValidArea else {
             let toast = Toast(message: "您不在出发点范围内")
             ToastManager.shared.show(toast: toast)
             return
         }
-        
+        guard appState.competitionManager.isEffectsFinishPrepare else {
+            let toast = Toast(message: "资源加载中...")
+            ToastManager.shared.show(toast: toast)
+            return
+        }
+        for (pos, dev) in DeviceManager.shared.deviceMap {
+            if let device = dev, (appState.competitionManager.sensorRequest & (1 << (pos.rawValue + 1))) != 0 {
+                if !device.connect() {
+                    let toast = Toast(message: "传感器设备已断开连接,请重试")
+                    ToastManager.shared.show(toast: toast)
+                    return
+                }
+            }
+        }
         if !appState.competitionManager.isRecording {
             appState.competitionManager.startCompetition()
         }

@@ -88,18 +88,14 @@ struct BikeRaceRecordManagementView: View {
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.incompleteRecords) { record in
-                                BikeCompetitionRecordCard(record: record, onStart:  {
-                                    viewModel.startCompetition(record: record)
-                                }, onDelete: {
-                                    viewModel.cancelCompetition(record: record)
-                                })
-                                .onAppear {
-                                    if record == viewModel.incompleteRecords.last && viewModel.hasMoreIncompleteRecords {
-                                        Task {
-                                            await viewModel.queryIncompleteRecords(withLoadingToast: false, reset: false)
+                                BikeCompetitionRecordCard(viewModel: viewModel, record: record)
+                                    .onAppear {
+                                        if record == viewModel.incompleteRecords.last && viewModel.hasMoreIncompleteRecords {
+                                            Task {
+                                                await viewModel.queryIncompleteRecords(withLoadingToast: false, reset: false)
+                                            }
                                         }
                                     }
-                                }
                             }
                             if viewModel.isIncompleteLoading {
                                 ProgressView()
@@ -135,16 +131,14 @@ struct BikeRaceRecordManagementView: View {
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.completedRecords) { record in
-                                BikeCompetitionRecordCard(record: record, onFeedback: {
-                                    viewModel.feedback(record: record)
-                                })
-                                .onAppear {
-                                    if record == viewModel.completedRecords.last && viewModel.hasMoreCompletedRecords {
-                                        Task {
-                                            await viewModel.queryCompletedRecords(withLoadingToast: false, reset: false)
+                                BikeCompetitionRecordCard(viewModel: viewModel, record: record)
+                                    .onAppear {
+                                        if record == viewModel.completedRecords.last && viewModel.hasMoreCompletedRecords {
+                                            Task {
+                                                await viewModel.queryCompletedRecords(withLoadingToast: false, reset: false)
+                                            }
                                         }
                                     }
-                                }
                             }
                             if viewModel.isCompletedLoading {
                                 ProgressView()
@@ -182,10 +176,8 @@ struct BikeRaceRecordManagementView: View {
 // 比赛记录卡片组件
 struct BikeCompetitionRecordCard: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var viewModel: BikeRaceRecordManagementViewModel
     let record: BikeRaceRecord
-    var onStart: (() -> Void)? = nil
-    var onDelete: (() -> Void)? = nil
-    var onFeedback: (() -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -211,9 +203,9 @@ struct BikeCompetitionRecordCard: View {
                 .padding(.vertical, 3)
                 .background(
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(record.isTeam ? Color.orange.opacity(0.2) : Color.blue.opacity(0.2))
+                        .fill(record.isTeam ? Color.orange.opacity(0.2) : Color.green.opacity(0.2))
                 )
-                .foregroundColor(record.isTeam ? .orange : .blue)
+                .foregroundColor(record.isTeam ? .orange : .green)
             }
             
             Divider()
@@ -312,36 +304,32 @@ struct BikeCompetitionRecordCard: View {
                     Spacer()
                     
                     // 开始按钮
-                    if let onStart = onStart {
-                        CommonTextButton(text: "开始比赛") {
-                            onStart()
-                        }
-                        .font(.subheadline)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(appState.competitionManager.isRecording ? .gray.opacity(0.2) : .green.opacity(0.2))
-                        .foregroundColor(appState.competitionManager.isRecording ? .gray : .green)
-                        .cornerRadius(4)
-                        .disabled(appState.competitionManager.isRecording)
+                    CommonTextButton(text: "开始比赛") {
+                        viewModel.startCompetition(record: record)
                     }
+                    .font(.subheadline)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(appState.competitionManager.isRecording ? .gray.opacity(0.2) : .green.opacity(0.2))
+                    .foregroundColor(appState.competitionManager.isRecording ? .gray : .green)
+                    .cornerRadius(4)
+                    .disabled(appState.competitionManager.isRecording)
                     
                     // 取消按钮
-                    if let onDelete = onDelete {
-                        CommonTextButton(text: "取消报名") {
-                            onDelete()
-                        }
-                        .font(.subheadline)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.red.opacity(0.2))
-                        .foregroundColor(.red)
-                        .cornerRadius(4)
-                        .padding(.leading, 10)
+                    CommonTextButton(text: "取消报名") {
+                        viewModel.cancelCompetition(record: record)
                     }
+                    .font(.subheadline)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.red.opacity(0.2))
+                    .foregroundColor(.red)
+                    .cornerRadius(4)
+                    .padding(.leading, 10)
                 }
             }
             
-            // 对于已完成的比赛，只添加反馈按钮
+            // 对于已完成的比赛，添加详情和反馈按钮
             if record.status == .completed {
                 HStack {
                     Text("\(record.regionName)-\(record.eventName)")
@@ -351,18 +339,27 @@ struct BikeCompetitionRecordCard: View {
                     
                     Spacer()
                     
-                    // 反馈按钮
-                    if let onFeedback = onFeedback {
-                        CommonTextButton(text: "对成绩有疑问?") {
-                            onFeedback()
-                        }
-                        .font(.subheadline)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.red.opacity(0.2))
-                        .foregroundColor(.red)
-                        .cornerRadius(4)
+                    // 详情按钮
+                    CommonTextButton(text: "详情") {
+                        appState.navigationManager.append(.bikeRecordDetailView(id: record.record_id))
                     }
+                    .font(.subheadline)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue.opacity(0.2))
+                    .foregroundColor(.blue)
+                    .cornerRadius(4)
+                    
+                    // 反馈按钮
+                    CommonTextButton(text: "对成绩有疑问?") {
+                        viewModel.feedback(record: record)
+                    }
+                    .font(.subheadline)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.red.opacity(0.2))
+                    .foregroundColor(.red)
+                    .cornerRadius(4)
                 }
             }
         }

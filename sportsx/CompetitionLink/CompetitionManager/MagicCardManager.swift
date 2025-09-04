@@ -7,58 +7,238 @@
 
 import Foundation
 
-struct MagicCard: Identifiable, Codable, Equatable {
-    let id: String
-    let modelID: String // 对应PredictionModel & MLModel
-    let name: String
-    let type: String
-    let level: String
-    let imageURL: String
-    let compensationValue: Double
-    // sensorLocation记录传感器设备要求
-    // |---  +   +   +   +   +    +  |
-    //       |   |   |   |   |    |
-    //      WST  RF  LF  RH  LH  PHONE
-    let sensorLocation: Int
-    let lucky: Float
-    let energy: Int
-    let grade: String
-    let description: String
-}
 
-// todo: 添加card前对device binding情况进行检查
-class MagicCardManager: ObservableObject {
-    static let shared = MagicCardManager()
+class MagicCardFactory {
+    typealias CardConstructor = (String, Int, JSONValue) -> MagicCardEffect
+    private static var registry: [String: CardConstructor] = [:]
     
-    @Published var availableCards: [MagicCard] = []
-    
-    
-    private init() {
-        //fetchUserCards()
+    static func register(type: String, constructor: @escaping CardConstructor) {
+        registry[type] = constructor
     }
     
-    // todo
-    func fetchUserCards() {
-        // 模拟网络请求
-        //var tempCards: [MagicCard] = []
-        DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
-            //guard let self = self else { return }
-            let fetchedCards = [
-                MagicCard(id: "card1", modelID: "model_001", name: "Fire Dragon", type: "团队", level: "5", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 86.7, energy: 91, grade: "B+", description: "test"),
-                MagicCard(id: "card2", modelID: "model_001", name: "Water Serpent", type: "魔法", level: "3", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000001, lucky: 31.2, energy: 80, grade: "B", description: "test"),
-                MagicCard(id: "card3", modelID: "model_002", name: "Earth Golem", type: "动作", level: "4", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000010, lucky: 96.5, energy: 100, grade: "S", description: "test"),
-                MagicCard(id: "card4", modelID: "model_003", name: "Wind Phoenix", type: "动作", level: "2", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000101, lucky: 81.9, energy: 100, grade: "A-", description: "test"),
-                MagicCard(id: "card5", modelID: "model_003", name: "Lightning Tiger", type: "陷阱", level: "6", imageURL: "Ads", compensationValue: 0, sensorLocation: 0b000101, lucky: 50.0, energy: 32, grade: "C-", description: "test"),
-                // 添加更多卡片
-            ]
-            DispatchQueue.main.async {
-                self.availableCards = fetchedCards
+    static func createEffect(level: Int, from definition: MagicCardDef) -> MagicCardEffect {
+        guard let constructor = registry[definition.typeName] else {
+            print("No CardEffect registered for type \(definition.typeName)")
+            return EmptyCardEffect()
+        }
+        return constructor(definition.cardID, level, definition.params)
+    }
+}
+
+protocol MagicCardEffect {
+    var cardID: String { get }
+    var level: Int { get }
+    var params: JSONValue { get }
+    func register(eventBus: MatchEventBus)
+    func load() async -> Bool
+}
+
+extension MagicCardEffect {
+    func load() async -> Bool {
+        // 默认什么都不做
+        return true
+    }
+}
+
+class EmptyCardEffect:  MagicCardEffect {
+    let cardID: String = "empty"
+    let level: Int = 0
+    let params: JSONValue = .null
+    func register(eventBus: MatchEventBus) {}
+}
+
+class HeartRateBoostEffect: MagicCardEffect {
+    let cardID: String
+    let level: Int
+    let params: JSONValue
+    
+    let threshold: Int
+    let bonusTime: Double
+    
+    init(cardID: String, level: Int, with params: JSONValue) {
+        self.cardID = cardID
+        self.level = level
+        self.threshold = params["threshold"]?.intValue ?? 0
+        self.bonusTime = params["bonusTime"]?.doubleValue ?? 0
+        self.params = params
+    }
+    
+    func load() async -> Bool {
+        let sensorLocation = params["sensor_location"]?.intValue ?? 0
+        CompetitionManager.shared.sensorRequest |= sensorLocation
+        return true
+    }
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchEnd) { context in
+            let avgHR = Int(context.avgHeartRate)
+            if avgHR > self.threshold {
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime)
             }
-            //self.sensorRequest = 1
+        }
+    }
+}
+
+class XposeTestEffect: MagicCardEffect {
+    let cardID: String
+    let level: Int
+    let params: JSONValue
+    
+    let bonusTime: Double
+    let bonusTimeSkill1: Double
+    let inputWindowInSamples: Int
+    let predictionIntervalInSamples: Int
+    let sensorLocation: Int
+    
+    private let modelKey: String
+    private var predictModel: GenericPredictModel<BoolHandler>? = nil
+    
+    var xposeCnt: Int = 0
+    
+    init(cardID: String, level: Int, with params: JSONValue) {
+        self.cardID = cardID
+        self.level = level
+        self.params = params
+        self.bonusTime = params["bonus_time"]?.doubleValue ?? 0
+        self.bonusTimeSkill1 = params["skill1", "bonus_time_skill1"]?.doubleValue ?? 1.0
+        self.predictionIntervalInSamples = params["prediction_interval_in_samples"]?.intValue ?? 0
+        self.modelKey = params["model_key"]?.stringValue ?? "empty_model"
+        self.inputWindowInSamples = params["input_window_in_samples"]?.intValue ?? 0
+        self.sensorLocation = params["sensor_location"]?.intValue ?? 0
+    }
+    
+    func load() async -> Bool {
+        if predictModel == nil {
+            if let model = await ModelManager.shared.loadModel(for: modelKey) {
+                CompetitionManager.shared.sensorRequest |= sensorLocation
+                DataFusionManager.shared.setPredictWindow(maxWindow: inputWindowInSamples)
+                predictModel = GenericPredictModel(params: params, model: model, handler: BoolHandler())
+                // 设置device开启imu收集
+                for (pos, dev) in DeviceManager.shared.deviceMap {
+                    if var device = dev, (sensorLocation & (1 << (pos.rawValue + 1))) != 0 {
+                        device.enableIMU = true
+                    }
+                }
+                return true
+            } else {
+                print("模型 \(modelKey) 加载失败")
+                return false
+            }
+        }
+        return true
+    }
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchIMUSensorUpdate) { context in
+            self.predictModel?.checkForPrediction(with: context.sensorData) { result in
+                return self.onPrediction(result: result, context: context)
+            }
+        }
+        eventBus.on(.matchEnd) { context in
+            if self.level >= 3 && self.xposeCnt >= 3 {
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTimeSkill1)
+            }
         }
     }
     
-    
-    
-    
+    func onPrediction(result: Bool, context: MatchContext) -> Int {
+        if result {
+            print("xpose!")
+            context.addOrUpdateBonus(cardID: cardID, bonus: bonusTime)
+            xposeCnt += 1
+            return inputWindowInSamples
+        } else {
+            return predictionIntervalInSamples
+        }
+    }
 }
+
+/*struct TeamEffect: MagicCardEffect {
+    let bonusTime: Double
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchEnd) { context in
+            
+        }
+    }
+}*/
+
+class PedalRPMEffect: MagicCardEffect {
+    let cardID: String
+    let level: Int
+    let params: JSONValue
+    
+    let threshold: Double
+    let bonusMultiplier: Double
+    
+    let thresholdSkill1: Double
+    let bonusMultiplierSkill1: Double
+    let predictionIntervalInSamples: Int
+    
+    private let modelKey: String
+    private var predictModel: GenericPredictModel<IntHandler>? = nil
+    
+    var pedalCnt: Int = 0
+    
+    init(cardID: String, level: Int, with params: JSONValue) {
+        self.cardID = cardID
+        self.level = level
+        self.params = params
+        self.threshold = params["threshold"]?.doubleValue ?? 0
+        self.bonusMultiplier = params["bonus_multiplier"]?.doubleValue ?? 1.0
+        self.thresholdSkill1 = params["skill1", "threshold_skill1"]?.doubleValue ?? 0
+        self.bonusMultiplierSkill1 = params["skill1", "bonus_multiplier_skill1"]?.doubleValue ?? 1.0
+        self.predictionIntervalInSamples = params["predictionIntervalInSamples"]?.intValue ?? 0
+        self.modelKey = params["model_key"]?.stringValue ?? "empty_model"
+    }
+    
+    func load() async -> Bool {
+        if predictModel == nil {
+            if let model = await ModelManager.shared.loadModel(for: modelKey) {
+                let inputWindowInSamples = params["input_window_in_samples"]?.intValue ?? 0
+                let sensorLocation = params["sensor_location"]?.intValue ?? 0
+                CompetitionManager.shared.sensorRequest |= sensorLocation
+                DataFusionManager.shared.setPredictWindow(maxWindow: inputWindowInSamples)
+                predictModel = GenericPredictModel(params: params, model: model, handler: IntHandler())
+                return true
+            } else {
+                print("模型 \(modelKey) 加载失败")
+                return false
+            }
+        }
+        return true
+    }
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchIMUSensorUpdate) { context in
+            self.predictModel?.checkForPrediction(with: context.sensorData) { result in
+                self.onPrediction(result: result)
+                // 根据结果调整下次预测的时机
+                return self.nextPredictStep()
+            }
+        }
+        eventBus.on(.matchEnd) { context in
+            let recordingMin = DataFusionManager.shared.elapsedTime / 60
+            let pedalAvg = Double(self.pedalCnt) / recordingMin
+            if pedalAvg >= self.threshold {
+                let bonus = self.bonusMultiplier * DataFusionManager.shared.elapsedTime
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
+            }
+            if self.level >= 3 && pedalAvg >= self.thresholdSkill1 {
+                let bonus = self.bonusMultiplierSkill1 * DataFusionManager.shared.elapsedTime
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
+            }
+        }
+    }
+    
+    func onPrediction(result: Int) {
+        pedalCnt += result
+    }
+    
+    func nextPredictStep() -> Int {
+        return predictionIntervalInSamples
+    }
+}
+
+
+

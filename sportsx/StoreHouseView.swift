@@ -11,15 +11,15 @@ import SwiftUI
 struct StoreHouseView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
-    //@State var cpassets: [CPAssetUserInfo] = []
-    @State var selectedAsset: CPAssetUserInfo? = nil
+    @State var selectedCPAsset: CPAssetUserInfo? = nil
+    @State var selectedCard: MagicCard? = nil
     @State var selectedTab: Int = 0
     @State private var firstOnAppear = true
     let globalConfig = GlobalConfig.shared
     
     
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             Rectangle()
                 .fill(
                     LinearGradient(
@@ -75,32 +75,69 @@ struct StoreHouseView: View {
                         let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
                         let itemWidth = (geo.size.width - totalSpacing - 20) / CGFloat(columnCount) // 20为ScrollView两侧padding
 
-                        ScrollView {
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                ForEach(assetManager.cpassets) { asset in
-                                    CPAssetUserCardView(asset: asset)
-                                        .frame(width: itemWidth)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
-                                        )
-                                        .onTapGesture {
-                                            if selectedAsset?.id == asset.id {
-                                                selectedAsset = nil
-                                            } else {
-                                                selectedAsset = asset
+                        ZStack(alignment: .bottom) {
+                            ScrollView {
+                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
+                                    ForEach(assetManager.cpassets) { asset in
+                                        CPAssetUserCardView(asset: asset)
+                                            .frame(width: itemWidth)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(selectedCPAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                            )
+                                            .onTapGesture {
+                                                if selectedCPAsset?.id == asset.id {
+                                                    selectedCPAsset = nil
+                                                } else {
+                                                    selectedCPAsset = asset
+                                                }
                                             }
+                                    }
+                                }
+                                .padding(10)
+                            }
+                            .refreshable {
+                                selectedCPAsset = nil
+                                await assetManager.queryCPAssets(withLoadingToast: false)
+                            }
+                            if let selected = selectedCPAsset {
+                                HStack(alignment: .bottom, spacing: 20) {
+                                    VStack(alignment: .leading) {
+                                        Text(selected.name)
+                                            .bold()
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 5)
+                                        
+                                        ScrollView {
+                                            Text(selected.description)
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(4)
+                                        }
+                                        .frame(height: 48)
+                                        .padding(6)
+                                        .background(Color.gray.opacity(0.8))
+                                        .cornerRadius(10)
+                                    }
+                                    
+                                    Text("去购买")
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.orange)
+                                        .cornerRadius(8)
+                                        .onTapGesture {
+                                            // todo
                                         }
                                 }
+                                .padding()
+                                .background(Color.black)
                             }
-                            .padding(10)
                         }
                     }
                     .frame(maxHeight: .infinity)
-                    .refreshable {
-                        selectedAsset = nil
-                        await assetManager.queryCPAssets(withLoadingToast: false)
-                    }
                     .background(Color.gray.opacity(0.2))
                     .tag(0)
                     
@@ -110,65 +147,112 @@ struct StoreHouseView: View {
                         let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
                         let itemWidth = (geo.size.width - totalSpacing - 40) / CGFloat(columnCount) // 40为ScrollView两侧padding
 
-                        ScrollView {
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                // todo
+                        ZStack(alignment: .bottom) {
+                            ScrollView {
+                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
+                                    ForEach(assetManager.magicCards) { card in
+                                        ZStack {
+                                            MagicCardView(card: card)
+                                                .frame(width: itemWidth)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .stroke(selectedCard?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
+                                                )
+                                            if !AppVersionManager.shared.checkMinimumVersion(card.version) {
+                                                GeometryReader { geometry in
+                                                    Text("不可用")
+                                                        .font(.system(size: geometry.size.width * 0.2, weight: .bold))
+                                                        .foregroundColor(.white)
+                                                        .padding(geometry.size.width * 0.04)
+                                                        .background(Color.red.opacity(0.5))
+                                                        .cornerRadius(geometry.size.width * 0.04)
+                                                }
+                                            }
+                                        }
+                                        .onTapGesture {
+                                            if selectedCard?.id == card.id {
+                                                selectedCard = nil
+                                            } else {
+                                                selectedCard = card
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(20)
                             }
-                            .padding(20)
+                            .refreshable {
+                                selectedCard = nil
+                                await assetManager.queryMagicCards(withLoadingToast: false)
+                            }
+                            if let card = selectedCard {
+                                HStack(alignment: .bottom, spacing: 20) {
+                                    VStack(alignment: .leading) {
+                                        HStack {
+                                            Text(card.name)
+                                                .bold()
+                                                .font(.system(size: 15))
+                                                .foregroundColor(.white)
+                                                .padding(.horizontal, 5)
+                                            if !AppVersionManager.shared.checkMinimumVersion(card.version) {
+                                                Text("客户端版本过低，卡牌暂时无法使用")
+                                                    .font(.system(size: 13))
+                                                    .foregroundColor(.red)
+                                            }
+                                        }
+                                        
+                                        ScrollView {
+                                            Text(card.description)
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(4)
+                                        }
+                                        .frame(height: 48)
+                                        .padding(6)
+                                        .background(Color.gray.opacity(0.8))
+                                        .cornerRadius(10)
+                                    }
+                                    VStack {
+                                        Text("去升级")
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(Color.green)
+                                            .cornerRadius(8)
+                                            .onTapGesture {
+                                                // todo
+                                            }
+                                        Text("销毁")
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(Color.orange)
+                                            .cornerRadius(8)
+                                            .onTapGesture {
+                                                // todo
+                                            }
+                                    }
+                                }
+                                .padding()
+                                .background(Color.black)
+                            }
                         }
                     }
                     .frame(maxHeight: .infinity)
-                    .refreshable {
-                        //await fetchCPAssets(withLoadingToast: false)
-                    }
                     .background(Color.gray.opacity(0.2))
                     .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-            }
-            
-            if let selected = selectedAsset {
-                HStack(alignment: .bottom, spacing: 20) {
-                    VStack(alignment: .leading) {
-                        Text(selected.name)
-                            .bold()
-                            .font(.system(size: 15))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 5)
-                        
-                        ScrollView {
-                            Text(selected.description)
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(4)
-                        }
-                        .frame(height: 48)
-                        .padding(6)
-                        .background(Color.gray.opacity(0.8))
-                        .cornerRadius(10)
-                    }
-                    
-                    Text("销毁")
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.orange)
-                        .cornerRadius(8)
-                        .onTapGesture {
-                            // todo
-                        }
-                }
-                .padding()
-                .background(Color.black)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshStoreHouseView {
                 Task {
-                    selectedAsset = nil
+                    selectedCPAsset = nil
+                    selectedCard = nil
                     await assetManager.queryCPAssets(withLoadingToast: true)
+                    await assetManager.queryMagicCards(withLoadingToast: true)
                 }
                 globalConfig.refreshStoreHouseView  = false
             }

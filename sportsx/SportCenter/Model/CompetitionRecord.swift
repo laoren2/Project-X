@@ -56,8 +56,8 @@ struct BikeRaceRecord: Identifiable, Equatable {
         self.trackEnd = CLLocationCoordinate2D(latitude: record.track_end_lat, longitude: record.track_end_lng)
         self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
         self.status = record.status
-        self.startDate = ISO8601DateFormatter().date(from: record.start_date ?? "") 
-        self.endDate = ISO8601DateFormatter().date(from: record.end_date ?? "")
+        self.startDate = formatter.date(from: record.start_date ?? "")
+        self.endDate = formatter.date(from: record.end_date ?? "")
         self.duration = record.duration_seconds
         self.isTeam = record.is_team
         self.teamTitle = record.team_title
@@ -135,8 +135,8 @@ struct RunningRaceRecord: Identifiable, Equatable {
         self.trackEnd = CLLocationCoordinate2D(latitude: record.track_end_lat, longitude: record.track_end_lng)
         self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
         self.status = record.status
-        self.startDate = ISO8601DateFormatter().date(from: record.start_date ?? "")
-        self.endDate = ISO8601DateFormatter().date(from: record.end_date ?? "")
+        self.startDate = formatter.date(from: record.start_date ?? "")
+        self.endDate = formatter.date(from: record.end_date ?? "")
         self.duration = record.duration_seconds
         self.isTeam = record.is_team
         self.teamTitle = record.team_title

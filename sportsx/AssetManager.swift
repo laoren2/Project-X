@@ -20,7 +20,7 @@ class AssetManager: ObservableObject {
     @Published var cpassets: [CPAssetUserInfo] = []
     
     // 装备卡资产
-    @Published var equipCards: [EquipCardUserInfo] = []
+    @Published var magicCards: [MagicCard] = []
     
     static let shared = AssetManager()
     
@@ -71,6 +71,29 @@ class AssetManager: ObservableObject {
                     DispatchQueue.main.async {
                         self.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
                         self.updateCPAsset(assetID: unwrappedData.cpasset_id, newBalance: unwrappedData.new_cpamount)
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    // 购买装备卡
+    func purchaseMCWithCC(cardID: String) {
+        guard var components = URLComponents(string: "/asset/buy_equip_card") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "card_def_id", value: cardID)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: CC_MC_PurchaseResultResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
+                        self.magicCards.append(MagicCard(from: unwrappedData.card))
                     }
                 }
             default: break
@@ -136,6 +159,26 @@ class AssetManager: ObservableObject {
                         if asset.amount > 0 {
                             cpassets.append(CPAssetUserInfo(from: asset))
                         }
+                    }
+                }
+            }
+        default: break
+        }
+    }
+    
+    func queryMagicCards(withLoadingToast: Bool) async {
+        await MainActor.run {
+            magicCards.removeAll()
+        }
+        let request = APIRequest(path: "/asset/query_user_equip_cards", method: .get, requiresAuth: true)
+        
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: MagicCardUserResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
+        switch result {
+        case .success(let data):
+            if let unwrappedData = data {
+                await MainActor.run {
+                    for card in unwrappedData.cards {
+                        magicCards.append(MagicCard(from: card))
                     }
                 }
             }
@@ -259,10 +302,231 @@ class CC_CP_PurchaseResultResponse: Codable {
     let new_cpamount: Int
 }
 
-struct EquipCardUserInfo {
-    
+class CC_MC_PurchaseResultResponse: Codable {
+    let ccasset_type: CCAssetType
+    let new_ccamount: Int
+    let card: MagicCardUserDTO
 }
 
-struct EquipCardShopInfo {
+// 外设的传感器类型
+enum SensorType: String, Codable {
+    case AW = "applewatch"
     
+    var displayName: String {
+        switch self {
+        case .AW: return "Apple Watch"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .AW: return "applewatch"
+        }
+    }
+}
+
+struct MagicCardDef {
+    let cardID: String
+    let typeName: String
+    let params: JSONValue
+}
+
+struct MagicCard: Identifiable, Equatable {
+    var id: String { cardID }
+    let cardID: String
+    let name: String
+    let sportType: SportName
+    let level: Int              // 1-10级
+    let levelSkill1: Int?       // 0-5级，level=3时解锁
+    let levelSkill2: Int?       // 0-5级，level=6时解锁
+    let levelSkill3: Int?       // 0-5级，level=10时解锁
+    let imageURL: String
+    // 传感器类型要求
+    let sensorType: [SensorType]
+    // 传感器绑定位置要求
+    // |---  +   +   +   +   +    +  |
+    //       |   |   |   |   |    |
+    //      WST  RF  LF  RH  LH  PHONE
+    let sensorLocation: Int?
+    let lucky: Double
+    let rarity: String
+    let description: String
+    let descriptionSkill1: String?
+    let descriptionSkill2: String?
+    let descriptionSkill3: String?
+    let version: AppVersion
+    
+    let tags: [String]          // 过滤条件
+    let cardDef: MagicCardDef
+    
+    init(from card: MagicCardUserDTO) {
+        self.cardID = card.card_id
+        self.name = card.name
+        self.sportType = card.sport_type
+        self.level = card.level
+        self.levelSkill1 = card.levelSkill1
+        self.levelSkill2 = card.levelSkill2
+        self.levelSkill3 = card.levelSkill3
+        self.imageURL = card.image_url
+        if let sensorStrings = card.effect_def["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
+            self.sensorType = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        } else {
+            self.sensorType = []
+        }
+        let location = card.effect_def["sensor_location"]?.intValue
+        self.sensorLocation = location
+        self.lucky = card.lucky
+        self.rarity = card.rarity
+        self.description = card.description.rendered(with: card.effect_def)
+        if let description1 = card.description_skill1 {
+            self.descriptionSkill1 = description1.rendered(with: card.effect_def)
+        } else {
+            self.descriptionSkill1 = nil
+        }
+        if let description2 = card.description_skill2 {
+            self.descriptionSkill2 = description2.rendered(with: card.effect_def)
+        } else {
+            self.descriptionSkill2 = nil
+        }
+        if let description3 = card.description_skill3 {
+            self.descriptionSkill3 = description3.rendered(with: card.effect_def)
+        } else {
+            self.descriptionSkill3 = nil
+        }
+        self.version = AppVersion(card.version)
+        self.tags = card.tags
+        self.cardDef = MagicCardDef(cardID: card.card_id, typeName: card.type_name, params: card.effect_def)
+    }
+    
+    // 暂时复用MagicCardView和DetailView来展示商店卡牌信息
+    // todo: 视图层面拆开
+    init(withShopCard card: MagicCardShop) {
+        self.cardID = card.def_id
+        self.name = card.name
+        self.sportType = card.sportType
+        self.level = 0
+        self.levelSkill1 = nil
+        self.levelSkill2 = nil
+        self.levelSkill3 = nil
+        self.imageURL = card.imageURL
+        self.sensorType = card.sensorType
+        self.sensorLocation = card.sensorLocation
+        self.lucky = -1
+        self.rarity = card.rarity
+        self.description = card.description
+        self.descriptionSkill1 = card.descriptionSkill1
+        self.descriptionSkill2 = card.descriptionSkill2
+        self.descriptionSkill3 = card.descriptionSkill3
+        self.version = card.version
+        // 用不到cardDef和tags
+        self.tags = []
+        self.cardDef = MagicCardDef(cardID: "example_id", typeName: "example_type", params: .null)
+    }
+    
+    static func == (lhs: MagicCard, rhs: MagicCard) -> Bool {
+        return lhs.cardID == rhs.cardID
+    }
+}
+
+struct MagicCardUserDTO: Codable {
+    let card_id: String
+    let name: String
+    let sport_type: SportName
+    let level: Int              // 1-10级
+    let levelSkill1: Int?       // 0-5级，level=3时解锁
+    let levelSkill2: Int?       // 0-5级，level=6时解锁
+    let levelSkill3: Int?       // 0-5级，level=10时解锁
+    let image_url: String
+    let lucky: Double
+    let rarity: String
+    let description: String
+    let description_skill1: String?
+    let description_skill2: String?
+    let description_skill3: String?
+    let version: String
+    
+    let type_name: String
+    let tags: [String]
+    let effect_def: JSONValue
+}
+
+struct MagicCardUserResponse: Codable {
+    let cards: [MagicCardUserDTO]
+}
+
+struct MagicCardShop: Identifiable, Equatable {
+    var id: String { def_id }
+    let def_id: String
+    let name: String
+    let sportType: SportName
+    let imageURL: String
+    let sensorType: [SensorType]
+    let sensorLocation: Int?
+    let rarity: String
+    let description: String
+    let descriptionSkill1: String?
+    let descriptionSkill2: String?
+    let descriptionSkill3: String?
+    let version: AppVersion
+    let ccasset_type: CCAssetType
+    let price: Int
+    
+    init(from card: MagicCardShopDTO) {
+        self.def_id = card.def_id
+        self.name = card.name
+        self.sportType = card.sport_type
+        self.imageURL = card.image_url
+        if let sensorStrings = card.effect_config["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
+            self.sensorType = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        } else {
+            self.sensorType = []
+        }
+        let location = card.effect_config["sensor_location"]?.intValue
+        self.sensorLocation = location
+        self.rarity = card.rarity
+        self.description = card.description.rendered(with: card.effect_config)
+        if let description1 = card.skill1_description {
+            self.descriptionSkill1 = description1.rendered(with: card.effect_config)
+        } else {
+            self.descriptionSkill1 = nil
+        }
+        if let description2 = card.skill2_description {
+            self.descriptionSkill2 = description2.rendered(with: card.effect_config)
+        } else {
+            self.descriptionSkill2 = nil
+        }
+        if let description3 = card.skill3_description {
+            self.descriptionSkill3 = description3.rendered(with: card.effect_config)
+        } else {
+            self.descriptionSkill3 = nil
+        }
+        self.version = AppVersion(card.version)
+        self.ccasset_type = card.ccasset_type
+        self.price = card.price
+    }
+    
+    static func == (lhs: MagicCardShop, rhs: MagicCardShop) -> Bool {
+        return lhs.def_id == rhs.def_id
+    }
+}
+
+struct MagicCardShopDTO: Codable {
+    let def_id: String
+    let name: String
+    let sport_type: SportName
+    let image_url: String
+    let rarity: String
+    let description: String
+    let skill1_description: String?
+    let skill2_description: String?
+    let skill3_description: String?
+    let version: String
+    let effect_config: JSONValue
+    
+    let ccasset_type: CCAssetType
+    let price: Int
+}
+
+struct MagicCardShopResponse: Codable {
+    let cards: [MagicCardShopDTO]
 }

@@ -60,7 +60,7 @@ struct GameSummaryCardView: View {
             HStack {
                 Spacer()
                 ForEach(gameSummaryCard.magicCards) { card in
-                    CardView(card: card)
+                    MagicCardView(card: card)
                     Spacer()
                 }
                 ForEach(0..<(5 - gameSummaryCard.magicCards.count), id: \.self) { _ in

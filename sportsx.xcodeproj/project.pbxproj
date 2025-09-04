@@ -24,7 +24,9 @@
 		A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */; };
 		A99A6AE62C9CB01900FAC86D /* test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A6AE52C9CB01900FAC86D /* test.swift */; };
 		A99D9A982C4B028D004F72BF /* NaviView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99D9A972C4B028D004F72BF /* NaviView.swift */; };
+		A9B919DF2E675A53001DB7A6 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = A9B919DE2E675A53001DB7A6 /* ZIPFoundation */; };
 		A9B9A54E2D2BFDE800B357C2 /* sportsx_Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A9BF94922E4CD85D000EC9D7 /* AppVersionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BF94912E4CD858000EC9D7 /* AppVersionManager.swift */; };
 		A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1232C6514C0006C47B1 /* LoginView.swift */; };
 /* End PBXBuildFile section */
 
@@ -105,6 +107,7 @@
 		A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sportsx_Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9B9A53A2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sportsx_Watch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9B9A5442D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sportsx_Watch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9BF94912E4CD858000EC9D7 /* AppVersionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionManager.swift; sourceTree = "<group>"; };
 		A9DAC1232C6514C0006C47B1 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -129,6 +132,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */,
+				A9B919DF2E675A53001DB7A6 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,6 +203,7 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9BF94912E4CD858000EC9D7 /* AppVersionManager.swift */,
 				A912CD862E1D6F62009062AD /* StoreHouseView.swift */,
 				A966BA032E14B995009BF4CB /* ShopView.swift */,
 				A9350C6D2DF748E9005A424F /* Components */,
@@ -435,6 +440,7 @@
 			mainGroup = A911DB962C47024D0033D809;
 			packageReferences = (
 				A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			productRefGroup = A911DBA02C47024D0033D809 /* Products */;
 			projectDirPath = "";
@@ -505,6 +511,7 @@
 			files = (
 				A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */,
 				A99A6AE62C9CB01900FAC86D /* test.swift in Sources */,
+				A9BF94922E4CD85D000EC9D7 /* AppVersionManager.swift in Sources */,
 				A99D9A982C4B028D004F72BF /* NaviView.swift in Sources */,
 				A95064892D0239B600998E30 /* LocationManager.swift in Sources */,
 				A933C48D2DBDE1ED000C51D8 /* GlobalConfig.swift in Sources */,
@@ -730,7 +737,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = renjie.sportsx;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -767,7 +774,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = renjie.sportsx;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -861,8 +868,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = sportsx_Watch;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your workout related data will be used to display your saved workouts in sportsX.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Workouts tracked by sportsX on Apple Watch will be saved to HealthKit.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "App 需要读取健康数据在运动中使用";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App 需要写入健康数据以记录运动";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = renjie.sportsx;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -895,8 +902,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = sportsx_Watch;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Your workout related data will be used to display your saved workouts in sportsX.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Workouts tracked by sportsX on Apple Watch will be saved to HealthKit.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "App 需要读取健康数据在运动中使用";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App 需要写入健康数据以记录运动";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = renjie.sportsx;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1066,6 +1073,14 @@
 				version = 3.1.3;
 			};
 		};
+		A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = exactVersion;
+				version = 0.9.19;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1073,6 +1088,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
 			productName = SDWebImageSwiftUI;
+		};
+		A9B919DE2E675A53001DB7A6 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

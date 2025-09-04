@@ -10,8 +10,171 @@ import Combine
 import CryptoKit
 import CoreML
 import os
+import ZIPFoundation
 
-class ModelManager: ObservableObject {
+
+
+final class ModelManager {
+    static let shared = ModelManager()
+    
+    private init() {}
+    
+    private let fileManager = FileManager.default
+    private let modelsDirectory: URL = {
+        let supportDir = try! FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let dir = supportDir.appendingPathComponent("models", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }()
+    
+    private var indexFile: URL {
+        modelsDirectory.appendingPathComponent("index.json")
+    }
+    
+    private var modelIndex: [String: String] = [:] // model_key : version
+    
+    // MARK: - 启动时调用
+    func loadIndex() {
+        if let data = try? Data(contentsOf: indexFile),
+           let index = try? JSONDecoder().decode([String: String].self, from: data) {
+            modelIndex = index
+            print("load model index success")
+        } else {
+            print("model index not found")
+        }
+    }
+    
+    private func saveIndex() {
+        if let data = try? JSONEncoder().encode(modelIndex) {
+            try? data.write(to: indexFile)
+        }
+    }
+    
+    // 检查并更新所有需要的模型
+    func syncModels() {
+        Task {
+            for key in modelIndex.keys {
+                await checkAndUpdateModel(key: key)
+            }
+        }
+    }
+    
+    // 检查并更新单个模型
+    func checkAndUpdateModel(key: String) async {
+        let result = await NetworkService.downloadResourceAsync(path: "/resources/model/\(key)/config.json", decodingType: ModelConfig.self)
+        
+        switch result {
+        case .success(let data):
+            let localVersion = modelIndex[key]
+            if localVersion != data.version {
+                await downloadModel(from: data.url, modelKey: key, version: data.version)
+            }
+        default:
+            break
+        }
+    }
+    
+    // 下载模型文件
+    func downloadModel(from urlString: String, modelKey: String, version: String) async {
+        guard let url = URL(string: urlString) else { return }
+        let result = await NetworkService.downloadFileAsync(from: url)
+        switch result {
+        case .success(let tmpFileURL):
+            let destFileName = "\(modelKey)_\(version).mlpackage"
+            let destFileURL = modelsDirectory.appendingPathComponent(destFileName)
+            
+            // 删除旧版本文件
+            if let oldVersion = modelIndex[modelKey] {
+                let oldFile = modelsDirectory.appendingPathComponent("\(modelKey)_\(oldVersion).mlpackage")
+                try? fileManager.removeItem(at: oldFile)
+            }
+            
+            do {
+                // 先解压到一个临时目录
+                let tempUnzipDir = modelsDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+                try fileManager.createDirectory(at: tempUnzipDir, withIntermediateDirectories: true)
+                try fileManager.unzipItem(at: tmpFileURL, to: tempUnzipDir)
+                // 找到并移动解压出来的唯一的 .mlpackage
+                let contents = try fileManager.contentsOfDirectory(at: tempUnzipDir, includingPropertiesForKeys: nil)
+                if let unpacked = contents.first(where: { $0.pathExtension == "mlpackage" }) {
+                    try? fileManager.removeItem(at: destFileURL) // 避免残留
+                    try fileManager.moveItem(at: unpacked, to: destFileURL)
+                    print("解压并重命名完成: \(destFileURL)")
+                } else {
+                    print("未找到解压后的 mlpackage 文件")
+                }
+                // 清理临时目录
+                try? fileManager.removeItem(at: tempUnzipDir)
+            } catch {
+                print("解压文件失败: \(error)")
+                return
+            }
+            
+            // 检查解压结果
+            if !fileManager.fileExists(atPath: destFileURL.path) {
+                print("找不到解压文件")
+                return
+            }
+            
+            // 更新索引
+            modelIndex[modelKey] = version
+            saveIndex()
+            print("成功更新模型：\(modelKey) \(modelIndex[modelKey] ?? "none") → \(version)")
+        default:
+            break
+        }
+    }
+    
+    // 获取本地某个模型的URL（如果存在）
+    private func getLocalModelURL(for modelKey: String) -> URL? {
+        guard let version = modelIndex[modelKey] else { return nil }
+        let fileName = "\(modelKey)_\(version).mlpackage"
+        let modelURL = modelsDirectory.appendingPathComponent(fileName)
+        return fileManager.fileExists(atPath: modelURL.path) ? modelURL : nil
+    }
+    
+    // 加载某个模型（必要时会触发更新下载）
+    func loadModel(for modelKey: String) async -> MLModel? {
+        // 1. 获取本地模型URL
+        var modelURL = getLocalModelURL(for: modelKey)
+        
+        // 2. 如果本地不存在 → 尝试更新并获取
+        if modelURL == nil {
+            await checkAndUpdateModel(key: modelKey)
+            modelURL = getLocalModelURL(for: modelKey)
+        }
+        
+        guard let finalURL = modelURL else {
+            print("模型文件不存在: \(modelKey)")
+            return nil
+        }
+        
+        // 3. 编译并加载模型
+        do {
+            let compiledURL = try await MLModel.compileModel(at: finalURL)
+            let model = try MLModel(contentsOf: compiledURL)
+            return model
+        } catch {
+            print("模型编译失败 (\(modelKey)): \(error)")
+            return nil
+        }
+    }
+}
+
+// MARK: - 模型配置结构
+struct ModelConfig: Codable {
+    //let model_key: String
+    let version: String // v2, v3, ...
+    let url: String
+}
+
+
+/*class ModelManager: ObservableObject {
     static let shared = ModelManager()
     
     var availableModelInfos: [String: AnyPredictionModel] = [:]
@@ -150,7 +313,7 @@ class ModelManager: ObservableObject {
         //return destinationURL
     }
         
-    func updateModels() async {
+    /*func updateModels() async {
         /*
         // 更新状态为正在更新
         await MainActor.run {
@@ -329,7 +492,7 @@ class ModelManager: ObservableObject {
                 self.availableModelInfos[model.id] = model
             }
         }
-    }
+    }*/
 
     // 处理单个模型的下载和验证
     private func processModel(model: ModelInfo) async throws {
@@ -405,14 +568,14 @@ class ModelManager: ObservableObject {
         // 将magiccard对应的Model加入SelectedModel
         // todo: 去重
         for card in cards {
-            if let model = availableModelInfos[card.modelID] {
+            /*if let model = availableModelInfos[card.modelID] {
                 model.compensationValue = card.compensationValue
                 selectedModelInfos.append(model)
                 maxInputWindow = max(maxInputWindow, model.inputWindowInSamples)
             }
             else {
                 print("model of \(card.name) card is not found!")
-            }
+            }*/
         }
     }
     
@@ -436,7 +599,7 @@ class ModelManager: ObservableObject {
         selectedModelInfos.removeAll()
         selectedMLModels.removeAll()
     }
-}
+}*/
 
 struct ModelInfo: Codable, Identifiable {
     let id: String // 对应唯一的 model_id

@@ -15,7 +15,13 @@ struct ControlView: View {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("ControlView")
+            Text("点击结束并不会结束比赛，只会停止watch端的数据收集，想要结束比赛请在手机端操作")
+            Button(action:{
+                workoutManager.stopCollecting()
+            }) {
+                Text("结束")
+                    .foregroundStyle(Color.red)
+            }
         }
         .padding()
     }
