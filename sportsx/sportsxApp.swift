@@ -39,21 +39,22 @@ class AppStateTest: ObservableObject {
 }
 
 
-/*class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return .portrait
     }
-}*/
+}
 
 @main
 struct sportsxApp: App {
-    //@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
     //@StateObject private var navigationManager = NManager()
     //@StateObject var nm = NManager()
     
     init() {
+        // 验证版本号
         checkVersion()
         clearKeychainAfterInstall()
         // 设置共享缓存，50MB内存 + 200MB磁盘
@@ -64,17 +65,24 @@ struct sportsxApp: App {
         )
         URLCache.shared = cache
         print("URLCache configured with memory: 50MB, disk: 200MB")
-        // 查询地区
+        // 查询语言地区
         if let countryCode = Locale.current.region?.identifier {
             print("region_language: \(countryCode)")
         } else {
             print("region_language: UNKNOWN")
         }
+        // 注册和更新卡牌
         registerAllCardTypes()
         ModelManager.shared.loadIndex()
         ModelManager.shared.syncModels()
         // 激活WCSession
         DeviceManager.shared.activateWCSession()
+        // 请求用户资产
+        AssetManager.shared.queryCCAssets()
+        Task {
+            await AssetManager.shared.queryCPAssets(withLoadingToast: false)
+            await AssetManager.shared.queryMagicCards(withLoadingToast: false)
+        }
     }
     
     var body: some Scene {
@@ -103,7 +111,7 @@ struct sportsxApp: App {
         MagicCardFactory.register(type: "avg_pedal_rpm_1") { cardID, level, params in
             return PedalRPMEffect(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(type: "avg_heart_rate_1") { cardID, level, params in
+        MagicCardFactory.register(type: "heart_rate_test_1") { cardID, level, params in
             return HeartRateBoostEffect(cardID: cardID, level: level, with: params)
         }
         MagicCardFactory.register(type: "xpose_test_1") { cardID, level, params in

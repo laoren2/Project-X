@@ -58,19 +58,22 @@ class GenericPredictModel<Handler: PredictionOutputHandler> {
         ? DataFusionManager.getLastPhoneSamples(count: inputWindowInSamples, data: data.phoneSlice, before: lastToEnd)
         : DataFusionManager.getLastSensorSamples(sensorLocation: sensorLocation, count: inputWindowInSamples, data: data.sensorSlice, before: lastToEnd)
         
-        Logger.competition.notice_public("inputData count: \(inputData.count)")
-        let inputProvider = ModelInput(inputData: inputData)
-        do {
-            let result = try mlModel.prediction(from: inputProvider)
-            // 获取预测结果
-            if let result = result.featureValue(for: "Identity")?.multiArrayValue, let output = handler.parse(from: result) {
-                Logger.competition.notice_public("predict result: \(output)")
-                remainingSamples = completion(output)
-            } else {
-                Logger.competition.notice_public("predict result not found")
+        //Logger.competition.notice_public("inputData count: \(inputData.count)")
+        if let inputProvider = ModelInput(model: mlModel, inputData: inputData) {
+            do {
+                let result = try mlModel.prediction(from: inputProvider)
+                // 获取预测结果
+                if let result = result.featureValue(for: "Identity")?.multiArrayValue, let output = handler.parse(from: result) {
+                    //Logger.competition.notice_public("predict result: \(output)")
+                    remainingSamples = completion(output)
+                } else {
+                    Logger.competition.notice_public("predict result not found")
+                }
+            } catch {
+                Logger.competition.notice_public("predict error: \(error)")
             }
-        } catch {
-            Logger.competition.notice_public("predict error: \(error)")
+        } else {
+            Logger.competition.notice_public("model input error")
         }
     }
     
@@ -82,7 +85,7 @@ class GenericPredictModel<Handler: PredictionOutputHandler> {
 struct BoolHandler: PredictionOutputHandler {
     func parse(from result: MLMultiArray) -> Bool? {
         let floatValue = result[0].floatValue
-        return floatValue >= 0.5
+        return floatValue >= 0.9
     }
 }
 
@@ -98,3 +101,28 @@ struct FloatHandler: PredictionOutputHandler {
     }
 }
 
+class ModelInput: NSObject, MLFeatureProvider {
+    let input: MLMultiArray
+    let featureName: String
+    
+    var featureNames: Set<String> { [featureName] }
+    
+    init?(model: MLModel, inputData: [Float]) {
+        // 拿第一个输入名字
+        guard let firstInput = model.modelDescription.inputDescriptionsByName.keys.first else { return nil }
+        self.featureName = firstInput
+        
+        // 创建 MLMultiArray
+        let shape = [1, NSNumber(value: inputData.count), 1]
+        self.input = try! MLMultiArray(shape: shape, dataType: .float32)
+        
+        // 填充
+        for (i, v) in inputData.enumerated() {
+            self.input[i] = NSNumber(value: v)
+        }
+    }
+    
+    func featureValue(for featureName: String) -> MLFeatureValue? {
+        return featureName == self.featureName ? MLFeatureValue(multiArray: input) : nil
+    }
+}

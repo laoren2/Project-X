@@ -266,7 +266,6 @@ struct ShopView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshShopView {
-                assetManager.queryCCAssets()
                 Task {
                     selectedAsset = nil
                     selectedCard = nil

@@ -231,6 +231,37 @@ extension JSONValue {
         return current
     }
     
+    mutating func applyingMultiplier(for paths: [[String]], multiplier: Double) {
+        for path in paths {
+            self = self.updateValue(at: path) { old in
+                if case .number(let v) = old {
+                    return .number(v * multiplier)
+                } else {
+                    return old
+                }
+            }
+        }
+    }
+    
+    // 递归更新 JSONValue 中的某个路径
+    private func updateValue(at path: [String], transform: (JSONValue) -> JSONValue) -> JSONValue {
+        guard let first = path.first else { return self }
+        
+        switch self {
+        case .object(var dict):
+            if path.count == 1 {
+                if let old = dict[first] {
+                    dict[first] = transform(old)
+                }
+            } else if let nested = dict[first] {
+                dict[first] = nested.updateValue(at: Array(path.dropFirst()), transform: transform)
+            }
+            return .object(dict)
+        default:
+            return self
+        }
+    }
+    
     // 将 JSONValue 转成 JSON 字符串
     func toJSONString(prettyPrinted: Bool = true) -> String? {
         let encoder = JSONEncoder()
@@ -243,7 +274,7 @@ extension JSONValue {
             let data = try encoder.encode(self)
             return String(data: data, encoding: .utf8)
         } catch {
-            print("❌ JSONValue 转字符串失败: \(error)")
+            print("JSONValue 转字符串失败: \(error)")
             return nil
         }
     }

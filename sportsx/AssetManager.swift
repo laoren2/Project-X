@@ -15,6 +15,9 @@ class AssetManager: ObservableObject {
     @Published var coin: Int = 0
     @Published var coupon: Int = 0
     @Published var voucher: Int = 0
+    @Published var stone1: Int = 0
+    @Published var stone2: Int = 0
+    @Published var stone3: Int = 0
     
     // cpasset资产
     @Published var cpassets: [CPAssetUserInfo] = []
@@ -35,6 +38,12 @@ class AssetManager: ObservableObject {
             coupon = newBalance
         case .voucher:
             voucher = newBalance
+        case .stone1:
+            stone1 = newBalance
+        case .stone2:
+            stone2 = newBalance
+        case .stone3:
+            stone3 = newBalance
         }
     }
     
@@ -101,6 +110,33 @@ class AssetManager: ObservableObject {
         }
     }
     
+    // 销毁装备卡
+    func destroyMagicCard(cardID: String) {
+        guard var components = URLComponents(string: "/asset/destroy_equip_card") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "card_id", value: cardID)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: UpgradePriceResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for price in unwrappedData.prices {
+                            self.updateCCAsset(type: price.ccasset_type, newBalance: price.new_ccamount)
+                        }
+                        if let index = self.magicCards.firstIndex(where: { $0.cardID == cardID }) {
+                            self.magicCards.remove(at: index)
+                        }
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
     func queryCPAsset(with assetID: String) {
         guard var components = URLComponents(string: "/asset/query_user_cpasset") else { return }
         components.queryItems = [
@@ -137,6 +173,9 @@ class AssetManager: ObservableObject {
                         self.coin = unwrappedData.coin_amount
                         self.coupon = unwrappedData.coupon_amount
                         self.voucher = unwrappedData.voucher_amount
+                        self.stone1 = unwrappedData.stone1_amount
+                        self.stone2 = unwrappedData.stone2_amount
+                        self.stone3 = unwrappedData.stone3_amount
                     }
                 }
             default: break
@@ -203,6 +242,9 @@ enum CCAssetType: String, Codable {
     case coin = "coin"
     case coupon = "coupon"
     case voucher = "voucher"
+    case stone1 = "stone1"
+    case stone2 = "stone2"
+    case stone3 = "stone3"
     
     var iconName: String {
         switch self {
@@ -212,6 +254,12 @@ enum CCAssetType: String, Codable {
             return "creditcard"
         case .voucher:
             return "giftcard"
+        case .stone1:
+            return "suit.diamond"
+        case .stone2:
+            return "suit.diamond.fill"
+        case .stone3:
+            return "questionmark.diamond.fill"
         }
     }
 }
@@ -281,6 +329,9 @@ struct CCAssetResponse: Codable {
     let coin_amount: Int
     let coupon_amount: Int
     let voucher_amount: Int
+    let stone1_amount: Int
+    let stone2_amount: Int
+    let stone3_amount: Int
 }
 
 struct CPAssetResponse: Codable {
@@ -308,6 +359,12 @@ class CC_MC_PurchaseResultResponse: Codable {
     let card: MagicCardUserDTO
 }
 
+struct CCUpdateResponse: Codable, Identifiable {
+    var id: String { ccasset_type.rawValue }
+    let ccasset_type: CCAssetType
+    let new_ccamount: Int
+}
+
 // 外设的传感器类型
 enum SensorType: String, Codable {
     case AW = "applewatch"
@@ -331,9 +388,10 @@ struct MagicCardDef {
     let params: JSONValue
 }
 
-struct MagicCard: Identifiable, Equatable {
-    var id: String { cardID }
+class MagicCard: Identifiable, Equatable {
+    let id: UUID
     let cardID: String
+    let defID: String
     let name: String
     let sportType: SportName
     let level: Int              // 1-10级
@@ -360,7 +418,9 @@ struct MagicCard: Identifiable, Equatable {
     let cardDef: MagicCardDef
     
     init(from card: MagicCardUserDTO) {
+        self.id = UUID()
         self.cardID = card.card_id
+        self.defID = card.def_id
         self.name = card.name
         self.sportType = card.sport_type
         self.level = card.level
@@ -377,31 +437,45 @@ struct MagicCard: Identifiable, Equatable {
         self.sensorLocation = location
         self.lucky = card.lucky
         self.rarity = card.rarity
-        self.description = card.description.rendered(with: card.effect_def)
-        if let description1 = card.description_skill1 {
-            self.descriptionSkill1 = description1.rendered(with: card.effect_def)
+        
+        // 处理card.effect_def，将所有description中{{}}对应的值乘以multiplier
+        var finalJsonValue: JSONValue = card.effect_def
+        let baseKeys = card.description.extractKeys()       // 提取 {{xxx.xx}}
+        finalJsonValue.applyingMultiplier(for: baseKeys, multiplier: card.multiplier)
+        self.description = card.description.rendered(with: finalJsonValue)
+        
+        if let des1 = card.description_skill1, let mul = card.multiplier_skill1 {
+            let skill1Keys = des1.extractKeys()
+            finalJsonValue.applyingMultiplier(for: skill1Keys, multiplier: mul)
+            self.descriptionSkill1 = des1.rendered(with: finalJsonValue)
         } else {
             self.descriptionSkill1 = nil
         }
-        if let description2 = card.description_skill2 {
-            self.descriptionSkill2 = description2.rendered(with: card.effect_def)
+        if let des2 = card.description_skill2, let mul = card.multiplier_skill2 {
+            let skill2Keys = des2.extractKeys()
+            finalJsonValue.applyingMultiplier(for: skill2Keys, multiplier: mul)
+            self.descriptionSkill2 = des2.rendered(with: finalJsonValue)
         } else {
             self.descriptionSkill2 = nil
         }
-        if let description3 = card.description_skill3 {
-            self.descriptionSkill3 = description3.rendered(with: card.effect_def)
+        if let des3 = card.description_skill3, let mul = card.multiplier_skill3 {
+            let skill3Keys = des3.extractKeys()
+            finalJsonValue.applyingMultiplier(for: skill3Keys, multiplier: mul)
+            self.descriptionSkill3 = des3.rendered(with: finalJsonValue)
         } else {
             self.descriptionSkill3 = nil
         }
         self.version = AppVersion(card.version)
         self.tags = card.tags
-        self.cardDef = MagicCardDef(cardID: card.card_id, typeName: card.type_name, params: card.effect_def)
+        self.cardDef = MagicCardDef(cardID: card.card_id, typeName: card.type_name, params: finalJsonValue)
     }
     
     // 暂时复用MagicCardView和DetailView来展示商店卡牌信息
     // todo: 视图层面拆开
     init(withShopCard card: MagicCardShop) {
+        self.id = UUID()
         self.cardID = card.def_id
+        self.defID = card.def_id
         self.name = card.name
         self.sportType = card.sportType
         self.level = 0
@@ -424,12 +498,13 @@ struct MagicCard: Identifiable, Equatable {
     }
     
     static func == (lhs: MagicCard, rhs: MagicCard) -> Bool {
-        return lhs.cardID == rhs.cardID
+        return lhs.id == rhs.id
     }
 }
 
 struct MagicCardUserDTO: Codable {
     let card_id: String
+    let def_id: String
     let name: String
     let sport_type: SportName
     let level: Int              // 1-10级
@@ -443,6 +518,10 @@ struct MagicCardUserDTO: Codable {
     let description_skill1: String?
     let description_skill2: String?
     let description_skill3: String?
+    let multiplier: Double
+    let multiplier_skill1: Double?
+    let multiplier_skill2: Double?
+    let multiplier_skill3: Double?
     let version: String
     
     let type_name: String

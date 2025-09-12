@@ -112,7 +112,6 @@ struct LoginView: View {
         NetworkService.sendRequest(with: request, decodingType: LoginResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
-                print("success compeletion")
                 if let unwrappedData = data {
                     let user = unwrappedData.user
                     let relation = unwrappedData.relation
@@ -132,24 +131,21 @@ struct LoginView: View {
                     }
                     
                     userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
+                    AssetManager.shared.queryCCAssets()
+                    Task {
+                        await AssetManager.shared.queryCPAssets(withLoadingToast: false)
+                        await AssetManager.shared.queryMagicCards(withLoadingToast: false)
+                    }
                     
                     if unwrappedData.isRegister {
                         print("注册成功，进入编辑资料页")
                     } else {
                         print("登录成功")
                     }
-                    loginAfterSuccess()
                 }
             default:
                 break
             }
-        }
-    }
-    
-    func loginAfterSuccess() {
-        Task {
-            //MagicCardManager.shared.fetchUserCards() // 获取MagicCard
-            //await ModelManager.shared.updateModels() // 更新本地MLModel
         }
     }
     

@@ -14,7 +14,14 @@ struct UserAssetManageBackendView: View {
     @State private var user_id: String = ""
     @State private var ccasset_type: String = CCAssetType.coin.rawValue
     @State private var amount: String = ""
-    let types = [CCAssetType.coin, CCAssetType.coupon, CCAssetType.voucher]
+    let types = [
+        CCAssetType.coin,
+        CCAssetType.coupon,
+        CCAssetType.voucher,
+        CCAssetType.stone1,
+        CCAssetType.stone2,
+        CCAssetType.stone3
+    ]
     
     @State var isLoading: Bool = false
     

@@ -52,14 +52,20 @@ class HeartRateBoostEffect: MagicCardEffect {
     let level: Int
     let params: JSONValue
     
-    let threshold: Int
     let bonusTime: Double
+    let bonusTime1: Double
+    let bonusTime2: Double
+    let bonusTime3: Double
+    
+    var validTotalTime: Double = 0
     
     init(cardID: String, level: Int, with params: JSONValue) {
         self.cardID = cardID
         self.level = level
-        self.threshold = params["threshold"]?.intValue ?? 0
-        self.bonusTime = params["bonusTime"]?.doubleValue ?? 0
+        self.bonusTime = params["bonus_time"]?.doubleValue ?? 0
+        self.bonusTime1 = params["skill1", "bonus_time1"]?.doubleValue ?? 0
+        self.bonusTime2 = params["skill2", "bonus_time2"]?.doubleValue ?? 0
+        self.bonusTime3 = params["skill3", "bonus_time3"]?.doubleValue ?? 0
         self.params = params
     }
     
@@ -70,10 +76,21 @@ class HeartRateBoostEffect: MagicCardEffect {
     }
     
     func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchCycleUpdate) { context in
+            if Int(context.latestHeartRate) >= 90 {
+                self.validTotalTime += 3
+            }
+        }
         eventBus.on(.matchEnd) { context in
-            let avgHR = Int(context.avgHeartRate)
-            if avgHR > self.threshold {
-                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime)
+            context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.01 * self.bonusTime * self.validTotalTime)
+            if self.level >= 3 && Int(context.avgHeartRate) >= 100 {
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime1)
+            }
+            if self.level >= 6 && Int(context.avgHeartRate) >= 110 {
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime2)
+            }
+            if self.level == 10 && Int(context.avgHeartRate) >= 120 {
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime3)
             }
         }
     }
@@ -143,7 +160,6 @@ class XposeTestEffect: MagicCardEffect {
     
     func onPrediction(result: Bool, context: MatchContext) -> Int {
         if result {
-            print("xpose!")
             context.addOrUpdateBonus(cardID: cardID, bonus: bonusTime)
             xposeCnt += 1
             return inputWindowInSamples

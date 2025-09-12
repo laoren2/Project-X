@@ -19,13 +19,12 @@ struct CardSelectionView: View {
     private let cardHeight: CGFloat = 140
     private let maxCards = 3
     
-    // 定义5列网格
+    // 定义4列网格
     let columns = [
         GridItem(.flexible(), spacing: 20),
         GridItem(.flexible(), spacing: 20),
         GridItem(.flexible(), spacing: 20),
         GridItem(.flexible(), spacing: 20)
-        //GridItem(.flexible(), spacing: 10)
     ]
     
     // 过滤后的卡牌
@@ -163,14 +162,15 @@ struct CardSelectionView: View {
                 Spacer()
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 0) {
+                    LazyVGrid(columns: columns, spacing: 10) {
                         ForEach(filteredCards) { card in
                             MagicCardSelectableView(
                                 card: card,
-                                isSelected: tempSelectedCards.contains(card),
-                                onTap: { toggleSelection(of: card) }
+                                isSelected: tempSelectedCards.contains(card)
                             )
-                            //.aspectRatio(5/7, contentMode: .fit)
+                            .onTapGesture {
+                                onCardTap(of: card)
+                            }
                         }
                     }
                     .padding()
@@ -192,10 +192,39 @@ struct CardSelectionView: View {
         }
     }
     
-    private func toggleSelection(of card: MagicCard) {
+    private func onCardTap(of card: MagicCard) {
         if tempSelectedCards.contains(card) {
             tempSelectedCards.removeAll { $0.cardID == card.cardID }
         } else {
+            // 检查运动类型
+            guard card.sportType == CompetitionManager.shared.sport else {
+                ToastManager.shared.show(toast: Toast(message: "运动类型不匹配"))
+                return
+            }
+            // 检查组队模式
+            if card.tags.first(where: { $0 == "team" }) != nil {
+                guard CompetitionManager.shared.isTeam else {
+                    ToastManager.shared.show(toast: Toast(message: "运动模式不匹配"))
+                    return
+                }
+            }
+            // 检查传感器
+            if let location = card.sensorLocation {
+                guard DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) else {
+                    ToastManager.shared.show(toast: Toast(message: "传感器未绑定"))
+                    return
+                }
+            }
+            // 检查版本
+            guard AppVersionManager.shared.checkMinimumVersion(card.version) else {
+                ToastManager.shared.show(toast: Toast(message: "客户端版本过低"))
+                return
+            }
+            // 检查是否重复装备
+            guard tempSelectedCards.firstIndex(where: { $0.defID == card.defID }) == nil else {
+                ToastManager.shared.show(toast: Toast(message: "不可重复装备"))
+                return
+            }
             if tempSelectedCards.count < 3 {
                 tempSelectedCards.append(card)
             }
