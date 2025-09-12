@@ -256,7 +256,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             .receive(on: dataHandleQueue)
             .sink { [weak self] snapshot in
                 guard let self = self else { return }
-                Logger.competition.notice_public("predict time: \(snapshot.predictTime)")
+                //Logger.competition.notice_public("predict time: \(snapshot.predictTime)")
                 self.matchContext.sensorData = snapshot
                 self.eventBus.emit(.matchIMUSensorUpdate, context: self.matchContext)
             }
@@ -611,7 +611,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         timer.setEventHandler { [weak self] in
             guard let self = self, self.isRecording, let start = self.startTime else { return }
             
-            // 记录phone端数据
+            // 记录 phone 端数据
             if self.sensorRequest & 0b000001 != 0 {
                 self.recordMotionData()
             }
@@ -627,9 +627,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 }
             }
             
-            // 每 3 秒记录 path
+            // 每3秒记录一次 path 数据 & 发出 matchCycleUpdate 信号
             if tickCounter % 60 == 0 { // 60 * 0.05s = 3s
                 self.recordPath()
+                eventBus.emit(.matchCycleUpdate, context: matchContext)
                 tickCounter = 0 // 重置计数器
             }
         }

@@ -453,11 +453,12 @@ struct ExclusiveTouchTapModifier: ViewModifier {
 }
 
 extension String {
+    // 将字符串中的{{xx}}替换为json中的值
     func rendered(with effectDef: JSONValue) -> String {
         // 支持 {{key}} 或 {{ key.path }}，允许 key 两侧的空白
         let pattern = #"\{\{\s*([\w\.]+)\s*\}\}"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return self }
-
+        
         // 用 NSString 计算长度和做替换，避免 Unicode/NSRange 对不齐
         let nsSelf = self as NSString
         let fullRange = NSRange(location: 0, length: nsSelf.length)
@@ -469,11 +470,11 @@ extension String {
             guard match.numberOfRanges == 2 else { continue }
             let full = match.range(at: 0)
             let key = match.range(at: 1)
-
+            
             let nsResult = result as NSString
             let keyPath = nsResult.substring(with: key)              // 如 "bonus_time" 或 "skill1.bonus_time"
             let keys = keyPath.split(separator: ".").map(String.init)
-
+            
             if let value = effectDef.value(for: keys) {
                 let replacement: String
                 switch value {
@@ -494,5 +495,22 @@ extension String {
             }
         }
         return result
+    }
+    
+    // 提取描述中的 {{xx}} 或 {{xx.yy.zz}} 占位符，返回路径数组
+    func extractKeys() -> [[String]] {
+        let pattern = #"\{\{\s*([\w\.]+)\s*\}\}"#//#"\{\{([a-zA-Z0-9_.]+)\}\}"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        
+        let nsrange = NSRange(startIndex..<endIndex, in: self)
+        let matches = regex.matches(in: self, options: [], range: nsrange)
+        
+        return matches.compactMap { match in
+            if let range = Range(match.range(at: 1), in: self) {
+                let path = String(self[range])
+                return path.split(separator: ".").map { String($0) }
+            }
+            return nil
+        }
     }
 }

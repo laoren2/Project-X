@@ -136,11 +136,11 @@ class DeviceManager: NSObject, ObservableObject {
     func existAvailableAW() -> Bool {
         let session = WCSession.default
         if session.activationState != .activated {
-            print("重新激活")
+            //print("重新激活")
             session.activate()
         }
         if !session.isPaired {
-            print("not paired")
+            //print("not paired")
             return false
         }
         return true

@@ -28,9 +28,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     private var competitionData: [SensorData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
     
-    
-    
-    /// 初始化时，激活 WCSession
+
     init(deviceID: String, deviceName: String, sensorPos: Int) {
         self.deviceID = deviceID
         self.deviceName = deviceName
@@ -40,10 +38,10 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         self.session = WCSession.default
     }
     
-    // 销毁前重置代理，否则session状态会发生变化
-    deinit {
-        self.session.delegate = DeviceManager.shared
-    }
+    // 销毁前重置代理兜底
+    //deinit {
+    //    self.session.delegate = DeviceManager.shared
+    //}
     
     func connect() -> Bool {
         // 先检查是否配对
@@ -61,6 +59,8 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         // 检查 activationState
         if session.activationState == .activated {
             print("[AppleWatchDevice] connect() success.")
+            // 连接成功后切换代理
+            session.delegate = self
             return true
         } else {
             print("[AppleWatchDevice] connect() failed.")
@@ -70,6 +70,8 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     
     func disconnect() {
         // WatchConnectivity 可能无法像BLE那样“主动断开”，可以做一些标记
+        // 重置代理，否则session状态会发生变化
+        session.delegate = DeviceManager.shared
     }
     
     func startCollection(activityType: String, locationType: String) {

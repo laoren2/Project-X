@@ -348,6 +348,8 @@ class WatchDataManager: NSObject, ObservableObject {
         avgHeartRate = 0
         totalEnergy = 0
         avgPower = 0
+        latestHeartRate = 0
+        latestPower = 0
         enableIMU = false
         //summaryViewData = nil
     }

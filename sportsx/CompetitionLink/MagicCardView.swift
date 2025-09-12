@@ -131,6 +131,12 @@ struct MagicCardView: View {
 
 // MARK: - 空卡牌槽位
 struct EmptyCardSlot: View {
+    let text: String
+    
+    init(text: String = "空卡牌槽") {
+        self.text = text
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
@@ -150,7 +156,7 @@ struct EmptyCardSlot: View {
                         .font(.system(size: iconSize))
                         .foregroundColor(.gray.opacity(0.5))
                     
-                    Text("空卡牌槽")
+                    Text(text)
                         .font(.system(size: fontSize))
                         .foregroundColor(.gray.opacity(0.7))
                 }
@@ -164,7 +170,6 @@ struct EmptyCardSlot: View {
 struct MagicCardSelectableView: View {
     let card: MagicCard
     let isSelected: Bool
-    let onTap: () -> Void
     
     var body: some View {
         ZStack {
@@ -209,13 +214,6 @@ struct MagicCardSelectableView: View {
                     }
                 }
             }
-        }
-        //.aspectRatio(5/7, contentMode: .fit)
-        .onTapGesture {
-            guard checkForValid() else {
-                return
-            }
-            onTap()
         }
     }
     

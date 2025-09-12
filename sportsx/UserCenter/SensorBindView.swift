@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import WatchConnectivity
+
 
 struct SensorBindView: View {
     @EnvironmentObject var appState: AppState
@@ -69,7 +71,7 @@ struct SensorBindView: View {
                 List {
                     if deviceManager.existAvailableAW() && !deviceManager.hasAppleWatchBound() {
                         Button(action: {
-                            bindDevice(pos: pos)
+                            bindAWDevice(pos: pos)
                             selectedPosition = nil
                         }) {
                             HStack {
@@ -86,7 +88,7 @@ struct SensorBindView: View {
         }
     }
     
-    func bindDevice(pos: BodyPosition) {
+    func bindAWDevice(pos: BodyPosition) {
         // 创建一个 AppleWatchDevice 并绑定
         // 未来支持更多设备(Xiaomi/Huawei等)
         let newWatch = AppleWatchDevice(

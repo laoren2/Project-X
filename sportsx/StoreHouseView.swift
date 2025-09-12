@@ -14,7 +14,6 @@ struct StoreHouseView: View {
     @State var selectedCPAsset: CPAssetUserInfo? = nil
     @State var selectedCard: MagicCard? = nil
     @State var selectedTab: Int = 0
-    @State private var firstOnAppear = true
     let globalConfig = GlobalConfig.shared
     
     
@@ -129,7 +128,7 @@ struct StoreHouseView: View {
                                         .background(Color.orange)
                                         .cornerRadius(8)
                                         .onTapGesture {
-                                            // todo
+                                            appState.navigationManager.selectedTab = .shop
                                         }
                                 }
                                 .padding()
@@ -220,7 +219,7 @@ struct StoreHouseView: View {
                                             .background(Color.green)
                                             .cornerRadius(8)
                                             .onTapGesture {
-                                                // todo
+                                                appState.navigationManager.append(.instituteView)
                                             }
                                         Text("销毁")
                                             .foregroundColor(.white)
@@ -229,7 +228,7 @@ struct StoreHouseView: View {
                                             .background(Color.orange)
                                             .cornerRadius(8)
                                             .onTapGesture {
-                                                // todo
+                                                assetManager.destroyMagicCard(cardID: card.cardID)
                                             }
                                     }
                                 }
@@ -247,7 +246,7 @@ struct StoreHouseView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .onStableAppear {
-            if firstOnAppear || globalConfig.refreshStoreHouseView {
+            if globalConfig.refreshStoreHouseView {
                 Task {
                     selectedCPAsset = nil
                     selectedCard = nil
@@ -256,7 +255,6 @@ struct StoreHouseView: View {
                 }
                 globalConfig.refreshStoreHouseView  = false
             }
-            firstOnAppear = false
         }
     }
 }
