@@ -85,9 +85,9 @@ struct RunningCompetitionView: View {
                                         .exclusiveTouchTapGesture {
                                             // 防止频繁刷新
                                             if viewModel.selectedEvent?.eventID != event.eventID {
-                                                withAnimation {
+                                                //withAnimation {
                                                     viewModel.switchEvent(to: event)
-                                                }
+                                                //}
                                             }
                                         }
                                     }
@@ -122,11 +122,11 @@ struct RunningCompetitionView: View {
                     ScrollView {
                         if let track = viewModel.selectedTrack {
                             Map(interactionModes: []) {
-                                Annotation("From", coordinate: track.from) {
+                                Annotation("From", coordinate: CoordinateConverter.parseCoordinate(coordinate: track.from)) {
                                     Image(systemName: "location.fill")
                                         .padding(5)
                                 }
-                                Annotation("To", coordinate: track.to) {
+                                Annotation("To", coordinate: CoordinateConverter.parseCoordinate(coordinate: track.to)) {
                                     Image(systemName: "location.fill")
                                         .padding(5)
                                 }
@@ -203,9 +203,9 @@ struct RunningCompetitionView: View {
                                         .exclusiveTouchTapGesture {
                                             // 防止频繁刷新
                                             if viewModel.selectedTrack?.trackID != track.trackID {
-                                                withAnimation {
+                                                //withAnimation {
                                                     viewModel.switchTrack(to: track)
-                                                }
+                                                //}
                                             }
                                         }
                                 }
@@ -281,6 +281,12 @@ struct RunningCompetitionView: View {
                                         iconColor: .black,
                                         text: "路程: \(track.distance)"
                                     )
+                                    // 赛道积分
+                                    InfoItemView(
+                                        iconName: "staroflife.fill",
+                                        iconColor: .red,
+                                        text: "赛道积分: \(track.score)"
+                                    )
                                 }
                                 .padding(.vertical, 6)
                                 
@@ -331,19 +337,60 @@ struct RunningCompetitionView: View {
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
                             
-                            VStack {
+                            if let rankInfo = viewModel.selectedRankInfo {
+                                VStack {
+                                    HStack {
+                                        Text("我的最好成绩")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                        Spacer()
+                                        if let rank = rankInfo.rank {
+                                            Text("No. \(rank)")
+                                                .font(.headline)
+                                        } else {
+                                            Text("无数据")
+                                                .font(.headline)
+                                        }
+                                        Spacer()
+                                        Text("排行榜")
+                                            .font(.subheadline)
+                                            .padding(5)
+                                            .background(Color.orange.opacity(0.5))
+                                            .cornerRadius(8)
+                                            .exclusiveTouchTapGesture {
+                                                navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                            }
+                                    }
+                                    .foregroundColor(.white)
+                                    Divider()
+                                    HStack(spacing: 0) {
+                                        Text("用时: ")
+                                        Text(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))
+                                        Spacer()
+                                        Text(rankInfo.recordID ?? "未知")
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.secondText)
+                                    Divider()
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "staroflife.fill")
+                                        Text("\(rankInfo.score ?? 0)")
+                                        Spacer()
+                                        Image(systemName: CCAssetType.voucher.iconName)
+                                        Text("\(rankInfo.voucherAmount ?? 0)")
+                                    }
+                                }
+                                .padding()
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(20)
+                            } else {
                                 HStack {
                                     Text("我的最好成绩")
                                         .font(.headline)
                                         .fontWeight(.bold)
                                     Spacer()
-                                    if let rank = viewModel.selectedRankInfo?.rank {
-                                        Text("No. \(rank)")
+                                    Text("登陆后查看")
                                             .font(.headline)
-                                    } else {
-                                        Text("无数据")
-                                            .font(.headline)
-                                    }
                                     Spacer()
                                     Text("排行榜")
                                         .font(.subheadline)
@@ -351,40 +398,14 @@ struct RunningCompetitionView: View {
                                         .background(Color.orange.opacity(0.5))
                                         .cornerRadius(8)
                                         .exclusiveTouchTapGesture {
-                                            navigationManager.append(.runningRankingListView(trackID: track.trackID))
+                                            navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
                                         }
                                 }
                                 .foregroundColor(.white)
-                                Divider()
-                                HStack(spacing: 0) {
-                                    Text("用时: ")
-                                    if let duration = viewModel.selectedRankInfo?.duration {
-                                        Text(TimeDisplay.formattedTime(duration, showFraction: true))
-                                    } else {
-                                        Text("无数据")
-                                    }
-                                    Spacer()
-                                    Text(viewModel.selectedRankInfo?.recordID ?? "无record数据")
-                                }
-                                .font(.caption)
-                                .foregroundColor(.secondText)
-                                if let rankInfo = viewModel.selectedRankInfo {
-                                    Divider()
-                                    HStack(spacing: 4) {
-                                        Image(systemName: CCAssetType.coin.iconName)
-                                        Text("\(rankInfo.coinAmount)")
-                                        Spacer()
-                                        Image(systemName: CCAssetType.coupon.iconName)
-                                        Text("\(rankInfo.couponAmount)")
-                                        Spacer()
-                                        Image(systemName: CCAssetType.voucher.iconName)
-                                        Text("\(rankInfo.voucherAmount)")
-                                    }
-                                }
+                                .padding()
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(20)
                             }
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(20)
                         }
                         .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
                     }
@@ -491,18 +512,28 @@ struct RunningCompetitionView: View {
             RunningEventDetailView(event: event)
         }
         .onChange(of: locationManager.region) {
-            viewModel.fetchEvents(with: locationManager.region)
+            if let region = locationManager.region {
+                viewModel.fetchEvents(with: region)
+            }
         }
         .onChange(of: viewModel.selectedTrack) {
-            viewModel.selectedRankInfo = nil
             if let track = viewModel.selectedTrack {
-                viewModel.queryRankInfo(trackID: track.trackID)
+                viewModel.selectedRankInfo = track.rankInfo
+                if track.rankInfo == nil {
+                    viewModel.queryRankInfo(trackID: track.trackID)
+                }
             }
         }
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshCompetitionView {
-                viewModel.fetchEvents(with: locationManager.region)
+                if let region = locationManager.region {
+                    viewModel.fetchEvents(with: region)
+                }
                 globalConfig.refreshCompetitionView  = false
+                globalConfig.refreshRankInfo  = false
+            } else if globalConfig.refreshRankInfo, let trackID = viewModel.selectedTrack?.trackID {
+                viewModel.queryRankInfo(trackID: trackID)
+                globalConfig.refreshRankInfo  = false
             }
             firstOnAppear = false
         }

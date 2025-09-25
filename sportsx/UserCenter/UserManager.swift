@@ -26,8 +26,10 @@ class UserManager: ObservableObject {
     @Published var isLoggedIn: Bool = false
     @Published var showingLogin: Bool = false
     
+    @Published var mailboxUnreadCount: Int = 0
+    
     var role: UserRole = UserRole.user  // 用户权限
-        
+    
     private init() {
         if let token = KeychainHelper.standard.read(forKey: "access_token") {
             print("read access_token success : \(token)")
@@ -75,6 +77,22 @@ class UserManager: ObservableObject {
         }
     }
     
+    func queryMailBox() {
+        let request = APIRequest(path: "/mailbox/query_unread_status", method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: MailBoxStatus.self) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.mailboxUnreadCount = unwrappedData.unread_count
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
     func fetchMeRole() {
         let request = APIRequest(path: "/user/me/role", method: .get, requiresAuth: true)
         
@@ -91,26 +109,26 @@ class UserManager: ObservableObject {
         }
     }
     
-    func fetchMeInfo() {
+    func fetchMeInfo() async {
         let request = APIRequest(path: "/user/me", method: .get, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: FetchMeUserResponse.self, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    let user = unwrappedData.user
-                    let relation = unwrappedData.relation
-                    DispatchQueue.main.async {
-                        self.friendCount = relation.friends
-                        self.followerCount = relation.follower
-                        self.followedCount = relation.followed
-                        self.user = User(from: user)
-                        self.saveUserInfoToCache()
-                    }
-                    self.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: FetchMeUserResponse.self, showErrorToast: true)
+        
+        switch result {
+        case .success(let data):
+            if let unwrappedData = data {
+                let user = unwrappedData.user
+                let relation = unwrappedData.relation
+                await MainActor.run {
+                    friendCount = relation.friends
+                    followerCount = relation.follower
+                    followedCount = relation.followed
+                    self.user = User(from: user)
+                    saveUserInfoToCache()
                 }
-            default: break
+                self.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
             }
+        default: break
         }
     }
     
@@ -148,6 +166,18 @@ class UserManager: ObservableObject {
                 print("下载封面失败")
             }
         }
+    }
+    
+    func updateUserLocation(region: String) {
+        guard var components = URLComponents(string: "/user/update_location") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "location", value: region)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showErrorToast: true) { _ in } 
     }
     
     func updateRelationInfo() {
@@ -201,13 +231,16 @@ class UserManager: ObservableObject {
         defaults.set(followedCount, forKey: "followedCount")
         defaults.set(followerCount, forKey: "followerCount")
         defaults.set(friendCount, forKey: "friendCount")
+        defaults.set(user.defaultSport.rawValue, forKey: "user.defaultSport")
     }
     
     private func loadUserInfoCache() {
         let defaults = UserDefaults.standard
         let genderRaw = defaults.string(forKey: "user.gender")
+        let sportRaw = defaults.string(forKey: "user.defaultSport")
         let gender = genderRaw.flatMap { Gender(rawValue: $0) }
-        let user = User(
+        let defaultSport = sportRaw.flatMap { SportName(rawValue: $0) }
+        user = User(
             userID: defaults.string(forKey: "user.userID") ?? "未知",
             nickname: defaults.string(forKey: "user.nickname") ?? "未登录",
             phoneNumber: defaults.string(forKey: "user.phoneNumber") ?? "未知",
@@ -224,13 +257,15 @@ class UserManager: ObservableObject {
             isDisplayAge: defaults.bool(forKey: "user.isDisplayAge"),
             isDisplayLocation: defaults.bool(forKey: "user.isDisplayLocation"),
             enableAutoLocation: defaults.bool(forKey: "user.enableAutoLocation"),
-            isDisplayIdentity: defaults.bool(forKey: "user.isDisplayIdentity")
+            isDisplayIdentity: defaults.bool(forKey: "user.isDisplayIdentity"),
+            defaultSport: defaultSport ?? .Bike
         )
-        self.user = user
         
         followedCount = defaults.integer(forKey: "followedCount")
         followerCount = defaults.integer(forKey: "followerCount")
         friendCount = defaults.integer(forKey: "friendCount")
+        
+        config.location = user.location
 
         let avatarPath = getLocalImagePath(filename: "avatar.jpg")
         let backgroundPath = getLocalImagePath(filename: "background.jpg")
@@ -269,6 +304,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.isDisplayLocation")
         defaults.removeObject(forKey: "user.enableAutoLocation")
         defaults.removeObject(forKey: "user.isDisplayIdentity")
+        defaults.removeObject(forKey: "user.defaultSport")
         
         defaults.removeObject(forKey: "followedCount")
         defaults.removeObject(forKey: "followerCount")
@@ -330,31 +366,33 @@ struct RelationInfoResponse: Codable {
 }
 
 struct UserDTO: Codable {
-    var user_id: String                 // 服务器端的唯一标识符
-    var nickname: String                // 昵称
-    var phone_number: String?           // 手机号
-    var avatar_image_url: String        // 头像url
-    var background_image_url: String    // 封面url
+    let user_id: String                 // 服务器端的唯一标识符
+    let nickname: String                // 昵称
+    let phone_number: String?           // 手机号
+    let avatar_image_url: String        // 头像url
+    let background_image_url: String    // 封面url
     
-    var introduction: String?           // 简介
-    var gender: Gender?                 // 性别
-    var birthday: String?               // 生日
-    var location: String?               // 地理位置
-    var identity_auth_name: String?     // 身份名称
+    let introduction: String?           // 简介
+    let gender: Gender?                 // 性别
+    let birthday: String?               // 生日
+    let location: String?               // 地理位置
+    let identity_auth_name: String?     // 身份名称
     
-    var is_realname_auth: Bool      // 是否已实名认证
-    var is_identity_auth: Bool      // 是否已身份认证
+    let is_realname_auth: Bool      // 是否已实名认证
+    let is_identity_auth: Bool      // 是否已身份认证
     
-    var is_display_gender: Bool       // 是否展示性别
-    var is_display_age: Bool          // 是否真实年龄
-    var is_display_location: Bool     // 是否展示地理位置
-    var enable_auto_location: Bool    // 是否使用最新定位的地理位置
-    var is_display_identity: Bool     // 是否展示身份名称
+    let is_display_gender: Bool       // 是否展示性别
+    let is_display_age: Bool          // 是否真实年龄
+    let is_display_location: Bool     // 是否展示地理位置
+    let enable_auto_location: Bool    // 是否使用最新定位的地理位置
+    let is_display_identity: Bool     // 是否展示身份名称
+    
+    let default_sport: SportName      // 主页默认展示的运动
 }
 
 struct User: Identifiable, Codable, Hashable {
-    let id: UUID
-    var userID: String              // 服务器端的唯一标识符
+    var id: String { userID }
+    let userID: String              // 服务器端的唯一标识符
     var nickname: String            // 昵称
     var phoneNumber: String?        // 手机号
     var avatarImageURL: String      // 头像url
@@ -374,6 +412,7 @@ struct User: Identifiable, Codable, Hashable {
     var isDisplayLocation: Bool     // 是否展示地理位置
     var enableAutoLocation: Bool    // 是否使用最新定位的地理位置
     var isDisplayIdentity: Bool     // 是否展示身份名称
+    var defaultSport: SportName     // 主页默认展示的运动
     
     init(
         userID: String = "未知",
@@ -392,9 +431,9 @@ struct User: Identifiable, Codable, Hashable {
         isDisplayAge: Bool = false,
         isDisplayLocation: Bool = false,
         enableAutoLocation: Bool = false,
-        isDisplayIdentity: Bool = false
+        isDisplayIdentity: Bool = false,
+        defaultSport: SportName = .Bike
     ) {
-        self.id = UUID()
         self.userID = userID
         self.nickname = nickname
         self.phoneNumber = phoneNumber
@@ -412,10 +451,10 @@ struct User: Identifiable, Codable, Hashable {
         self.isDisplayLocation = isDisplayLocation
         self.enableAutoLocation = enableAutoLocation
         self.isDisplayIdentity = isDisplayIdentity
+        self.defaultSport = defaultSport
     }
 
     init(from dto: UserDTO) {
-        self.id = UUID()
         self.userID = dto.user_id
         self.nickname = dto.nickname
         self.phoneNumber = dto.phone_number
@@ -433,5 +472,6 @@ struct User: Identifiable, Codable, Hashable {
         self.isDisplayLocation = dto.is_display_location
         self.enableAutoLocation = dto.enable_auto_location
         self.isDisplayIdentity = dto.is_display_identity
+        self.defaultSport = dto.default_sport
     }
 }

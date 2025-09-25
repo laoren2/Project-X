@@ -9,11 +9,16 @@ import Foundation
 import CoreLocation
 import SwiftUI
 
+
 struct CoordinateConverter {
-    
     // 判断是否在中国境内
-    private static func outOfChina(lat: Double, lon: Double) -> Bool {
-        return !(lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55)
+    // todo: 添加ip判断
+    private static func outOfChina(coordinate: CLLocationCoordinate2D) -> Bool {
+        let lat = coordinate.latitude
+        let lon = coordinate.longitude
+        let isCoorInCN = lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55
+        let isCodeInCN = LocationManager.shared.countryCode == "CN"
+        return !(isCoorInCN && isCodeInCN)
     }
 
     // 转换函数
@@ -51,9 +56,6 @@ struct CoordinateConverter {
 
     // WGS-84 转 GCJ-02
     static func wgs84ToGcj02(lat: Double, lon: Double) -> CLLocationCoordinate2D {
-        if outOfChina(lat: lat, lon: lon) {
-            return CLLocationCoordinate2D(latitude: lat, longitude: lon)
-        }
         let d = transform(lat: lat, lon: lon)
         let gcjLat = lat + d.lat
         let gcjLon = lon + d.lon
@@ -62,13 +64,28 @@ struct CoordinateConverter {
     
     // GCJ-02 转 WGS-84
     static func gcj02ToWgs84(lat: Double, lon: Double) -> CLLocationCoordinate2D {
-        if outOfChina(lat: lat, lon: lon) {
-            return CLLocationCoordinate2D(latitude: lat, longitude: lon)
-        }
         let d = transform(lat: lat, lon: lon)
         let wgsLat = lat - d.lat
         let wgsLon = lon - d.lon
         return CLLocationCoordinate2D(latitude: wgsLat, longitude: wgsLon)
+    }
+    
+    // 获取真正用于显示的坐标
+    static func parseCoordinate(coordinate: CLLocationCoordinate2D) -> CLLocationCoordinate2D {
+        if outOfChina(coordinate: coordinate) {
+            return coordinate
+        } else {
+            return wgs84ToGcj02(lat: coordinate.latitude, lon: coordinate.longitude)
+        }
+    }
+    
+    // 用户可手动reverse兜底
+    static func reverseParseCoordinate(coordinate: CLLocationCoordinate2D) -> CLLocationCoordinate2D {
+        if outOfChina(coordinate: coordinate) {
+            return wgs84ToGcj02(lat: coordinate.latitude, lon: coordinate.longitude)
+        } else {
+            return coordinate
+        }
     }
 }
 

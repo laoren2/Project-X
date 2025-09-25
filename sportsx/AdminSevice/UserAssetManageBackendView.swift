@@ -25,6 +25,16 @@ struct UserAssetManageBackendView: View {
     
     @State var isLoading: Bool = false
     
+    @State private var user2_id: String = ""
+    @State private var mail_type: String = MailType.NOTIFICATION.rawValue
+    @State private var title: String = ""
+    @State private var content: String = ""
+    @State private var attachments: String = ""
+    let mail_types = [
+        MailType.NOTIFICATION,
+        MailType.REWARD
+    ]
+    
     var body: some View {
         VStack(spacing: 10) {
             HStack {
@@ -84,12 +94,70 @@ struct UserAssetManageBackendView: View {
                 }
                 .padding()
             }
-            
+            Spacer()
+            HStack {
+                VStack {
+                    TextField("用户id", text: $user2_id)
+                        .background(.gray.opacity(0.1))
+                    Menu {
+                        ForEach(mail_types, id: \.self) { type in
+                            Button(type.rawValue) {
+                                mail_type = type.rawValue
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(mail_type)
+                                .font(.subheadline)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .cornerRadius(8)
+                    }
+                    TextField("标题", text: $title)
+                        .background(.gray.opacity(0.1))
+                    TextField("内容", text: $content)
+                        .background(.gray.opacity(0.1))
+                    TextField("附件", text: $attachments)
+                        .background(.gray.opacity(0.1))
+                }
+                
+                Button("发送邮件") {
+                    sendMail()
+                }
+                .padding()
+            }
             Spacer()
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
         .enableBackGesture()
+    }
+    
+    func sendMail() {
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        var body: [String: String] = [
+            "user_id": user2_id,
+            "type": mail_type,
+            "title": title
+        ]
+        if !content.isEmpty {
+            body["content"] = content
+        }
+        if !attachments.isEmpty {
+            body["attachments"] = attachments
+        }
+        guard let encodedBody = try? JSONEncoder().encode(body) else {
+            return
+        }
+        
+        let request = APIRequest(path: "/mailbox/send_mail", method: .post, headers: headers, body: encodedBody, isInternal: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showSuccessToast: true, showErrorToast: true) { _ in }
     }
     
     func rewardCCAssets() {

@@ -269,11 +269,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 已经在主线程上，将耗时操作转入后台
         //userLocation = location.coordinate
         DispatchQueue.global(qos: .background).async { [self] in
-            let startCoordinate_WGS = CoordinateConverter.gcj02ToWgs84(lat: startCoordinate.latitude, lon: startCoordinate.longitude)
-            let endCoordinate_WGS = CoordinateConverter.gcj02ToWgs84(lat: endCoordinate.latitude, lon: endCoordinate.longitude)
             if isRecording {
                 // 比赛进行中，检查用户是否在终点的安全区域内
-                let dis = location.distance(from: CLLocation(latitude: endCoordinate_WGS.latitude, longitude: endCoordinate_WGS.longitude))
+                let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
                 let inEndZone = dis <= safetyRadius
                 //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
                 if inEndZone {
@@ -283,20 +281,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 }
             } else {
                 // 比赛开始前，检查用户是否在出发点的安全区域内
-                let distance = location.distance(from: CLLocation(latitude: startCoordinate_WGS.latitude, longitude: startCoordinate_WGS.longitude))
-                
+                let distance = location.distance(from: CLLocation(latitude: startCoordinate.latitude, longitude: startCoordinate.longitude))
                 DispatchQueue.main.async {
                     self.isInValidArea = distance <= self.safetyRadius
                 }
             }
         }
     }
-    
-    /*private func handleModelPrediction(modelName: String, result: Any) {
-        // 根据模型名称和结果类型进行处理
-        print("模型 \(modelName) 预测结果: \(result)")
-        // 这里可以根据需要更新UI或执行其他逻辑
-    }*/
     
     // Request microphone access
     private func requestMicrophoneAccess() {
@@ -384,6 +375,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func stopCompetition() {
+        isRecording = false
         // Stop location updates
         deleteCompetitionLocationSubscription()
         LocationManager.shared.backToLastSet()
@@ -394,7 +386,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         // Stop audio recording if applicable
         stopRecordingAudio()
-        
         // 停止手机和传感器设备的数据收集
         self.stopTimer()
         for (pos, dev) in deviceManager.deviceMap {
@@ -438,7 +429,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         dataFusionManager.resetAll()
         resetCompetitionProperties()
-        isRecording = false
         Logger.competition.notice_public("competition stop")
     }
     
@@ -469,7 +459,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
-                        self.navigationManager.append(.bikeRecordDetailView(id: record.record_id))
+                        self.navigationManager.append(.bikeRecordDetailView(recordID: record.record_id, userID: self.user.user.userID))
                     }
                 default: break
                 }
@@ -495,7 +485,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
-                        self.navigationManager.append(.runningRecordDetailView(id: record.record_id))
+                        self.navigationManager.append(.runningRecordDetailView(recordID: record.record_id, userID: self.user.user.userID))
                     }
                 default: break
                 }
@@ -557,6 +547,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     func startRecordingSession() {
         matchContext.reset()
         matchContext.isTeam = isTeam
+        // 默认将所有加载卡牌添加进 matchContext 中
+        for card in activeCardEffects {
+            matchContext.addOrUpdateBonus(cardID: card.cardID, bonus: 0)
+        }
         eventBus.emit(.matchStart, context: matchContext)
         
         // 重置组队模式下的计时环境
@@ -596,7 +590,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 dataFusionManager.deviceNeedToWork |= (1 << (pos.rawValue + 1))
                 //startCollecting(device: device)
                 Logger.competition.notice_public("\(pos.name) watch data start collecting")
-                device.startCollection(activityType: sport.rawValue, locationType: "outdoor")  // 开始数据收集
+                device.startCollection(activityType: sport, locationType: "outdoor")  // 开始数据收集
             }
         }
     }
@@ -623,7 +617,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             if tickCounter % 20 == 0 { // 20 * 0.05s = 1s
                 let newElapsedTime = Date().timeIntervalSince(start)
                 DispatchQueue.main.async {
-                    self.dataFusionManager.elapsedTime = newElapsedTime
+                    // 再次检查比赛状态，避免比赛结束时计时器闭包延迟更新重置elapsedTime
+                    if self.isRecording {
+                        self.dataFusionManager.elapsedTime = newElapsedTime
+                    }
                 }
             }
             
@@ -805,7 +802,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     func activateCards(_ cards: [MagicCard]) {
         isEffectsFinishPrepare = false
         guard cards.count <= 3 else {
-            print("最多选择3个卡片")
+            ToastManager.shared.show(toast: Toast(message: "最多选择3张卡牌"))
             return
         }
         

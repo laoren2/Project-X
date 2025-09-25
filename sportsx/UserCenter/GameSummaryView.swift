@@ -9,25 +9,30 @@ import SwiftUI
 
 struct GameSummaryView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
     
-    
     var body: some View {
-        LazyVStack(spacing: 15) {
-            ForEach(viewModel.gameSummaryCards) { card in
-                GameSummaryCardView(gameSummaryCard: card)
+        if (!viewModel.isNeedBack) && (!userManager.isLoggedIn) {
+            Text("登录后查看")
+                .foregroundStyle(Color.secondText)
+                .padding(.top, 100)
+        } else {
+            LazyVStack(spacing: 15) {
+                ForEach(viewModel.gameSummaryCards) { card in
+                    GameSummaryCardView(viewModel: viewModel, gameSummaryCard: card)
+                }
             }
+            .padding(.horizontal)
+            .padding(.top)
         }
-        .padding(.horizontal)
-        .padding(.top)
-        .border(.green)
     }
 }
 
 struct GameSummaryCardView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var viewModel: UserViewModel
     let gameSummaryCard: GameSummaryCard
-    
     
     var body: some View {
         VStack {
@@ -40,6 +45,7 @@ struct GameSummaryCardView: View {
                     .foregroundStyle(.blue)
                 Text(gameSummaryCard.cityName)
             }
+            Divider()
             HStack {
                 Text("PB")
                     .font(.system(size: 15))
@@ -51,46 +57,82 @@ struct GameSummaryCardView: View {
                 Spacer()
                 Text("No.\(gameSummaryCard.rank)")
                     .bold()
-                Spacer()
-                Image(systemName: "dollarsign.circle")
+            }
+            Divider()
+            HStack {
+                Image(systemName: CCAssetType.voucher.iconName)
                     .foregroundStyle(.yellow)
-                Text("\(gameSummaryCard.previewBonus)")
+                Text("\(gameSummaryCard.voucher)")
+                    .bold()
+                Spacer()
+                Image(systemName: "staroflife.fill")
+                    .foregroundStyle(.red)
+                Text("\(gameSummaryCard.score)")
                     .bold()
             }
+            Divider()
             HStack {
                 Spacer()
-                ForEach(gameSummaryCard.magicCards) { card in
-                    MagicCardView(card: card)
-                    Spacer()
-                }
-                ForEach(0..<(5 - gameSummaryCard.magicCards.count), id: \.self) { _ in
-                    EmptyCardSlot()
-                        //.opacity(0)
-                    Spacer()
-                }
+                Text("详情")
+                    .padding(.vertical, 5)
+                    .padding(.horizontal)
+                    .background(Color.orange)
+                    .cornerRadius(10)
+                    .exclusiveTouchTapGesture {
+                        if viewModel.sport == .Bike {
+                            appState.navigationManager.append(.bikeRecordDetailView(recordID: gameSummaryCard.record_id, userID: viewModel.userID))
+                        } else if viewModel.sport == .Running {
+                            appState.navigationManager.append(.runningRecordDetailView(recordID: gameSummaryCard.record_id, userID: viewModel.userID))
+                        }
+                    }
             }
-            .frame(height: 80)
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 10)
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.secondText)
         .background(.gray.opacity(0.5))
         .cornerRadius(10)
-        //.border(.red)
     }
 }
 
 struct GameSummaryCard: Identifiable {
-    let id = UUID()
+    var id: String { record_id }
+    let record_id: String
     let eventname: String
     let trackName: String
     let cityName: String
     let best_time: TimeInterval
     let rank: Int
-    let previewBonus: Int
-    let magicCards: [MagicCard]
+    let voucher: Int
+    let score: Int
+    //let magicCards: [MagicCard]
+    
+    init(from card: GameSummaryCardDTO) {
+        self.record_id = card.record_id
+        self.eventname = card.event_name
+        self.trackName = card.track_name
+        self.cityName = card.city_name
+        self.best_time = card.best_time
+        self.rank = card.rank
+        self.voucher = card.voucher
+        self.score = card.score
+    }
 }
 
+struct GameSummaryCardDTO: Codable {
+    let record_id: String
+    let event_name: String
+    let track_name: String
+    let city_name: String
+    let best_time: Double
+    let rank: Int
+    let voucher: Int
+    let score: Int
+}
+
+struct GameSummaryResponse: Codable {
+    let records: [GameSummaryCardDTO]
+}
 
 #Preview {
     let appState = AppState.shared

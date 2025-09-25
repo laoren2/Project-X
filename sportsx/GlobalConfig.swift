@@ -13,7 +13,12 @@ class GlobalConfig: ObservableObject {
     
     private init () {}
     
-    var location: String = "未知"
+    // 用来做全局的按钮防抖
+    @Published var isButtonLocked = false
+    
+    // 设备当前定位
+    var location: String? = nil
+    //var ipCountryCode: String = "未知"
     
     // record管理页刷新时机
     var refreshRecordManageView: Bool = false
@@ -29,6 +34,11 @@ class GlobalConfig: ObservableObject {
     
     // 比赛页刷新时机
     var refreshCompetitionView: Bool = false
+    var refreshRankInfo: Bool = false
+    
+    // 用户页刷新时机
+    var refreshUserView: Bool = false
+    var refreshMailStatus: Bool = false
     
     func refreshAll() {
         refreshShopView = true
@@ -36,5 +46,6 @@ class GlobalConfig: ObservableObject {
         refreshCompetitionView = true
         refreshRecordManageView = true
         refreshTeamManageView = true
+        refreshUserView = true
     }
 }

@@ -50,8 +50,6 @@ struct sportsxApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
-    //@StateObject private var navigationManager = NManager()
-    //@StateObject var nm = NManager()
     
     init() {
         // 验证版本号
@@ -83,6 +81,8 @@ struct sportsxApp: App {
             await AssetManager.shared.queryCPAssets(withLoadingToast: false)
             await AssetManager.shared.queryMagicCards(withLoadingToast: false)
         }
+        // 查询邮件未读状态
+        UserManager.shared.queryMailBox()
     }
     
     var body: some Scene {
@@ -92,7 +92,6 @@ struct sportsxApp: App {
                 .preferredColorScheme(.light)
             //TestView()
             //    .environmentObject(appState)
-            //CompetitionView()
         }
     }
     
@@ -140,6 +139,29 @@ struct sportsxApp: App {
             }
         }
     }
+    
+    /*func queryIPCountry() {
+        // 查询 ip 对应的国家地区
+        let request = APIRequest(path: "/common/query_ip_country", method: .get)
+        
+        NetworkService.sendRequest(with: request, decodingType: String.self) { result in
+            switch result {
+            case .success(let data):
+                if let country = data {
+                    DispatchQueue.main.async {
+                        GlobalConfig.shared.ipCountryCode = country
+                    }
+                    print("ip-country: \(country)")
+                }
+            default: break
+            }
+        }
+    }*/
+}
+
+struct MailBoxStatus: Codable {
+    let has_unread: Bool
+    let unread_count: Int
 }
 
 

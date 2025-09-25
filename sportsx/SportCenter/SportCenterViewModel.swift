@@ -12,12 +12,15 @@ import Combine
 class CompetitionCenterViewModel: ObservableObject {
     let locationManager = LocationManager.shared
     
-    @Published var seasonName: String = ""
+    @Published var seasonName: String = "未知赛季"
     
     // 订阅位置更新及授权
     private var locationCancellable: AnyCancellable?
     private var authorizationCancellable: AnyCancellable?
     
+    init() {
+        setupLocationSubscription()
+    }
     
     func setupLocationSubscription() {
         // 订阅位置更新
@@ -35,22 +38,14 @@ class CompetitionCenterViewModel: ObservableObject {
             }
     }
     
-    func deleteLocationSubscription() {
-        locationCancellable?.cancel()
-        authorizationCancellable?.cancel()
-    }
-    
     private func handleLocationUpdate(_ location: CLLocation) {
-        // 更新UI转到主线程上
-        DispatchQueue.main.async {
-            self.updateCity(from: location)
-        }
-        deleteLocationSubscription()
+        updateCity(from: location)
+        locationCancellable?.cancel()
     }
     
     private func handleAuthorizationStatusChange(_ status: CLAuthorizationStatus) {
         if status != .authorizedAlways && status != .authorizedWhenInUse {
-            locationManager.region = "未知"
+            locationManager.region = nil
         }
         switch status {
         case .authorizedAlways:
@@ -66,9 +61,11 @@ class CompetitionCenterViewModel: ObservableObject {
         @unknown default:
             print("未知的授权状态。")
         }
+        authorizationCancellable?.cancel()
     }
     
     func fetchCurrentSeason() {
+        seasonName = "未知赛季"
         let urlPath = "/competition/\(AppState.shared.sport.rawValue)/query_season"
             
         let request = APIRequest(path: urlPath, method: .get)
@@ -89,13 +86,21 @@ class CompetitionCenterViewModel: ObservableObject {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] (placemarks, error) in
             guard let self = self else { return }
-            if let placemark = placemarks?.first {
-                if let city = placemark.locality, !city.isEmpty {
-                    locationManager.region = city
-                    GlobalConfig.shared.location = city
-                }
-                if let country = placemark.isoCountryCode {
-                    locationManager.countryCode = country
+            DispatchQueue.main.async {
+                if let placemark = placemarks?.first {
+                    if let city = placemark.locality, !city.isEmpty {
+                        self.locationManager.region = city
+                        GlobalConfig.shared.location = city
+                        if UserManager.shared.user.enableAutoLocation && UserManager.shared.user.location != city {
+                            UserManager.shared.updateUserLocation(region: city)
+                        }
+                    } else {
+                        // 暂时兜底
+                        self.locationManager.region = GlobalConfig.shared.location
+                    }
+                    if let country = placemark.isoCountryCode {
+                        self.locationManager.countryCode = country
+                    }
                 }
             }
         }

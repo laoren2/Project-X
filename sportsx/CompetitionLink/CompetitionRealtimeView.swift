@@ -10,10 +10,19 @@ import MapKit
 
 struct CompetitionRealtimeView: View {
     @EnvironmentObject var appState: AppState
-    //@StateObject var viewModel = CompetitionRealtimeViewModel()
     @ObservedObject var dataFusionManager = DataFusionManager.shared
     @State private var cameraPosition: MapCameraPosition = .automatic
+    @State var isReverse: Bool = false
+
+    let startCoordinate: CLLocationCoordinate2D = {
+        let coordinate = AppState.shared.competitionManager.startCoordinate
+        return CoordinateConverter.parseCoordinate(coordinate: coordinate)
+    }()
     
+    let reverseCoordinate: CLLocationCoordinate2D = {
+        let coordinate = AppState.shared.competitionManager.startCoordinate
+        return CoordinateConverter.reverseParseCoordinate(coordinate: coordinate)
+    }()
     
     var body: some View {
         // 显示比赛数据或其他内容
@@ -40,17 +49,16 @@ struct CompetitionRealtimeView: View {
             
             ZStack(alignment: .bottomTrailing) {
                 Map(position: $cameraPosition) {
-                    Annotation("From", coordinate: appState.competitionManager.startCoordinate) {
+                    Annotation("From", coordinate: isReverse ? reverseCoordinate : startCoordinate) {
                         Image(systemName: "location.fill")
                             .padding(5)
                     }
                     // 添加出发点安全区域
-                    MapCircle(center: appState.competitionManager.startCoordinate, radius: appState.competitionManager.safetyRadius)
+                    MapCircle(center: isReverse ? reverseCoordinate : startCoordinate, radius: appState.competitionManager.safetyRadius)
                         .foregroundStyle(.green.opacity(0.3))
                         .stroke(.mint, lineWidth: 2)
                 }
                 .frame(height: 200)
-                .padding(10)
                 .shadow(radius: 2)
                 .mapControls {
                     MapUserLocationButton()
@@ -63,7 +71,7 @@ struct CompetitionRealtimeView: View {
                     withAnimation(.easeInOut(duration: 2)) {
                         cameraPosition = .region(
                             MKCoordinateRegion(
-                                center: appState.competitionManager.startCoordinate,
+                                center: isReverse ? reverseCoordinate : startCoordinate,
                                 latitudinalMeters: appState.competitionManager.safetyRadius * 3,
                                 longitudinalMeters: appState.competitionManager.safetyRadius * 3
                             )
@@ -78,6 +86,18 @@ struct CompetitionRealtimeView: View {
                 .padding(.trailing, 15)
                 .padding(.bottom, 15) // 贴到右下角
             }
+            .padding()
+            
+            HStack {
+                Text("如遇到显示区域错误，请手动切换坐标系")
+                Spacer()
+                Text("切换")
+                    .onTapGesture {
+                        isReverse.toggle()
+                    }
+            }
+            .padding(.horizontal)
+            .foregroundStyle(Color.secondText)
             
             Spacer()
             

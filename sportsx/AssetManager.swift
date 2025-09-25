@@ -111,7 +111,7 @@ class AssetManager: ObservableObject {
     }
     
     // 销毁装备卡
-    func destroyMagicCard(cardID: String) {
+    func destroyMagicCard(cardID: String) async {
         guard var components = URLComponents(string: "/asset/destroy_equip_card") else { return }
         components.queryItems = [
             URLQueryItem(name: "card_id", value: cardID)
@@ -119,21 +119,20 @@ class AssetManager: ObservableObject {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: UpgradePriceResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        for price in unwrappedData.prices {
-                            self.updateCCAsset(type: price.ccasset_type, newBalance: price.new_ccamount)
-                        }
-                        if let index = self.magicCards.firstIndex(where: { $0.cardID == cardID }) {
-                            self.magicCards.remove(at: index)
-                        }
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: UpgradePriceResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true)
+        switch result {
+        case .success(let data):
+            if let unwrappedData = data {
+                await MainActor.run {
+                    for price in unwrappedData.prices {
+                        updateCCAsset(type: price.ccasset_type, newBalance: price.new_ccamount)
+                    }
+                    if let index = magicCards.firstIndex(where: { $0.cardID == cardID }) {
+                        magicCards.remove(at: index)
                     }
                 }
-            default: break
             }
+        default: break
         }
     }
     
@@ -238,7 +237,7 @@ class AssetManager: ObservableObject {
     }
 }
 
-enum CCAssetType: String, Codable {
+enum CCAssetType: String, Codable, CaseIterable {
     case coin = "coin"
     case coupon = "coupon"
     case voucher = "voucher"
@@ -262,6 +261,12 @@ enum CCAssetType: String, Codable {
             return "questionmark.diamond.fill"
         }
     }
+}
+
+struct AssetUpdateResponse: Codable {
+    let ccassets: [CCUpdateResponse]
+    let cpassets: [CPAssetResponse]
+    let equip_cards: [MagicCardUserDTO]
 }
 
 struct CPAssetUserInfo: Identifiable {
@@ -388,7 +393,7 @@ struct MagicCardDef {
     let params: JSONValue
 }
 
-class MagicCard: Identifiable, Equatable {
+struct MagicCard: Identifiable, Equatable {
     let id: UUID
     let cardID: String
     let defID: String

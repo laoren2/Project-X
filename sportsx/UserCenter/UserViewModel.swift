@@ -1,6 +1,7 @@
 //
 //  UserViewModel.swift
 //  sportsx
+//  todo: 简化逻辑，将主页 noNeedBack 的 UserView 和 NeedBack 的 UserView 分开
 //
 //  Created by 任杰 on 2025/4/18.
 //
@@ -27,11 +28,11 @@ class UserViewModel: ObservableObject {
     @Published var showSidebar = false  // 侧边栏是否显示
     
     // 赛季总积分
-    @Published var totalScore: Int = 0
+    @Published var totalScore: Int?
     // 赛季总积分排名
-    @Published var totalRank: Int = 0
+    @Published var totalRank: Int?
     // 赛季荣誉
-    var cups: [Cup] = []
+    //var cups: [Cup] = []
     // 赛季总参与时间
     @Published var totalTime: Int = 0
     // 赛季总参与路程
@@ -40,9 +41,12 @@ class UserViewModel: ObservableObject {
     @Published var totalBonus: Int = 0
     
     // 赛季赛事积分记录汇总
-    var competitionScoreRecords: [TrackScoreRecord] = []
+    @Published var competitionScoreRecords: [CareerRecord] = []
     
-    var gameSummaryCards: [GameSummaryCard] = []
+    @Published var gameSummaryCards: [GameSummaryCard] = []
+    
+    @Published var selectedSeason: SeasonSelectableInfo?
+    @Published var seasons: [SeasonSelectableInfo] = []
     
     var userID: String
     var isNeedBack: Bool
@@ -53,38 +57,24 @@ class UserViewModel: ObservableObject {
         userID = id
         isNeedBack = needBack
         
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 100, score: 20))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 200, score: 150))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 500, score: 50))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 100, score: 20))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 200, score: 150))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 500, score: 50))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 100, score: 20))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 200, score: 150))
-        competitionScoreRecords.append(TrackScoreRecord(scoreLevel: 500, score: 50))
-        cups.append(Cup(level: .top1, image: "medal.fill"))
-        cups.append(Cup(level: .top10, image: "medal.fill"))
-        cups.append(Cup(level: .top10percent, image: "medal.fill"))
-        /*let cards1: [MagicCard] = [
-            MagicCard(cardID: "model_001", name: "Water Serpent", sportType: .Bike, level: 10, levelSkill1: 2, levelSkill2: 2, levelSkill3: 5, imageURL: "Ads", sensorType: nil, sensorLocation: nil, lucky: 31.2, rarity: "B", description: "test", descriptionSkill1: "test1", descriptionSkill2: "test2", descriptionSkill3: "test3", version: AppVersion("1.0.0"), tags: [], effectDef: MagicCardDef(cardID: "", typeName: "", params: .string("")))
-        ]
-        let cards2: [MagicCard] = [
-            MagicCard(cardID: "model_001", name: "Water Serpent", sportType: .Bike, level: 10, levelSkill1: 2, levelSkill2: 2, levelSkill3: 5, imageURL: "Ads", sensorType: nil, sensorLocation: nil, lucky: 31.2, rarity: "B", description: "test", descriptionSkill1: "test1", descriptionSkill2: "test2", descriptionSkill3: "test3", version: AppVersion("1.0.0"), tags: [], effectDef: MagicCardDef(cardID: "", typeName: "", params: .string("")))
-        ]
-        gameSummaryCards.append(GameSummaryCard(eventname: "赛事1", trackName: "赛道1", cityName: "上海", best_time: 55.55, rank: 5, previewBonus: 288, magicCards: cards1))
-        gameSummaryCards.append(GameSummaryCard(eventname: "赛事1", trackName: "赛道2", cityName: "上海", best_time: 96.20, rank: 155, previewBonus: 40, magicCards: cards2))
-        gameSummaryCards.append(GameSummaryCard(eventname: "赛事2", trackName: "赛道1", cityName: "上海", best_time: 105.11, rank: 862, previewBonus: 10, magicCards: cards2))*/
-        
         // 外部入口且不是已登录用户请求数据存入currentUser
         if isNeedBack {
             if userManager.user.userID == userID {
+                sport = userManager.user.defaultSport
+                queryHistoryCareers()
+                queryCurrentRecords()
                 return
             } else {
                 self.fetchUserInfo()
             }
         } else {
             userManager.fetchMeRole()
-            userManager.fetchMeInfo()
+            Task {
+                await userManager.fetchMeInfo()
+                await MainActor.run {
+                    sport = userManager.user.defaultSport
+                }
+            }
         }
     }
     
@@ -110,7 +100,125 @@ class UserViewModel: ObservableObject {
                         self.followedCount = unwrappedData.relation.followed
                         self.followerCount = unwrappedData.relation.follower
                         self.currentUser = User(from: unwrappedData.user)
+                        self.sport = unwrappedData.user.default_sport
                         self.downloadImages(avatar_url: self.currentUser.avatarImageURL, background_url: self.currentUser.backgroundImageURL)
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryHistoryCareers() {
+        seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "未知")]
+        selectedSeason = nil
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get)
+        
+        NetworkService.sendRequest(with: request, decodingType: SeasonSelectableResponse.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        var tempSeasons: [SeasonSelectableInfo] = []
+                        for season in unwrappedData.seasons {
+                            tempSeasons.append(SeasonSelectableInfo(from: season))
+                        }
+                        self.seasons = tempSeasons
+                        if !self.seasons.isEmpty {
+                            self.selectedSeason = self.seasons[0]
+                        }
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryCareerData() {
+        totalScore = nil
+        totalRank = nil
+        guard let season = selectedSeason else { return }
+        
+        guard var components = URLComponents(
+            string: "/competition/\(sport.rawValue)/" + (isNeedBack ? "query_user_career_data" : "query_me_career_data" )
+        ) else { return }
+        components.queryItems = [
+            URLQueryItem(name: "season_id", value: season.seasonID)
+        ]
+        if isNeedBack {
+            components.queryItems?.append(URLQueryItem(name: "user_id", value: userID))
+        }
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: !isNeedBack)
+        
+        NetworkService.sendRequest(with: request, decodingType: CareerDataDTO.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.totalScore = unwrappedData.total_score
+                        self.totalRank = unwrappedData.total_rank
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryCareerRecords() {
+        competitionScoreRecords = []
+        guard let season = selectedSeason else { return }
+        
+        guard var components = URLComponents(
+            string: "/competition/\(sport.rawValue)/" + (isNeedBack ? "query_user_career_records" : "query_me_career_records")
+        ) else { return }
+        components.queryItems = [
+            URLQueryItem(name: "season_id", value: season.seasonID)
+        ]
+        if isNeedBack {
+            components.queryItems?.append(URLQueryItem(name: "user_id", value: userID))
+        }
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: !isNeedBack)
+        
+        NetworkService.sendRequest(with: request, decodingType: CareerRecordResponse.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for record in unwrappedData.records {
+                            self.competitionScoreRecords.append(CareerRecord(from: record))
+                        }
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryCurrentRecords() {
+        gameSummaryCards = []
+        guard var components = URLComponents(
+            string: "/competition/\(sport.rawValue)/" + (isNeedBack ? "query_user_current_best_records" : "query_me_current_best_records")
+        ) else { return }
+        if isNeedBack {
+            components.queryItems = [
+                URLQueryItem(name: "user_id", value: userID)
+            ]
+        }
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: !isNeedBack)
+        
+        NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for record in unwrappedData.records {
+                            self.gameSummaryCards.append(GameSummaryCard(from: record))
+                        }
                     }
                 }
             default: break
@@ -217,29 +325,54 @@ class UserViewModel: ObservableObject {
     }
 }
 
-struct TrackScoreRecord: Identifiable {
-    let id = UUID()
-    let name: String
+struct CareerRecord: Identifiable {
+    var id: String { recordID }
+    let recordID: String
+    let trackID: String
+    let trackName: String
     let eventName: String
-    let city: String
-    // 赛道对应积分级别
-    let scoreLevel: Int
+    let region: String
+    // 赛道对应积分
+    let trackScore: Int
     // 用户获得的积分
     let score: Int
+    let recordDate: Date?
     
-    init (
-        name: String = "赛道名",
-        eventName: String = "未知",
-        city: String = "未知",
-        scoreLevel: Int = 0,
-        score: Int = 0
-    ) {
-        self.name = name
-        self.eventName = eventName
-        self.city = city
-        self.scoreLevel = scoreLevel
-        self.score = score
+    init (from record: CareerRecordDTO) {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        self.recordID = record.record_id
+        self.trackID = record.track_id
+        self.trackName = record.track_name
+        self.eventName = record.event_name
+        self.region = record.region
+        self.trackScore = record.track_score
+        self.score = record.score
+        self.recordDate = formatter.date(from: record.record_date)
     }
+}
+
+struct CareerRecordDTO: Codable {
+    let record_id: String
+    let track_id: String
+    let track_name: String
+    let event_name: String
+    let region: String
+    let track_score: Int
+    let score: Int
+    let record_date: String
+}
+
+struct CareerRecordResponse: Codable {
+    let records: [CareerRecordDTO]
+}
+
+struct CareerDataDTO: Codable {
+    let total_score: Int?
+    let total_rank: Int?
+    //let total_time: Double
+    //let total_distance: Double
+    //let total_bonus: Double
 }
 
 enum CupLevel {
@@ -321,3 +454,31 @@ struct SetUpItemView<Content: View>: View {
     }
 }
 
+struct SeasonSelectableInfo: Identifiable, Equatable {
+    var id: String { seasonID }
+    let seasonID: String
+    let seasonName: String
+    
+    init(seasonID: String, seasonName: String) {
+        self.seasonID = seasonID
+        self.seasonName = seasonName
+    }
+    
+    init(from season: SeasonSelectableDTO) {
+        self.seasonID = season.season_id
+        self.seasonName = season.season_name
+    }
+    
+    static func == (lhs: SeasonSelectableInfo, rhs: SeasonSelectableInfo) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+struct SeasonSelectableDTO: Codable {
+    let season_id: String
+    let season_name: String
+}
+
+struct SeasonSelectableResponse: Codable {
+    let seasons: [SeasonSelectableDTO]
+}

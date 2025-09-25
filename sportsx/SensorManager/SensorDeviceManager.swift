@@ -58,7 +58,7 @@ protocol SensorDeviceProtocol {
     func disconnect()
     
     // 开始采集
-    func startCollection(activityType: String, locationType: String)
+    func startCollection(activityType: SportName, locationType: String)
     
     // 停止采集
     func stopCollection()

@@ -29,7 +29,7 @@ struct StartView: View {
 }
 
 #Preview {
-    let obj = WatchDataManager()
+    let obj = WatchDataManager.shared
     return StartView()
         .environmentObject(obj)
 }

@@ -10,19 +10,21 @@ import SwiftUI
 
 struct SportCenterView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject var viewModel = CompetitionCenterViewModel()
     
     var body: some View {
+        // todo: 实现训练中心
         ZStack(alignment: .topLeading) {
-            TrainingCenterView()
-            CompetitionCenterView()
-                .opacity(appState.navigationManager.isTrainingView ? 0 : 1)
+            //TrainingCenterView()
+            CompetitionCenterView(viewModel: viewModel)
+                //.opacity(appState.navigationManager.isTrainingView ? 0 : 1)
         }
     }
 }
 
 struct CompetitionCenterView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject var viewModel = CompetitionCenterViewModel()
+    @ObservedObject var viewModel: CompetitionCenterViewModel
     @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject var locationManager = LocationManager.shared
     
@@ -62,7 +64,7 @@ struct CompetitionCenterView: View {
                         .foregroundStyle(.white)
                         .exclusiveTouchTapGesture {
                             if !isDragging {
-                                withAnimation(.easeIn(duration: 0.3)) {
+                                withAnimation(.easeIn(duration: 0.25)) {
                                     appState.navigationManager.showSideBar = true
                                 }
                             }
@@ -74,7 +76,7 @@ struct CompetitionCenterView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "location.fill")
                                 .foregroundColor(.white)
-                            Text(locationManager.region)
+                            Text(locationManager.region ?? "未知")
                                 .foregroundColor(.white)
                         }
                         .exclusiveTouchTapGesture {
@@ -102,7 +104,7 @@ struct CompetitionCenterView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onFirstAppear {
             viewModel.fetchCurrentSeason()
-            viewModel.setupLocationSubscription()
+            //viewModel.setupLocationSubscription()
         }
         .onChange(of: appState.sport) {
             viewModel.fetchCurrentSeason()

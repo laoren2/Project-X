@@ -108,7 +108,7 @@ struct NaviView: View {
                     .opacity((appState.navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
                     .ignoresSafeArea()
                     .exclusiveTouchTapGesture {
-                        withAnimation(.easeIn(duration: 0.3)) {
+                        withAnimation(.easeIn(duration: 0.25)) {
                             appState.navigationManager.showSideBar = false
                         }
                     }
@@ -123,7 +123,7 @@ struct NaviView: View {
                 // 登录页
                 LoginView()
                     .opacity(user.showingLogin ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.3), value: user.showingLogin)
+                    .animation(.easeInOut(duration: 0.2), value: user.showingLogin)
                     .allowsHitTesting(user.showingLogin)
             }
         }
@@ -183,10 +183,10 @@ struct RealNaviView: View {
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
-                case .bikeRecordDetailView(let id):
-                    BikeRecordDetailView(recordID: id)
-                case .runningRecordDetailView(let id):
-                    RunningRecordDetailView(recordID: id)
+                case .bikeRecordDetailView(let rid, let uid):
+                    BikeRecordDetailView(recordID: rid, userID: uid)
+                case .runningRecordDetailView(let rid, let uid):
+                    RunningRecordDetailView(recordID: rid, userID: uid)
                 case .competitionCardSelectView:
                     CompetitionCardSelectView()
                 case .competitionRealtimeView:
@@ -219,8 +219,10 @@ struct RealNaviView: View {
                     IdentityAuthView()
                 case .userSetUpAccountView:
                     UserSetUpAccountView()
-                case .bikeRankingListView(let id):
-                    BikeRankingListView(trackID: id)
+                case .bikeRankingListView(let id, let gender, let isHistory):
+                    BikeRankingListView(trackID: id, gender: gender, isHistory: isHistory)
+                case .bikeScoreRankingView(let name, let id, let gender):
+                    BikeScoreRankingView(seasonName: name, seasonID: id, gender: gender)
                 case .bikeTeamCreateView(let id, let date):
                     BikeTeamCreateView(trackID: id, competitionDate: date)
                 case .bikeTeamJoinView(let id):
@@ -233,8 +235,10 @@ struct RealNaviView: View {
                     RunningRaceRecordManagementView()
                 case .runningTeamManagementView:
                     RunningTeamManagementView()
-                case .runningRankingListView(let id):
-                    RunningRankingListView(trackID: id)
+                case .runningRankingListView(let id, let gender, let isHistory):
+                    RunningRankingListView(trackID: id, gender: gender, isHistory: isHistory)
+                case .runningScoreRankingView(let name, let id, let gender):
+                    RunningScoreRankingView(seasonName: name, seasonID: id, gender: gender)
                 case .runningTeamCreateView(let id, let date):
                     RunningTeamCreateView(trackID: id, competitionDate: date)
                 case .runningTeamJoinView(let id):
@@ -243,6 +247,10 @@ struct RealNaviView: View {
                     RunningTeamManageView(teamID: id)
                 case .runningTeamDetailView(let id):
                     RunningTeamDetailView(teamID: id)
+                case .mailBoxView:
+                    MailBoxView()
+                case .mailBoxDetailView(let id):
+                    MailBoxDetailView(mailID: id)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
@@ -342,7 +350,7 @@ struct SportSelectionSidebar: View {
                     .padding(.bottom, 10)
                     .padding(.horizontal, 20)
                 
-                Text("选择进入不同的运动世界")
+                Text("查看最新的运动赛事")
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.8))
                     .padding(.horizontal, 20)
@@ -357,8 +365,8 @@ struct SportSelectionSidebar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            PressableButton(icon: sport.iconName, title: sport.name, action: {
-                                withAnimation(.easeIn(duration: 0.3)) {
+                            PressableButton(icon: sport.iconName, title: sport.name,isEditMode: false, action: {
+                                withAnimation(.easeIn(duration: 0.25)) {
                                     appState.navigationManager.showSideBar = false
                                     appState.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
                                 }

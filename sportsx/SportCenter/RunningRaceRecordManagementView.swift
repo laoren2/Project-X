@@ -341,7 +341,7 @@ struct RunningCompetitionRecordCard: View {
                     
                     // 详情按钮
                     CommonTextButton(text: "详情") {
-                        appState.navigationManager.append(.runningRecordDetailView(id: record.record_id))
+                        appState.navigationManager.append(.runningRecordDetailView(recordID: record.record_id, userID: UserManager.shared.user.userID))
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)

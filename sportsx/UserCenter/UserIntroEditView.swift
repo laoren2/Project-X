@@ -468,7 +468,7 @@ struct GenderEditorView: View {
                     Toggle("展示", isOn: $tempDisplayStatus)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
-                        .disabled(!viewModel.currentUser.isRealnameAuth)
+                        .disabled(viewModel.currentUser.gender == nil)
                     
                     Divider()
                     
@@ -479,8 +479,8 @@ struct GenderEditorView: View {
                         
                         Spacer()
                         
-                        if viewModel.currentUser.isRealnameAuth {
-                            Text("\(viewModel.currentUser.gender?.rawValue ?? "未知")")
+                        if let gender = viewModel.currentUser.gender {
+                            Text("\(gender.rawValue)")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white)
                         } else {
@@ -594,7 +594,7 @@ struct AgeEditorView: View {
 }
 
 struct LocationEditorView: View {
-    @EnvironmentObject var appState: AppState
+    @ObservedObject var config = GlobalConfig.shared
     @ObservedObject var viewModel: UserIntroEditViewModel
     @Binding var showLocationEditor: Bool
     @State private var tempDisplayStatus: Bool = false
@@ -657,7 +657,7 @@ struct LocationEditorView: View {
                         
                         Spacer()
                         
-                        if appState.config.location != viewModel.currentUser.location {
+                        if config.location != viewModel.currentUser.location {
                             HStack(spacing: 0) {
                                 Image(systemName: "location")
                                     .font(.system(size: 14))
@@ -670,7 +670,7 @@ struct LocationEditorView: View {
                             .background(.ultraThinMaterial)
                             .cornerRadius(10)
                             .onTapGesture {
-                                viewModel.currentUser.location = appState.config.location
+                                viewModel.currentUser.location = config.location
                             }
                             .border(.green)
                         }

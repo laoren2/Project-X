@@ -122,9 +122,6 @@ struct LoginView: View {
                         userManager.user = User(from: user)
                         userManager.role = unwrappedData.role
                         userManager.saveUserInfoToCache()
-                        if userManager.user.enableAutoLocation {
-                            userManager.user.location = config.location
-                        }
                         config.refreshAll()
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false

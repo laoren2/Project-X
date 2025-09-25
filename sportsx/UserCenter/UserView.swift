@@ -38,13 +38,50 @@ struct UserView: View {
         // 拖动手势暂不实现，因存在与ScrollView的手势冲突bug会引入空白区域填充
         GeometryReader { geometry in
             // 主内容
-            MainUserView(viewModel: viewModel/*, dragOffset: $dragOffset*/, isUserSelf: isUserSelf)
-                .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? -viewModel.sidebarWidth : viewModel.sidebarWidth) : 0)/* + dragOffset*/)
+            ZStack {
+                MainUserView(viewModel: viewModel/*, dragOffset: $dragOffset*/, isUserSelf: isUserSelf)
+                    .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? -viewModel.sidebarWidth : viewModel.sidebarWidth) : 0)/* + dragOffset*/)
+                // 放在MainUserView中偶现动画失效问题
+                Color.gray
+                    .opacity(viewModel.showSidebar ? 0.5 : 0)
+                    .ignoresSafeArea()
+                    .exclusiveTouchTapGesture {
+                        withAnimation(.easeIn(duration: 0.25)) {
+                            viewModel.showSidebar = false
+                        }
+                    }
+            }
             
             // 侧边栏
             UserSportSelectedBar(viewModel: viewModel, isUserSelf: isUserSelf)
                 .frame(width: viewModel.sidebarWidth)
                 .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? UIScreen.main.bounds.width - viewModel.sidebarWidth : 0) : (viewModel.isNeedBack ? UIScreen.main.bounds.width : -viewModel.sidebarWidth))/* + dragOffset*/)
+        }
+        .onChange(of: viewModel.sport) {
+            viewModel.queryHistoryCareers()
+            viewModel.queryCurrentRecords()
+        }
+        .onChange(of: viewModel.selectedSeason) {
+            viewModel.queryCareerData()
+            viewModel.queryCareerRecords()
+        }
+        .onStableAppear {
+            if (!viewModel.isNeedBack) && GlobalConfig.shared.refreshUserView {
+                Task {
+                    await userManager.fetchMeInfo()
+                    await MainActor.run {
+                        viewModel.userID = userManager.user.userID
+                        userManager.queryMailBox()
+                        if viewModel.sport == userManager.user.defaultSport {
+                            viewModel.queryHistoryCareers()
+                            viewModel.queryCurrentRecords()
+                        } else {
+                            viewModel.sport = userManager.user.defaultSport
+                        }
+                    }
+                }
+                GlobalConfig.shared.refreshUserView = false
+            }
         }
         /*.allowsHitTesting(!isDragging)
         .disabled(isDragging)
@@ -459,8 +496,37 @@ struct MainUserView: View {
                                     appState.navigationManager.append(.instituteView)
                                 }
                                 
+                                // 邮箱模块
+                                VStack(spacing: 6) {
+                                    ZStack(alignment: .topTrailing) {
+                                        Image(systemName: "envelope.fill")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(.white)
+                                        if userManager.mailboxUnreadCount != 0 {
+                                            Image(systemName: "circle.fill")
+                                                .font(.system(size: 10))
+                                                .foregroundStyle(.red)
+                                                .offset(x: 5, y: -5)
+                                        }
+                                    }
+                                    Text("邮箱")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .opacity(opacityFor(offset: toolbarTop))
+                                .exclusiveTouchTapGesture {
+                                    appState.navigationManager.append(.mailBoxView)
+                                }
+                                .onStableAppear {
+                                    if GlobalConfig.shared.refreshMailStatus {
+                                        userManager.queryMailBox()
+                                        GlobalConfig.shared.refreshMailStatus = false
+                                    }
+                                }
+                                
                                 // 预留三个空位，保证总共5个位置
-                                ForEach(0..<3) { _ in
+                                ForEach(0..<2) { _ in
                                     Spacer()
                                         .frame(maxWidth: .infinity)
                                     //.border(.red)
@@ -488,7 +554,7 @@ struct MainUserView: View {
                                         selectedTab = 0
                                     }
                                 
-                                Text("赛事")
+                                Text("进行中")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
@@ -548,7 +614,7 @@ struct MainUserView: View {
                                     } else {
                                         HStack {
                                             Image(systemName: "list.dash")
-                                            Image(systemName:viewModel.sport.iconName)
+                                            Image(systemName: viewModel.sport.iconName)
                                                 .font(.system(size: 16))
                                         }
                                         .padding(.horizontal, 12)
@@ -558,7 +624,7 @@ struct MainUserView: View {
                                         .foregroundColor(.white)
                                         .exclusiveTouchTapGesture {
                                             if !isDragging {
-                                                withAnimation(.easeIn(duration: 0.3)) {
+                                                withAnimation(.easeIn(duration: 0.25)) {
                                                     viewModel.showSidebar = true
                                                 }
                                             }
@@ -569,7 +635,7 @@ struct MainUserView: View {
                                     
                                     if viewModel.isNeedBack {
                                         HStack {
-                                            Image(systemName:viewModel.sport.iconName)
+                                            Image(systemName: viewModel.sport.iconName)
                                                 .font(.system(size: 16))
                                             Image(systemName: "list.dash")
                                         }
@@ -580,14 +646,14 @@ struct MainUserView: View {
                                         .foregroundColor(.white)
                                         .exclusiveTouchTapGesture {
                                             if !isDragging {
-                                                withAnimation(.easeIn(duration: 0.3)) {
+                                                withAnimation(.easeIn(duration: 0.25)) {
                                                     viewModel.showSidebar = true
                                                 }
                                             }
                                         }
                                     }
                                     
-                                    if isUserSelf {
+                                    if !viewModel.isNeedBack {
                                         Image(systemName: "gearshape.fill")
                                         .font(.system(size: 20))
                                         .foregroundColor(.white)
@@ -595,7 +661,9 @@ struct MainUserView: View {
                                         .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
                                         .clipShape(Circle())
                                         .exclusiveTouchTapGesture {
-                                            appState.navigationManager.append(.userSetUpView)
+                                            //if !isDragging {
+                                                appState.navigationManager.append(.userSetUpView)
+                                            //}
                                         }
                                     }
                                 }
@@ -631,7 +699,7 @@ struct MainUserView: View {
                                         selectedTab = 0
                                     }
                                 
-                                Text("赛事")
+                                Text("进行中")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
@@ -657,15 +725,6 @@ struct MainUserView: View {
                 }
             }
             .enableBackGesture(viewModel.isNeedBack)
-            
-            Color.gray
-                .opacity((viewModel.showSidebar ? viewModel.sidebarWidth : 0) / (2 * viewModel.sidebarWidth))
-                .ignoresSafeArea()
-                .exclusiveTouchTapGesture {
-                    withAnimation(.easeIn(duration: 0.3)) {
-                        viewModel.showSidebar = false
-                    }
-                }
         }
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -686,6 +745,7 @@ struct UserSportSelectedBar: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
+    @State var isEditMode: Bool = false
     
     let isUserSelf: Bool
     
@@ -701,11 +761,22 @@ struct UserSportSelectedBar: View {
                     .padding(.bottom, 10)
                     .padding(.horizontal, 20)
                 
-                Text("显示你的运动主页")
+                if isUserSelf {
+                    HStack {
+                        if !isEditMode {
+                            Text("个人主页默认展示运动: \(userManager.user.defaultSport.name)")
+                        }
+                        Spacer()
+                        Text(isEditMode ? "取消编辑" : "编辑")
+                            .exclusiveTouchTapGesture {
+                                isEditMode.toggle()
+                            }
+                    }
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.secondText)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
+                }
                 
                 Divider()
                     .padding(.bottom, 10)
@@ -716,23 +787,20 @@ struct UserSportSelectedBar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            PressableButton(icon: sport.iconName, title: sport.name, action: {
-                                withAnimation(.easeIn(duration: 0.3)) {
-                                    viewModel.showSidebar = false
-                                    viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
+                            PressableButton(icon: sport.iconName, title: sport.name, isEditMode: isEditMode, action: {
+                                if isEditMode {
+                                    updateUserDefaultSport(with: sport)
+                                } else {
+                                    withAnimation(.easeIn(duration: 0.25)) {
+                                        viewModel.showSidebar = false
+                                        viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
+                                    }
                                 }
                             })
-                            
-                            Spacer()
-                            
-                            if sport.name == viewModel.sport.name {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.white)
-                            }
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, 20)
-                        .background(sport == viewModel.sport ? Color.gray.opacity(0.1) : Color.clear)
+                        .background((sport == viewModel.sport && (!isEditMode)) ? Color.gray.opacity(0.2) : Color.clear)
                         .cornerRadius(8)
                     }
                 }
@@ -740,47 +808,62 @@ struct UserSportSelectedBar: View {
             }
         }
         .background(isUserSelf ? userManager.backgroundColor : viewModel.backgroundColor)
+        .onChange(of: viewModel.showSidebar) {
+            if !viewModel.showSidebar {
+                isEditMode = false
+            }
+        }
+    }
+    
+    func updateUserDefaultSport(with sport: SportName) {
+        guard var components = URLComponents(string: "/user/update_user_default_sport") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "sport", value: sport.rawValue)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: SportName.self, showErrorToast: true) {result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        userManager.user.defaultSport = unwrappedData
+                        UserDefaults.standard.set(sport.rawValue, forKey: "user.defaultSport")
+                        isEditMode = false
+                    }
+                }
+            default: break
+            }
+        }
     }
 }
 
 struct PressableButton: View {
-    var icon: String? = nil
+    let icon: String
     let title: String
+    let isEditMode: Bool
     let action: () -> Void
-
-    @GestureState private var isPressed = false
 
     var body: some View {
         HStack {
-            if let icon = icon {
-                Image(systemName: icon)
-            }
+            Image(systemName: icon)
             Text(title)
+            if isEditMode {
+                Image(systemName: "circle.dotted")
+            }
         }
         .padding()
         .frame(maxWidth: .infinity)
         .background(Color.orange)
-        .foregroundColor(.white)
+        .foregroundColor(.secondText)
         .cornerRadius(10)
-        .scaleEffect(isPressed ? 0.96 : 1.0)
-        .opacity(isPressed ? 0.85 : 1.0)
-        .animation(.easeInOut(duration: 0.15), value: isPressed)
-        .contentShape(Rectangle()) // 确保整个区域可响应手势
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .updating($isPressed) { _, state, _ in
-                    state = true
-                }
-        )
-        .simultaneousGesture(
-            TapGesture()
-                .onEnded {
-                    action()
-                }
-        )
+        .exclusiveTouchTapGesture {
+            action()
+        }
     }
 }
-
 
 
 /*#Preview {
@@ -791,77 +874,3 @@ struct PressableButton: View {
     UserView(viewModel: vm)
         .environmentObject(appState)
 }*/
-
-
-// 生涯内容
-/*VStack(alignment: .center, spacing: 16) {
-    Image(systemName: "figure.run")
-        .font(.system(size: 60))
-        .foregroundColor(.gray.opacity(0.5))
-        .padding(.top, 40)
-    
-    Text("还没有运动记录")
-        .font(.system(size: 16))
-        .foregroundColor(.gray)
-    
-    Text("去运动一下，记录你的生涯")
-        .font(.system(size: 14))
-        .foregroundColor(.gray.opacity(0.7))
-        .padding(.bottom, 40)
-}
-.frame(maxWidth: .infinity)
-.padding(.vertical, 20)
-.tag(0)
-
-// 赛事内容
-VStack(alignment: .center, spacing: 16) {
-    Image(systemName: "trophy")
-        .font(.system(size: 60))
-        .foregroundColor(.gray.opacity(0.5))
-        .padding(.top, 40)
-    
-    Text("还没有参加过赛事")
-        .font(.system(size: 16))
-        .foregroundColor(.gray)
-    
-    Text("去参加一次赛事，展示你的实力")
-        .font(.system(size: 14))
-        .foregroundColor(.gray.opacity(0.7))
-        .padding(.bottom, 40)
-}
-.frame(maxWidth: .infinity)
-.padding(.vertical, 20)
-.tag(1)*/
-
-// 选项卡内容
-/*TabView(selection: $selectedTab) {
-    ScrollView(showsIndicators: false) {
-        LazyVStack(spacing: 15) {
-            ForEach(appState.competitionManager.userTab1) { competition in
-                CompetitionRecordCard(competition: competition, onStart:  {
-                    print("onStart")
-                })
-            }
-        }
-        .padding(.horizontal)
-        .padding(.top)
-        .border(.blue)
-    }
-    .tag(0)
-    
-    ScrollView(showsIndicators: false) {
-        LazyVStack(spacing: 15) {
-            ForEach(appState.competitionManager.userTab2) { competition in
-                CompetitionRecordCard(competition: competition, onStart:  {
-                    print("onStart")
-                })
-            }
-        }
-        .padding(.horizontal)
-        .padding(.top)
-        .border(.blue)
-    }
-    .tag(1)
-}
-.frame(height: 720)
-.tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))*/

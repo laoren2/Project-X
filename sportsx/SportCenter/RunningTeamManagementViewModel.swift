@@ -144,9 +144,6 @@ class RunningTeamManagementViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
-                if reset {
-                    
-                }
                 for team in unwrappedData.teams {
                     myJoinedTeams.append(RunningTeamCard(from: team))
                 }

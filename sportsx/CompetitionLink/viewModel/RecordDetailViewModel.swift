@@ -9,21 +9,24 @@ import Foundation
 
 class BikeRecordDetailViewModel: ObservableObject {
     let recordID: String
+    let userID: String
     @Published var recordDetailInfo: BikeRecordDetailInfo?
     
-    init(recordID: String) {
+    init(recordID: String, userID: String) {
         self.recordID = recordID
+        self.userID = userID
         self.recordDetailInfo = nil
     }
     
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/competition/bike/query_record_detail") else { return }
         components.queryItems = [
-            URLQueryItem(name: "record_id", value: recordID)
+            URLQueryItem(name: "record_id", value: recordID),
+            URLQueryItem(name: "user_id", value: userID)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
         
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
         
         NetworkService.sendRequest(with: request, decodingType: BikeRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
@@ -41,21 +44,24 @@ class BikeRecordDetailViewModel: ObservableObject {
 
 class RunningRecordDetailViewModel: ObservableObject {
     let recordID: String
+    let userID: String
     @Published var recordDetailInfo: RunningRecordDetailInfo?
     
-    init(recordID: String) {
+    init(recordID: String, userID: String) {
         self.recordID = recordID
+        self.userID = userID
         self.recordDetailInfo = nil
     }
     
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/competition/running/query_record_detail") else { return }
         components.queryItems = [
-            URLQueryItem(name: "record_id", value: recordID)
+            URLQueryItem(name: "record_id", value: recordID),
+            URLQueryItem(name: "user_id", value: userID)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
         
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
         
         NetworkService.sendRequest(with: request, decodingType: RunningRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {

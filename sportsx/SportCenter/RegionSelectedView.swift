@@ -26,7 +26,7 @@ struct RegionSelectedView: View {
             base = ["未知": ["未知"]]
         }
         
-        if onlyShowWithEvents && (locationManager.countryCode != "未知") {
+        if onlyShowWithEvents && (locationManager.countryCode != nil) {
             // 过滤只保留包含赛事城市的区域
             var filtered: [String: [String]] = [:]
             for (province, cities) in base {
@@ -80,7 +80,7 @@ struct RegionSelectedView: View {
             HStack {
                 Image(systemName: "location.fill")
                     .foregroundColor(.white)
-                Text(locationManager.region)
+                Text(locationManager.region ?? "未知")
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
@@ -171,6 +171,7 @@ struct RegionSelectedView: View {
     func reposition() {
         guard let location = LocationManager.shared.getLocation() else {
             locationManager.region = "未知"
+            // todo: 添加location代理重新请求一次位置更新
             return
         }
         // 强制刷新一次
@@ -180,24 +181,32 @@ struct RegionSelectedView: View {
     func getCityName(from location: CLLocation) {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
-            if let placemark = placemarks?.first {
-                if let city = placemark.locality, !city.isEmpty, city != locationManager.region {
-                    locationManager.region = city
-                }
-                if let country = placemark.isoCountryCode, country != locationManager.countryCode {
-                    locationManager.countryCode = country
+            DispatchQueue.main.async {
+                if let placemark = placemarks?.first {
+                    if let city = placemark.locality, !city.isEmpty, city != locationManager.region {
+                        locationManager.region = city
+                        GlobalConfig.shared.location = city
+                        if UserManager.shared.user.enableAutoLocation && UserManager.shared.user.location != city {
+                            UserManager.shared.updateUserLocation(region: city)
+                        }
+                    } else {
+                        locationManager.region = GlobalConfig.shared.location
+                    }
+                    if let country = placemark.isoCountryCode, country != locationManager.countryCode {
+                        locationManager.countryCode = country
+                    }
                 }
             }
         }
     }
     
     func fetchCities() {
-        if locationManager.countryCode == "未知" { return }
+        if locationManager.countryCode == nil { return }
         
         guard var components = URLComponents(string: "/competition/query_regions") else { return }
         components.queryItems = [
             URLQueryItem(name: "sport_type", value: appState.sport.rawValue),
-            URLQueryItem(name: "country_code", value: locationManager.countryCode)
+            URLQueryItem(name: "country_code", value: locationManager.countryCode ?? "未知")
         ]
         guard let urlPath = components.string else { return }
             
