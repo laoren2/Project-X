@@ -170,6 +170,7 @@ struct RunningTrackCreateView: View {
     @State var subRegioName: String = ""
     @State var prizePool: String = ""
     @State var distance: String = ""
+    @State var score: String = ""
     
     @State var trackImage: UIImage? = nil
     @State var showImagePicker: Bool = false
@@ -207,6 +208,8 @@ struct RunningTrackCreateView: View {
                         .keyboardType(.numberPad)
                     TextField("路程", text: $distance)
                         .keyboardType(.decimalPad)
+                    TextField("积分", text: $score)
+                        .keyboardType(.numberPad)
                 }
                 Section(header: Text("封面图片")) {
                     if let image = trackImage {
@@ -232,6 +235,7 @@ struct RunningTrackCreateView: View {
                         name.isEmpty || eventName.isEmpty || seasonName.isEmpty || regionName.isEmpty
                         || from_la.isEmpty || from_lo.isEmpty || to_la.isEmpty || to_lo.isEmpty
                         || elevationDifference.isEmpty || subRegioName.isEmpty || prizePool.isEmpty
+                        || score.isEmpty
                     )
                 }
             }
@@ -275,6 +279,7 @@ struct RunningTrackCreateView: View {
         if !subRegioName.isEmpty { textFields["subRegioName"] = subRegioName }
         if !prizePool.isEmpty { textFields["prizePool"] = prizePool }
         if !distance.isEmpty { textFields["distance"] = distance }
+        if !score.isEmpty { textFields["score"] = score }
         
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
@@ -341,6 +346,8 @@ struct RunningTrackUpdateView: View {
                         .keyboardType(.numberPad)
                     TextField("路程", text: $viewModel.distance)
                         .keyboardType(.decimalPad)
+                    TextField("积分", text: $viewModel.score)
+                        .keyboardType(.numberPad)
                 }
                 Section(header: Text("封面图片")) {
                     if let image = trackImage {
@@ -408,7 +415,8 @@ struct RunningTrackUpdateView: View {
             "elevationDifference": viewModel.elevationDifference,
             "subRegioName": viewModel.subRegioName,
             "prizePool": viewModel.prizePool,
-            "distance": viewModel.distance
+            "distance": viewModel.distance,
+            "score": viewModel.score
         ]
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
@@ -441,7 +449,16 @@ struct RunningTrackUpdateView: View {
 struct RunningTrackCardView: View {
     @ObservedObject var viewModel: RunningTrackBackendViewModel
     let track: RunningTrackCardEntry
-    
+    var status: String {
+        if let startDate = ISO8601DateFormatter().date(from: track.start_date),
+           let endDate = ISO8601DateFormatter().date(from: track.end_date) {
+            if startDate > Date() { return "未开始" }
+            if startDate < Date() && endDate > Date() { return "进行中" }
+            if endDate < Date() && (!track.is_settled) { return "待结算" }
+            if endDate < Date() && track.is_settled { return "已结束" }
+        }
+        return "未知状态"
+    }
     
     var body: some View {
         HStack {
@@ -454,7 +471,24 @@ struct RunningTrackCardView: View {
                 loadSelectedTrackInfo()
                 viewModel.showUpdateSheet = true
             }
+            Button(status) {
+                if status == "待结算" {
+                    settledTrackLeaderboard()
+                }
+            }
         }
+    }
+    
+    func settledTrackLeaderboard() {
+        guard var components = URLComponents(string: "/competition/running/settle_leaderboard") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "track_id", value: track.track_id)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, isInternal: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
     }
     
     func loadSelectedTrackInfo() {
@@ -472,6 +506,7 @@ struct RunningTrackCardView: View {
         viewModel.subRegioName = track.subRegioName
         viewModel.prizePool = track.prizePool
         viewModel.distance = track.distance
+        viewModel.score = track.score
     }
 }
 

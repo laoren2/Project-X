@@ -13,8 +13,8 @@ import Combine
 
 
 enum AppRoute: Hashable {
-    case bikeRecordDetailView(id: String)
-    case runningRecordDetailView(id: String)
+    case bikeRecordDetailView(recordID: String, userID: String)
+    case runningRecordDetailView(recordID: String, userID: String)
     case competitionCardSelectView
     case competitionRealtimeView
     case sensorBindView
@@ -30,18 +30,22 @@ enum AppRoute: Hashable {
     case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
-    case bikeRankingListView(trackID: String)
+    case bikeRankingListView(trackID: String, gender: Gender, isHistory: Bool = false)
+    case bikeScoreRankingView(seasonName: String, seasonID: String, gender: Gender)
     case bikeTeamCreateView(trackID: String, competitionDate: Date)
     case bikeTeamJoinView(trackID: String)
     case bikeTeamManageView(teamID: String)
     case bikeTeamDetailView(teamID: String)
     case runningRecordManagementView
     case runningTeamManagementView
-    case runningRankingListView(trackID: String)
+    case runningRankingListView(trackID: String, gender: Gender, isHistory: Bool = false)
+    case runningScoreRankingView(seasonName: String, seasonID: String, gender: Gender)
     case runningTeamCreateView(trackID: String, competitionDate: Date)
     case runningTeamJoinView(trackID: String)
     case runningTeamManageView(teamID: String)
     case runningTeamDetailView(teamID: String)
+    case mailBoxView
+    case mailBoxDetailView(mailID: String)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -95,6 +99,8 @@ enum AppRoute: Hashable {
             return "userSetUpAccountView"
         case .bikeRankingListView:
             return "bikeRankingListView"
+        case .bikeScoreRankingView:
+            return "bikeScoreRankingView"
         case .bikeTeamCreateView:
             return "bikeTeamCreateView"
         case .bikeTeamJoinView:
@@ -109,6 +115,8 @@ enum AppRoute: Hashable {
             return "runningTeamManagementView"
         case .runningRankingListView:
             return "runningRankingListView"
+        case .runningScoreRankingView:
+            return "runningScoreRankingView"
         case .runningTeamCreateView:
             return "runningTeamCreateView"
         case .runningTeamJoinView:
@@ -117,6 +125,10 @@ enum AppRoute: Hashable {
             return "runningTeamManageView"
         case .runningTeamDetailView:
             return "runningTeamDetailView"
+        case .mailBoxView:
+            return "mailBoxView"
+        case .mailBoxDetailView:
+            return "mailBoxDetailView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"

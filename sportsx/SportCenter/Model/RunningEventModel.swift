@@ -24,9 +24,12 @@ struct RunningTrack: Identifiable, Equatable {
     let elevationDifference: Int        // 海拔差(米)
     let regionName: String              // 覆盖的地理区域
     let prizePool: Int                  // 奖金池金额
-    var totalParticipants: Int = 0      // 总参与人数
-    var currentParticipants: Int = 0    // 当前参与人数
     let distance: Float                 // 路程距离
+    let score: Int                      // 积分
+    let totalParticipants: Int          // 总参与人数
+    let currentParticipants: Int = 0    // 当前参与人数
+    
+    var rankInfo: RunningUserRankCard? = nil
     
     init(from track: RunningTrackInfoDTO) {
         self.trackID = track.track_id
@@ -40,6 +43,8 @@ struct RunningTrack: Identifiable, Equatable {
         self.regionName = track.sub_region_name
         self.prizePool = track.prize_pool
         self.distance = track.distance
+        self.score = track.score
+        self.totalParticipants = track.totalParticipants
     }
     
     static func == (lhs: RunningTrack, rhs: RunningTrack) -> Bool {
@@ -97,6 +102,8 @@ struct RunningTrackInfoDTO: Codable {
     let sub_region_name: String     // 覆盖的地理子区域
     let prize_pool: Int             // 奖金池金额
     let distance: Float
+    let score: Int
+    let totalParticipants: Int
 }
 
 struct RunningTracksResponse: Codable {

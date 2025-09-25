@@ -149,6 +149,18 @@ struct FirstAppearModifier: ViewModifier {
     }
 }
 
+class ObservingView: UIView {
+    var onAttachToWindow: (() -> Void)?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil {
+            // 视图重新上屏
+            onAttachToWindow?()
+        }
+    }
+}
+
 struct ScrollDragObserver: UIViewRepresentable {
     @Binding var isDragging: Bool
 
@@ -157,7 +169,12 @@ struct ScrollDragObserver: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> UIView {
-        let view = UIView()
+        let view = ObservingView()
+        view.onAttachToWindow = {
+            DispatchQueue.main.async {
+                isDragging = false   // 每次上屏都重置，避免拖动时切走视图导致状态错误
+            }
+        }
         DispatchQueue.main.async {
             if let scrollView = findScrollView(from: view) {
                 scrollView.delegate = context.coordinator
@@ -187,17 +204,23 @@ struct ScrollDragObserver: UIViewRepresentable {
         }
 
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-            isDragging = true
+            DispatchQueue.main.async {
+                self.isDragging = true
+            }
         }
 
         func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
             if !decelerate {
-                isDragging = false
+                DispatchQueue.main.async {
+                    self.isDragging = false
+                }
             }
         }
 
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-            isDragging = false
+            DispatchQueue.main.async {
+                self.isDragging = false
+            }
         }
     }
 }
@@ -437,16 +460,16 @@ extension View {
 }
 
 struct ExclusiveTouchTapModifier: ViewModifier {
+    @ObservedObject var config = GlobalConfig.shared
     let action: () -> Void
-    static private var isTapped = false
 
     func body(content: Content) -> some View {
         content.onTapGesture {
-            guard !Self.isTapped else { return }
-            Self.isTapped = true
+            guard !config.isButtonLocked else { return }
+            config.isButtonLocked = true
             action()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                Self.isTapped = false
+                config.isButtonLocked = false
             }
         }
     }

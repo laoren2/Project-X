@@ -96,7 +96,9 @@ struct StoreHouseView: View {
                                 .padding(10)
                             }
                             .refreshable {
-                                selectedCPAsset = nil
+                                await MainActor.run {
+                                    selectedCPAsset = nil
+                                }
                                 await assetManager.queryCPAssets(withLoadingToast: false)
                             }
                             if let selected = selectedCPAsset {
@@ -180,7 +182,9 @@ struct StoreHouseView: View {
                                 .padding(20)
                             }
                             .refreshable {
-                                selectedCard = nil
+                                await MainActor.run {
+                                    selectedCard = nil
+                                }
                                 await assetManager.queryMagicCards(withLoadingToast: false)
                             }
                             if let card = selectedCard {
@@ -228,7 +232,10 @@ struct StoreHouseView: View {
                                             .background(Color.orange)
                                             .cornerRadius(8)
                                             .onTapGesture {
-                                                assetManager.destroyMagicCard(cardID: card.cardID)
+                                                Task{
+                                                    await assetManager.destroyMagicCard(cardID: card.cardID)
+                                                    selectedCard = nil
+                                                }
                                             }
                                     }
                                 }

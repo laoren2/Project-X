@@ -125,10 +125,10 @@ class RunningCompetitionViewModel: ObservableObject {
                             self.tracks.append(RunningTrack(from: track))
                         }
                         if !self.tracks.isEmpty {
-                            self.selectedTrack = self.tracks[0]
                             if let index = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }) {
                                 self.events[index].tracks = self.tracks
                             }
+                            self.selectedTrack = self.tracks[0]
                         }
                     }
                 }
@@ -151,7 +151,14 @@ class RunningCompetitionViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        self.selectedRankInfo = RunningUserRankCard(from: unwrappedData)
+                        let rankInfo = RunningUserRankCard(from: unwrappedData)
+                        if let eventIndex = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }),
+                           let trackIndex = self.events[eventIndex].tracks.firstIndex(where: { $0.trackID == trackID }),
+                           let index = self.tracks.firstIndex(where: { $0.trackID == trackID }) {
+                            self.tracks[index].rankInfo = rankInfo
+                            self.events[eventIndex].tracks[trackIndex].rankInfo = rankInfo
+                        }
+                        self.selectedRankInfo = rankInfo
                     }
                 }
             default: break
@@ -177,13 +184,7 @@ class RunningCompetitionViewModel: ObservableObject {
     
     // 切换赛道
     func switchTrack(to track: RunningTrack) {
-        // 保证叠加收起/展开动画时的视图更新效果流畅
-        selectedTrack = nil
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.selectedTrack = track
-        }
-        // 重新获取排行榜数据
-        //fetchLeaderboard(gender: gender, reset: true)
+        selectedTrack = track
     }
 }
 
@@ -266,27 +267,18 @@ class RunningTeamJoinViewModel: ObservableObject {
 }
 
 struct RunningUserRankCard {
-    let recordID: String?
-    let rank: Int?
-    let duration: Double?
-    let coinAmount: Int
-    let couponAmount: Int
-    let voucherAmount: Int
-    let cpassets: [CPAssetUserInfo]
+    var recordID: String?
+    var rank: Int?
+    var duration: Double?
+    var voucherAmount: Int?
+    var score: Int?
     
     init(from rank_info: RunningUserRankInfoDTO) {
         self.recordID = rank_info.record_id
         self.rank = rank_info.rank
         self.duration = rank_info.duration_seconds
-        self.coinAmount = rank_info.reward_coin_amount
-        self.couponAmount = rank_info.reward_coupon_amount
         self.voucherAmount = rank_info.reward_voucher_amount
-        var cpassets: [CPAssetUserInfo] = []
-        for cpasset in rank_info.cpassets {
-            let info = CPAssetUserInfo(from: cpasset)
-            cpassets.append(info)
-        }
-        self.cpassets = cpassets
+        self.score = rank_info.score
     }
 }
 
@@ -294,8 +286,6 @@ struct RunningUserRankInfoDTO: Codable {
     let record_id: String?
     let rank: Int?
     let duration_seconds: Double?
-    let reward_coin_amount: Int
-    let reward_coupon_amount: Int
-    let reward_voucher_amount: Int
-    let cpassets: [CPAssetUserInfoDTO]
+    let reward_voucher_amount: Int?
+    let score: Int?
 }

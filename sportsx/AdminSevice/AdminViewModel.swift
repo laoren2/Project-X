@@ -94,6 +94,7 @@ class RunningTrackBackendViewModel: ObservableObject {
     @Published var subRegioName: String = ""
     @Published var prizePool: String = ""
     @Published var distance: String = ""
+    @Published var score: String = ""
     
     var image_url: String = ""
 }
@@ -118,7 +119,8 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let subRegioName: String        // 覆盖的地理子区域
     let prizePool: String              // 奖金池金额
     let distance: String
-    
+    let score: String              // 积分
+    let is_settled: Bool
     
     init(from track: RunningTrackInfoInternalDTO) {
         self.id = UUID()
@@ -140,6 +142,8 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.subRegioName = track.sub_region_name
         self.prizePool = track.prize_pool
         self.distance = track.distance
+        self.score = track.score
+        self.is_settled = track.is_settled
     }
     
     static func == (lhs: RunningTrackCardEntry, rhs: RunningTrackCardEntry) -> Bool {
@@ -166,6 +170,8 @@ struct RunningTrackInfoInternalDTO: Codable {
     let sub_region_name: String         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
     let distance: String
+    let score: String
+    let is_settled: Bool                // 是否已结算
 }
 
 struct RunningTracksInternalResponse: Codable {
@@ -257,6 +263,7 @@ class BikeTrackBackendViewModel: ObservableObject {
     @Published var elevationDifference: String = ""
     @Published var subRegioName: String = ""
     @Published var prizePool: String = ""
+    @Published var score: String = ""
     
     var image_url: String = ""
 }
@@ -280,7 +287,8 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let elevationDifference: String    // 海拔差(米)
     let subRegioName: String        // 覆盖的地理子区域
     let prizePool: String              // 奖金池金额
-    
+    let score: String              // 积分
+    let is_settled: Bool
     
     init(from track: BikeTrackInfoInternalDTO) {
         self.id = UUID()
@@ -301,6 +309,8 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.elevationDifference = track.elevation_difference
         self.subRegioName = track.sub_region_name
         self.prizePool = track.prize_pool
+        self.score = track.score
+        self.is_settled = track.is_settled
     }
     
     static func == (lhs: BikeTrackCardEntry, rhs: BikeTrackCardEntry) -> Bool {
@@ -326,6 +336,8 @@ struct BikeTrackInfoInternalDTO: Codable {
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: String         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
+    let score: String
+    let is_settled: Bool                // 是否已结算
 }
 
 struct BikeTracksInternalResponse: Codable {

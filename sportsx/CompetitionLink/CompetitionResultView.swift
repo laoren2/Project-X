@@ -13,8 +13,8 @@ struct BikeRecordDetailView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeRecordDetailViewModel
     
-    init(recordID: String) {
-        _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID))
+    init(recordID: String, userID: String) {
+        _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID, userID: userID))
     }
     
     var body: some View {
@@ -213,8 +213,8 @@ struct RunningRecordDetailView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningRecordDetailViewModel
     
-    init(recordID: String) {
-        _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID))
+    init(recordID: String, userID: String) {
+        _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID, userID: userID))
     }
     
     var body: some View {
@@ -408,6 +408,6 @@ struct RunningRecordDetailView: View {
 
 #Preview {
     let appState = AppState.shared
-    return BikeRecordDetailView(recordID: "test")
+    return BikeRecordDetailView(recordID: "test", userID: "")
         .environmentObject(appState)
 }

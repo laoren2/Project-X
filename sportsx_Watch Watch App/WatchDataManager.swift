@@ -14,6 +14,8 @@ import WatchConnectivity
 import os
 
 class WatchDataManager: NSObject, ObservableObject {
+    static let shared = WatchDataManager()
+    
     @Published var running = false
     
     @Published var heartRate: Double = 0
@@ -43,7 +45,7 @@ class WatchDataManager: NSObject, ObservableObject {
     private var WKsession: HKWorkoutSession?
     var builder: HKLiveWorkoutBuilder?
     
-    override init() {
+    private override init() {
         super.init()
         
         // 配置 session
@@ -70,10 +72,21 @@ class WatchDataManager: NSObject, ObservableObject {
             }
             let activityType = context["activityType"] as? String ?? "bike"
             let locationType = context["locationType"] as? String ?? "outdoor"
+            // 动态配置运动类型
+            let configuration = HKWorkoutConfiguration()
+            switch activityType.lowercased() {
+            case "running":
+                configuration.activityType = .running
+            case "bike":
+                configuration.activityType = .cycling
+            default:
+                configuration.activityType = .other
+            }
+            configuration.locationType = (locationType.lowercased() == "indoor") ? .indoor : .outdoor
             enableIMU = context["enableIMU"] as? Bool ?? false
             Logger.competition.notice_public("syncStatus: forcing start collection, type=\(activityType), location=\(locationType)")
             DispatchQueue.main.async {
-                self.startWorkout(activityType: activityType, locationType: locationType)
+                self.startWorkout(config: configuration)
                 self.startCollecting()
             }
         } else {
@@ -104,25 +117,11 @@ class WatchDataManager: NSObject, ObservableObject {
         }
     }
     
-    func startWorkout(activityType: String, locationType: String) {
+    func startWorkout(config: HKWorkoutConfiguration) {
         guard !running, WKsession == nil, builder == nil else { return }
-        let configuration = HKWorkoutConfiguration()
-        
-        // 动态配置运动类型
-        switch activityType.lowercased() {
-        case "running":
-            configuration.activityType = .running
-        case "bike":
-            configuration.activityType = .cycling
-        default:
-            configuration.activityType = .other
-        }
-        
-        // 室内/室外
-        configuration.locationType = (locationType.lowercased() == "indoor") ? .indoor : .outdoor
         
         do {
-            WKsession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
+            WKsession = try HKWorkoutSession(healthStore: healthStore, configuration: config)
             builder = WKsession?.associatedWorkoutBuilder()
         } catch {
             // Handle any exceptions.
@@ -135,7 +134,7 @@ class WatchDataManager: NSObject, ObservableObject {
         
         builder?.dataSource = HKLiveWorkoutDataSource(
             healthStore: healthStore,
-            workoutConfiguration: configuration
+            workoutConfiguration: config
         )
         
         // Start the workout session and begin data collection.
@@ -371,14 +370,8 @@ extension WatchDataManager: WCSessionDelegate {
                     return
                 }
             }
-            let activityType = applicationContext["activityType"] as? String ?? "bike"
-            let locationType = applicationContext["locationType"] as? String ?? "outdoor"
             enableIMU = applicationContext["enableIMU"] as? Bool ?? false
-            Logger.competition.notice_public("Start collecting... type=\(activityType), location=\(locationType)")
-            DispatchQueue.main.async {
-                self.startWorkout(activityType: activityType, locationType: locationType)
-                self.startCollecting()
-            }
+            Logger.competition.notice_public("Set enableIMU to \(enableIMU)")
         }
         if let command = applicationContext["command"] as? String, command == "stopCollection" {
             if let ts = applicationContext["timestamp"] as? Double {

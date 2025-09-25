@@ -10,6 +10,7 @@
 import Foundation
 import Combine
 import WatchConnectivity
+import HealthKit
 
 class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     // 协议要求
@@ -27,7 +28,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     // 仅用于保存传感器数据到本地调试
     private var competitionData: [SensorData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
-    
+    let healthStore = HKHealthStore()
 
     init(deviceID: String, deviceName: String, sensorPos: Int) {
         self.deviceID = deviceID
@@ -74,7 +75,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         session.delegate = DeviceManager.shared
     }
     
-    func startCollection(activityType: String, locationType: String) {
+    func startCollection(activityType: SportName, locationType: String) {
         guard session.activationState == .activated else {
             let toast = Toast(message: "watch连接失败")
             ToastManager.shared.show(toast: toast)
@@ -83,11 +84,44 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         }
         canReceiveData = true
         competitionData = []
+        
+        // 动态配置运动类型
+        let config = HKWorkoutConfiguration()
+        switch activityType {
+        case .Running:
+            config.activityType = .running
+        case .Bike:
+            config.activityType = .cycling
+        default:
+            config.activityType = .other
+        }
+        config.locationType = (locationType.lowercased() == "indoor") ? .indoor : .outdoor
+        
+        // 启动 watchapp 并开启 workout
+        if HKHealthStore.isHealthDataAvailable() {
+            Task {
+                do {
+                    try await healthStore.startWatchApp(toHandle: config)
+                }
+                catch {
+                    await MainActor.run {
+                        let toast = Toast(message: "请在watch端点击同步开始比赛")
+                        ToastManager.shared.show(toast: toast)
+                        print("\(error.localizedDescription)")
+                    }
+                }
+            }
+        } else {
+            let toast = Toast(message: "请在watch端点击同步开始比赛")
+            ToastManager.shared.show(toast: toast)
+        }
+        
+        // watch端可主动同步状态来兜底
         do {
             let context: [String: Any] = [
                 "command": "startCollection",
                 "enableIMU": enableIMU,
-                "activityType": activityType,
+                "activityType": activityType.rawValue,
                 "locationType": locationType,
                 "timestamp": Date().timeIntervalSince1970  // 给个时间戳避免被认为是旧状态
             ]

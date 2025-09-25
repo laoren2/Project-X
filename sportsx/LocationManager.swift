@@ -25,8 +25,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var lastAllowsBackgroundLocationUpdates: Bool = false
     private var lastPausesLocationUpdatesAutomatically: Bool = true
     
-    @Published var countryCode: String = "未知"
-    @Published var region: String = "未知"
+    // 设备国家定位
+    @Published var countryCode: String? = nil
+    // 运动中心已选择的地区
+    @Published var region: String? = nil
     
     // 使用 @Published 来发布授权状态变化
     @Published var authorizationStatus: CLAuthorizationStatus

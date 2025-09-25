@@ -341,7 +341,7 @@ struct BikeCompetitionRecordCard: View {
                     
                     // 详情按钮
                     CommonTextButton(text: "详情") {
-                        appState.navigationManager.append(.bikeRecordDetailView(id: record.record_id))
+                        appState.navigationManager.append(.bikeRecordDetailView(recordID: record.record_id, userID: UserManager.shared.user.userID))
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
