@@ -61,9 +61,9 @@ struct CompetitionWidget: View {
     }
 }
 
-#Preview{
+/*#Preview{
     @Previewable @State var test: Bool = false
     let appState = AppState.shared
     CompetitionWidget()
         .environmentObject(appState)
-}
+}*/

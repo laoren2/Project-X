@@ -185,6 +185,6 @@ class RunningRaceRecordManagementViewModel: ObservableObject {
     }
     
     func feedback(record: RunningRaceRecord) {
-        print("对id: \(record.record_id) 提出疑问")
+        //print("对id: \(record.record_id) 提出疑问")
     }
 }

@@ -14,8 +14,7 @@ class AppDelegate: NSObject, WKApplicationDelegate {
     // 当 iPhone 调用 startWatchApp() 后，系统会在这里执行这个回调
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
         DispatchQueue.main.async {
-            WatchDataManager.shared.startWorkout(config: workoutConfiguration)
-            WatchDataManager.shared.startCollecting()
+            WatchDataManager.shared.tryStartWorkout(config: workoutConfiguration)
         }
     }
 }
@@ -30,8 +29,13 @@ struct sportsx_Watch_Watch_AppApp: App {
                 .sheet(isPresented: $dataManager.showingSummaryView) {
                     SummaryView()
                 }
+                .sheet(isPresented: $dataManager.showingAuthToast) {
+                    AuthToastView()
+                }
                 .onChange(of: dataManager.showingSummaryView) {
-                    dataManager.summaryViewData = nil
+                    if !dataManager.showingSummaryView {
+                        dataManager.summaryViewData = nil
+                    }
                 }
                 .environmentObject(dataManager)
         }

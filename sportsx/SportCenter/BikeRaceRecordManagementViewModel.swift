@@ -185,6 +185,6 @@ class BikeRaceRecordManagementViewModel: ObservableObject {
     }
     
     func feedback(record: BikeRaceRecord) {
-        print("对id: \(record.record_id) 提出疑问")
+        //print("对id: \(record.record_id) 提出疑问")
     }
 }

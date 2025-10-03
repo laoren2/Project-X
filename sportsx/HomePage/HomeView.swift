@@ -108,11 +108,6 @@ struct HomeView: View {
                     }
                 }
                 .hideKeyboardOnScroll()
-                
-                //Text("to TestView")
-                //    .onTapGesture {
-                //        navigationManager.append(.testView)
-                //    }
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -120,13 +115,13 @@ struct HomeView: View {
     }
     
     func searchAnyPersonInfoCard() {
-        guard var components = URLComponents(string: "/user/anyone_card") else { return }
+        guard var components = URLComponents(string: "/user/user_card/phone") else { return }
         components.queryItems = [
             URLQueryItem(name: "phone_number", value: searchText)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
         
-        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         NetworkService.sendRequest(with: request, decodingType: PersonInfoDTO.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):

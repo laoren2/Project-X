@@ -15,7 +15,7 @@ class UserViewModel: ObservableObject {
     
     @Published var sport: SportName = .Default // 默认运动
     
-    @Published var currentUser = User()         // 非登录用户的用户数据
+    @Published var currentUser = User()         // 非登录用户的用户数据  todo: 改为可选值
     @Published var avatarImage: UIImage?        // 非登录用户的头像
     @Published var backgroundImage: UIImage?    // 非登录用户的封面
     @Published var backgroundColor: Color = .defaultBackground      // 非登录用户的封面背景色

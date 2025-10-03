@@ -206,7 +206,7 @@ struct UserIntroEditView: View {
         }
         .photosPicker(isPresented: $showAvatarPicker, selection: $selectedAvatarItem, matching: .images)
         .photosPicker(isPresented: $showBackgroundPicker, selection: $selectedBackgroundItem, matching: .images)
-        .onChange(of: selectedAvatarItem) {
+        .onValueChange(of: selectedAvatarItem) {
             Task {
                 if let data = try? await selectedAvatarItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
@@ -216,7 +216,7 @@ struct UserIntroEditView: View {
                 }
             }
         }
-        .onChange(of: selectedBackgroundItem) {
+        .onValueChange(of: selectedBackgroundItem) {
             Task {
                 if let data = try? await selectedBackgroundItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
@@ -226,7 +226,7 @@ struct UserIntroEditView: View {
                 }
             }
         }
-        .onChange(of: viewModel.backgroundImage) {
+        .onValueChange(of: viewModel.backgroundImage) {
             if let backgroundImage = viewModel.backgroundImage, let avg = ImageTool.averageColor(from: backgroundImage) {
                 viewModel.backgroundColor = avg.bestSoftDarkReadableColor()
             } else {
@@ -317,7 +317,7 @@ struct IntroEditorView: View {
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
-                    .onChange(of: tempIntro) {
+                    .onValueChange(of: tempIntro) {
                         DispatchQueue.main.async {
                             if tempIntro.count > 100 {
                                 tempIntro = String(tempIntro.prefix(100)) // 限制为最多100个字符
@@ -394,7 +394,7 @@ struct NameEditorView: View {
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
-                    .onChange(of: tempName) {
+                    .onValueChange(of: tempName) {
                         DispatchQueue.main.async {
                             if tempName.count > 10 {
                                 tempName = String(tempName.prefix(10)) // 限制为最多10个字符
@@ -550,7 +550,7 @@ struct AgeEditorView: View {
                 }
                 
                 VStack{
-                    Toggle("展示", isOn: $tempDisplayStatus)
+                    Toggle("展示年龄", isOn: $tempDisplayStatus)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
                         .disabled(!viewModel.currentUser.isRealnameAuth)

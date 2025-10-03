@@ -129,7 +129,7 @@ struct InstituteView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableBackGesture()
-        .onChange(of: selectedCard) {
+        .onValueChange(of: selectedCard) {
             if let card = selectedCard {
                 queryUpgradePrice(cardID: card.cardID)
                 querySkill1UpgradePrice(card: card)

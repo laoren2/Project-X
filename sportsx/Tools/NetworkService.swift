@@ -44,9 +44,9 @@ struct EmptyResponse: Decodable {}
 
 
 struct NetworkService {
-    static let baseDomain: String = "https://192.168.1.2:8000"
-    static let baseUrl: String = "https://192.168.1.2:8000/api/v1"
-    static let baseUrl_internal: String = "https://192.168.1.2:8000/api/internal"
+    static let baseDomain: String = "https://192.168.1.3:8000"
+    static let baseUrl: String = "https://192.168.1.3:8000/api/v1"
+    static let baseUrl_internal: String = "https://192.168.1.3:8000/api/internal"
     
     static func sendRequest<T: Decodable>(
         with apiRequest: APIRequest,

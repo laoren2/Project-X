@@ -309,7 +309,10 @@ struct BikeTeamAppliedCardView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.orange.opacity(0.1))
-                            .strokeBorder(Color.orange.opacity(0.3), lineWidth: 1)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
                     )
             }
         }
@@ -925,7 +928,7 @@ struct BikeTeamManageView: View {
         .bottomSheet(isPresented: $viewModel.showTeamEditor, size: .large) {
             BikeTeamEditorView(viewModel: viewModel)
         }
-        .onChange(of: viewModel.showTeamEditor) {
+        .onValueChange(of: viewModel.showTeamEditor) {
             if !viewModel.showTeamEditor {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
@@ -1064,7 +1067,7 @@ struct BikeTeamEditorView: View {
                         .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                         .background(.ultraThinMaterial)
                         .cornerRadius(20)
-                        .onChange(of: viewModel.tempTitle) {
+                        .onValueChange(of: viewModel.tempTitle) {
                             DispatchQueue.main.async {
                                 if viewModel.tempTitle.count > 10 {
                                     viewModel.tempTitle = String(viewModel.tempTitle.prefix(10)) // 限制为最多10个字符
@@ -1093,7 +1096,7 @@ struct BikeTeamEditorView: View {
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
-                            .onChange(of: viewModel.tempDescription) {
+                            .onValueChange(of: viewModel.tempDescription) {
                                 DispatchQueue.main.async {
                                     if viewModel.tempDescription.count > 50 {
                                         viewModel.tempDescription = String(viewModel.tempDescription.prefix(50)) // 限制为最多50个字符

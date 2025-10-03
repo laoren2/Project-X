@@ -132,7 +132,8 @@ struct TimeDisplay {
 struct AgeDisplay {
     static func calculateAge(from birthDateString: String) -> Int? {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
+        //dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.dateFormat = "dd-MM-yyyy"
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
 
         guard let birthDate = dateFormatter.date(from: birthDateString) else {

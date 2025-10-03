@@ -58,8 +58,31 @@ struct SummaryView: View {
             .navigationTitle("Summary")
             .navigationBarTitleDisplayMode(.inline)
         } else {
-            ProgressView("数据整理中...")
-                .navigationBarHidden(true)
+            VStack {
+                ProgressView("数据整理中...")
+                Button("Done") {
+                    dismiss()
+                }
+                //.navigationBarHidden(true)
+            }
+        }
+    }
+}
+
+struct AuthToastView: View {
+    @EnvironmentObject var workoutManager: WatchDataManager
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack {
+            if workoutManager.isNeedWaitingAuth {
+                ProgressView("准备中")
+            } else {
+                Text("请先在健康-共享-App里打开健康权限")
+                Button("确认") {
+                    dismiss()
+                }
+            }
         }
     }
 }

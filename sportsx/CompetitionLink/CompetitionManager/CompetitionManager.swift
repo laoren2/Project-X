@@ -216,7 +216,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         motionManager.accelerometerUpdateInterval = 0.05
         motionManager.gyroUpdateInterval = 0.05
         motionManager.magnetometerUpdateInterval = 0.05
-        requestMicrophoneAccess()
+        //requestMicrophoneAccess()
         setupDataBindings()
         // 嵌套的ObservableObject逐层订阅通知写在这里：
     }
@@ -290,7 +290,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     // Request microphone access
-    private func requestMicrophoneAccess() {
+    /*private func requestMicrophoneAccess() {
         AVAudioApplication.requestRecordPermission(completionHandler: { [weak self] granted in
             if granted {
                 self?.setupAudioRecorder()
@@ -298,7 +298,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 Logger.competition.notice_public("Microphone access denied.")
             }
         })
-    }
+    }*/
     
     func requestLocationAlwaysAuthorization() {
         let status = LocationManager.shared.authorizationStatus
@@ -339,13 +339,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         let status = LocationManager.shared.authorizationStatus
         if status != .authorizedAlways {
             alertTitle = "无法开始比赛"
-            alertMessage = "需要后台定位权限以进行持续的比赛记录。"
+            alertMessage = "需要后台定位权限，请将定位权限调整为始终允许以进行持续的比赛记录。"
             showAlert = true
             return
         }
         // 检查麦克风权限
-        switch AVAudioApplication.shared.recordPermission {
-        case .granted:
+        //switch AVAudioApplication.shared.recordPermission {
+        //case .granted:
             // 权限已授予，开始比赛
             Task {
                 let result = await startCompetition_server()
@@ -358,7 +358,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     }
                 }
             }
-        case .denied:
+        /*case .denied:
             // 提示权限被拒绝
             alertTitle = "无法开始比赛"
             alertMessage = "请先打开麦克风权限以进行比赛记录。"
@@ -371,7 +371,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             alertTitle = "无法开始比赛"
             alertMessage = "麦克风状态错误，请检查麦克风权限。"
             showAlert = true
-        }
+        }*/
     }
     
     func stopCompetition() {

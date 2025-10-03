@@ -22,9 +22,9 @@ struct StartView: View {
                     .foregroundStyle(Color.green)
             }
         }
-        .onAppear {
-            workoutManager.requestAuthorization()
-        }
+        //.onAppear {
+        //    workoutManager.requestAuthorization()
+        //}
     }
 }
 
