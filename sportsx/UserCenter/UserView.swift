@@ -57,11 +57,11 @@ struct UserView: View {
                 .frame(width: viewModel.sidebarWidth)
                 .offset(x: (viewModel.showSidebar ? (viewModel.isNeedBack ? UIScreen.main.bounds.width - viewModel.sidebarWidth : 0) : (viewModel.isNeedBack ? UIScreen.main.bounds.width : -viewModel.sidebarWidth))/* + dragOffset*/)
         }
-        .onChange(of: viewModel.sport) {
+        .onValueChange(of: viewModel.sport) {
             viewModel.queryHistoryCareers()
             viewModel.queryCurrentRecords()
         }
-        .onChange(of: viewModel.selectedSeason) {
+        .onValueChange(of: viewModel.selectedSeason) {
             viewModel.queryCareerData()
             viewModel.queryCareerRecords()
         }
@@ -573,7 +573,7 @@ struct MainUserView: View {
                             GeometryReader { geo in
                                 Color.clear
                                     .onAppear { updateOffset(geo) }
-                                    .onChange(of: geo.frame(in: .global).minY) {
+                                    .onValueChange(of: geo.frame(in: .global).minY) {
                                         updateOffset(geo)
                                     }
                             }
@@ -582,10 +582,20 @@ struct MainUserView: View {
                         
                         Divider()
                         
-                        if selectedTab == 0 {
-                            CareerView(viewModel: viewModel)
+                        if isUserSelf || (viewModel.currentUser.status != .deleted) {
+                            if selectedTab == 0 {
+                                CareerView(viewModel: viewModel)
+                            } else {
+                                GameSummaryView(viewModel: viewModel)
+                            }
+                        } else if viewModel.currentUser.status == .banned {
+                            Text("账号已封禁")
+                                .foregroundStyle(Color.secondText)
+                                .padding(.top, 100)
                         } else {
-                            GameSummaryView(viewModel: viewModel)
+                            Text("账号已注销")
+                                .foregroundStyle(Color.secondText)
+                                .padding(.top, 100)
                         }
                     }
                     .padding(.bottom, 100)
@@ -808,7 +818,7 @@ struct UserSportSelectedBar: View {
             }
         }
         .background(isUserSelf ? userManager.backgroundColor : viewModel.backgroundColor)
-        .onChange(of: viewModel.showSidebar) {
+        .onValueChange(of: viewModel.showSidebar) {
             if !viewModel.showSidebar {
                 isEditMode = false
             }

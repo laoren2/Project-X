@@ -99,7 +99,7 @@ struct BikeScoreRankingView: View {
         .onFirstAppear {
             viewModel.queryScoreRankingList(reset: true)
         }
-        .onChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) {
             viewModel.queryScoreRankingList(reset: true)
         }
     }
@@ -254,7 +254,7 @@ struct BikeRankingListView: View {
         .onFirstAppear {
             viewModel.refresh()
         }
-        .onChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) {
             viewModel.refresh(enforce: true)
         }
     }
@@ -427,7 +427,7 @@ struct RunningScoreRankingView: View {
         .onFirstAppear {
             viewModel.queryScoreRankingList(reset: true)
         }
-        .onChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) {
             viewModel.queryScoreRankingList(reset: true)
         }
     }
@@ -582,7 +582,7 @@ struct RunningRankingListView: View {
         .onFirstAppear {
             viewModel.refresh()
         }
-        .onChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) {
             viewModel.refresh(enforce: true)
         }
     }

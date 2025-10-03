@@ -76,31 +76,28 @@ struct CardSelectionView: View {
                     .padding(.top, 10)
                 
                 HStack(spacing: 20) {
-                    ForEach(0..<maxCards, id: \.self) { index in
-                        if index < tempSelectedCards.count {
-                            // 显示已选择的卡牌
-                            ZStack(alignment: .topTrailing) {
-                                MagicCardView(card: tempSelectedCards[index])
-                                    .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
-                                
-                                // 卸载按钮
-                                Button(action: {
-                                    if index < tempSelectedCards.count {
-                                        tempSelectedCards.remove(at: index)
-                                    }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.red)
-                                        .background(Circle().fill(Color.white))
-                                        .shadow(radius: 1)
-                                }
-                                .offset(x: 8, y: -8)
-                            }
-                        } else {
-                            // 显示占位卡牌
-                            EmptyCardSlot()
+                    ForEach(tempSelectedCards) { card in
+                        // 显示已选择的卡牌
+                        ZStack(alignment: .topTrailing) {
+                            MagicCardView(card: card)
                                 .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
+                            
+                            // 卸载按钮
+                            Button(action: {
+                                tempSelectedCards.removeAll { $0.cardID == card.cardID }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.red)
+                                    .background(Circle().fill(Color.white))
+                                    .shadow(radius: 1)
+                            }
+                            .offset(x: 8, y: -8)
                         }
+                    }
+                    // 占位卡牌
+                    ForEach(tempSelectedCards.count..<maxCards, id: \.self) { _ in
+                        EmptyCardSlot()
+                            .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
                     }
                 }
                 .padding(.bottom, 20)
@@ -178,7 +175,7 @@ struct CardSelectionView: View {
             }
         }
         .background(Color.defaultBackground)
-        .onChange(of: showCardSelection) {
+        .onValueChange(of: showCardSelection) {
             if !showCardSelection {
                 tempSelectedCards = appState.competitionManager.selectedCards
             }

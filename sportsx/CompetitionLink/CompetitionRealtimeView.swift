@@ -11,7 +11,7 @@ import MapKit
 struct CompetitionRealtimeView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var dataFusionManager = DataFusionManager.shared
-    @State private var cameraPosition: MapCameraPosition = .automatic
+    @State private var region: MKCoordinateRegion
     @State var isReverse: Bool = false
 
     let startCoordinate: CLLocationCoordinate2D = {
@@ -23,6 +23,14 @@ struct CompetitionRealtimeView: View {
         let coordinate = AppState.shared.competitionManager.startCoordinate
         return CoordinateConverter.reverseParseCoordinate(coordinate: coordinate)
     }()
+    
+    init() {
+        let coordinate = AppState.shared.competitionManager.startCoordinate
+        let startCoord = CoordinateConverter.parseCoordinate(coordinate: coordinate)
+        let safetyRadius = AppState.shared.competitionManager.safetyRadius
+        _region = State(initialValue: MKCoordinateRegion(center: startCoord, latitudinalMeters: safetyRadius * 3, longitudinalMeters: safetyRadius * 3))
+    }
+    
     
     var body: some View {
         // 显示比赛数据或其他内容
@@ -48,34 +56,18 @@ struct CompetitionRealtimeView: View {
             .padding(.horizontal)
             
             ZStack(alignment: .bottomTrailing) {
-                Map(position: $cameraPosition) {
-                    Annotation("From", coordinate: isReverse ? reverseCoordinate : startCoordinate) {
-                        Image(systemName: "location.fill")
-                            .padding(5)
-                    }
-                    // 添加出发点安全区域
-                    MapCircle(center: isReverse ? reverseCoordinate : startCoordinate, radius: appState.competitionManager.safetyRadius)
-                        .foregroundStyle(.green.opacity(0.3))
-                        .stroke(.mint, lineWidth: 2)
-                }
+                RealtimeMapView(
+                    startCoordinate: isReverse ? reverseCoordinate : startCoordinate,
+                    radius: appState.competitionManager.safetyRadius,
+                    region: $region
+                )
                 .frame(height: 200)
                 .shadow(radius: 2)
-                .mapControls {
-                    MapUserLocationButton()
-                    MapCompass()
-                    MapScaleView()
-                }
                 
                 // 重新居中按钮
                 CommonIconButton(icon: "location.north.line.fill") {
                     withAnimation(.easeInOut(duration: 2)) {
-                        cameraPosition = .region(
-                            MKCoordinateRegion(
-                                center: isReverse ? reverseCoordinate : startCoordinate,
-                                latitudinalMeters: appState.competitionManager.safetyRadius * 3,
-                                longitudinalMeters: appState.competitionManager.safetyRadius * 3
-                            )
-                        )
+                        region = MKCoordinateRegion(center: isReverse ? reverseCoordinate : startCoordinate, latitudinalMeters: AppState.shared.competitionManager.safetyRadius * 3, longitudinalMeters: AppState.shared.competitionManager.safetyRadius * 3)
                     }
                 }
                 .font(.title3)
@@ -265,6 +257,54 @@ struct CompetitionRealtimeView: View {
     }
 }
 
+struct RealtimeMapView: UIViewRepresentable {
+    let startCoordinate: CLLocationCoordinate2D
+    let radius: CLLocationDistance
+    @Binding var region: MKCoordinateRegion
+    
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        mapView.showsUserLocation = true
+        mapView.setRegion(region, animated: false)
+        
+        // 添加圆形覆盖物
+        let circle = MKCircle(center: startCoordinate, radius: radius)
+        mapView.addOverlay(circle)
+        
+        return mapView
+    }
+    
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        uiView.setRegion(region, animated: true)
+        
+        // 避免重复叠加，先移除再添加
+        uiView.removeOverlays(uiView.overlays)
+        let circle = MKCircle(center: startCoordinate, radius: radius)
+        uiView.addOverlay(circle)
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, MKMapViewDelegate {
+        var parent: RealtimeMapView
+        init(_ parent: RealtimeMapView) { self.parent = parent }
+        
+        // 渲染圆形覆盖物
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let circle = overlay as? MKCircle {
+                let renderer = MKCircleRenderer(circle: circle)
+                renderer.fillColor = UIColor.green.withAlphaComponent(0.3)
+                renderer.strokeColor = UIColor.orange
+                renderer.lineWidth = 2
+                return renderer
+            }
+            return MKOverlayRenderer()
+        }
+    }
+}
 
 #Preview {
     let appState = AppState.shared

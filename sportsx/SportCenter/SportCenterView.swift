@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 
 struct SportCenterView: View {
@@ -101,12 +102,14 @@ struct CompetitionCenterView: View {
                 }
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
         .onFirstAppear {
             viewModel.fetchCurrentSeason()
-            //viewModel.setupLocationSubscription()
+            // 解决第一次安装打开app时定位权限申请早于网络权限申请导致的更新问题
+            if let location = LocationManager.shared.getLocation() {
+                viewModel.updateCity(from: location)
+            }
         }
-        .onChange(of: appState.sport) {
+        .onValueChange(of: appState.sport) {
             viewModel.fetchCurrentSeason()
         }
     }
@@ -250,7 +253,7 @@ struct TeamRegisterView: View {
         .padding()
         .background(Color.defaultBackground)
         //.hideKeyboardOnScroll()
-        .onChange(of: showSheet) {
+        .onValueChange(of: showSheet) {
             if showSheet {
                 teamCode = ""
             } else {
@@ -288,7 +291,80 @@ struct TeamRegisterView: View {
     }
 }
 
-
+struct TrackMapView: UIViewRepresentable {
+    let fromCoordinate: CLLocationCoordinate2D
+    let toCoordinate: CLLocationCoordinate2D
+    
+    
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.isZoomEnabled = false
+        mapView.isScrollEnabled = false
+        mapView.isRotateEnabled = false
+        mapView.delegate = context.coordinator
+        
+        // 使用 coordinator 中的 annotation
+        context.coordinator.fromAnnotation.coordinate = fromCoordinate
+        context.coordinator.toAnnotation.coordinate = toCoordinate
+        mapView.addAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation])
+        
+        // 自动缩放显示所有标注
+        mapView.showAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation], animated: false)
+        
+        return mapView
+    }
+    
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        // 更新坐标
+        context.coordinator.fromAnnotation.coordinate = fromCoordinate
+        context.coordinator.toAnnotation.coordinate = toCoordinate
+        uiView.showAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation], animated: true)
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator: NSObject, MKMapViewDelegate {
+        let fromAnnotation = MKPointAnnotation()
+        let toAnnotation = MKPointAnnotation()
+        
+        override init() {
+            super.init()
+            fromAnnotation.title = "From"
+            toAnnotation.title = "To"
+        }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if annotation is MKUserLocation { return nil }
+            
+            let identifier = "customMarker"
+            var view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            if view == nil {
+                view = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                view?.canShowCallout = true
+                // 设置自定义图标
+                if let originalImage = UIImage(systemName: "bicycle") {
+                    let size = CGSize(width: 30, height: 30)
+                    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+                    
+                    let tinted = originalImage.withTintColor(.orange, renderingMode: .alwaysOriginal)
+                    tinted.draw(in: CGRect(origin: .zero, size: size))
+                    
+                    let finalImage = UIGraphicsGetImageFromCurrentImageContext()
+                    UIGraphicsEndImageContext()
+                    
+                    view?.image = finalImage
+                }
+                
+            } else {
+                view?.annotation = annotation
+            }
+            
+            return view
+        }
+    }
+}
 
 #Preview {
     let appState = AppState.shared

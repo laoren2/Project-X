@@ -26,6 +26,9 @@ class WatchDataManager: NSObject, ObservableObject {
     private var latestPower: Double = 0
     var enableIMU: Bool = false
     
+    @Published var showingAuthToast: Bool = false
+    @Published var isNeedWaitingAuth: Bool = false
+    
     @Published var showingSummaryView: Bool = false
     @Published var summaryViewData: SummaryViewData? = nil
     //@Published var workout: HKWorkout?
@@ -86,34 +89,86 @@ class WatchDataManager: NSObject, ObservableObject {
             enableIMU = context["enableIMU"] as? Bool ?? false
             Logger.competition.notice_public("syncStatus: forcing start collection, type=\(activityType), location=\(locationType)")
             DispatchQueue.main.async {
-                self.startWorkout(config: configuration)
-                self.startCollecting()
+                self.tryStartWorkout(config: configuration)
+                //self.startCollecting()
             }
         } else {
             Logger.competition.notice_public("syncStatus: no startCollection command in context.")
         }
     }
     
-    // Request authorization to access HealthKit.
-    func requestAuthorization() {
-        // The quantity type to write to the health store.
-        let typesToShare: Set = [
+    // check and request authorization to access HealthKit.
+    func checkHealthAuthorization(completion: @escaping (Bool) -> Void) {
+        let typesToShare: Set<HKSampleType> = [
             HKQuantityType.workoutType()
         ]
-        
-        // The quantity types to read from the health store.
-        let typesToRead: Set = [
+
+        let typesToRead: Set<HKObjectType> = [
             HKQuantityType.quantityType(forIdentifier: .heartRate)!,
             HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!,
             HKQuantityType.quantityType(forIdentifier: .cyclingPower)!
-            //HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)!,
-            //HKQuantityType.quantityType(forIdentifier: .distanceCycling)!,
-            //HKObjectType.activitySummaryType()
         ]
-        
-        // Request authorization for those quantity types.
-        healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { (success, error) in
-            // Handle error.
+
+        // 合并需要检查的类型
+        let allTypes: [HKObjectType] = Array(typesToShare) + Array(typesToRead)
+
+        // 是否有未申请过的
+        let needRequest = allTypes.contains {
+            healthStore.authorizationStatus(for: $0) == .notDetermined
+        }
+
+        if needRequest {
+            // 只要有一个没申请过，就触发系统弹窗
+            healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { success, error in
+                guard success, error == nil else {
+                    completion(false)
+                    return
+                }
+                DispatchQueue.main.async {
+                    self.isNeedWaitingAuth = true
+                    self.showingAuthToast = true
+                }
+                // 每隔1s循环检查写入权限，最多尝试5次
+                let maxTries = 5
+                func checkWriteAuthorization(attempt: Int) {
+                    let writeAuthorized = typesToShare.allSatisfy {
+                        self.healthStore.authorizationStatus(for: $0) == .sharingAuthorized
+                    }
+                    if writeAuthorized {
+                        completion(true)
+                        return
+                    }
+                    if attempt >= maxTries {
+                        completion(false)
+                        return
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        checkWriteAuthorization(attempt: attempt + 1)
+                    }
+                }
+                checkWriteAuthorization(attempt: 1)
+            }
+        } else {
+            // 已经弹过了 → 判断是否都授权
+            let writeAuthorized = typesToShare.allSatisfy {
+                healthStore.authorizationStatus(for: $0) == .sharingAuthorized
+            }
+            completion(writeAuthorized)
+        }
+    }
+    
+    func tryStartWorkout(config: HKWorkoutConfiguration) {
+        // 检查权限
+        checkHealthAuthorization() { authorized in
+            if authorized {
+                self.showingAuthToast = false
+                self.showingSummaryView = false
+                self.startWorkout(config: config)
+            } else {
+                // 已经拒绝过，提示用户去设置里开
+                self.isNeedWaitingAuth = false
+                self.showingAuthToast = true
+            }
         }
     }
     
@@ -142,6 +197,9 @@ class WatchDataManager: NSObject, ObservableObject {
         WKsession?.startActivity(with: startDate)
         builder?.beginCollection(withStart: startDate) { (success, error) in
             // The workout has started.
+            //print("beginCollection success: \(success) error: \(error)")
+            guard success, error == nil else { return }
+            self.startCollecting()
         }
     }
     
@@ -372,6 +430,7 @@ extension WatchDataManager: WCSessionDelegate {
             }
             enableIMU = applicationContext["enableIMU"] as? Bool ?? false
             Logger.competition.notice_public("Set enableIMU to \(enableIMU)")
+            //print(("Set enableIMU to \(enableIMU)"))
         }
         if let command = applicationContext["command"] as? String, command == "stopCollection" {
             if let ts = applicationContext["timestamp"] as? Double {
@@ -431,12 +490,13 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
         if toState == .ended {
             Logger.competition.notice_public("WKsession state change to end")
             builder?.endCollection(withEnd: date) { (success, error) in
+                //print("endCollection success: \(success) error: \(error)")
+                guard success, error == nil else { return }
                 self.builder?.finishWorkout { (workout, error) in
                     guard error == nil, let workout = workout else {
                         Logger.competition.notice_public("finishWorkout error: \(String(describing: error))")
                         return
                     }
-                    
                     DispatchQueue.main.async {
                         // 从 workout 中获取系统统计
                         let energyStats = workout.statistics(for: HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!)
@@ -444,7 +504,6 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                         let distance = workout.totalDistance?.doubleValue(for: .meter()) ?? 0
                         let duration = workout.duration
                         
-                        // 用你在 updateForStatistics 中维护的 avg 值兜底
                         self.summaryViewData = SummaryViewData(
                             avgHeartRate: self.avgHeartRate,
                             totalEnergy: energy > 0 ? energy : self.totalEnergy,

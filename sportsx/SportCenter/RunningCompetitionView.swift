@@ -121,16 +121,10 @@ struct RunningCompetitionView: View {
                     // 使用安全检查显示地图
                     ScrollView {
                         if let track = viewModel.selectedTrack {
-                            Map(interactionModes: []) {
-                                Annotation("From", coordinate: CoordinateConverter.parseCoordinate(coordinate: track.from)) {
-                                    Image(systemName: "location.fill")
-                                        .padding(5)
-                                }
-                                Annotation("To", coordinate: CoordinateConverter.parseCoordinate(coordinate: track.to)) {
-                                    Image(systemName: "location.fill")
-                                        .padding(5)
-                                }
-                            }
+                            TrackMapView(
+                                fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
+                                toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to)
+                            )
                             .frame(height: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                             .overlay(
@@ -511,12 +505,12 @@ struct RunningCompetitionView: View {
         .sheet(item: $selectedDetailEvent) { event in
             RunningEventDetailView(event: event)
         }
-        .onChange(of: locationManager.region) {
+        .onValueChange(of: locationManager.region) {
             if let region = locationManager.region {
                 viewModel.fetchEvents(with: region)
             }
         }
-        .onChange(of: viewModel.selectedTrack) {
+        .onValueChange(of: viewModel.selectedTrack) {
             if let track = viewModel.selectedTrack {
                 viewModel.selectedRankInfo = track.rankInfo
                 if track.rankInfo == nil {
@@ -701,7 +695,7 @@ struct RunningTeamCreateView: View {
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
-                    .onChange(of: teamTitle) {
+                    .onValueChange(of: teamTitle) {
                         DispatchQueue.main.async {
                             if teamTitle.count > 10 {
                                 teamTitle = String(teamTitle.prefix(10)) // 限制为最多10个字符
@@ -730,7 +724,7 @@ struct RunningTeamCreateView: View {
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
-                            .onChange(of: teamDescription) {
+                            .onValueChange(of: teamDescription) {
                                 DispatchQueue.main.async {
                                     if teamDescription.count > 50 {
                                         teamDescription = String(teamDescription.prefix(50)) // 限制为最多50个字符
@@ -1002,7 +996,7 @@ struct RunningTeamAppliedView: View {
                         .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                         .background(.ultraThinMaterial)
                         .cornerRadius(20)
-                        .onChange(of: introduction) {
+                        .onValueChange(of: introduction) {
                             DispatchQueue.main.async {
                                 if introduction.count > 50 {
                                     introduction = String(introduction.prefix(50)) // 限制为最多50个字符
@@ -1035,7 +1029,7 @@ struct RunningTeamAppliedView: View {
         .padding()
         .background(Color.defaultBackground)
         //.hideKeyboardOnScroll()
-        .onChange(of: viewModel.showIntroSheet) {
+        .onValueChange(of: viewModel.showIntroSheet) {
             if !viewModel.showIntroSheet {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             } else {

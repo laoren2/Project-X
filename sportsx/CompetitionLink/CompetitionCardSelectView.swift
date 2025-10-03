@@ -73,16 +73,13 @@ struct CompetitionCardSelectView: View {
             
             // 固定的三个卡牌位
             HStack(spacing: 20) {
-                ForEach(0..<maxCards, id: \.self) { index in
-                    if index < appState.competitionManager.selectedCards.count {
-                        // 显示已选择的卡牌
-                        MagicCardView(card: appState.competitionManager.selectedCards[index])
-                            .frame(width: cardWidth, height: cardHeight)
-                    } else {
-                        // 显示占位卡牌
-                        EmptyCardSlot()
-                            .frame(width: cardWidth, height: cardHeight)
-                    }
+                ForEach(appState.competitionManager.selectedCards) { card in
+                    MagicCardView(card: card)
+                        .frame(width: cardWidth, height: cardHeight)
+                }
+                ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) {_ in
+                    EmptyCardSlot()
+                        .frame(width: cardWidth, height: cardHeight)
                 }
             }
             .padding(.bottom, 30)

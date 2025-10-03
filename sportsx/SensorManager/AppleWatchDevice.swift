@@ -278,7 +278,7 @@ extension AppleWatchDevice: WCSessionDelegate {
             }
         }
         if let statsData = message["statsData"] as? [String: Any] {
-            //print("receive statsData")
+            //print("receive statsData: \(statsData)")
             if canReceiveData {
                 //print("set statsData")
                 competitionManager.handleStatsData(stats: statsData)

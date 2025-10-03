@@ -10,11 +10,11 @@ import Combine
 import SwiftUI
 
 class UserManager: ObservableObject {
-    static let shared = UserManager() // 单例模式
+    static let shared = UserManager()
     
     let navigationManager = NavigationManager.shared
     let config = GlobalConfig.shared
-    @Published var user: User = User() // 存储用户信息
+    @Published var user: User = User()          // 存储用户信息
     @Published var avatarImage: UIImage?        // 用户头像
     @Published var backgroundImage: UIImage?    // 用户封面
     @Published var backgroundColor: Color = .defaultBackground  // 用户封面背景色
@@ -67,7 +67,7 @@ class UserManager: ObservableObject {
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
             switch result {
-            case .success(let success):
+            case .success:
                 DispatchQueue.main.async {
                     self.logoutUser()
                     self.navigationManager.backToHome()
@@ -214,6 +214,7 @@ class UserManager: ObservableObject {
         defaults.set(user.userID, forKey: "user.userID")
         defaults.set(user.nickname, forKey: "user.nickname")
         defaults.set(user.phoneNumber, forKey: "user.phoneNumber")
+        defaults.set(user.apple_email, forKey: "user.appleEmail")
         defaults.set(user.avatarImageURL, forKey: "user.avatarImageURL")
         defaults.set(user.backgroundImageURL, forKey: "user.backgroundImageURL")
         defaults.set(user.introduction, forKey: "user.introduction")
@@ -243,7 +244,8 @@ class UserManager: ObservableObject {
         user = User(
             userID: defaults.string(forKey: "user.userID") ?? "未知",
             nickname: defaults.string(forKey: "user.nickname") ?? "未登录",
-            phoneNumber: defaults.string(forKey: "user.phoneNumber") ?? "未知",
+            phoneNumber: defaults.string(forKey: "user.phoneNumber"),
+            apple_email: defaults.string(forKey: "user.appleEmail"),
             avatarImageURL: defaults.string(forKey: "user.avatarImageURL") ?? "",
             backgroundImageURL: defaults.string(forKey: "user.backgroundImageURL") ?? "",
             introduction: defaults.string(forKey: "user.introduction"),
@@ -290,6 +292,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.userID")
         defaults.removeObject(forKey: "user.nickname")
         defaults.removeObject(forKey: "user.phoneNumber")
+        defaults.removeObject(forKey: "user.appleEmail")
         defaults.removeObject(forKey: "user.avatarImageURL")
         defaults.removeObject(forKey: "user.backgroundImageURL")
         defaults.removeObject(forKey: "user.introduction")
@@ -333,6 +336,12 @@ struct FetchAnyUserResponse: Codable {
     let relationship: UserRelationshipStatus
 }
 
+enum UserStatus: String, Codable {
+    case normal = "normal"
+    case banned = "banned"
+    case deleted = "deleted"
+}
+
 enum UserRole: String, Codable {
     case user = "user"
     case admin = "admin"
@@ -369,6 +378,7 @@ struct UserDTO: Codable {
     let user_id: String                 // 服务器端的唯一标识符
     let nickname: String                // 昵称
     let phone_number: String?           // 手机号
+    let apple_email: String?
     let avatar_image_url: String        // 头像url
     let background_image_url: String    // 封面url
     
@@ -378,9 +388,6 @@ struct UserDTO: Codable {
     let location: String?               // 地理位置
     let identity_auth_name: String?     // 身份名称
     
-    let is_realname_auth: Bool      // 是否已实名认证
-    let is_identity_auth: Bool      // 是否已身份认证
-    
     let is_display_gender: Bool       // 是否展示性别
     let is_display_age: Bool          // 是否真实年龄
     let is_display_location: Bool     // 是否展示地理位置
@@ -388,6 +395,7 @@ struct UserDTO: Codable {
     let is_display_identity: Bool     // 是否展示身份名称
     
     let default_sport: SportName      // 主页默认展示的运动
+    let status: UserStatus              // 用户账号状态
 }
 
 struct User: Identifiable, Codable, Hashable {
@@ -395,6 +403,7 @@ struct User: Identifiable, Codable, Hashable {
     let userID: String              // 服务器端的唯一标识符
     var nickname: String            // 昵称
     var phoneNumber: String?        // 手机号
+    var apple_email: String?
     var avatarImageURL: String      // 头像url
     var backgroundImageURL: String  // 封面url
     
@@ -413,11 +422,13 @@ struct User: Identifiable, Codable, Hashable {
     var enableAutoLocation: Bool    // 是否使用最新定位的地理位置
     var isDisplayIdentity: Bool     // 是否展示身份名称
     var defaultSport: SportName     // 主页默认展示的运动
+    let status: UserStatus
     
     init(
         userID: String = "未知",
         nickname: String = "未知",
-        phoneNumber: String = "未知",
+        phoneNumber: String? = nil,
+        apple_email: String? = nil,
         avatarImageURL: String = "",
         backgroundImageURL: String = "",
         introduction: String? = nil,
@@ -432,11 +443,13 @@ struct User: Identifiable, Codable, Hashable {
         isDisplayLocation: Bool = false,
         enableAutoLocation: Bool = false,
         isDisplayIdentity: Bool = false,
-        defaultSport: SportName = .Bike
+        defaultSport: SportName = .Bike,
+        status: UserStatus = .normal
     ) {
         self.userID = userID
         self.nickname = nickname
         self.phoneNumber = phoneNumber
+        self.apple_email = apple_email
         self.avatarImageURL = avatarImageURL
         self.backgroundImageURL = backgroundImageURL
         self.introduction = introduction
@@ -452,12 +465,14 @@ struct User: Identifiable, Codable, Hashable {
         self.enableAutoLocation = enableAutoLocation
         self.isDisplayIdentity = isDisplayIdentity
         self.defaultSport = defaultSport
+        self.status = status
     }
 
     init(from dto: UserDTO) {
         self.userID = dto.user_id
         self.nickname = dto.nickname
         self.phoneNumber = dto.phone_number
+        self.apple_email = dto.apple_email
         self.avatarImageURL = dto.avatar_image_url
         self.backgroundImageURL = dto.background_image_url
         self.introduction = dto.introduction
@@ -465,13 +480,14 @@ struct User: Identifiable, Codable, Hashable {
         self.birthday = dto.birthday
         self.location = dto.location
         self.identityAuthName = dto.identity_auth_name
-        self.isRealnameAuth = dto.is_realname_auth
-        self.isIdentityAuth = dto.is_identity_auth
+        self.isRealnameAuth = (dto.gender != nil && dto.birthday != nil)
+        self.isIdentityAuth = (dto.identity_auth_name != nil)
         self.isDisplayGender = dto.is_display_gender
         self.isDisplayAge = dto.is_display_age
         self.isDisplayLocation = dto.is_display_location
         self.enableAutoLocation = dto.enable_auto_location
         self.isDisplayIdentity = dto.is_display_identity
         self.defaultSport = dto.default_sport
+        self.status = dto.status
     }
 }

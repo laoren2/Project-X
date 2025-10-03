@@ -160,10 +160,10 @@ struct RegionSelectedView: View {
             selectedProvince = regions.keys.sorted().first ?? "未知"
             fetchCities()
         }
-        .onChange(of: regions) {
+        .onValueChange(of: regions) {
             selectedProvince = regions.keys.sorted().first ?? "未知"
         }
-        .onChange(of: locationManager.countryCode) {
+        .onValueChange(of: locationManager.countryCode) {
             fetchCities()
         }
     }
@@ -171,7 +171,7 @@ struct RegionSelectedView: View {
     func reposition() {
         guard let location = LocationManager.shared.getLocation() else {
             locationManager.region = "未知"
-            // todo: 添加location代理重新请求一次位置更新
+            // todo?: 可以考虑添加location代理重新请求一次位置更新
             return
         }
         // 强制刷新一次
@@ -179,6 +179,7 @@ struct RegionSelectedView: View {
     }
     
     func getCityName(from location: CLLocation) {
+        locationManager.region = GlobalConfig.shared.location
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
             DispatchQueue.main.async {
@@ -189,8 +190,6 @@ struct RegionSelectedView: View {
                         if UserManager.shared.user.enableAutoLocation && UserManager.shared.user.location != city {
                             UserManager.shared.updateUserLocation(region: city)
                         }
-                    } else {
-                        locationManager.region = GlobalConfig.shared.location
                     }
                     if let country = placemark.isoCountryCode, country != locationManager.countryCode {
                         locationManager.countryCode = country

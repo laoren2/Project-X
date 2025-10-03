@@ -30,6 +30,8 @@ enum AppRoute: Hashable {
     case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
+    case phoneBindView
+    case appleBindView
     case bikeRankingListView(trackID: String, gender: Gender, isHistory: Bool = false)
     case bikeScoreRankingView(seasonName: String, seasonID: String, gender: Gender)
     case bikeTeamCreateView(trackID: String, competitionDate: Date)
@@ -97,6 +99,10 @@ enum AppRoute: Hashable {
             return "identityAuthView"
         case .userSetUpAccountView:
             return "userSetUpAccountView"
+        case .phoneBindView:
+            return "phoneBindView"
+        case .appleBindView:
+            return "appleBindView"
         case .bikeRankingListView:
             return "bikeRankingListView"
         case .bikeScoreRankingView:

@@ -219,6 +219,10 @@ struct RealNaviView: View {
                     IdentityAuthView()
                 case .userSetUpAccountView:
                     UserSetUpAccountView()
+                case .phoneBindView:
+                    PhoneBindView()
+                case .appleBindView:
+                    AppleBindView()
                 case .bikeRankingListView(let id, let gender, let isHistory):
                     BikeRankingListView(trackID: id, gender: gender, isHistory: isHistory)
                 case .bikeScoreRankingView(let name, let id, let gender):
@@ -324,7 +328,7 @@ struct CustomTabBar: View {
 
     func shouldAllowSwitch(to tab: Tab) -> Bool {
         if tab == .home || tab == .sportCenter { return true }
-        // 如果离开首页，必须登录
+        // 如果离开首页和竞技中心，必须登录
         if !userManager.isLoggedIn {
             //print("未登录，禁止切换tab")
             // 弹出登录页

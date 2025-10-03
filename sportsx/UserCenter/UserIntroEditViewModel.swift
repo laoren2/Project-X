@@ -41,12 +41,7 @@ class UserIntroEditViewModel: ObservableObject {
         let textFields: [String: String?] = [
             "nickname": currentUser.nickname,
             "introduction": currentUser.introduction,
-            "gender": currentUser.gender?.rawValue,
-            "birthday": currentUser.birthday,
             "location": currentUser.location,
-            "identity_auth_name": currentUser.identityAuthName,
-            "is_realname_auth": currentUser.isRealnameAuth.description,
-            "is_identity_auth": currentUser.isIdentityAuth.description,
             "is_display_gender": currentUser.isDisplayGender.description,
             "is_display_age": currentUser.isDisplayAge.description,
             "is_display_location": currentUser.isDisplayLocation.description,
@@ -112,8 +107,8 @@ class UserIntroEditViewModel: ObservableObject {
                         self.userManager.user.birthday = user.birthday
                         self.userManager.user.location = user.location
                         self.userManager.user.identityAuthName = user.identity_auth_name
-                        self.userManager.user.isRealnameAuth = user.is_realname_auth
-                        self.userManager.user.isIdentityAuth = user.is_realname_auth
+                        self.userManager.user.isRealnameAuth = (user.gender != nil && user.birthday != nil)
+                        self.userManager.user.isIdentityAuth = (user.identity_auth_name != nil)
                         self.userManager.user.isDisplayGender = user.is_display_gender
                         self.userManager.user.isDisplayAge = user.is_display_age
                         self.userManager.user.isDisplayLocation = user.is_display_location

@@ -537,3 +537,16 @@ extension String {
         }
     }
 }
+
+extension View {
+    @ViewBuilder
+    func onValueChange<V: Equatable>(of value: V, perform action: @escaping () -> Void) -> some View {
+        if #available(iOS 17.0, *) {
+            // iOS17+ 支持零参数闭包
+            self.onChange(of: value, action)
+        } else {
+            // iOS16 必须写带参数的闭包
+            self.onChange(of: value) { _ in action() }
+        }
+    }
+}

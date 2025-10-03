@@ -39,15 +39,15 @@ class AppStateTest: ObservableObject {
 }
 
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+/*class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return .portrait
     }
-}
+}*/
 
 @main
 struct sportsxApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    //@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
     

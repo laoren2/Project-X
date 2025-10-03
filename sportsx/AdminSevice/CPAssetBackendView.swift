@@ -196,7 +196,7 @@ struct CPAssetCreateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) {
             Task {
                 if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
@@ -299,7 +299,7 @@ struct CPAssetUpdateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) {
             Task {
                 if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
