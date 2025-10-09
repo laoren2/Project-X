@@ -76,13 +76,23 @@ struct BikeRecordDetailView: View {
                                     .bold()
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
-                                if detailInfo.isFinishComputed == false {
-                                    Text("计算中...")
-                                        .foregroundColor(.orange)
+                                if detailInfo.status == .completed {
+                                    if detailInfo.isFinishComputed == false {
+                                        Text("计算中...")
+                                            .foregroundColor(.orange)
+                                            .bold()
+                                    } else {
+                                        Text("已完成")
+                                            .foregroundColor(.green)
+                                            .bold()
+                                    }
+                                } else if detailInfo.status == .expired {
+                                    Text("数据异常")
+                                        .foregroundColor(.red)
                                         .bold()
-                                } else {
-                                    Text("已完成")
-                                        .foregroundColor(.green)
+                                } else if detailInfo.status == .invalid {
+                                    Text("数据校验失败")
+                                        .foregroundColor(.red)
                                         .bold()
                                 }
                             }
@@ -274,13 +284,23 @@ struct RunningRecordDetailView: View {
                                     .bold()
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
-                                if detailInfo.isFinishComputed == false {
-                                    Text("计算中...")
-                                        .foregroundColor(.orange)
+                                if detailInfo.status == .completed {
+                                    if detailInfo.isFinishComputed == false {
+                                        Text("计算中...")
+                                            .foregroundColor(.orange)
+                                            .bold()
+                                    } else {
+                                        Text("已完成")
+                                            .foregroundColor(.green)
+                                            .bold()
+                                    }
+                                } else if detailInfo.status == .expired {
+                                    Text("数据异常")
+                                        .foregroundColor(.red)
                                         .bold()
-                                } else {
-                                    Text("已完成")
-                                        .foregroundColor(.green)
+                                } else if detailInfo.status == .invalid {
+                                    Text("数据校验失败")
+                                        .foregroundColor(.red)
                                         .bold()
                                 }
                             }

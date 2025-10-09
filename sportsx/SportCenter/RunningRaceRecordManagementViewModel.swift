@@ -44,9 +44,8 @@ class RunningRaceRecordManagementViewModel: ObservableObject {
         }
         isIncompleteLoading = true
         
-        guard var components = URLComponents(string: "/competition/running/query_records") else { return }
+        guard var components = URLComponents(string: "/competition/running/query_incompleted_records") else { return }
         components.queryItems = [
-            URLQueryItem(name: "status", value: CompetitionStatus.notStarted.rawValue),
             URLQueryItem(name: "page", value: "\(incompletePage)"),
             URLQueryItem(name: "size", value: "\(pageSize)")
         ]
@@ -81,9 +80,8 @@ class RunningRaceRecordManagementViewModel: ObservableObject {
         }
         isCompletedLoading = true
         
-        guard var components = URLComponents(string: "/competition/running/query_records") else { return }
+        guard var components = URLComponents(string: "/competition/running/query_completed_records") else { return }
         components.queryItems = [
-            URLQueryItem(name: "status", value: CompetitionStatus.completed.rawValue),
             URLQueryItem(name: "page", value: "\(completedPage)"),
             URLQueryItem(name: "size", value: "\(pageSize)")
         ]

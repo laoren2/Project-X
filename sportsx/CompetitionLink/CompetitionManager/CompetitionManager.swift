@@ -851,15 +851,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         isInValidArea = false
         isEffectsFinishPrepare = true
     }
-    
-    // todo:
-    // 服务端需定期处理异常的team
-    // 针对prepared状态的已过期team，修改为completed状态
-    // 针对ready状态的team，超过比赛时间后修改为completed状态
-    // 针对recording状态的team，超过比赛时间2h后将状态调整为completed
-    // 服务端需定期处理异常的record
-    // 针对unstarted的单人record，检查是否超过赛道比赛时间，组队record检查队伍状态是否为completed
-    // 针对recording的record，检查是否已开始超过2h
 }
 
 class MatchEventBus {

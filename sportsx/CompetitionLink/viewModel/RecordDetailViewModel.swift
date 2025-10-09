@@ -78,6 +78,7 @@ class RunningRecordDetailViewModel: ObservableObject {
 }
 
 struct BikeRecordDetailInfo {
+    let status: CompetitionStatus
     let originalTime: Double        // 原始成绩
     let finalTime: Double           // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
     let isFinishComputed: Bool      // 有效成绩是否还在后台计算中
@@ -86,6 +87,7 @@ struct BikeRecordDetailInfo {
     let teamMemberScores: [MemberScoreInfo]     // 组队模式下的队友成绩
     
     init(from detail: BikeRecordDetailResponse) {
+        self.status = detail.status
         self.originalTime = detail.original_time
         self.finalTime = detail.final_time
         self.isFinishComputed = true
@@ -106,6 +108,7 @@ struct BikeRecordDetailInfo {
 }
 
 struct RunningRecordDetailInfo {
+    let status: CompetitionStatus
     let originalTime: Double        // 原始成绩
     let finalTime: Double           // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
     let isFinishComputed: Bool      // 有效成绩是否还在后台计算中
@@ -114,6 +117,7 @@ struct RunningRecordDetailInfo {
     let teamMemberScores: [MemberScoreInfo]     // 组队模式下的队友成绩
     
     init(from detail: RunningRecordDetailResponse) {
+        self.status = detail.status
         self.originalTime = detail.original_time
         self.finalTime = detail.final_time
         self.isFinishComputed = true
@@ -164,6 +168,7 @@ struct MemberScoreDTO: Codable {
 }
 
 struct BikeRecordDetailResponse: Codable {
+    let status: CompetitionStatus
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
     let path: [PathPoint]               // 比赛路径记录
@@ -172,6 +177,7 @@ struct BikeRecordDetailResponse: Codable {
 }
 
 struct RunningRecordDetailResponse: Codable {
+    let status: CompetitionStatus
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
     let path: [PathPoint]               // 比赛路径记录
