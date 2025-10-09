@@ -171,7 +171,7 @@ class UserManager: ObservableObject {
     func updateUserLocation(region: String) {
         guard var components = URLComponents(string: "/user/update_location") else { return }
         components.queryItems = [
-            URLQueryItem(name: "location", value: region)
+            URLQueryItem(name: "region", value: region)
         ]
         guard let urlPath = components.string else { return }
         

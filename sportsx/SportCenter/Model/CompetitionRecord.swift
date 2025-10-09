@@ -14,6 +14,8 @@ enum CompetitionStatus: String, Codable {
     case notStarted = "notStarted"
     case recording = "recording"
     case completed = "completed"
+    case expired = "expired"
+    case invalid = "invalid"
 }
 
 // 队伍成员结构

@@ -182,12 +182,22 @@ struct BikeCompetitionRecordCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 顶部信息：赛道名和比赛类型
-            HStack {
+            HStack(spacing: 0) {
                 // 赛道名称
                 Text(record.trackName)
                     .font(.headline)
                     .foregroundColor(.primary)
                     .lineLimit(1)
+                if record.status == .expired {
+                    Text("(已过期)")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                }
+                if record.status == .invalid {
+                    Text("(校验失败)")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                }
                 
                 Spacer()
                 
@@ -243,7 +253,7 @@ struct BikeCompetitionRecordCard: View {
                 }
             }
             
-            if record.status == .completed {
+            if record.status == .completed || record.status == .expired || record.status == .invalid {
                 // 开始时间
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
@@ -329,8 +339,8 @@ struct BikeCompetitionRecordCard: View {
                 }
             }
             
-            // 对于已完成的比赛，添加详情和反馈按钮
-            if record.status == .completed {
+            // 对于已完成的比赛，添加详情按钮
+            if record.status == .completed || record.status == .expired || record.status == .invalid {
                 HStack {
                     Text("\(record.regionName)-\(record.eventName)")
                         .font(.caption)
@@ -351,7 +361,7 @@ struct BikeCompetitionRecordCard: View {
                     .cornerRadius(4)
                     
                     // 反馈按钮
-                    CommonTextButton(text: "对成绩有疑问?") {
+                    /*CommonTextButton(text: "对成绩有疑问?") {
                         viewModel.feedback(record: record)
                     }
                     .font(.subheadline)
@@ -359,7 +369,7 @@ struct BikeCompetitionRecordCard: View {
                     .padding(.vertical, 6)
                     .background(Color.red.opacity(0.2))
                     .foregroundColor(.red)
-                    .cornerRadius(4)
+                    .cornerRadius(4)*/
                 }
             }
         }
