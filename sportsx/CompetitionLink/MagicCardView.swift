@@ -132,9 +132,11 @@ struct MagicCardView: View {
 // MARK: - 空卡牌槽位
 struct EmptyCardSlot: View {
     let text: String
+    let ratio: Double
     
-    init(text: String = "空卡牌槽") {
+    init(text: String = "空卡牌槽", ratio: Double = 5/7) {
         self.text = text
+        self.ratio = ratio
     }
     
     var body: some View {
@@ -162,7 +164,7 @@ struct EmptyCardSlot: View {
                 }
             }
         }
-        .aspectRatio(5/7, contentMode: .fit)
+        .aspectRatio(ratio, contentMode: .fit)
     }
 }
 

@@ -14,7 +14,7 @@ struct RealNameAuthView: View {
     @State var trackImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
-    
+    let userManager = UserManager.shared
     
     var body: some View {
         VStack(spacing: 20) {
@@ -43,6 +43,13 @@ struct RealNameAuthView: View {
             .padding(.horizontal)
             
             Spacer()
+            if userManager.user.isRealnameAuth {
+                Text("已进行实名认证")
+                    .foregroundStyle(Color.secondText)
+                Text("重新验证后会清除当前赛季所有运动生涯的积分，30天内不可重新认证")
+                    .font(.caption)
+                    .foregroundStyle(Color.thirdText)
+            }
             if let image = trackImage {
                 Image(uiImage: image)
                     .resizable()
@@ -52,14 +59,18 @@ struct RealNameAuthView: View {
                         showImagePicker = true
                     }
             } else {
-                Text("选择图片")
-                    .foregroundStyle(.white)
+                EmptyCardSlot(text: "上传身份证件正面照片", ratio: 7/5)
+                    .frame(height: 150)
                     .onTapGesture {
                         showImagePicker = true
                     }
             }
-            Text("OCR")
-                .foregroundStyle(.white)
+            Text(userManager.user.isRealnameAuth ? "重新认证" : "认证")
+                .padding(.vertical, 8)
+                .padding(.horizontal, 15)
+                .foregroundStyle(Color.secondText)
+                .background(Color.orange)
+                .cornerRadius(10)
                 .onTapGesture {
                     appliedOCR()
                 }
@@ -82,13 +93,15 @@ struct RealNameAuthView: View {
     }
     
     func appliedOCR() {
-        let boundary = "Boundary-\(UUID().uuidString)"
+        guard trackImage != nil else {
+            ToastManager.shared.show(toast: Toast(message: "请选择证件图片"))
+            return
+        }
         
+        let boundary = "Boundary-\(UUID().uuidString)"
         var headers: [String: String] = [:]
         headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
-        
         var body = Data()
-        
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
             ("front_image", trackImage, "hk_id_card.jpg")

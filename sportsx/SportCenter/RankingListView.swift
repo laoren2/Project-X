@@ -190,7 +190,7 @@ struct BikeRankingListView: View {
                         appState.navigationManager.append(.userView(id: userManager.user.userID, needBack: true))
                     }
                     VStack(alignment: .leading) {
-                        Text(userManager.user.nickname)
+                        Text("我")
                             .font(.headline)
                             .foregroundStyle(Color.secondText)
                         Text(TimeDisplay.formattedTime(viewModel.duration, showFraction: true))
@@ -518,7 +518,7 @@ struct RunningRankingListView: View {
                         appState.navigationManager.append(.userView(id: userManager.user.userID, needBack: true))
                     }
                     VStack(alignment: .leading) {
-                        Text(userManager.user.nickname)
+                        Text("我")
                             .font(.headline)
                             .foregroundStyle(Color.secondText)
                         Text(TimeDisplay.formattedTime(viewModel.duration, showFraction: true))

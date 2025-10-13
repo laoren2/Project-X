@@ -84,7 +84,9 @@ class CompetitionCenterViewModel: ObservableObject {
     
     func updateCity(from location: CLLocation) {
         // 暂时兜底
-        locationManager.region = GlobalConfig.shared.location
+        DispatchQueue.main.async {
+            self.locationManager.region = GlobalConfig.shared.location
+        }
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] (placemarks, error) in
             guard let self = self else { return }
