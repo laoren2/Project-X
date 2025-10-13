@@ -134,9 +134,9 @@ struct CareerView: View {
                     statsCard(title: "赛季排名", value: viewModel.totalRank, iconName: "trophy.fill", color: .red)
                     
                     HStack(spacing: 15) {
-                        dataCard(title: "参与时间", value: formatTime(minutes: viewModel.totalTime), iconName: "clock.fill", color: .green)
+                        dataCard(title: "参与时间", value: formatTime(seconds: viewModel.totalTime), iconName: "clock.fill", color: .green)
                         
-                        dataCard(title: "参与路程", value: formatDistance(meters: viewModel.totalMeters), iconName: "figure.run", color: .blue)
+                        dataCard(title: "参与路程", value: String(format: "%.2fkm", viewModel.totalDistance), iconName: "figure.run", color: .blue)
                         
                         dataCard(title: "获得奖金", value: "¥\(viewModel.totalBonus)", iconName: "dollarsign.circle.fill", color: .yellow)
                     }
@@ -250,16 +250,16 @@ struct CareerView: View {
     }
     
     // 格式化时间
-    private func formatTime(minutes: Int) -> String {
-        let hours = minutes / 60
-        return "\(hours)h"
+    private func formatTime(seconds: Double) -> String {
+        let hours = seconds / 3600
+        return String(format: "%.2fh", hours)
     }
     
     // 格式化距离
-    private func formatDistance(meters: Int) -> String {
-        let kilometers = Double(meters) / 1000.0
-        return String(format: "%.1fkm", kilometers)
-    }
+    //private func formatDistance(meters: Double) -> String {
+    //    let kilometers = meters / 1000
+    //    return String(format: "%.2fkm", kilometers)
+    //}
 }
 
 // 五边形形状

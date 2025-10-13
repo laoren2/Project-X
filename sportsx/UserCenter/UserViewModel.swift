@@ -28,15 +28,15 @@ class UserViewModel: ObservableObject {
     @Published var showSidebar = false  // 侧边栏是否显示
     
     // 赛季总积分
-    @Published var totalScore: Int?
+    @Published var totalScore: Int = 0
     // 赛季总积分排名
     @Published var totalRank: Int?
     // 赛季荣誉
     //var cups: [Cup] = []
     // 赛季总参与时间
-    @Published var totalTime: Int = 0
+    @Published var totalTime: Double = 0
     // 赛季总参与路程
-    @Published var totalMeters: Int = 0
+    @Published var totalDistance: Double = 0
     // 赛季获得总奖金
     @Published var totalBonus: Int = 0
     
@@ -137,7 +137,7 @@ class UserViewModel: ObservableObject {
     }
     
     func queryCareerData() {
-        totalScore = nil
+        totalScore = 0
         totalRank = nil
         guard let season = selectedSeason else { return }
         
@@ -160,6 +160,9 @@ class UserViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.totalScore = unwrappedData.total_score
                         self.totalRank = unwrappedData.total_rank
+                        self.totalBonus = unwrappedData.total_voucher
+                        self.totalDistance = unwrappedData.total_distance
+                        self.totalTime = unwrappedData.total_time
                     }
                 }
             default: break
@@ -368,11 +371,11 @@ struct CareerRecordResponse: Codable {
 }
 
 struct CareerDataDTO: Codable {
-    let total_score: Int?
+    let total_score: Int
     let total_rank: Int?
-    //let total_time: Double
-    //let total_distance: Double
-    //let total_bonus: Double
+    let total_voucher: Int
+    let total_distance: Double
+    let total_time: Double
 }
 
 enum CupLevel {

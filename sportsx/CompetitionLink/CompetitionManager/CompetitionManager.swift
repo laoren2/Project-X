@@ -34,6 +34,15 @@ let SAVESENSORDATA: Bool = {
     #endif
 }()
 
+// 是否跳过比赛数据校验
+let SKIPMATCHVERIFY: Bool = {
+    #if DEBUG
+    return true
+    #else
+    return false
+    #endif
+}()
+
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = CompetitionManager()
     
@@ -385,7 +394,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         motionManager.stopMagnetometerUpdates()
         
         // Stop audio recording if applicable
-        stopRecordingAudio()
+        //stopRecordingAudio()
         // 停止手机和传感器设备的数据收集
         self.stopTimer()
         for (pos, dev) in deviceManager.deviceMap {
@@ -427,24 +436,213 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         finishCompetition_server()
         
-        dataFusionManager.resetAll()
         resetCompetitionProperties()
         Logger.competition.notice_public("competition stop")
     }
     
-    // todo: 暂时开始时间和结束时间都由客户端决定，未来可在服务端接收到请求后记录时间进行二次验证
-    func finishCompetition_server() {
-        guard let start = startTime else { return }
+    // todo: 使用机器学习模型校验
+    func verifyBikeMatchData() -> Bool {
+        guard startTime != nil else { return false }
+        guard let lastPointLat = pathData.last?.lat,
+              let lastPointLon = pathData.last?.lon,
+              let startTime = pathData.first?.timestamp,
+              let endTime = pathData.last?.timestamp,
+              startTime < endTime else {
+            return false
+        }
+        let location = CLLocation(latitude: lastPointLat, longitude: lastPointLon)
+        let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
+        guard dis <= safetyRadius else { return false }
+        
+        guard pathData.count >= 2 else {
+            // 路径过短，不能校验，默认不合法
+            return false
+        }
+        
+        // 总分数为100
+        var score = 100
+        
+        let totalTime = endTime - startTime  // 秒
+        let totalMeters = computeTotalDistance(path: pathData)
+        let avgSpeedKmh = (totalMeters / totalTime) * 3.6  // 转 km/h
+        
+        // 规则 1：平均速度太低 → 不进行深度校验（直接视为合法）
+        if avgSpeedKmh < 20 {
+            return true
+        }
+        
+        // 规则 2：局部速度极端段
+        let segSpeeds = computeSegmentSpeeds(path: pathData, windowMeters: 100)
+        for v in segSpeeds {
+            if v > 80 {
+                // 极端超速段
+                score -= 20
+            } else if v > 60 {
+                score -= 10
+            } else if v > 50 {
+                score -= 5
+            }
+        }
+        
+        // 规则 3：海拔跳跃异常
+        let altitudes = pathData.map { $0.altitude }
+        if detectElevationJump(elevs: altitudes, maxJump: 50.0) {
+            score -= 10
+        }
+        
+        // 规则 4：坡度极端
+        let slopeStats = computeSlopeStats(path: pathData)
+        if slopeStats.maxSlope > 1.0 {
+            // 最大坡度 > 100% 非现实
+            score -= 10
+        } else if slopeStats.maxSlope > 0.7 {
+            score -= 5
+        }
+        
+        // 规则 5：GPS 跳变数
+        let jumpCount = countGpsJumps(path: pathData, maxReasonableKmh: 50)
+        score -= jumpCount * 5
+        
+        // 规则 6：功率 / 心率 一致性（如果有）
+        //if let avgPower = matchContext.avgPower {
+            // 假设你有功率数据
+            // 这里用示例 isPowerConsistent
+            // if !isPowerConsistent(speed: avgSpeedKmh, power: avgPower) {
+            //     score -= 10
+            // }
+        //}
+        
+        // 规则 7: 上坡时的速度 & 心率变化
+        
+        // 限制最低分数
+        if score < 0 { score = 0 }
+        
+        // 根据最终 score 决定验证结果
+        // 可以定义不同分数区间：
+        // ≥ 80 : 合法
+        // 60–80 : 可疑（可能人工复核）
+        // < 60 : 拒绝 / 判定为作弊
+        
+        if score >= 80 {
+            return true  // 合法
+        } else if score >= 60 {
+            // 可疑：你可以考虑半通过 / 标记给后台 / 或者人工审核
+            return true  // 也可以返回 false / 标记可疑
+        } else {
+            // 严重异常
+            return false
+        }
+    }
+    
+    func verifyRunningMatchData() -> Bool {
+        guard startTime != nil else { return false }
+        guard let lastPointLat = pathData.last?.lat,
+              let lastPointLon = pathData.last?.lon,
+              let startTime = pathData.first?.timestamp,
+              let endTime = pathData.last?.timestamp,
+              startTime < endTime else {
+            return false
+        }
+        let location = CLLocation(latitude: lastPointLat, longitude: lastPointLon)
+        let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
+        guard dis <= safetyRadius else { return false }
+        
+        guard pathData.count >= 2 else {
+            // 路径过短，不能校验，默认不合法
+            return false
+        }
+        
+        // 总分数为100
+        var score = 100
+        
+        let totalTime = endTime - startTime  // 秒
+        let totalMeters = computeTotalDistance(path: pathData)
+        let avgSpeedKmh = (totalMeters / totalTime) * 3.6  // 转 km/h
+        
+        // 规则 1：平均速度太低 → 不进行深度校验（直接视为合法）
+        if avgSpeedKmh < 10 {
+            return true
+        }
+        // 规则 2：局部速度极端段
+        let segSpeeds = computeSegmentSpeeds(path: pathData, windowMeters: 100)
+        for v in segSpeeds {
+            if v > 30 {
+                score -= 20
+            } else if v > 25 {
+                score -= 10
+            } else if v > 20 {
+                score -= 5
+            }
+        }
+        
+        // 规则 3：海拔跳跃异常
+        let altitudes = pathData.map { $0.altitude }
+        if detectElevationJump(elevs: altitudes, maxJump: 50.0) {
+            score -= 10
+        }
+        
+        // 规则 4：坡度极端
+        let slopeStats = computeSlopeStats(path: pathData)
+        if slopeStats.maxSlope > 2 {
+            // 最大坡度 > 100% 非现实
+            score -= 10
+        } else if slopeStats.maxSlope > 1 {
+            score -= 5
+        }
+        
+        // 规则 5：GPS 跳变数
+        let jumpCount = countGpsJumps(path: pathData, maxReasonableKmh: 30)
+        score -= jumpCount * 5
+        
+        // 规则 6：功率 / 心率 一致性（如果有）
+        //if let avgPower = matchContext.avgPower {
+            // 假设你有功率数据
+            // 这里用示例 isPowerConsistent
+            // if !isPowerConsistent(speed: avgSpeedKmh, power: avgPower) {
+            //     score -= 10
+            // }
+        //}
+        
+        // 规则 7: 上坡时的速度 & 心率变化
+        
+        // 限制最低分数
+        if score < 0 { score = 0 }
+        
+        if score >= 80 {
+            return true  // 合法
+        } else if score >= 60 {
+            return true
+        } else {
+            // 严重异常
+            return false
+        }
+    }
+    
+    func organizeEndTime() -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let endTime = formatter.string(from: Date())
+        return endTime
+    }
+    
+    // todo: 暂时开始时间和结束时间都由客户端决定，未来可在服务端接收到请求后记录时间进行二次验证
+    func finishCompetition_server() {
+        
+        // 校验 & 整理轨迹和时间
+        let optimizeEndTime = organizeEndTime()
         
         if let record = currentBikeRecord, sport == .Bike {
+            var validationResult = verifyBikeMatchData()
+            if SKIPMATCHVERIFY {
+                validationResult = true
+            }
+            //print("BikeMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
             let requestData = FinishMatchRequest(
+                validation_status: validationResult,
                 record_id: record.record_id,
-                end_time: endTime,
+                end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
                 path: pathData
             )
@@ -466,11 +664,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
         }
         if let record = currentRunningRecord, sport == .Running {
+            var validationResult = verifyRunningMatchData()
+            if SKIPMATCHVERIFY {
+                validationResult = true
+            }
+            //print("RunningMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
             let requestData = FinishMatchRequest(
+                validation_status: validationResult,
                 record_id: record.record_id,
-                end_time: endTime,
+                end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
                 path: pathData
             )
@@ -652,11 +856,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             print("location data missed in path point.")
             return
         }
+        let altitude = LocationManager.shared.getLocation()?.altitude ?? -11034
         let speed = LocationManager.shared.getLocation()?.speed ?? -1
         let pathPoint = PathPoint(
             lat: location.coordinate.latitude,
             lon: location.coordinate.longitude,
             speed: speed,
+            altitude: altitude,
             timestamp: location.timestamp.timeIntervalSince1970
         )
         pathData.append(pathPoint)
@@ -832,6 +1038,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func resetCompetitionProperties() {
+        dataFusionManager.resetAll()
+        
         teamJoinRemainingTime = teamJoinTimeWindow
         isTeamJoinWindowExpired = false
         currentBikeRecord = nil
@@ -851,6 +1059,121 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         isInValidArea = false
         isEffectsFinishPrepare = true
     }
+}
+
+extension CompetitionManager {
+    // 计算两点之间的地面水平距离（忽略高度差），单位 m
+    func horizontalDistance(from p1: PathPoint, to p2: PathPoint) -> Double {
+        let loc1 = CLLocation(latitude: p1.lat, longitude: p1.lon)
+        let loc2 = CLLocation(latitude: p2.lat, longitude: p2.lon)
+        return loc1.distance(from: loc2)
+    }
+    
+    // 计算路径的总水平距离（累计每段水平距离），单位 m
+    func computeTotalDistance(path: [PathPoint]) -> Double {
+        guard path.count >= 2 else { return 0.0 }
+        var total: Double = 0
+        for i in 1..<path.count {
+            total += horizontalDistance(from: path[i-1], to: path[i])
+        }
+        return total
+    }
+    
+    // 根据固定窗口距离（如每 100m）或点数窗口计算每段速度（km/h）
+    func computeSegmentSpeeds(path: [PathPoint], windowMeters: Double = 100.0) -> [Double] {
+        var speeds: [Double] = []
+        guard path.count > 1 else { return speeds }
+        
+        var accumulatedDistance: Double = 0.0
+        var windowStartTime: TimeInterval = path.first!.timestamp
+        
+        for i in 1..<path.count {
+            let p1 = path[i - 1]
+            let p2 = path[i]
+            
+            let dt = p2.timestamp - p1.timestamp
+            var dist = horizontalDistance(from: p1, to: p2)
+            
+            accumulatedDistance += dist
+            
+            if accumulatedDistance >= windowMeters {
+                let totalTime = p2.timestamp - windowStartTime
+                if totalTime > 0 {
+                    let speed = (accumulatedDistance / totalTime) * 3.6
+                    speeds.append(speed)
+                }
+                accumulatedDistance = 0
+                windowStartTime = p2.timestamp
+            }
+        }
+        return speeds
+    }
+    
+    // 计算坡度统计（每段上坡/下坡坡度）
+    struct SlopeStats {
+        let maxSlope: Double  // 最大坡度 (绝对值)
+        let avgSlope: Double
+    }
+    func computeSlopeStats(path: [PathPoint]) -> SlopeStats {
+        let n = path.count
+        guard n >= 2 else {
+            return SlopeStats(maxSlope: 0, avgSlope: 0)
+        }
+        var sumSlope: Double = 0
+        var count: Double = 0
+        var maxAbsSlope: Double = 0
+        
+        for i in 1..<n {
+            let dHoriz = horizontalDistance(from: path[i-1], to: path[i])
+            let dAlt = path[i].altitude - path[i-1].altitude  // 高度差，单位 m
+            if dHoriz > 0 {
+                let slope = dAlt / dHoriz  // 斜率：高度差 / 距离 (单位：无量纲)
+                sumSlope += slope
+                count += 1
+                maxAbsSlope = max(maxAbsSlope, abs(slope))
+            }
+        }
+        let avgSlope = count > 0 ? sumSlope / count : 0
+        return SlopeStats(maxSlope: maxAbsSlope, avgSlope: avgSlope)
+    }
+    
+    // 检测海拔是否有非正常跃变（例如两点高度跳跃 > 某阈值，比如 50m 或类似极端值）
+    func detectElevationJump(elevs: [Double], maxJump: Double = 50.0) -> Bool {
+        // 如果任何相邻两点高度差绝对值 > maxJump，则视为跳跃异常
+        for i in 1..<elevs.count {
+            if abs(elevs[i] - elevs[i-1]) > maxJump {
+                return true
+            }
+        }
+        return false
+    }
+    
+    // 统计 GPS 跳变次数：即相邻两点依据时间算出的速度如果大于合理上限
+    func countGpsJumps(path: [PathPoint], maxReasonableKmh: Double = 100.0) -> Int {
+        let threshold = maxReasonableKmh  // km/h
+        var count = 0
+        for i in 1..<path.count {
+            let dist = horizontalDistance(from: path[i-1], to: path[i])
+            let dt = path[i].timestamp - path[i-1].timestamp
+            if dt > 0 {
+                let v_m_s = dist / dt
+                let v_kmh = v_m_s * 3.6
+                if v_kmh > threshold {
+                    count += 1
+                }
+            }
+        }
+        return count
+    }
+    
+    // 功率／心率一致性检测示例（非常粗略的经验公式）
+//    func isPowerConsistent(speed kmh: Double, power: Double) -> Bool {
+//        // 假设功率与速度呈现某种关系，这里举例一个简单比值判断：
+//        // 如果用户以极高速度但功率极低，就认为不一致
+//        // 真实模型要根据空气阻力、风阻、车重、坡度等计算
+//        let minimalExpectedPower = kmh * 2.0  // 经验系数（kmh × 2）
+//        return power >= minimalExpectedPower
+//    }
 }
 
 class MatchEventBus {
@@ -926,6 +1249,7 @@ struct PathPoint: Codable {
     let lat: Double
     let lon: Double
     let speed: Double
+    let altitude: Double
     let timestamp: TimeInterval
 }
 
@@ -935,6 +1259,7 @@ struct CardBonusItem: Codable {
 }
 
 struct FinishMatchRequest: Codable {
+    let validation_status: Bool
     let record_id: String
     let end_time: String
     let bonus_in_cards: [CardBonusItem]
