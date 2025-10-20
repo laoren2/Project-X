@@ -40,6 +40,9 @@ class GlobalConfig: ObservableObject {
     var refreshUserView: Bool = false
     var refreshMailStatus: Bool = false
     
+    // 首页刷新时机
+    var refreshHomeView: Bool = false
+    
     func refreshAll() {
         refreshShopView = true
         refreshStoreHouseView = true
@@ -47,5 +50,6 @@ class GlobalConfig: ObservableObject {
         refreshRecordManageView = true
         refreshTeamManageView = true
         refreshUserView = true
+        refreshHomeView = true
     }
 }
