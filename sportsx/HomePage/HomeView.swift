@@ -14,9 +14,7 @@ import UIKit
 
 
 struct HomeView: View {
-    @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = HomeViewModel()
-    @ObservedObject var navigationManager = NavigationManager.shared
     @State private var showSportPicker = false
     //@State private var isDragging: Bool = false     // 是否处于拖动中
     @State private var searchText: String = ""
@@ -112,6 +110,19 @@ struct HomeView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(.keyboard)
+        .onValueChange(of: viewModel.reminderEnabled) {
+            if viewModel.reminderEnabled {
+                viewModel.enableReminder()
+            } else {
+                viewModel.disableReminder()
+            }
+        }
+        .onStableAppear {
+            if GlobalConfig.shared.refreshHomeView {
+                viewModel.fetchStatus()
+                GlobalConfig.shared.refreshHomeView = false
+            }
+        }
     }
     
     func searchAnyPersonInfoCard() {
@@ -231,7 +242,7 @@ struct SquareView: View {
                 AdsBannerView(width: UIScreen.main.bounds.width - 32, height: adHeight, ads: viewModel.ads)
                 
                 // 功能组件区域
-                HStack(spacing: 38) {
+                HStack(spacing: 0) {
                     ForEach(viewModel.features) { feature in
                         VStack {
                             Image(systemName: feature.iconName)
@@ -240,63 +251,270 @@ struct SquareView: View {
                             Text(feature.title)
                                 .font(.caption)
                         }
+                        .frame(maxWidth: .infinity)
                         .foregroundColor(.white)
                         .exclusiveTouchTapGesture {
                             appState.navigationManager.append(feature.destination)
                         }
                     }
-                    Spacer() // 确保组件从左侧开始排列
+                    ForEach(0..<3) { _ in
+                        Spacer()
+                            .frame(maxWidth: .infinity)
+                    }
                 }
-                .padding(.leading, 25)
                 .padding(.top, 20)
                 
-                // 签到区域
-                HStack() {
-                    // 左侧签到状态
-                    HStack(spacing: 10) {
-                        ForEach(0..<7) { day in
-                            Circle()
-                                .frame(width: 20, height: 20)
-                                .foregroundStyle(viewModel.isSignedIn(day: day) ? .green : .gray)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // 右侧签到按钮
-                    Text(viewModel.isTodaySigned ? "已签到" : "签到")
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 15)
-                        .background(viewModel.isTodaySigned ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .disabled(viewModel.isTodaySigned)
-                        .onTapGesture {
-                            viewModel.signInToday()
-                        }
-                }
-                .padding(.top, 20)
-                .onAppear() {
-                    viewModel.fetchSignInStatus()
-                }
+                // todo: 签到区域
+                SignInSectionView(vm: viewModel)
                 
                 // 商业化区域
-                HStack() {
-                    Spacer()
-                    AdsBannerView(width: (UIScreen.main.bounds.width - 48) / 2, height: businessHeight, ads: viewModel.business)
-                }
-                .padding(.top, 20)
+                //HStack() {
+                //    Spacer()
+                //    AdsBannerView(width: (UIScreen.main.bounds.width - 48) / 2, height: businessHeight, ads: viewModel.business)
+                //}
+                //.padding(.top, 20)
                 
-                Spacer() // 添加Spacer将内容推到顶部
+                Spacer()
             }
             .padding(.top, 10)
-            .padding(.horizontal, 16)
             .hideKeyboardOnScroll()
             //.onScrollDragChanged($isDragging)
         }
     }
 }
 
+struct SignInSectionView: View {
+    @ObservedObject var userManager = UserManager.shared
+    @ObservedObject var vm: HomeViewModel
+    @State var showSheet: Bool = false
+    @State var tempDate: Date = {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        components.hour = 9
+        components.minute = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("每日签到")
+                    .font(.headline)
+                    .foregroundColor(.orange)
+                Image(systemName: "gift")
+                    .foregroundColor(.orange)
+                    .font(.system(size: 15))
+                
+                Spacer()
+                
+                HStack {
+                    Image(systemName: "bell.badge")
+                        .foregroundColor(vm.reminderEnabled ? .orange : .secondText)
+                    Toggle("", isOn: $vm.reminderEnabled)
+                        .labelsHidden()
+                        .toggleStyle(SwitchToggleStyle(tint: .orange))
+                        .scaleEffect(0.8)
+                }
+            }
+            HStack(spacing: 4) {
+                //Text("已连续签到 \(vm.continuousDays) 天")
+                //    .font(.caption)
+                //    .foregroundColor(.secondText)
+                Image(systemName: "v.circle.fill")
+                    .font(.system(size: 12))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.red)
+                Text("订阅领取更多签到奖励")
+                    .font(.caption)
+                    .foregroundColor(.secondText)
+                Spacer()
+                if vm.reminderEnabled {
+                    HStack {
+                        Text("提醒时间: \(vm.reminderTimeString)")
+                        Button("修改") {
+                            showSheet = true
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondText)
+                }
+            }
+            if userManager.isLoggedIn {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(vm.items) { day in
+                            SignInDayView(vm: vm, day: day)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+            } else {
+                HStack {
+                    Spacer()
+                    Text("请先登录")
+                        .foregroundStyle(Color.secondText)
+                    Spacer()
+                }
+                .padding(.vertical)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white.opacity(0.6), lineWidth: 1)
+                )
+            }
+        }
+        .padding()
+        .sheet(isPresented: $showSheet) {
+            VStack(spacing: 20) {
+                HStack {
+                    Button("取消") {
+                        showSheet = false
+                    }
+                    Spacer()
+                    Button("保存") {
+                        vm.updateReminderTime(tempDate)
+                        showSheet = false
+                    }
+                }
+                DatePicker("提醒时间", selection: $tempDate, displayedComponents: .hourAndMinute)
+                Spacer()
+            }
+            .padding()
+            .presentationDetents([.fraction(0.2)])
+            .interactiveDismissDisabled() // 防止点击过快导致弹窗高度错误
+            .onStableAppear {
+                tempDate = vm.reminderTime
+            }
+        }
+    }
+}
+
+struct SignInDayView: View {
+    @ObservedObject var vm: HomeViewModel
+    let day: SignInDay
+
+    private var dayLabel: String {
+        if Calendar.current.isDateInToday(day.date) {
+            return "今天"
+        } else {
+            let df = DateFormatter()
+            df.dateFormat = "MM/dd"
+            return df.string(from: day.date)
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .frame(width: 60, height: 30)
+                    .foregroundStyle(BackgroundColor)
+                
+                if day.state == .claimed {
+                    Image(systemName: "checkmark")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.white)
+                } else {
+                    HStack(spacing: 2) {
+                        Image(systemName: day.ccassetType.iconName)
+                        Text("+\(day.ccassetReward)")
+                    }
+                    .font(.system(size: 12))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(day.state == .future ? Color.secondText : Color.white)
+                }
+                if vm.isLoading {
+                    ProgressView()
+                }
+            }
+            .onTapGesture {
+                if (!vm.isLoading) && day.state == .available && Calendar.current.isDateInToday(day.date) {
+                    vm.signInToday()
+                }
+            }
+            ZStack {
+                ZStack(alignment: .topLeading) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .frame(width: 60, height: 30)
+                        .foregroundStyle(VipBackgroundColor)
+                    Image(systemName: "v.circle.fill")
+                        .font(.system(size: 15))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.red)
+                        .offset(x: -5, y: -5)
+                }
+                if day.state_vip == .claimed {
+                    Image(systemName: "checkmark")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.white)
+                } else {
+                    HStack(spacing: 2) {
+                        Image(systemName: day.ccassetTypeVip.iconName)
+                        Text("+\(day.ccassetRewardVip)")
+                    }
+                    .font(.system(size: 12))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(day.state == .future ? Color.secondText : Color.white)
+                }
+                if vm.isLoadingVip {
+                    ProgressView()
+                }
+            }
+            .onTapGesture {
+                if day.state == .available && Calendar.current.isDateInToday(day.date) {
+                    vm.signInTodayVip()
+                }
+            }
+            Text(dayLabel)
+                .font(.caption2)
+                .foregroundColor(day.state == .future ? Color.secondText : Color.white)
+        }
+        .padding(10)
+        .background(backgroundView)
+        .cornerRadius(10)
+        .opacity(day.state == .future ? 0.8 : 1.0)
+    }
+    
+    private var BackgroundColor: Color {
+        switch day.state {
+        case .claimed:
+            return Color.green.opacity(0.4)
+        case .available:
+            return Color.orange.opacity(0.4)
+        case .future:
+            return Color.gray.opacity(0.2)
+        }
+    }
+    
+    private var VipBackgroundColor: Color {
+        switch day.state_vip {
+        case .claimed:
+            return Color.green.opacity(0.4)
+        case .available:
+            return Color.red.opacity(0.4)
+        case .future:
+            return Color.gray.opacity(0.2)
+        }
+    }
+
+    private var backgroundView: some View {
+        switch day.state {
+        case .claimed:
+            return AnyView(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white.opacity(0.6), lineWidth: 3)
+            )
+        case .available:
+            return AnyView(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.white.opacity(0.6), lineWidth: 3)
+            )
+        case .future:
+            return AnyView(
+                RoundedRectangle(cornerRadius: 10)
+                    .foregroundStyle(Color.gray.opacity(0.1))
+            )
+        }
+    }
+}
 
 #Preview {
     let appState = AppState.shared
