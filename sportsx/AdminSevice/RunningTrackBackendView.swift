@@ -102,7 +102,7 @@ struct RunningTrackBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
             RunningTrackCreateView(viewModel: viewModel)
         }

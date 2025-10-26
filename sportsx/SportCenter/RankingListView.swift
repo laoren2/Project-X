@@ -95,7 +95,7 @@ struct BikeScoreRankingView: View {
         .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onFirstAppear {
             viewModel.queryScoreRankingList(reset: true)
         }
@@ -187,7 +187,7 @@ struct BikeRankingListView: View {
                     .clipShape(Circle())
                     .padding(.leading, 5)
                     .exclusiveTouchTapGesture {
-                        appState.navigationManager.append(.userView(id: userManager.user.userID, needBack: true))
+                        appState.navigationManager.append(.userView(id: userManager.user.userID))
                     }
                     VStack(alignment: .leading) {
                         Text("我")
@@ -250,7 +250,7 @@ struct BikeRankingListView: View {
         .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onFirstAppear {
             viewModel.refresh()
         }
@@ -279,7 +279,7 @@ struct BikeScoreRankEntryView: View {
             .clipShape(Circle())
             .padding(.leading, 5)
             .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.userView(id: entry.userID, needBack: true))
+                appState.navigationManager.append(.userView(id: entry.userID))
             }
             Text(entry.nickname)
                 .font(.headline)
@@ -313,7 +313,7 @@ struct BikeRankingListEntryView: View {
             .clipShape(Circle())
             .padding(.leading, 5)
             .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.userView(id: entry.userID, needBack: true))
+                appState.navigationManager.append(.userView(id: entry.userID))
             }
             VStack(alignment: .leading) {
                 Text(entry.nickname)
@@ -423,7 +423,7 @@ struct RunningScoreRankingView: View {
         .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onFirstAppear {
             viewModel.queryScoreRankingList(reset: true)
         }
@@ -515,7 +515,7 @@ struct RunningRankingListView: View {
                     .clipShape(Circle())
                     .padding(.leading, 5)
                     .exclusiveTouchTapGesture {
-                        appState.navigationManager.append(.userView(id: userManager.user.userID, needBack: true))
+                        appState.navigationManager.append(.userView(id: userManager.user.userID))
                     }
                     VStack(alignment: .leading) {
                         Text("我")
@@ -578,7 +578,7 @@ struct RunningRankingListView: View {
         .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onFirstAppear {
             viewModel.refresh()
         }
@@ -607,7 +607,7 @@ struct RunningScoreRankEntryView: View {
             .clipShape(Circle())
             .padding(.leading, 5)
             .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.userView(id: entry.userID, needBack: true))
+                appState.navigationManager.append(.userView(id: entry.userID))
             }
             Text(entry.nickname)
                 .font(.headline)
@@ -641,7 +641,7 @@ struct RunningRankingListEntryView: View {
             .clipShape(Circle())
             .padding(.leading, 5)
             .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.userView(id: entry.userID, needBack: true))
+                appState.navigationManager.append(.userView(id: entry.userID))
             }
             VStack(alignment: .leading) {
                 Text(entry.nickname)

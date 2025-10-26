@@ -14,6 +14,7 @@ import UIKit
 
 
 struct HomeView: View {
+    @ObservedObject var userManager = UserManager.shared
     @StateObject private var viewModel = HomeViewModel()
     @State private var showSportPicker = false
     //@State private var isDragging: Bool = false     // 是否处于拖动中
@@ -117,10 +118,9 @@ struct HomeView: View {
                 viewModel.disableReminder()
             }
         }
-        .onStableAppear {
-            if GlobalConfig.shared.refreshHomeView {
+        .onValueChange(of: userManager.isLoggedIn) {
+            if userManager.isLoggedIn {
                 viewModel.fetchStatus()
-                GlobalConfig.shared.refreshHomeView = false
             }
         }
     }
@@ -205,7 +205,7 @@ struct SportSkillView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         //.border(.red)
-        .enableBackGesture(true)
+        .enableSwipeBackGesture()
     }
 }
 
@@ -224,7 +224,7 @@ struct ActivityView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         //.border(.red)
-        .enableBackGesture(true)
+        .enableSwipeBackGesture()
     }
 }
 

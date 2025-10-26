@@ -13,14 +13,30 @@ struct GameSummaryView: View {
     @ObservedObject var viewModel: UserViewModel
     
     var body: some View {
-        if (!viewModel.isNeedBack) && (!userManager.isLoggedIn) {
+        LazyVStack(spacing: 15) {
+            ForEach(viewModel.gameSummaryCards) { card in
+                GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.top)
+    }
+}
+
+struct LocalGameSummaryView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var userManager = UserManager.shared
+    @ObservedObject var viewModel: LocalUserViewModel
+    
+    var body: some View {
+        if !userManager.isLoggedIn {
             Text("登录后查看")
                 .foregroundStyle(Color.secondText)
                 .padding(.top, 100)
         } else {
             LazyVStack(spacing: 15) {
                 ForEach(viewModel.gameSummaryCards) { card in
-                    GameSummaryCardView(viewModel: viewModel, gameSummaryCard: card)
+                    GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
                 }
             }
             .padding(.horizontal)
@@ -31,7 +47,7 @@ struct GameSummaryView: View {
 
 struct GameSummaryCardView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var viewModel: UserViewModel
+    @State var sport: SportName
     let gameSummaryCard: GameSummaryCard
     
     var body: some View {
@@ -79,10 +95,10 @@ struct GameSummaryCardView: View {
                     .background(Color.orange)
                     .cornerRadius(10)
                     .exclusiveTouchTapGesture {
-                        if viewModel.sport == .Bike {
-                            appState.navigationManager.append(.bikeRecordDetailView(recordID: gameSummaryCard.record_id, userID: viewModel.userID))
-                        } else if viewModel.sport == .Running {
-                            appState.navigationManager.append(.runningRecordDetailView(recordID: gameSummaryCard.record_id, userID: viewModel.userID))
+                        if sport == .Bike {
+                            appState.navigationManager.append(.bikeRecordDetailView(recordID: gameSummaryCard.record_id))
+                        } else if sport == .Running {
+                            appState.navigationManager.append(.runningRecordDetailView(recordID: gameSummaryCard.record_id))
                         }
                     }
             }
@@ -136,7 +152,7 @@ struct GameSummaryResponse: Codable {
 
 #Preview {
     let appState = AppState.shared
-    let vm = UserViewModel(id: "qweasd", needBack: false)
+    let vm = UserViewModel(id: "qweasd")
     GameSummaryView(viewModel: vm)
         .environmentObject(appState)
 }

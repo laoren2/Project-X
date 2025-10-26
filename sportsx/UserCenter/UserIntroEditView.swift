@@ -173,7 +173,7 @@ struct UserIntroEditView: View {
             //.border(.red)
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture(true)
+        .enableSwipeBackGesture()
         .sheet(isPresented: $showIntroEditor) {
             IntroEditorView(viewModel: viewModel, showIntroEditor: $showIntroEditor)
                 .presentationDetents([.fraction(0.5)])

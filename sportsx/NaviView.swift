@@ -153,7 +153,7 @@ struct RealNaviView: View {
                     StoreHouseView()
                         .tag(Tab.storeHouse)
                     
-                    UserView(id: user.user.userID, needBack: false)
+                    LocalUserView()
                         .tag(Tab.user)
                 }
                 
@@ -183,14 +183,16 @@ struct RealNaviView: View {
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
-                case .bikeRecordDetailView(let rid, let uid):
-                    BikeRecordDetailView(recordID: rid, userID: uid)
-                case .runningRecordDetailView(let rid, let uid):
-                    RunningRecordDetailView(recordID: rid, userID: uid)
+                case .bikeRecordDetailView(let rid):
+                    BikeRecordDetailView(recordID: rid)
+                case .runningRecordDetailView(let rid):
+                    RunningRecordDetailView(recordID: rid)
                 case .competitionCardSelectView:
                     CompetitionCardSelectView()
                 case .competitionRealtimeView:
                     CompetitionRealtimeView()
+                case .sportTrainingView(let sport):
+                    SportTrainingView(sport: sport)
                 case .sensorBindView:
                     SensorBindView()
                 case .skillView:
@@ -207,8 +209,8 @@ struct RealNaviView: View {
                     UserSetUpView()
                 case .instituteView:
                     InstituteView()
-                case .userView(let id, let isNeedBack):
-                    UserView(id: id, needBack: isNeedBack)
+                case .userView(let id):
+                    UserView(id: id)
                 case .friendListView(let id, let selectedTab):
                     FriendListView(id: id, selectedTab: selectedTab)
                 case .userIntroEditView:

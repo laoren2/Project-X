@@ -60,22 +60,52 @@ class ImageLoader: ObservableObject {
 }
 
 struct ImageTool {
-    // 图片压缩(jpeg格式)
+    // 图片压缩(jpeg格式)，二分法调整压缩比例，必要时缩小分辨率
     static func compressImage(_ image: UIImage, maxSizeKB: Int = 300) -> Data? {
-        var compression: CGFloat = 1.0
+        var resizedImage: UIImage = image
         let maxBytes = maxSizeKB * 1024
+        var compression: CGFloat = 1.0
         guard var data = image.jpegData(compressionQuality: compression) else { return nil }
-
-        while data.count > maxBytes && compression > 0.1 {
-            compression -= 0.1
-            if let newData = image.jpegData(compressionQuality: compression) {
-                data = newData
+        //print("原始大小: \(data.count)")
+        
+        if data.count <= maxBytes {
+            return data
+        }
+        
+        // 压缩
+        var resize: CGFloat = 1 - 0.05 * min(CGFloat(data.count / maxBytes), 10)
+        while resize >= 0.1 {
+            if let resized = resizeImage(resizedImage, scale: resize) {
+                resizedImage = resized
+                compression = 1.0
+                while compression >= 0.1 {
+                    //print("\(resize) \(compression) \(data.count) \(maxBytes)")
+                    compression -= 0.2
+                    if let newData = resizedImage.jpegData(compressionQuality: compression) {
+                        data = newData
+                        if data.count <= maxBytes {
+                            return data
+                        }
+                    } else {
+                        break
+                    }
+                }
+                resize -= 0.2
             } else {
                 break
             }
-            //print("size: \(data.count) compression: \(compression)")
         }
         return data
+    }
+
+    // 按比例缩小图像
+    private static func resizeImage(_ image: UIImage, scale: CGFloat) -> UIImage? {
+        let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, image.scale)
+        image.draw(in: CGRect(origin: .zero, size: newSize))
+        let resized = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return resized
     }
     
     // 计算图片的平均颜色

@@ -13,10 +13,11 @@ import Combine
 
 
 enum AppRoute: Hashable {
-    case bikeRecordDetailView(recordID: String, userID: String)
-    case runningRecordDetailView(recordID: String, userID: String)
+    case bikeRecordDetailView(recordID: String)
+    case runningRecordDetailView(recordID: String)
     case competitionCardSelectView
     case competitionRealtimeView
+    case sportTrainingView(sport: SportName)
     case sensorBindView
     case skillView
     case activityView
@@ -24,7 +25,7 @@ enum AppRoute: Hashable {
     case bikeTeamManagementView
     case userSetUpView
     case instituteView
-    case userView(id: String, needBack: Bool)
+    case userView(id: String)
     case friendListView(id: String, selectedTab: Int)
     case userIntroEditView
     case realNameAuthView
@@ -73,6 +74,8 @@ enum AppRoute: Hashable {
             return "competitionCardSelectView"
         case .competitionRealtimeView:
             return "competitionRealtimeView"
+        case .sportTrainingView:
+            return "sportTrainingView"
         case .sensorBindView:
             return "sensorBindView"
         case .skillView:

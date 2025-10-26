@@ -374,10 +374,26 @@ struct FeatureComponent: Identifiable {
     let destination: AppRoute
 }
 
-enum SignInState: String, Codable {
+enum RewardState: String, Codable {
     case claimed = "claimed"
     case available = "available"
     case future = "future"
+    
+    var color: Color {
+        switch self {
+        case .claimed: return .green
+        case .available: return .orange
+        case .future: return .gray.opacity(0.6)
+        }
+    }
+    
+    var icon: some View {
+        switch self {
+        case .claimed: return Image(systemName: "checkmark").foregroundStyle(Color.white)
+        case .available: return Image(systemName: "gift.fill").foregroundStyle(Color.white)
+        case .future: return Image(systemName: "gift.fill").foregroundStyle(Color.white.opacity(0.6))
+        }
+    }
 }
 
 struct SignInDay: Identifiable {
@@ -387,8 +403,8 @@ struct SignInDay: Identifiable {
     let ccassetReward: Int
     let ccassetTypeVip: CCAssetType
     let ccassetRewardVip: Int
-    var state: SignInState
-    var state_vip: SignInState
+    var state: RewardState
+    var state_vip: RewardState
 }
 
 struct SignInItemDTO: Codable {

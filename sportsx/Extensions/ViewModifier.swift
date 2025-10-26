@@ -263,14 +263,51 @@ extension UIColor {
         return sqrt(pow(r1 - r2, 2) + pow(g1 - g2, 2) + pow(b1 - b2, 2))
     }
     
-    private static let precomputedSoftDarkColors: [UIColor] = {
-        (0..<96).compactMap { i in
-            let h = CGFloat(i) / 96.0
-            let s: CGFloat = 0.4
-            let l: CGFloat = 0.4
+    /*private static let precomputedSoftDarkColors: [UIColor] = {
+        (0..<128).compactMap { i in
+            let h = CGFloat(i) / 128.0
+            let s: CGFloat = 0.45
+            let l: CGFloat = 0.45
             let color = UIColor(hue: h, saturation: s, brightness: l, alpha: 1)
-            return color.contrastRatio(with: .white) >= 4.5 ? color : nil
+            return color.contrastRatio(with: .white) >= 4.0 ? color : nil
         }
+    }()*/
+    
+    private static let precomputedSoftDarkColors: [UIColor] = {
+        var colors: [UIColor] = []
+        let steps = 10  // 每个通道取样次数
+        let minBrightness: CGFloat = 0.15
+        let maxBrightness: CGFloat = 0.6
+
+        for rStep in 0..<steps {
+            for gStep in 0..<steps {
+                for bStep in 0..<steps {
+                    let r = 0.8 * CGFloat(rStep) / CGFloat(steps - 1)
+                    let g = 0.8 * CGFloat(gStep) / CGFloat(steps - 1)
+                    let b = 0.8 * CGFloat(bStep) / CGFloat(steps - 1)
+
+                    // 计算亮度（感知亮度公式）
+                    let brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+                    // 仅保留暗色调
+                    guard brightness >= minBrightness, brightness <= maxBrightness else { continue }
+
+                    // 添加柔和淡化效果：混合一点灰/白
+                    let softenRatio: CGFloat = 0.2
+                    let softenedR = r + (1 - r) * softenRatio
+                    let softenedG = g + (1 - g) * softenRatio
+                    let softenedB = b + (1 - b) * softenRatio
+
+                    let color = UIColor(red: softenedR, green: softenedG, blue: softenedB, alpha: 1.0)
+
+                    // 保证对比度足够（适合深色背景）
+                    if color.contrastRatio(with: .white) >= 4.0 {
+                        colors.append(color)
+                    }
+                }
+            }
+        }
+        return colors
     }()
 
     static func softDarkPalette() -> [UIColor] {
@@ -279,10 +316,19 @@ extension UIColor {
     
     func bestSoftDarkReadableColor() -> Color {
         let (r, g, b) = self.rgbComponents
+        // 过于白的背景直接黑灰色兜底
+        if (r + g + b) >= 2.4 {
+            return Color(red: 0.3, green: 0.3, blue: 0.3)
+        }
         
         let white = UIColor.white
-        if contrastRatio(with: white) >= 4.5 {
-            return Color(red: r, green: g, blue: b)
+        var color = self
+        for _ in 0..<3 {
+            if color.contrastRatio(with: white) >= 4.0 {
+                return Color(uiColor: color)
+            }
+            let (red, green, blue) = color.rgbComponents
+            color = UIColor(red: red * 0.8, green: green * 0.8, blue: blue * 0.8, alpha: 1)
         }
         
         let palette = UIColor.softDarkPalette()
@@ -291,7 +337,7 @@ extension UIColor {
         let best = palette.min(by: {
             $0.distance(to: self) < $1.distance(to: self)
         }) ?? fallback
-
+        //print(best)
         return Color(best)
     }
 }
@@ -548,5 +594,46 @@ extension View {
             // iOS16 必须写带参数的闭包
             self.onChange(of: value) { _ in action() }
         }
+    }
+}
+
+// MARK: 系统原生侧滑返回手势
+struct SwipeBackGestureController: UIViewControllerRepresentable {
+    let isEnabled: Bool
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = UIViewController()
+        controller.view.backgroundColor = .clear
+        controller.view.isUserInteractionEnabled = false
+        controller.view.isOpaque = false
+        controller.view.isHidden = true
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        DispatchQueue.main.async {
+            if let nav = uiViewController.navigationController {
+                nav.interactivePopGestureRecognizer?.isEnabled = isEnabled
+                // 仅当启用时移除 delegate，否则还原默认 delegate
+                nav.interactivePopGestureRecognizer?.delegate = isEnabled ? nil : context.coordinator
+            }
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator: NSObject, UIGestureRecognizerDelegate {}
+}
+
+extension View {
+    func enableSwipeBackGesture(_ enabled: Bool = true) -> some View {
+        self.background(
+            SwipeBackGestureController(isEnabled: enabled)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .allowsHitTesting(false)
+        )
     }
 }

@@ -321,6 +321,149 @@ class UserManager: ObservableObject {
     }
 }
 
+enum DailyTaskType: String, Codable {
+    case distance = "distance"
+    case time = "time"
+    
+    var disPlayName: String {
+        switch self {
+        case .distance:
+            return "km"
+        case .time:
+            return "min"
+        }
+    }
+}
+
+struct DailyTaskRewardResponse: Codable {
+    let ccasset_type: CCAssetType?
+    let ccasset_amount: Int?
+    let cpasset_id: String?
+    let cpasset_amount: Int?
+}
+
+struct DailyTaskDTO: Codable {
+    let type: DailyTaskType
+    let total_progress: Double
+    let reward_stage1_type: CCAssetType
+    let reward_stage1: Int
+    let is_reward1_received: Bool
+    let reward_stage2_type: CCAssetType
+    let reward_stage2: Int
+    let is_reward2_received: Bool
+    let reward_stage3_url: String
+    let is_reward3_received: Bool
+    let progress: Double
+}
+
+struct DailyTaskInfo {
+    let taskType: DailyTaskType
+    let progress: Double
+    let totalProgress: Double               // 任务总目标
+    
+    let reward_stage1_type: CCAssetType
+    let reward_stage1: Int
+    var reward_stage1_status: RewardState
+    let reward_stage2_type: CCAssetType
+    let reward_stage2: Int
+    var reward_stage2_status: RewardState
+    let reward_stage3_url: String
+    var reward_stage3_status: RewardState
+    
+    init(from task: DailyTaskDTO) {
+        taskType = task.type
+        progress = task.progress
+        totalProgress = task.total_progress
+        reward_stage1 = task.reward_stage1
+        reward_stage1_type = task.reward_stage1_type
+        reward_stage1_status = task.is_reward1_received ? .claimed : (progress / totalProgress > 0.34 ? .available : .future)
+        reward_stage2 = task.reward_stage2
+        reward_stage2_type = task.reward_stage2_type
+        reward_stage2_status = task.is_reward2_received ? .claimed : (progress / totalProgress > 0.67 ? .available : .future)
+        reward_stage3_url = task.reward_stage3_url
+        reward_stage3_status = task.is_reward3_received ? .claimed : (progress / totalProgress > 1.0 ? .available : .future)
+    }
+}
+
+class DailyTaskManager: ObservableObject {
+    static let shared = DailyTaskManager()
+    
+    @Published var task: DailyTaskInfo?
+    @Published var reward1Loading: Bool = false
+    @Published var reward2Loading: Bool = false
+    @Published var reward3Loading: Bool = false
+    
+    
+    private init() {}
+    
+    func claimReward(stage: Int, sport: SportName) {
+        if stage == 1 {
+            guard !reward1Loading else { return }
+            reward1Loading = true
+        }
+        if stage == 2 {
+            guard !reward2Loading else { return }
+            reward2Loading = true
+        }
+        if stage == 3 {
+            guard !reward3Loading else { return }
+            reward3Loading = true
+        }
+        
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/claimed_daily_task_reward") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "stage", value: "\(stage)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: DailyTaskRewardResponse.self, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                if stage == 1 { self.reward1Loading = false }
+                if stage == 2 { self.reward2Loading = false }
+                if stage == 3 { self.reward3Loading = false }
+                switch result {
+                case .success(let data):
+                    if let unwrappedData = data {
+                        if let ccasset_type = unwrappedData.ccasset_type, let ccasset_amount = unwrappedData.ccasset_amount {
+                            AssetManager.shared.updateCCAsset(type: ccasset_type, newBalance: ccasset_amount)
+                        }
+                        if let cpasset_id = unwrappedData.cpasset_id, let cpasset_amount = unwrappedData.cpasset_amount {
+                            AssetManager.shared.updateCPAsset(assetID: cpasset_id, newBalance: cpasset_amount)
+                        }
+                        if stage == 1 { self.task?.reward_stage1_status = .claimed }
+                        if stage == 2 { self.task?.reward_stage2_status = .claimed }
+                        if stage == 3 { self.task?.reward_stage3_status = .claimed }
+                    }
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    func queryDailyTask(sport: SportName) {
+        DispatchQueue.main.async {
+            self.task = nil
+        }
+        let request = APIRequest(path: "/competition/\(sport.rawValue)/query_daily_task_status", method: .get, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: DailyTaskDTO.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else {
+                        self.task = nil
+                        return
+                    }
+                    self.task = DailyTaskInfo(from: unwrappedData)
+                default:
+                    break
+                }
+            }
+        }
+    }
+}
+
 struct FetchBaseUserResponse: Codable {
     let user: UserDTO
 }
@@ -364,6 +507,15 @@ enum UserRelationshipStatus: String, Codable {
         case .following: return "关注"
         case .follower: return "粉丝"
         case .none: return "无关系"
+        }
+    }
+    
+    var backgroundColor: Color {
+        switch self {
+        case .friend: return .orange
+        case .following: return .green
+        case .follower: return .pink
+        case .none: return .gray
         }
     }
 }

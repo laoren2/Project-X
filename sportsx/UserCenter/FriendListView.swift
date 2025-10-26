@@ -479,7 +479,7 @@ struct PersonInfoCardView: View {
                     .bold()
             }
             .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.userView(id: person.userID, needBack: true))
+                appState.navigationManager.append(.userView(id: person.userID))
             }
             
             Spacer()

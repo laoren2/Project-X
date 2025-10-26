@@ -115,7 +115,7 @@ struct MagicCardPriceBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
             MagicCardPriceCreateView(viewModel: viewModel)
         }

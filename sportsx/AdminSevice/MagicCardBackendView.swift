@@ -113,7 +113,7 @@ struct MagicCardBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
             MagicCardCreateView(viewModel: viewModel)
         }
