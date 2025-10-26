@@ -70,7 +70,7 @@ struct MailBoxView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onFirstAppear {
             Task {
                 await queryMails(reset: true, withLoadingToast: true)
@@ -247,7 +247,7 @@ struct MailBoxDetailView: View {
         .environment(\.colorScheme, .dark)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onFirstAppear {
             queryMailDetail()
         }

@@ -111,14 +111,15 @@ struct CompetitionCardSelectView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture() {
+        //.enableBackGesture() {
             // 销毁计时器a和b
-            appState.competitionManager.stopAllTeamJoinTimers()
-            appState.navigationManager.removeLast()
-            if !appState.competitionManager.isRecording {
-                appState.competitionManager.resetCompetitionProperties()
-            }
-        }
+        //    appState.competitionManager.stopAllTeamJoinTimers()
+        //    appState.navigationManager.removeLast()
+        //    if !appState.competitionManager.isRecording {
+        //        appState.competitionManager.resetCompetitionProperties()
+        //    }
+        //}
+        .enableSwipeBackGesture(false)
         .onFirstAppear {
             //if assetManager.magicCards.isEmpty {
             //    assetManager.queryMagicCards(withLoadingToast: false)

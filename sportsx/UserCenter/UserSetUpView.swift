@@ -116,7 +116,7 @@ struct UserSetUpView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onStableAppear {
             updateCacheSize()
 #if DEBUG
@@ -231,7 +231,7 @@ struct UserSetUpAccountView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .alert(isPresented: $showAlert) {
             Alert(
                 title: Text("注销账号"),
@@ -338,7 +338,7 @@ struct PhoneBindView: View {
         .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
     }
     
     func sendSmsCode() {
@@ -472,7 +472,7 @@ struct AppleBindView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
     }
     
     func bindWithApple() {

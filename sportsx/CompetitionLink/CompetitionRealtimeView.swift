@@ -166,9 +166,10 @@ struct CompetitionRealtimeView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture() {
-            adjustNavigationPath()
-        }
+        //.enableBackGesture() {
+        //    adjustNavigationPath()
+        //}
+        .enableSwipeBackGesture(false)
         .alert(isPresented: $appState.competitionManager.showAlert) {
             Alert(
                 title: Text(appState.competitionManager.alertTitle),

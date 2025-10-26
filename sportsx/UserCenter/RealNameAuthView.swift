@@ -78,7 +78,7 @@ struct RealNameAuthView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture(true)
+        .enableSwipeBackGesture()
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
         .onValueChange(of: selectedImageItem) {
             Task {

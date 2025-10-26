@@ -90,7 +90,7 @@ struct SeasonBackendView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
     }
     
     func createSeason() {

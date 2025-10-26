@@ -96,7 +96,7 @@ struct CPAssetBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
             CPAssetCreateView(viewModel: viewModel)
         }

@@ -49,7 +49,6 @@ class GlobalConfig: ObservableObject {
         refreshCompetitionView = true
         refreshRecordManageView = true
         refreshTeamManageView = true
-        refreshUserView = true
-        refreshHomeView = true
+        //refreshUserView = true
     }
 }

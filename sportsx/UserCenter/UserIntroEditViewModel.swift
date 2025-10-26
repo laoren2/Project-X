@@ -58,8 +58,8 @@ class UserIntroEditViewModel: ObservableObject {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String, maxSize: Int)] = [
-            ("avatar_image", avatarImage, "avatar.jpg", 300),
-            ("background_image", backgroundImage, "background.jpg", 500)
+            ("avatar_image", avatarImage, "avatar.jpg", 100),
+            ("background_image", backgroundImage, "background.jpg", 200)
         ]
         for (name, image, filename, size) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: size) {

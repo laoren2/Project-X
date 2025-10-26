@@ -99,7 +99,7 @@ struct RunningEventBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
             RunningEventCreateView(viewModel: viewModel)
         }

@@ -249,7 +249,7 @@ struct RunningTeamAppliedCardView: View {
                 .frame(width: 40, height: 40)
                 .clipShape(Circle())
                 .exclusiveTouchTapGesture {
-                    appState.navigationManager.append(.userView(id: team.leader_id, needBack: true))
+                    appState.navigationManager.append(.userView(id: team.leader_id))
                 }
                 
                 Text("\(team.leader_name)")
@@ -577,7 +577,7 @@ struct RunningTeamDetailView: View {
                                     .frame(width: 40, height: 40)
                                     .clipShape(Circle())
                                     .exclusiveTouchTapGesture {
-                                        appState.navigationManager.append(.userView(id: member.user_id, needBack: true))
+                                        appState.navigationManager.append(.userView(id: member.user_id))
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 3) {
@@ -619,7 +619,7 @@ struct RunningTeamDetailView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .background(Color.defaultBackground)
         .onFirstAppear {
             viewModel.queryTeam(with: teamID)
@@ -799,7 +799,7 @@ struct RunningTeamManageView: View {
                                     .frame(width: 40, height: 40)
                                     .clipShape(Circle())
                                     .exclusiveTouchTapGesture {
-                                        appState.navigationManager.append(.userView(id: member.user_id, needBack: true))
+                                        appState.navigationManager.append(.userView(id: member.user_id))
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 3) {
@@ -870,7 +870,7 @@ struct RunningTeamManageView: View {
                                         .frame(width: 40, height: 40)
                                         .clipShape(Circle())
                                         .exclusiveTouchTapGesture {
-                                            appState.navigationManager.append(.userView(id: request.user_id, needBack: true))
+                                            appState.navigationManager.append(.userView(id: request.user_id))
                                         }
                                         
                                         VStack(alignment: .leading, spacing: 3) {
@@ -915,7 +915,7 @@ struct RunningTeamManageView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .background(Color.defaultBackground)
         .onFirstAppear {
             viewModel.queryTeam()

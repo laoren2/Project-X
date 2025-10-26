@@ -99,7 +99,7 @@ struct BikeEventBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {
             BikeEventCreateView(viewModel: viewModel)
         }

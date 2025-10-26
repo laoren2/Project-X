@@ -16,155 +16,137 @@ struct CareerView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            if (!viewModel.isNeedBack) && (!userManager.isLoggedIn) {
-                Text("登录后查看")
-                    .foregroundStyle(Color.secondText)
-                    .padding(.top, 100)
-            } else {
-                HStack {
-                    // todo: 替换为更稳定的自定义menu
-                    Menu {
-                        ForEach(viewModel.seasons) { season in
-                            Button(season.seasonName) {
-                                viewModel.selectedSeason = season
-                            }
+            HStack {
+                // todo: 替换为更稳定的自定义menu
+                Menu {
+                    ForEach(viewModel.seasons) { season in
+                        Button(season.seasonName) {
+                            viewModel.selectedSeason = season
                         }
-                    } label: {
-                        HStack {
-                            Text(viewModel.selectedSeason?.seasonName ?? "未知")
-                                .font(.subheadline)
-                                .foregroundColor(.white)
-                            
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.8))
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .cornerRadius(8)
                     }
-                    
+                } label: {
+                    HStack {
+                        Text(viewModel.selectedSeason?.seasonName ?? "未知")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .cornerRadius(8)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 10)
+            
+            // 积分排名和能力图区域
+            /*HStack(alignment: .top, spacing: 15) {
+             // 积分排名区域
+             VStack(spacing: 15) {
+             // todo: 荣誉展示
+             VStack(alignment: .leading, spacing: 10) {
+             Text("赛季荣誉")
+             .font(.headline)
+             .foregroundColor(.secondText)
+             
+             HStack {
+             ForEach(viewModel.cups) { cup in
+             Image(systemName: cup.image)
+             .font(.title)
+             .foregroundColor(.yellow)
+             }
+             Spacer()
+             if viewModel.cups.isEmpty {
+             Text("暂无荣誉")
+             .font(.subheadline)
+             .foregroundColor(.secondText)
+             }
+             }
+             }
+             .padding()
+             .background(.gray.opacity(0.5))
+             .cornerRadius(12)
+             }
+             .frame(maxWidth: .infinity)
+             
+             // todo: 五边形能力图
+             VStack(spacing: 15) {
+             ZStack {
+             // 五边形背景
+             PolygonShape(sides: 5)
+             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+             .frame(width: 150, height: 150)
+             
+             // 能力值五边形
+             AbilityPolygon(values: abilityValues)
+             .fill(Color.blue.opacity(0.3))
+             .frame(width: 150, height: 150)
+             
+             // 能力点
+             AbilityPolygon(values: abilityValues)
+             .stroke(Color.blue, lineWidth: 2)
+             .frame(width: 150, height: 150)
+             }
+             
+             // 能力值条
+             VStack(spacing: 8) {
+             ForEach(0..<abilities.count, id: \.self) { index in
+             abilityBar(ability: abilities[index], value: abilityValues[index])
+             }
+             }
+             }
+             .frame(maxWidth: .infinity)
+             }
+             .padding(.horizontal)*/
+            
+            // 参与数据区域
+            VStack(spacing: 15) {
+                HStack {
+                    Text("赛季数据")
                     Spacer()
                 }
-                .padding(.horizontal)
-                .padding(.top, 10)
+                .font(.headline)
+                .foregroundStyle(.white)
                 
-                // 积分排名和能力图区域
-                /*HStack(alignment: .top, spacing: 15) {
-                 // 积分排名区域
-                 VStack(spacing: 15) {
-                 // todo: 荣誉展示
-                 VStack(alignment: .leading, spacing: 10) {
-                 Text("赛季荣誉")
-                 .font(.headline)
-                 .foregroundColor(.secondText)
-                 
-                 HStack {
-                 ForEach(viewModel.cups) { cup in
-                 Image(systemName: cup.image)
-                 .font(.title)
-                 .foregroundColor(.yellow)
-                 }
-                 Spacer()
-                 if viewModel.cups.isEmpty {
-                 Text("暂无荣誉")
-                 .font(.subheadline)
-                 .foregroundColor(.secondText)
-                 }
-                 }
-                 }
-                 .padding()
-                 .background(.gray.opacity(0.5))
-                 .cornerRadius(12)
-                 }
-                 .frame(maxWidth: .infinity)
-                 
-                 // todo: 五边形能力图
-                 VStack(spacing: 15) {
-                 ZStack {
-                 // 五边形背景
-                 PolygonShape(sides: 5)
-                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                 .frame(width: 150, height: 150)
-                 
-                 // 能力值五边形
-                 AbilityPolygon(values: abilityValues)
-                 .fill(Color.blue.opacity(0.3))
-                 .frame(width: 150, height: 150)
-                 
-                 // 能力点
-                 AbilityPolygon(values: abilityValues)
-                 .stroke(Color.blue, lineWidth: 2)
-                 .frame(width: 150, height: 150)
-                 }
-                 
-                 // 能力值条
-                 VStack(spacing: 8) {
-                 ForEach(0..<abilities.count, id: \.self) { index in
-                 abilityBar(ability: abilities[index], value: abilityValues[index])
-                 }
-                 }
-                 }
-                 .frame(maxWidth: .infinity)
-                 }
-                 .padding(.horizontal)*/
+                statsCard(title: "赛季积分", value: viewModel.totalScore, iconName: "star.fill", color: .green)
+                statsCard(title: "赛季排名", value: viewModel.totalRank, iconName: "trophy.fill", color: .red)
                 
-                // 参与数据区域
-                VStack(spacing: 15) {
-                    HStack {
-                        Text("赛季数据")
-                        Spacer()
-                        if !viewModel.isNeedBack {
-                            Text("积分榜 >")
-                                .exclusiveTouchTapGesture {
-                                    if let season = viewModel.selectedSeason, viewModel.isNeedBack == false {
-                                        if viewModel.sport == .Bike {
-                                            appState.navigationManager.append(.bikeScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
-                                        } else if viewModel.sport == .Running {
-                                            appState.navigationManager.append(.runningScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
-                                        }
-                                    }
-                                }
-                        }
-                    }
+                HStack(spacing: 15) {
+                    dataCard(title: "参与时间", value: formatTime(seconds: viewModel.totalTime), iconName: "clock.fill", color: .green)
+                    
+                    dataCard(title: "参与路程", value: String(format: "%.2fkm", viewModel.totalDistance), iconName: "figure.run", color: .blue)
+                    
+                    dataCard(title: "获得奖金", value: "¥\(viewModel.totalBonus)", iconName: "dollarsign.circle.fill", color: .yellow)
+                }
+            }
+            .padding(.horizontal)
+            
+            // 赛事积分记录
+            VStack(alignment: .leading, spacing: 10) {
+                Text("赛事积分记录")
                     .font(.headline)
                     .foregroundStyle(.white)
-                    
-                    statsCard(title: "赛季积分", value: viewModel.totalScore, iconName: "star.fill", color: .green)
-                    statsCard(title: "赛季排名", value: viewModel.totalRank, iconName: "trophy.fill", color: .red)
-                    
-                    HStack(spacing: 15) {
-                        dataCard(title: "参与时间", value: formatTime(seconds: viewModel.totalTime), iconName: "clock.fill", color: .green)
-                        
-                        dataCard(title: "参与路程", value: String(format: "%.2fkm", viewModel.totalDistance), iconName: "figure.run", color: .blue)
-                        
-                        dataCard(title: "获得奖金", value: "¥\(viewModel.totalBonus)", iconName: "dollarsign.circle.fill", color: .yellow)
+                if viewModel.competitionScoreRecords.isEmpty {
+                    HStack {
+                        Spacer()
+                        Text("无数据")
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
                     }
-                }
-                .padding(.horizontal)
-                
-                // 赛事积分记录
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("赛事积分记录")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    if viewModel.competitionScoreRecords.isEmpty {
-                        HStack {
-                            Spacer()
-                            Text("无数据")
-                                .foregroundStyle(Color.secondText)
-                            Spacer()
-                        }
-                    } else {
-                        LazyVStack(spacing: 15) {
-                            ForEach(viewModel.competitionScoreRecords) { record in
-                                CompetitionScoreCard(viewModel: viewModel, trackRecord: record)
-                            }
+                } else {
+                    LazyVStack(spacing: 15) {
+                        ForEach(viewModel.competitionScoreRecords) { record in
+                            CompetitionScoreCard(sport: viewModel.sport, trackRecord: record)
                         }
                     }
                 }
-                .padding(.horizontal)
             }
+            .padding(.horizontal)
         }
     }
     
@@ -262,6 +244,196 @@ struct CareerView: View {
     //}
 }
 
+
+struct LocalCareerView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var userManager = UserManager.shared
+    @ObservedObject var viewModel: LocalUserViewModel
+    
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            if !userManager.isLoggedIn {
+                Text("登录后查看")
+                    .foregroundStyle(Color.secondText)
+                    .padding(.top, 100)
+            } else {
+                HStack {
+                    // todo: 替换为更稳定的自定义menu
+                    Menu {
+                        ForEach(viewModel.seasons) { season in
+                            Button(season.seasonName) {
+                                viewModel.selectedSeason = season
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(viewModel.selectedSeason?.seasonName ?? "未知")
+                                .font(.subheadline)
+                                .foregroundColor(.white)
+                            
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .cornerRadius(8)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
+                // 参与数据区域
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("赛季数据")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("积分榜 >")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                            .exclusiveTouchTapGesture {
+                                if let season = viewModel.selectedSeason {
+                                    if viewModel.sport == .Bike {
+                                        appState.navigationManager.append(.bikeScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
+                                    } else if viewModel.sport == .Running {
+                                        appState.navigationManager.append(.runningScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
+                                    }
+                                }
+                            }
+                    }
+                    
+                    statsCard(title: "赛季积分", value: viewModel.totalScore, iconName: "star.fill", color: .green)
+                    statsCard(title: "赛季排名", value: viewModel.totalRank, iconName: "trophy.fill", color: .red)
+                    
+                    HStack(spacing: 15) {
+                        dataCard(title: "参与时间", value: formatTime(seconds: viewModel.totalTime), iconName: "clock.fill", color: .green)
+                        
+                        dataCard(title: "参与路程", value: String(format: "%.2fkm", viewModel.totalDistance), iconName: "figure.run", color: .blue)
+                        
+                        dataCard(title: "获得奖金", value: "¥\(viewModel.totalBonus)", iconName: "dollarsign.circle.fill", color: .yellow)
+                    }
+                }
+                .padding(.horizontal)
+                
+                // 赛事积分记录
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("赛事积分记录")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    if viewModel.competitionScoreRecords.isEmpty {
+                        HStack {
+                            Spacer()
+                            Text("无数据")
+                                .foregroundStyle(Color.secondText)
+                            Spacer()
+                        }
+                    } else {
+                        LazyVStack(spacing: 15) {
+                            ForEach(viewModel.competitionScoreRecords) { record in
+                                CompetitionScoreCard(sport: viewModel.sport, trackRecord: record)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    // 统计卡片
+    private func statsCard(title: String, value: Int?, iconName: String, color: Color) -> some View {
+        HStack {
+            Image(systemName: iconName)
+                .font(.title2)
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(.secondText)
+            Spacer()
+            if let value = value {
+                Text("\(value)")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            } else {
+                Text("无数据")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+        }
+        .padding()
+        .background(.gray.opacity(0.5))
+        .cornerRadius(12)
+    }
+    
+    // 数据卡片
+    private func dataCard(title: String, value: String, iconName: String, color: Color) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: iconName)
+                .font(.title2)
+                .foregroundColor(color)
+            
+            Text(value)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondText)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(.gray.opacity(0.5))
+        .cornerRadius(10)
+    }
+    
+    // 能力条
+    private func abilityBar(ability: String, value: Float) -> some View {
+        HStack {
+            Text(ability)
+                .font(.caption)
+                .frame(width: 30, alignment: .leading)
+                .foregroundColor(.white)
+                //.border(.green)
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .frame(width: geometry.size.width, height: 6)
+                        .opacity(0.2)
+                        .foregroundColor(.gray)
+                    
+                    Rectangle()
+                        .frame(width: geometry.size.width * CGFloat(value) / 100, height: 6)
+                        .foregroundColor(.blue)
+                }
+            }
+            .frame(height: 6)
+            
+            Text(String(format: "%.1f", value))
+                .font(.caption)
+                .frame(width: 30)
+                .foregroundColor(.white)
+                //.border(.red)
+        }
+    }
+    
+    // 格式化时间
+    private func formatTime(seconds: Double) -> String {
+        let hours = seconds / 3600
+        return String(format: "%.2fh", hours)
+    }
+}
+
+
 // 五边形形状
 struct PolygonShape: Shape {
     var sides: Int
@@ -322,7 +494,8 @@ struct AbilityPolygon: Shape {
 
 struct CompetitionScoreCard: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var viewModel: UserViewModel
+    let userManager = UserManager.shared
+    @State var sport: SportName
     let trackRecord: CareerRecord
     
     var body: some View {
@@ -399,19 +572,19 @@ struct CompetitionScoreCard: View {
                     .background(Color.orange)
                     .cornerRadius(10)
                     .exclusiveTouchTapGesture {
-                        if viewModel.sport == .Bike {
-                            appState.navigationManager.append(.bikeRecordDetailView(recordID: trackRecord.recordID, userID: viewModel.userID))
-                        } else if viewModel.sport == .Running {
-                            appState.navigationManager.append(.runningRecordDetailView(recordID: trackRecord.recordID, userID: viewModel.userID))
+                        if sport == .Bike {
+                            appState.navigationManager.append(.bikeRecordDetailView(recordID: trackRecord.recordID))
+                        } else if sport == .Running {
+                            appState.navigationManager.append(.runningRecordDetailView(recordID: trackRecord.recordID))
                         }
                     }
                 Spacer()
                 Text("完整排行>")
                     .exclusiveTouchTapGesture {
-                        if viewModel.sport == .Bike {
-                            appState.navigationManager.append(.bikeRankingListView(trackID: trackRecord.trackID, gender: UserManager.shared.user.gender ?? .male, isHistory: true))
-                        } else if viewModel.sport == .Running {
-                            appState.navigationManager.append(.runningRankingListView(trackID: trackRecord.trackID, gender: UserManager.shared.user.gender ?? .male, isHistory: true))
+                        if sport == .Bike {
+                            appState.navigationManager.append(.bikeRankingListView(trackID: trackRecord.trackID, gender: userManager.user.gender ?? .male, isHistory: true))
+                        } else if sport == .Running {
+                            appState.navigationManager.append(.runningRankingListView(trackID: trackRecord.trackID, gender: userManager.user.gender ?? .male, isHistory: true))
                         }
                     }
             }
@@ -427,7 +600,7 @@ struct CompetitionScoreCard: View {
 
 #Preview {
     let appState = AppState.shared
-    let vm = UserViewModel(id: "123321", needBack: false)
+    let vm = UserViewModel(id: "123321")
     CareerView(viewModel: vm)
         .environmentObject(appState)
 }

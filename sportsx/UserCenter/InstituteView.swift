@@ -128,7 +128,7 @@ struct InstituteView: View {
         .environment(\.colorScheme, .dark)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onValueChange(of: selectedCard) {
             if let card = selectedCard {
                 queryUpgradePrice(cardID: card.cardID)

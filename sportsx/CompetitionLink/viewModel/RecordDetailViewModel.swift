@@ -9,21 +9,21 @@ import Foundation
 
 class BikeRecordDetailViewModel: ObservableObject {
     let recordID: String
-    let userID: String
     @Published var recordDetailInfo: BikeRecordDetailInfo?
     
-    init(recordID: String, userID: String) {
+    init(recordID: String) {
         self.recordID = recordID
-        self.userID = userID
         self.recordDetailInfo = nil
     }
     
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/competition/bike/query_record_detail") else { return }
         components.queryItems = [
-            URLQueryItem(name: "record_id", value: recordID),
-            URLQueryItem(name: "user_id", value: userID)
+            URLQueryItem(name: "record_id", value: recordID)
         ]
+        if UserManager.shared.isLoggedIn {
+            components.queryItems?.append(URLQueryItem(name: "user_id", value: UserManager.shared.user.userID))
+        }
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
@@ -44,21 +44,21 @@ class BikeRecordDetailViewModel: ObservableObject {
 
 class RunningRecordDetailViewModel: ObservableObject {
     let recordID: String
-    let userID: String
     @Published var recordDetailInfo: RunningRecordDetailInfo?
     
-    init(recordID: String, userID: String) {
+    init(recordID: String) {
         self.recordID = recordID
-        self.userID = userID
         self.recordDetailInfo = nil
     }
     
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/competition/running/query_record_detail") else { return }
         components.queryItems = [
-            URLQueryItem(name: "record_id", value: recordID),
-            URLQueryItem(name: "user_id", value: userID)
+            URLQueryItem(name: "record_id", value: recordID)
         ]
+        if UserManager.shared.isLoggedIn {
+            components.queryItems?.append(URLQueryItem(name: "user_id", value: UserManager.shared.user.userID))
+        }
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)

@@ -133,7 +133,7 @@ struct UserAssetManageBackendView: View {
         }
         .padding(.horizontal)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
     }
     
     func sendMail() {

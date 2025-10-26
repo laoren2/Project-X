@@ -13,8 +13,8 @@ struct BikeRecordDetailView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeRecordDetailViewModel
     
-    init(recordID: String, userID: String) {
-        _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID, userID: userID))
+    init(recordID: String) {
+        _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID))
     }
     
     var body: some View {
@@ -154,7 +154,7 @@ struct BikeRecordDetailView: View {
                                             .frame(width: 40, height: 40)
                                             .clipShape(Circle())
                                             .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.userView(id: score.userInfo.userID, needBack: true))
+                                                appState.navigationManager.append(.userView(id: score.userInfo.userID))
                                             }
                                             
                                             VStack(alignment: .leading, spacing: 3) {
@@ -197,9 +197,10 @@ struct BikeRecordDetailView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture() {
-            adjustNavigationPath()
-        }
+        //.enableBackGesture() {
+        //    adjustNavigationPath()
+        //}
+        .enableSwipeBackGesture(false)
         .onFirstAppear {
             viewModel.queryRecordDetail()
         }
@@ -223,8 +224,8 @@ struct RunningRecordDetailView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningRecordDetailViewModel
     
-    init(recordID: String, userID: String) {
-        _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID, userID: userID))
+    init(recordID: String) {
+        _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID))
     }
     
     var body: some View {
@@ -360,7 +361,7 @@ struct RunningRecordDetailView: View {
                                             .frame(width: 40, height: 40)
                                             .clipShape(Circle())
                                             .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.userView(id: score.userInfo.userID, needBack: true))
+                                                appState.navigationManager.append(.userView(id: score.userInfo.userID))
                                             }
                                             
                                             VStack(alignment: .leading, spacing: 3) {
@@ -403,9 +404,9 @@ struct RunningRecordDetailView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture() {
-            adjustNavigationPath()
-        }
+        //.enableBackGesture() {
+        //    adjustNavigationPath()
+        //}
         .onFirstAppear {
             viewModel.queryRecordDetail()
         }
@@ -428,6 +429,6 @@ struct RunningRecordDetailView: View {
 
 #Preview {
     let appState = AppState.shared
-    return BikeRecordDetailView(recordID: "test", userID: "")
+    return BikeRecordDetailView(recordID: "test")
         .environmentObject(appState)
 }

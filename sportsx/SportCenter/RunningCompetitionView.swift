@@ -774,7 +774,7 @@ struct RunningTeamCreateView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .background(Color.defaultBackground)
         .hideKeyboardOnScroll()
         .environment(\.colorScheme, .dark)
@@ -936,7 +936,7 @@ struct RunningTeamJoinView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showDetailSheet) {
             TeamDescriptionView(showDetailSheet: $viewModel.showDetailSheet, selectedDescription: $viewModel.selectedDescription)
                 .presentationDetents([.fraction(0.4)])
@@ -1105,7 +1105,7 @@ struct RunningTeamPublicCard: View {
                 .frame(width: 40, height: 40)
                 .clipShape(Circle())
                 .exclusiveTouchTapGesture {
-                    appState.navigationManager.append(.userView(id: team.leader_id, needBack: true))
+                    appState.navigationManager.append(.userView(id: team.leader_id))
                 }
                 
                 Text("\(team.leader_name)")

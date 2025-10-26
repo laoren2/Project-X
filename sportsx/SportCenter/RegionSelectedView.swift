@@ -155,7 +155,7 @@ struct RegionSelectedView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
         .onAppear {
             selectedProvince = regions.keys.sorted().first ?? "未知"
             fetchCities()

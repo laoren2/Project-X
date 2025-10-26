@@ -52,6 +52,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     let deviceManager = DeviceManager.shared
     let user = UserManager.shared
     let globalConfig = GlobalConfig.shared
+    let dailyTaskManager = DailyTaskManager.shared
     
     let eventBus = MatchEventBus()      // 比赛引擎的总线，负责比赛中事件的注册和通知
     let matchContext = MatchContext()   // 比赛进行中的上下文信息
@@ -657,7 +658,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
-                        self.navigationManager.append(.bikeRecordDetailView(recordID: record.record_id, userID: self.user.user.userID))
+                        self.navigationManager.append(.bikeRecordDetailView(recordID: record.record_id))
+                        self.dailyTaskManager.queryDailyTask(sport: .Bike)
                     }
                 default: break
                 }
@@ -689,7 +691,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
-                        self.navigationManager.append(.runningRecordDetailView(recordID: record.record_id, userID: self.user.user.userID))
+                        self.navigationManager.append(.runningRecordDetailView(recordID: record.record_id))
+                        self.dailyTaskManager.queryDailyTask(sport: .Running)
                     }
                 default: break
                 }

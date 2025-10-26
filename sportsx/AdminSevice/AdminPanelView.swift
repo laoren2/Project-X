@@ -77,7 +77,7 @@ struct AdminPanelView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture()
+        .enableSwipeBackGesture()
     }
 }
 

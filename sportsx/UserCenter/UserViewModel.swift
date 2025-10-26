@@ -10,18 +10,17 @@ import Foundation
 import SwiftUI
 
 class UserViewModel: ObservableObject {
-    let navigationManager = NavigationManager.shared
     let userManager = UserManager.shared
     
     @Published var sport: SportName = .Default // 默认运动
     
-    @Published var currentUser = User()         // 非登录用户的用户数据  todo: 改为可选值
-    @Published var avatarImage: UIImage?        // 非登录用户的头像
-    @Published var backgroundImage: UIImage?    // 非登录用户的封面
-    @Published var backgroundColor: Color = .defaultBackground      // 非登录用户的封面背景色
-    @Published var followerCount: Int = 0       // 非登录用户的粉丝数
-    @Published var followedCount: Int = 0       // 非登录用户的关注数
-    @Published var friendCount: Int = 0         // 非登录用户的好友数
+    @Published var currentUser = User()         // todo: 改为可选值
+    @Published var avatarImage: UIImage?        // 用户头像
+    @Published var backgroundImage: UIImage?    // 用户封面
+    @Published var backgroundColor: Color = .defaultBackground      // 用户的封面背景色
+    @Published var followerCount: Int = 0       // 用户的粉丝数
+    @Published var followedCount: Int = 0       // 用户的关注数
+    @Published var friendCount: Int = 0         // 用户的好友数
     
     @Published var relationship: UserRelationshipStatus = .none     // 与当前登录用户的关系
     
@@ -48,34 +47,13 @@ class UserViewModel: ObservableObject {
     @Published var selectedSeason: SeasonSelectableInfo?
     @Published var seasons: [SeasonSelectableInfo] = []
     
-    var userID: String
-    var isNeedBack: Bool
+    let userID: String
     let sidebarWidth: CGFloat = 300 // 侧边栏宽度
     
     
-    init(id: String, needBack: Bool) {
+    init(id: String) {
         userID = id
-        isNeedBack = needBack
-        
-        // 外部入口且不是已登录用户请求数据存入currentUser
-        if isNeedBack {
-            if userManager.user.userID == userID {
-                sport = userManager.user.defaultSport
-                queryHistoryCareers()
-                queryCurrentRecords()
-                return
-            } else {
-                self.fetchUserInfo()
-            }
-        } else {
-            userManager.fetchMeRole()
-            Task {
-                await userManager.fetchMeInfo()
-                await MainActor.run {
-                    sport = userManager.user.defaultSport
-                }
-            }
-        }
+        self.fetchUserInfo()
     }
     
     func fetchUserInfo() {
@@ -142,16 +120,14 @@ class UserViewModel: ObservableObject {
         guard let season = selectedSeason else { return }
         
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + (isNeedBack ? "query_user_career_data" : "query_me_career_data" )
+            string: "/competition/\(sport.rawValue)/" + "query_user_career_data"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "season_id", value: season.seasonID)
         ]
-        if isNeedBack {
-            components.queryItems?.append(URLQueryItem(name: "user_id", value: userID))
-        }
+        components.queryItems?.append(URLQueryItem(name: "user_id", value: userID))
         guard let urlPath = components.string else { return }
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: !isNeedBack)
+        let request = APIRequest(path: urlPath, method: .get)
         
         NetworkService.sendRequest(with: request, decodingType: CareerDataDTO.self, showErrorToast: true) { result in
             switch result {
@@ -175,16 +151,14 @@ class UserViewModel: ObservableObject {
         guard let season = selectedSeason else { return }
         
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + (isNeedBack ? "query_user_career_records" : "query_me_career_records")
+            string: "/competition/\(sport.rawValue)/" + "query_user_career_records"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "season_id", value: season.seasonID)
         ]
-        if isNeedBack {
-            components.queryItems?.append(URLQueryItem(name: "user_id", value: userID))
-        }
+        components.queryItems?.append(URLQueryItem(name: "user_id", value: userID))
         guard let urlPath = components.string else { return }
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: !isNeedBack)
+        let request = APIRequest(path: urlPath, method: .get)
         
         NetworkService.sendRequest(with: request, decodingType: CareerRecordResponse.self, showErrorToast: true) { result in
             switch result {
@@ -204,15 +178,13 @@ class UserViewModel: ObservableObject {
     func queryCurrentRecords() {
         gameSummaryCards = []
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + (isNeedBack ? "query_user_current_best_records" : "query_me_current_best_records")
+            string: "/competition/\(sport.rawValue)/" + "query_user_current_best_records"
         ) else { return }
-        if isNeedBack {
-            components.queryItems = [
-                URLQueryItem(name: "user_id", value: userID)
-            ]
-        }
+        components.queryItems = [
+            URLQueryItem(name: "user_id", value: userID)
+        ]
         guard let urlPath = components.string else { return }
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: !isNeedBack)
+        let request = APIRequest(path: urlPath, method: .get)
         
         NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showErrorToast: true) { result in
             switch result {
@@ -320,6 +292,155 @@ class UserViewModel: ObservableObject {
                         self.friendCount = unwrappedData.friends
                         self.followerCount = unwrappedData.follower
                         self.followedCount = unwrappedData.followed
+                    }
+                }
+            default: break
+            }
+        }
+    }
+}
+
+class LocalUserViewModel: ObservableObject {
+    let userManager = UserManager.shared
+    
+    @Published var sport: SportName = .Default // 默认运动
+    @Published var showSidebar = false  // 侧边栏是否显示
+    
+    // 赛季总积分
+    @Published var totalScore: Int = 0
+    // 赛季总积分排名
+    @Published var totalRank: Int?
+    // 赛季荣誉
+    //var cups: [Cup] = []
+    // 赛季总参与时间
+    @Published var totalTime: Double = 0
+    // 赛季总参与路程
+    @Published var totalDistance: Double = 0
+    // 赛季获得总奖金
+    @Published var totalBonus: Int = 0
+    
+    // 赛季赛事积分记录汇总
+    @Published var competitionScoreRecords: [CareerRecord] = []
+    
+    @Published var gameSummaryCards: [GameSummaryCard] = []
+    
+    @Published var selectedSeason: SeasonSelectableInfo?
+    @Published var seasons: [SeasonSelectableInfo] = []
+    let sidebarWidth: CGFloat = 300 // 侧边栏宽度
+    
+    
+    init() {
+        userManager.fetchMeRole()
+        Task {
+            await userManager.fetchMeInfo()
+            await MainActor.run {
+                sport = userManager.user.defaultSport
+            }
+        }
+    }
+    
+    func queryHistoryCareers() {
+        seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "未知")]
+        selectedSeason = nil
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get)
+        
+        NetworkService.sendRequest(with: request, decodingType: SeasonSelectableResponse.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        var tempSeasons: [SeasonSelectableInfo] = []
+                        for season in unwrappedData.seasons {
+                            tempSeasons.append(SeasonSelectableInfo(from: season))
+                        }
+                        self.seasons = tempSeasons
+                        if !self.seasons.isEmpty {
+                            self.selectedSeason = self.seasons[0]
+                        }
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryCareerData() {
+        totalScore = 0
+        totalRank = nil
+        guard let season = selectedSeason else { return }
+        
+        guard var components = URLComponents(
+            string: "/competition/\(sport.rawValue)/" + "query_me_career_data"
+        ) else { return }
+        components.queryItems = [
+            URLQueryItem(name: "season_id", value: season.seasonID)
+        ]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: CareerDataDTO.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.totalScore = unwrappedData.total_score
+                        self.totalRank = unwrappedData.total_rank
+                        self.totalBonus = unwrappedData.total_voucher
+                        self.totalDistance = unwrappedData.total_distance
+                        self.totalTime = unwrappedData.total_time
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryCareerRecords() {
+        competitionScoreRecords = []
+        guard let season = selectedSeason else { return }
+        
+        guard var components = URLComponents(
+            string: "/competition/\(sport.rawValue)/" + "query_me_career_records"
+        ) else { return }
+        components.queryItems = [
+            URLQueryItem(name: "season_id", value: season.seasonID)
+        ]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: CareerRecordResponse.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for record in unwrappedData.records {
+                            self.competitionScoreRecords.append(CareerRecord(from: record))
+                        }
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryCurrentRecords() {
+        gameSummaryCards = []
+        guard var components = URLComponents(
+            string: "/competition/\(sport.rawValue)/" + "query_me_current_best_records"
+        ) else { return }
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for record in unwrappedData.records {
+                            self.gameSummaryCards.append(GameSummaryCard(from: record))
+                        }
                     }
                 }
             default: break

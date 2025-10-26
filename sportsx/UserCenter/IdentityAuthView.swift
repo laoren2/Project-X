@@ -21,6 +21,6 @@ struct IdentityAuthView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableBackGesture(true)
+        .enableSwipeBackGesture()
     }
 }
