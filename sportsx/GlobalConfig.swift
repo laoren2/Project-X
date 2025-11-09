@@ -16,6 +16,9 @@ class GlobalConfig: ObservableObject {
     // 用来做全局的按钮防抖
     @Published var isButtonLocked = false
     
+    // 是否允许导航中原生侧滑返回手势
+    var swipeBackEnabled: Bool = true
+    
     // 设备当前定位
     var location: String? = nil
     //var ipCountryCode: String = "未知"

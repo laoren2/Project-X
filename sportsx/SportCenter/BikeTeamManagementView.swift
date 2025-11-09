@@ -160,6 +160,7 @@ struct BikeTeamManagementView: View {
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .bottomSheet(isPresented: $viewModel.showDetailSheet, size: .short) {
             TeamDescriptionView(showDetailSheet: $viewModel.showDetailSheet, selectedDescription: $viewModel.selectedDescription)
         }

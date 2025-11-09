@@ -453,6 +453,7 @@ struct FriendListView: View {
             .ignoresSafeArea()
         }
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .background(Color.defaultBackground)
     }
 }

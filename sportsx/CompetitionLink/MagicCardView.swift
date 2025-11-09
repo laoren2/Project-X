@@ -147,24 +147,55 @@ struct EmptyCardSlot: View {
             
             ZStack {
                 RoundedRectangle(cornerRadius: width * 0.08)
-                    .fill(Color.gray.opacity(0.1))
+                    .fill(Color.gray.opacity(0.6))
                     .overlay(
                         RoundedRectangle(cornerRadius: width * 0.08)
-                            .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: width * 0.015, dash: [width * 0.05]))
+                            .stroke(Color.white.opacity(0.6), style: StrokeStyle(lineWidth: width * 0.015, dash: [width * 0.05]))
                     )
                 
                 VStack(spacing: width * 0.05) {
                     Image(systemName: "plus.circle")
                         .font(.system(size: iconSize))
-                        .foregroundColor(.gray.opacity(0.5))
+                        .foregroundColor(.white.opacity(0.5))
                     
                     Text(text)
                         .font(.system(size: fontSize))
-                        .foregroundColor(.gray.opacity(0.7))
+                        .foregroundColor(.white.opacity(0.7))
                 }
             }
         }
         .aspectRatio(ratio, contentMode: .fit)
+    }
+}
+
+// MARK: - 空VIP卡牌槽位
+struct EmptyCardVipSlot: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let iconSize = width * 0.3
+            let fontSize = width * 0.085
+            
+            ZStack {
+                RoundedRectangle(cornerRadius: width * 0.08)
+                    .fill(Color.red.opacity(0.2))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: width * 0.08)
+                            .stroke(Color.red, style: StrokeStyle(lineWidth: width * 0.015, dash: [width * 0.05]))
+                    )
+                
+                VStack(spacing: width * 0.05) {
+                    Image(systemName: "v.circle.fill")
+                        .font(.system(size: iconSize))
+                        .foregroundColor(.red)
+                    
+                    Text("专属卡槽")
+                        .font(.system(size: fontSize))
+                        .foregroundColor(.red)
+                }
+            }
+        }
+        .aspectRatio(5/7, contentMode: .fit)
     }
 }
 

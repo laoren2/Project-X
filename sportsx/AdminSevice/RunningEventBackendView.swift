@@ -172,8 +172,8 @@ struct RunningEventCreateView: View {
                     TextField("区域名称", text: $regionName)
                 }
                 Section(header: Text("时间")) {
-                    DatePicker("开始时间", selection: $startDate, displayedComponents: [.date])
-                    DatePicker("结束时间", selection: $endDate, displayedComponents: [.date])
+                    DatePicker("开始时间", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("结束时间", selection: $endDate, displayedComponents: [.date, .hourAndMinute])
                 }
                 Section(header: Text("封面图片")) {
                     if let image = eventImage {
@@ -240,7 +240,7 @@ struct RunningEventCreateView: View {
             ("event_image", eventImage, "background.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 1000) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
                 body.append("Content-Type: image/jpeg\r\n\r\n")
@@ -274,8 +274,8 @@ struct RunningEventUpdateView: View {
                     TextField("描述", text: $viewModel.description)
                 }
                 Section(header: Text("时间")) {
-                    DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date])
-                    DatePicker("结束时间", selection: $viewModel.endDate, displayedComponents: [.date])
+                    DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("结束时间", selection: $viewModel.endDate, displayedComponents: [.date, .hourAndMinute])
                 }
                 Section(header: Text("封面图片")) {
                     if let image = eventImage {
@@ -349,7 +349,7 @@ struct RunningEventUpdateView: View {
             ("event_image", eventImage, "background.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 1000) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
                 body.append("Content-Type: image/jpeg\r\n\r\n")

@@ -90,7 +90,7 @@ struct CompetitionCenterView: View {
                     HStack {
                         Text(viewModel.seasonName)
                             .font(.headline)
-                            .foregroundStyle(.red.opacity(0.8))
+                            .foregroundStyle(Color.white)
                     }
                 }
                 .padding(.bottom, 5)
@@ -294,7 +294,8 @@ struct TeamRegisterView: View {
 struct TrackMapView: UIViewRepresentable {
     let fromCoordinate: CLLocationCoordinate2D
     let toCoordinate: CLLocationCoordinate2D
-    
+    let startRadius: CLLocationDistance
+    let endRadius: CLLocationDistance
     
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -302,14 +303,7 @@ struct TrackMapView: UIViewRepresentable {
         mapView.isScrollEnabled = false
         mapView.isRotateEnabled = false
         mapView.delegate = context.coordinator
-        
-        // 使用 coordinator 中的 annotation
-        context.coordinator.fromAnnotation.coordinate = fromCoordinate
-        context.coordinator.toAnnotation.coordinate = toCoordinate
         mapView.addAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation])
-        
-        // 自动缩放显示所有标注
-        mapView.showAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation], animated: false)
         
         return mapView
     }
@@ -318,7 +312,21 @@ struct TrackMapView: UIViewRepresentable {
         // 更新坐标
         context.coordinator.fromAnnotation.coordinate = fromCoordinate
         context.coordinator.toAnnotation.coordinate = toCoordinate
-        uiView.showAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation], animated: true)
+        // 添加圆形覆盖层
+        uiView.removeOverlays(uiView.overlays)
+        let circle1 = MKCircle(center: fromCoordinate, radius: startRadius)
+        let circle2 = MKCircle(center: toCoordinate, radius: endRadius)
+        uiView.addOverlays([circle1, circle2])
+        
+        let points: [CLLocationCoordinate2D] = [fromCoordinate, toCoordinate]
+        var mapRect = MKMapRect.null
+        for point in points {
+            let p = MKMapPoint(point)
+            mapRect = mapRect.union(MKMapRect(x: p.x, y: p.y, width: 0, height: 0))
+        }
+        
+        let edgePadding = UIEdgeInsets(top: 50, left: 60, bottom: 50, right: 60)
+        uiView.setVisibleMapRect(mapRect, edgePadding: edgePadding, animated: true)
     }
     
     func makeCoordinator() -> Coordinator {
@@ -345,7 +353,7 @@ struct TrackMapView: UIViewRepresentable {
                 view?.canShowCallout = true
                 // 设置自定义图标
                 if let originalImage = UIImage(systemName: "bicycle") {
-                    let size = CGSize(width: 30, height: 30)
+                    let size = CGSize(width: 40, height: 30)
                     UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
                     
                     let tinted = originalImage.withTintColor(.orange, renderingMode: .alwaysOriginal)
@@ -356,12 +364,116 @@ struct TrackMapView: UIViewRepresentable {
                     
                     view?.image = finalImage
                 }
-                
             } else {
                 view?.annotation = annotation
             }
             
             return view
+        }
+        
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let circle = overlay as? MKCircle {
+                let renderer = MKCircleRenderer(circle: circle)
+                renderer.fillColor = UIColor.orange.withAlphaComponent(0.2)
+                renderer.strokeColor = UIColor.orange.withAlphaComponent(0.6)
+                renderer.lineWidth = 2
+                return renderer
+            }
+            return MKOverlayRenderer(overlay: overlay)
+        }
+    }
+}
+
+// 全屏地图视图
+struct FullScreenMapView: View {
+    let fromCoordinate: CLLocationCoordinate2D
+    let toCoordinate: CLLocationCoordinate2D
+    let startRadius: CLLocationDistance
+    let endRadius: CLLocationDistance
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            FullScreenMapRepresentable(
+                fromCoordinate: fromCoordinate,
+                toCoordinate: toCoordinate,
+                startRadius: startRadius,
+                endRadius: endRadius
+            )
+            .ignoresSafeArea()
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.black.opacity(0.3))
+                    .clipShape(Circle())
+            }
+            .padding()
+        }
+        .background(Color.black)
+    }
+}
+
+struct FullScreenMapRepresentable: UIViewRepresentable {
+    let fromCoordinate: CLLocationCoordinate2D
+    let toCoordinate: CLLocationCoordinate2D
+    let startRadius: CLLocationDistance
+    let endRadius: CLLocationDistance
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.isZoomEnabled = true
+        mapView.isScrollEnabled = true
+        mapView.isRotateEnabled = true
+        mapView.delegate = context.coordinator
+        
+        context.coordinator.fromAnnotation.coordinate = fromCoordinate
+        context.coordinator.toAnnotation.coordinate = toCoordinate
+        mapView.addAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation])
+        
+        // 添加圆形覆盖层
+        let circle1 = MKCircle(center: fromCoordinate, radius: startRadius)
+        let circle2 = MKCircle(center: toCoordinate, radius: endRadius)
+        mapView.addOverlays([circle1, circle2])
+        
+        return mapView
+    }
+
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        let points: [CLLocationCoordinate2D] = [fromCoordinate, toCoordinate]
+        var mapRect = MKMapRect.null
+        for point in points {
+            let p = MKMapPoint(point)
+            mapRect = mapRect.union(MKMapRect(x: p.x, y: p.y, width: 0, height: 0))
+        }
+        
+        let edgePadding = UIEdgeInsets(top: 180, left: 60, bottom: 180, right: 60)
+        uiView.setVisibleMapRect(mapRect, edgePadding: edgePadding, animated: true)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    class Coordinator: NSObject, MKMapViewDelegate {
+        let fromAnnotation = MKPointAnnotation()
+        let toAnnotation = MKPointAnnotation()
+        override init() {
+            fromAnnotation.title = "From"
+            toAnnotation.title = "To"
+        }
+
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let circle = overlay as? MKCircle {
+                let renderer = MKCircleRenderer(circle: circle)
+                renderer.fillColor = UIColor.orange.withAlphaComponent(0.2)
+                renderer.strokeColor = UIColor.orange.withAlphaComponent(0.6)
+                renderer.lineWidth = 2
+                return renderer
+            }
+            return MKOverlayRenderer(overlay: overlay)
         }
     }
 }

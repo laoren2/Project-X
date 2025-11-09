@@ -9,6 +9,13 @@ import Foundation
 import CoreLocation
 
 
+// 跑步赛道地形类型
+enum RunningTrackTerrainType: String, Codable {
+    case road = "road"
+    case mountain = "mountain"
+    case other = "other"
+}
+
 // 赛道数据结构
 struct RunningTrack: Identifiable, Equatable {
     var id: String { trackID }
@@ -17,8 +24,11 @@ struct RunningTrack: Identifiable, Equatable {
     let startDate: Date?
     let endDate: Date?
     let from: CLLocationCoordinate2D
+    let fromRadius: Int
     let to: CLLocationCoordinate2D
+    let toRadius: Int
     let image_url: String
+    let terrainType: RunningTrackTerrainType
     
     // 添加新的属性
     let elevationDifference: Int        // 海拔差(米)
@@ -37,8 +47,11 @@ struct RunningTrack: Identifiable, Equatable {
         self.startDate = ISO8601DateFormatter().date(from: track.start_date) ?? Date()
         self.endDate = ISO8601DateFormatter().date(from: track.end_date) ?? Date()
         self.from = CLLocationCoordinate2D(latitude: track.from_latitude, longitude: track.from_longitude)
+        self.fromRadius = track.from_radius
         self.to = CLLocationCoordinate2D(latitude: track.to_latitude, longitude: track.to_longitude)
+        self.toRadius = track.to_radius
         self.image_url = track.image_url
+        self.terrainType = track.terrain_type
         self.elevationDifference = track.elevation_difference
         self.regionName = track.sub_region_name
         self.prizePool = track.prize_pool
@@ -93,11 +106,15 @@ struct RunningTrackInfoDTO: Codable {
     let start_date: String
     let end_date: String
     let image_url: String
+    let terrain_type: RunningTrackTerrainType
     
     let from_latitude: Double
     let from_longitude: Double
+    let from_radius: Int
     let to_latitude: Double
     let to_longitude: Double
+    let to_radius: Int
+    
     let elevation_difference: Int   // 海拔差(米)
     let sub_region_name: String     // 覆盖的地理子区域
     let prize_pool: Int             // 奖金池金额

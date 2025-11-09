@@ -11,59 +11,98 @@ import Combine
 struct CompetitionWidget: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var dataFusionManager = DataFusionManager.shared
-    //@State private var modelResults: [String: Any] = [:]
-    //private var cancellables = Set<AnyCancellable>()
+    // 拖拽状态
+    @State private var dragOffset: CGSize = .zero
+    @State private var lastPosition: CGSize = CGSize(width: .zero, height: -150)
+    @State private var screenWidth: CGFloat = UIScreen.main.bounds.width
+    @State private var screenHeight: CGFloat = UIScreen.main.bounds.height
     
     var body: some View {
         if appState.competitionManager.isShowWidget {
-            VStack(alignment: .leading) {
-                Text("比赛进行中")
-                    .font(.headline)
-                Text("已进行时间: \(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
-                    .font(.subheadline)
+            GeometryReader { geo in
+                ZStack {
+                    ZStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(Color.gray)
+                            .frame(width: 70, height: 70)
+                        Spacer()
+                        VStack {
+                            Text(TimeDisplay.formattedTime(dataFusionManager.elapsedTime, part: .hour))
+                            Text(TimeDisplay.formattedTime(dataFusionManager.elapsedTime, part: .minute))
+                            Text(TimeDisplay.formattedTime(dataFusionManager.elapsedTime, part: .second))
+                        }
+                        .foregroundStyle(Color.white)
+                        .padding(10)
+                    }
+                    .offset(x: -35)
+                    .opacity(dragOffset == .zero ? ((lastPosition.width > -geo.size.width / 2 + 70) ? 0 : 1) : 0)
+                    ZStack(alignment: .trailing) {
+                        Rectangle()
+                            .fill(Color.gray)
+                            .frame(width: 70, height: 70)
+                        Spacer()
+                        VStack {
+                            Text(TimeDisplay.formattedTime(dataFusionManager.elapsedTime, part: .hour))
+                            Text(TimeDisplay.formattedTime(dataFusionManager.elapsedTime, part: .minute))
+                            Text(TimeDisplay.formattedTime(dataFusionManager.elapsedTime, part: .second))
+                        }
+                        .foregroundStyle(Color.white)
+                        .padding(10)
+                    }
+                    .offset(x: 35)
+                    .opacity(dragOffset == .zero ? ((lastPosition.width > -geo.size.width / 2 + 70) ? 1 : 0) : 0)
+                    
+                    // 外圈
+                    Circle()
+                        .fill(Color.gray)
+                        .frame(width: 70, height: 70)
+                    
+                    // 内圈
+                    Circle()
+                        .fill(Color.black.opacity(0.6))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: appState.competitionManager.sport.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .foregroundColor(.orange)
+                                .frame(width: 30, height: 30)
+                        )
+                }
+                .position(
+                    x: geo.size.width - 70 + dragOffset.width + lastPosition.width,
+                    y: geo.size.height + dragOffset.height + lastPosition.height
+                )
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            dragOffset = value.translation
+                        }
+                        .onEnded { value in
+                            withAnimation(.easeIn(duration: 0.2)) {
+                                let totalOffsetX = value.translation.width + lastPosition.width
+                                let totalOffsetY = value.translation.height + lastPosition.height
+                                
+                                // 计算松手后吸附到左右边缘
+                                let targetX: CGFloat = (totalOffsetX > -geo.size.width / 2 + 70) ? 0 : -geo.size.width + 140
+                                // 限制上下边界
+                                let clampedY = min(max(totalOffsetY, -geo.size.height + 35), geo.safeAreaInsets.bottom - 145)
+                                
+                                lastPosition = CGSize(width: targetX, height: clampedY)
+                                dragOffset = .zero
+                            }
+                        }
+                )
+                .onTapGesture {
+                    appState.navigationManager.append(.competitionRealtimeView)
+                }
             }
-            .frame(width: 300, height: 100) // 根据需要调整大小
-            .background(Color.gray.opacity(0.8))
-            .cornerRadius(10)
-            .shadow(radius: 8)
-            .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.competitionRealtimeView) // 触发导航
-            }
-            //.padding(.bottom, 100) // 调整与屏幕边缘的距离
-            //.padding(.trailing, -200)
-        }
-    }
-    
-    func displayResult(_ result: Any) -> String {
-        switch result {
-        case let bool as Bool:
-            return bool ? "✅" : "❌"
-        case let int as Int:
-            return "\(int)"
-        case let double as Double:
-            return String(format: "%.2f", double)
-        default:
-            return "?"
-        }
-    }
-    
-    func displayColor(_ result: Any) -> Color {
-        switch result {
-        case let bool as Bool:
-            return bool ? .green : .red
-        case let int as Int:
-            return int > 10 ? .green : .red
-        case let double as Double:
-            return double > 10.0 ? .green : .red
-        default:
-            return .gray
         }
     }
 }
 
-/*#Preview{
-    @Previewable @State var test: Bool = false
+#Preview{
     let appState = AppState.shared
     CompetitionWidget()
         .environmentObject(appState)
-}*/
+}

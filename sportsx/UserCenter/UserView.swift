@@ -391,6 +391,12 @@ struct MainUserView: View {
                                         .font(.title3)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
+                                    if isUserSelf ? userManager.user.isVip : viewModel.currentUser.isVip {
+                                        Image(systemName: "v.circle.fill")
+                                            .font(.system(size: 15))
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(Color.red)
+                                    }
                                     if (!isUserSelf) && viewModel.relationship != .none {
                                         Text(viewModel.relationship.displayName)
                                             .font(.system(size: 12))
@@ -910,10 +916,23 @@ struct LocalMainUserView: View {
                                         .shadow(radius: 5, x: 0, y: 5)
                                 }
                                 // 用户名
-                                Text(userManager.user.nickname)
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                HStack {
+                                    Text(userManager.user.nickname)
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                    if userManager.user.isVip {
+                                        Image(systemName: "v.circle.fill")
+                                            .font(.system(size: 15))
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(Color.red)
+                                    } else {
+                                        Image(systemName: "v.circle.fill")
+                                            .font(.system(size: 15))
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(Color.thirdText)
+                                    }
+                                }
                             }
                             .padding(.top, 120)
                         }
@@ -1021,7 +1040,7 @@ struct LocalMainUserView: View {
                                             .padding(.vertical, 4)
                                             .padding(.horizontal, 8)
                                             .font(.subheadline)
-                                            .background(Color.orange.opacity(0.6))
+                                            .background(Color.orange.opacity(0.8))
                                             .cornerRadius(12)
                                             .exclusiveTouchTapGesture {
                                                 appState.sport = viewModel.sport
@@ -1047,11 +1066,7 @@ struct LocalMainUserView: View {
                                         // 3个可领取奖励的圆形节点
                                         HStack(spacing: 47) {
                                             Circle()
-                                                .strokeBorder(Color.orange, lineWidth: 3)
-                                                .background(
-                                                    Circle()
-                                                        .fill(Color.gray)
-                                                )
+                                                .foregroundStyle(Color.orange.opacity(0.8))
                                                 .frame(width: 40, height: 40)
                                                 .overlay(
                                                     Image(systemName: viewModel.sport.iconName)
@@ -1308,115 +1323,6 @@ struct LocalMainUserView: View {
     func opacityFor(offset: CGFloat) -> Double {
         let visibleUntil: CGFloat = 110
         return max(0, min(1, offset / visibleUntil - 1))
-    }
-}
-
-// MARK: - 每日任务视图
-struct DailyTaskProgressView: View {
-    @State private var progress: Double = 0.35 // 当前完成进度 0.0~1.0
-    @State private var claimedStages: Set<Int> = [] // 已领取的阶段奖励
-
-    let totalDistance: Double = 10.0 // 总目标 10km
-    let rewardStages: [Double] = [0.34, 0.67, 1.0] // 阶段阈值比例
-    
-    var body: some View {
-        VStack {
-            VStack(spacing: 16) {
-                // 标题与跳转按钮
-                HStack(alignment: .top) {
-                    Text("< 去竞技")
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 6)
-                        .font(.subheadline)
-                        .background(Color.orange.opacity(0.6))
-                        .cornerRadius(12)
-                    
-                    Spacer()
-                    Text("每日运动任务")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Spacer()
-                    
-                    Text("去训练 >")
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 6)
-                        .font(.subheadline)
-                        .background(Color.orange.opacity(0.6))
-                        .cornerRadius(12)
-                }
-                .padding(.horizontal, 10)
-                
-                // 进度条区域
-                VStack(spacing: 12) {
-                    ZStack(alignment: .leading) {
-                        // 背景条
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.white.opacity(0.25))
-                            .frame(height: 10)
-                        
-                        // 前景条
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing))
-                            .frame(width: CGFloat(progress) * 250, height: 10)
-                            .animation(.easeOut(duration: 0.5), value: progress)
-                    }
-                    .frame(width: 250)
-                    .overlay(alignment: .leading) {
-                        GeometryReader { geo in
-                            HStack(spacing: 0) {
-                                Image(systemName: "bicycle")
-                                    .padding(10)
-                                    .background(
-                                        Circle()
-                                            .stroke(Color.white.opacity(0.8), lineWidth: 3)
-                                    )
-                                ForEach(Array(rewardStages.enumerated()), id: \.offset) { index, stage in
-                                    let reached = progress >= stage
-                                    let claimed = claimedStages.contains(index)
-                                    
-                                    Circle()
-                                        .strokeBorder(reached ? (claimed ? Color.gray : .yellow) : .white.opacity(0.5), lineWidth: 2)
-                                        .background(
-                                            Circle()
-                                                .fill(reached ? (claimed ? Color.gray.opacity(0.5) : .yellow) : Color.clear)
-                                        )
-                                        .frame(width: 30, height: 30)
-                                        .overlay(
-                                            Image(systemName: claimed ? "checkmark" : "gift.fill")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(reached ? .white : .gray)
-                                        )
-                                        .offset(x: geo.size.width * stage - 10) // 中心对齐
-                                        .onTapGesture {
-                                            if reached && !claimed {
-                                                withAnimation(.spring()) {
-                                                    claimedStages.insert(index)
-                                                }
-                                            }
-                                        }
-                                }
-                            }
-                            .border(.red)
-                        }
-                    }
-                    // 当前进度说明
-                    Text(String(format: "%.1f / %.1f km", progress * totalDistance, totalDistance))
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                }
-            }
-            .padding(.top, 10)
-            .padding(.bottom, 20)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.orange.opacity(0.8), lineWidth: 3)
-                    .background(Color.white.opacity(0.2))
-            )
-            .cornerRadius(10)
-        }
-        .foregroundStyle(Color.white)
-        .padding(.horizontal)
     }
 }
 

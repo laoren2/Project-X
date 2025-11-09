@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import WatchConnectivity
 
 class MagicCardFactory {
     typealias CardConstructor = (String, Int, JSONValue) -> MagicCardEffect
@@ -77,20 +77,22 @@ class HeartRateBoostEffect: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchCycleUpdate) { context in
-            if Int(context.latestHeartRate) >= 90 {
+            if let heartRate = context.latestHeartRate, Int(heartRate) >= 90  {
                 self.validTotalTime += 3
             }
         }
         eventBus.on(.matchEnd) { context in
             context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.01 * self.bonusTime * self.validTotalTime)
-            if self.level >= 3 && Int(context.avgHeartRate) >= 100 {
-                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime1)
-            }
-            if self.level >= 6 && Int(context.avgHeartRate) >= 110 {
-                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime2)
-            }
-            if self.level == 10 && Int(context.avgHeartRate) >= 120 {
-                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime3)
+            if let avgHeartRate = context.avgHeartRate {
+                if self.level >= 3 && Int(avgHeartRate) >= 100 {
+                    context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime1)
+                }
+                if self.level >= 6 && Int(avgHeartRate) >= 110 {
+                    context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime2)
+                }
+                if self.level == 10 && Int(avgHeartRate) >= 120 {
+                    context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonusTime3)
+                }
             }
         }
     }

@@ -11,6 +11,8 @@ import Foundation
 import Combine
 import WatchConnectivity
 import HealthKit
+import os
+
 
 class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     // 协议要求
@@ -47,24 +49,24 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     func connect() -> Bool {
         // 先检查是否配对
         guard session.isPaired else {
-            print("[AppleWatchDevice] connect() failed: Apple Watch not paired.")
+            Logger.competition.notice_public("[AppleWatchDevice] connect() failed: Apple Watch not paired.")
             return false
         }
         
         // 检查是否安装了 Watch App
         guard session.isWatchAppInstalled else {
-            print("[AppleWatchDevice] connect() failed: Watch App is not installed.")
+            Logger.competition.notice_public("[AppleWatchDevice] connect() failed: Watch App is not installed.")
             return false
         }
         
         // 检查 activationState
         if session.activationState == .activated {
-            print("[AppleWatchDevice] connect() success.")
+            Logger.competition.notice_public("[AppleWatchDevice] connect() success.")
             // 连接成功后切换代理
             session.delegate = self
             return true
         } else {
-            print("[AppleWatchDevice] connect() failed.")
+            Logger.competition.notice_public("[AppleWatchDevice] connect() failed.")
             return false
         }
     }
@@ -79,7 +81,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         guard session.activationState == .activated else {
             let toast = Toast(message: "watch连接失败")
             ToastManager.shared.show(toast: toast)
-            print("[AppleWatchDevice] WCSession not activated, cannot update start context.")
+            Logger.competition.notice_public("[AppleWatchDevice] WCSession not activated, cannot update start context.")
             return
         }
         canReceiveData = true
@@ -107,7 +109,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
                     await MainActor.run {
                         let toast = Toast(message: "请在watch端点击同步开始比赛")
                         ToastManager.shared.show(toast: toast)
-                        print("\(error.localizedDescription)")
+                        Logger.competition.notice_public("[AppleWatchDevice] start workout error: \(error.localizedDescription)")
                     }
                 }
             }
@@ -126,9 +128,9 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
                 "timestamp": Date().timeIntervalSince1970  // 给个时间戳避免被认为是旧状态
             ]
             try session.updateApplicationContext(context)
-            print("[AppleWatchDevice] Sent startCollecting state via applicationContext.")
+            Logger.competition.notice_public("[AppleWatchDevice] Sent startCollecting state via applicationContext.")
         } catch {
-            print("[AppleWatchDevice] Failed to update start applicationContext: \(error)")
+            Logger.competition.notice_public("[AppleWatchDevice] Failed to update start applicationContext: \(error)")
         }
     }
     
@@ -136,7 +138,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         guard session.activationState == .activated else {
             let toast = Toast(message: "watch连接失败,请手动结束watch上的运动")
             ToastManager.shared.show(toast: toast)
-            print("[AppleWatchDevice] WCSession not activated, cannot update stop context.")
+            Logger.competition.notice_public("[AppleWatchDevice] WCSession not activated, cannot update stop context.")
             return
         }
         do {
@@ -145,9 +147,9 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
                 "timestamp": Date().timeIntervalSince1970  // 给个时间戳避免被认为是旧状态
             ]
             try session.updateApplicationContext(context)
-            print("[AppleWatchDevice] Sent stopCollecting state via applicationContext.")
+            Logger.competition.notice_public("[AppleWatchDevice] Sent stopCollecting state via applicationContext.")
         } catch {
-            print("[AppleWatchDevice] Failed to update stop applicationContext: \(error)")
+            Logger.competition.notice_public("[AppleWatchDevice] Failed to update stop applicationContext: \(error)")
         }
         
         if SAVESENSORDATA {
@@ -168,7 +170,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
             do {
                 try csvHeader.write(to: fileURL, atomically: true, encoding: .utf8)
             } catch {
-                print("Failed to write CSV header: \(error)")
+                Logger.competition.notice_public("[AppleWatchDevice] Failed to write CSV header: \(error)")
                 return
             }
         }
@@ -197,7 +199,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
                 fileHandle.closeFile()
                 //print("watch Batch saved as CSV.")
             } catch {
-                print("Failed to append watch CSV: \(error)")
+                Logger.competition.notice_public("[AppleWatchDevice] Failed to append watch CSV: \(error)")
             }
         }
     }
@@ -217,27 +219,28 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
 // MARK: - WCSessionDelegate
 extension AppleWatchDevice: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        print("[WatchSensorManager] activationDidComplete. State: \(activationState.rawValue), Error: \(String(describing: error))")
+        Logger.competition.notice_public("[AppleWatchDevice] activationDidComplete. State: \(activationState.rawValue), Error: \(String(describing: error))")
     }
     
     func sessionDidBecomeInactive(_ session: WCSession) {
         // iOS 13+ 可能会用到
-        print("[AppleWatchDevice] Watch become inactive")
+        Logger.competition.notice_public("[AppleWatchDevice] Watch become inactive")
     }
     
     func sessionDidDeactivate(_ session: WCSession) {
         // iOS 13+ 可能会用到
         // 重新激活
-        print("[AppleWatchDevice] Watch deactivate")
+        Logger.competition.notice_public("[AppleWatchDevice] Watch deactivate")
         session.activate()
     }
     
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         // Watch 端用 sendMessage(["watchBatch": [ ... ]]) 的场景
         if let batchArray = message["IMUBatch"] as? [[String: Any]] {
+            //Logger.competition.notice_public("IMUBatch")
             var batchData = [SensorData]()
             var cnt = 0
-            //print("Start convert message...")
+            //Logger.competition.notice_public("Start convert message...")
             for item in batchArray {
                 cnt += 1
                 if let timestamp = item["timestamp"] as? Date,
@@ -262,9 +265,9 @@ extension AppleWatchDevice: WCSessionDelegate {
                     }
                 }
             }
-            //print("receive batch size : ", cnt)
+            //Logger.competition.notice_public("receive batch size : ", cnt)
             if canReceiveData {
-                //print("add batch data")
+                //Logger.competition.notice_public("add batch data")
                 dataFusionManager.addSensorData(sensorPos, batchData)
             }
             
@@ -278,9 +281,9 @@ extension AppleWatchDevice: WCSessionDelegate {
             }
         }
         if let statsData = message["statsData"] as? [String: Any] {
-            //print("receive statsData: \(statsData)")
+            //Logger.competition.notice_public("statsData")
             if canReceiveData {
-                //print("set statsData")
+                //Logger.competition.notice_public("set statsData")
                 competitionManager.handleStatsData(stats: statsData)
             }
         }
