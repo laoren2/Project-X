@@ -87,14 +87,17 @@ class RunningTrackBackendViewModel: ObservableObject {
     
     @Published var from_la: String = ""
     @Published var from_lo: String = ""
+    @Published var from_radius: Int = 0
     @Published var to_la: String = ""
     @Published var to_lo: String = ""
+    @Published var to_radius: Int = 0
     
     @Published var elevationDifference: String = ""
     @Published var subRegioName: String = ""
     @Published var prizePool: String = ""
     @Published var distance: String = ""
     @Published var score: String = ""
+    @Published var terrainType: RunningTrackTerrainType = .other
     
     var image_url: String = ""
 }
@@ -105,8 +108,10 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let name: String
     let from_latitude: String
     let from_longitude: String
+    let from_radius: Int
     let to_latitude: String
     let to_longitude: String
+    let to_radius: Int
     
     let start_date: String
     let end_date: String
@@ -115,11 +120,12 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let region_name: String
     let image_url: String
     
-    let elevationDifference: String    // 海拔差(米)
-    let subRegioName: String        // 覆盖的地理子区域
-    let prizePool: String              // 奖金池金额
+    let elevationDifference: String     // 海拔差(米)
+    let subRegioName: String            // 覆盖的地理子区域
+    let prizePool: String               // 奖金池金额
     let distance: String
-    let score: String              // 积分
+    let score: String                   // 积分
+    let terrain_type: RunningTrackTerrainType
     let is_settled: Bool
     
     init(from track: RunningTrackInfoInternalDTO) {
@@ -128,8 +134,10 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.name = track.name
         self.from_latitude = track.from_latitude
         self.from_longitude = track.from_longitude
+        self.from_radius = track.from_radius
         self.to_latitude = track.to_latitude
         self.to_longitude = track.to_longitude
+        self.to_radius = track.to_radius
         
         self.start_date = track.start_date
         self.end_date = track.end_date
@@ -137,6 +145,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.season_name = track.season_name
         self.region_name = track.region_name
         self.image_url = track.image_url
+        self.terrain_type = track.terrain_type
         
         self.elevationDifference = track.elevation_difference
         self.subRegioName = track.sub_region_name
@@ -164,13 +173,16 @@ struct RunningTrackInfoInternalDTO: Codable {
     
     let from_latitude: String
     let from_longitude: String
+    let from_radius: Int
     let to_latitude: String
     let to_longitude: String
+    let to_radius: Int
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: String         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
     let distance: String
     let score: String
+    let terrain_type: RunningTrackTerrainType  // 地形类型
     let is_settled: Bool                // 是否已结算
 }
 
@@ -257,13 +269,16 @@ class BikeTrackBackendViewModel: ObservableObject {
     
     @Published var from_la: String = ""
     @Published var from_lo: String = ""
+    @Published var from_radius: Int = 0
     @Published var to_la: String = ""
     @Published var to_lo: String = ""
+    @Published var to_radius: Int = 0
     
     @Published var elevationDifference: String = ""
     @Published var subRegioName: String = ""
     @Published var prizePool: String = ""
     @Published var score: String = ""
+    @Published var terrainType: BikeTrackTerrainType = .other
     
     var image_url: String = ""
 }
@@ -274,8 +289,10 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let name: String
     let from_latitude: String
     let from_longitude: String
+    let from_radius: Int
     let to_latitude: String
     let to_longitude: String
+    let to_radius: Int
     
     let start_date: String
     let end_date: String
@@ -284,10 +301,11 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let region_name: String
     let image_url: String
     
-    let elevationDifference: String    // 海拔差(米)
-    let subRegioName: String        // 覆盖的地理子区域
-    let prizePool: String              // 奖金池金额
-    let score: String              // 积分
+    let elevationDifference: String     // 海拔差(米)
+    let subRegioName: String            // 覆盖的地理子区域
+    let prizePool: String               // 奖金池金额
+    let score: String                   // 积分
+    let terrain_type: BikeTrackTerrainType
     let is_settled: Bool
     
     init(from track: BikeTrackInfoInternalDTO) {
@@ -296,8 +314,10 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.name = track.name
         self.from_latitude = track.from_latitude
         self.from_longitude = track.from_longitude
+        self.from_radius = track.from_radius
         self.to_latitude = track.to_latitude
         self.to_longitude = track.to_longitude
+        self.to_radius = track.to_radius
         
         self.start_date = track.start_date
         self.end_date = track.end_date
@@ -310,6 +330,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.subRegioName = track.sub_region_name
         self.prizePool = track.prize_pool
         self.score = track.score
+        self.terrain_type = track.terrain_type
         self.is_settled = track.is_settled
     }
     
@@ -331,12 +352,16 @@ struct BikeTrackInfoInternalDTO: Codable {
     
     let from_latitude: String
     let from_longitude: String
+    let from_radius: Int
     let to_latitude: String
     let to_longitude: String
+    let to_radius: Int
+    
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: String         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
-    let score: String
+    let score: String                   // 积分等级
+    let terrain_type: BikeTrackTerrainType  // 地形类型
     let is_settled: Bool                // 是否已结算
 }
 

@@ -87,13 +87,14 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published var showAlert = false // 是否弹出提示
     @Published var alertTitle = ""
     @Published var alertMessage = ""
-    @Published var userLocation: CLLocationCoordinate2D? = nil // 当前用户位置
+    @Published var userLocation: CLLocation? = nil // 当前用户位置
     @Published var isInValidArea: Bool = false // 是否在比赛出发点
     
     @Published var startCoordinate = CLLocationCoordinate2D(latitude: 31.00550, longitude: 121.40962)
     @Published var endCoordinate = CLLocationCoordinate2D(latitude: 31.03902, longitude: 121.39807)
     
-    let safetyRadius: CLLocationDistance = 50.0
+    var startRadius: CLLocationDistance = 10.0
+    var endRadius: CLLocationDistance = 10.0
     
     private var motionManager: CMMotionManager = CMMotionManager()
     private var audioRecorder: AVAudioRecorder!
@@ -103,18 +104,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var competitionData: [PhoneData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
     
-    private var pathData: [PathPoint] = []
+    @Published var basePathData: [PathPoint] = []               // 基本轨迹数据
+    @Published var bikePathData: [BikePathPoint] = []           // 轨迹数据
+    @Published var runningPathData: [RunningPathPoint] = []     // 轨迹数据
+    private var pathPointInEndSafetyRadius: [PathPoint] = []    // 在终点的安全范围内记录的点
+    @Published var realtimeStatisticData = StatisticData()      // 比赛时 realtimeView 展示的实时统计数据
     
     private var timer: DispatchSourceTimer? //定时器
     private var collectionTimer: Timer?
 
-    private var teamJoinTimerA: Timer? // 用于获取比赛剩余可加入时间的计时器
-    private var teamJoinTimerB: Timer? // 用于剩余可加入时间倒计时的计时器
-    var teamJoinTimeWindow: Int = 180 // 组队模式下的可加入时间窗口
+    private var teamJoinTimerA: Timer?  // 用于获取比赛剩余可加入时间的计时器
+    private var teamJoinTimerB: Timer?  // 用于剩余可加入时间倒计时的计时器
+    var teamJoinTimeWindow: Int = 180   // 组队模式下的可加入时间窗口
     
     // todo: 将频繁更新的属性移出competitionManager，否则会影响某些系统ui交互（如alert button）
-    @Published var teamJoinRemainingTime: Int = 180 // 剩余可加入时间，频繁更新，暂时无交互受影响，先放在这里
-    @Published var isTeamJoinWindowExpired: Bool = false // 是否已过期
+    @Published var teamJoinRemainingTime: Int = 180         // 剩余可加入时间，频繁更新，暂时无交互受影响，先放在这里
+    @Published var isTeamJoinWindowExpired: Bool = false    // 是否已过期
 
     // 计时器a和计时器b
     func startTeamJoinTimerA() {
@@ -228,7 +233,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         motionManager.magnetometerUpdateInterval = 0.05
         //requestMicrophoneAccess()
         setupDataBindings()
-        // 嵌套的ObservableObject逐层订阅通知写在这里：
+        // 嵌套的ObservableObject逐层订阅通知写在这里
     }
     
     // 设置 Combine 订阅
@@ -277,13 +282,25 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private func handleLocationUpdate(_ location: CLLocation) {
         // 在这里处理位置更新，比如后台计算、数据存储或UI响应
         // 已经在主线程上，将耗时操作转入后台
-        //userLocation = location.coordinate
+        userLocation = location
         DispatchQueue.global(qos: .background).async { [self] in
             if isRecording {
                 // 比赛进行中，检查用户是否在终点的安全区域内
                 let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
-                let inEndZone = dis <= safetyRadius
+                let inEndZone = dis <= endRadius
+                let inSafetyEndZone = dis <= 2 * endRadius
                 //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
+                if inSafetyEndZone {
+                    let point = PathPoint(
+                        lat: location.coordinate.latitude,
+                        lon: location.coordinate.longitude,
+                        speed: location.speed,
+                        altitude: location.altitude,
+                        heart_rate: nil,
+                        timestamp: location.timestamp.timeIntervalSince1970
+                    )
+                    pathPointInEndSafetyRadius.append(point)
+                }
                 if inEndZone {
                     DispatchQueue.main.async {
                         self.stopCompetition()
@@ -293,7 +310,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 // 比赛开始前，检查用户是否在出发点的安全区域内
                 let distance = location.distance(from: CLLocation(latitude: startCoordinate.latitude, longitude: startCoordinate.longitude))
                 DispatchQueue.main.async {
-                    self.isInValidArea = distance <= self.safetyRadius
+                    self.isInValidArea = distance <= self.startRadius
                 }
             }
         }
@@ -416,15 +433,24 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
             if let totalEnergy = stats["totalEnergy"] as? Double {
                 self.matchContext.totalEnergy = totalEnergy
+                DispatchQueue.main.async {
+                    self.realtimeStatisticData.totalEnergy = Int(totalEnergy)
+                }
             }
             if let avgPower = stats["avgPower"] as? Double {
                 self.matchContext.avgPower = avgPower
             }
             if let latestHeartRate = stats["latestHeartRate"] as? Double {
                 self.matchContext.latestHeartRate = latestHeartRate
+                DispatchQueue.main.async {
+                    self.realtimeStatisticData.heartRate = Int(latestHeartRate)
+                }
             }
             if let latestPower = stats["latestPower"] as? Double {
                 self.matchContext.latestPower = latestPower
+                DispatchQueue.main.async {
+                    self.realtimeStatisticData.power = Int(latestPower)
+                }
             }
         }
     }
@@ -444,18 +470,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     // todo: 使用机器学习模型校验
     func verifyBikeMatchData() -> Bool {
         guard startTime != nil else { return false }
-        guard let lastPointLat = pathData.last?.lat,
-              let lastPointLon = pathData.last?.lon,
-              let startTime = pathData.first?.timestamp,
-              let endTime = pathData.last?.timestamp,
+        guard let startTime = basePathData.first?.timestamp,
+              let endTime = basePathData.last?.timestamp,
               startTime < endTime else {
             return false
         }
-        let location = CLLocation(latitude: lastPointLat, longitude: lastPointLon)
-        let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
-        guard dis <= safetyRadius else { return false }
         
-        guard pathData.count >= 2 else {
+        guard !pathPointInEndSafetyRadius.isEmpty else { return false }
+        
+        guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
             return false
         }
@@ -464,7 +487,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         var score = 100
         
         let totalTime = endTime - startTime  // 秒
-        let totalMeters = computeTotalDistance(path: pathData)
+        let totalMeters = computeTotalDistance(path: basePathData)
         let avgSpeedKmh = (totalMeters / totalTime) * 3.6  // 转 km/h
         
         // 规则 1：平均速度太低 → 不进行深度校验（直接视为合法）
@@ -473,7 +496,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 规则 2：局部速度极端段
-        let segSpeeds = computeSegmentSpeeds(path: pathData, windowMeters: 100)
+        let segSpeeds = computeSegmentSpeeds(path: basePathData, windowMeters: 100)
         for v in segSpeeds {
             if v > 80 {
                 // 极端超速段
@@ -486,13 +509,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 规则 3：海拔跳跃异常
-        let altitudes = pathData.map { $0.altitude }
+        let altitudes = basePathData.map { $0.altitude }
         if detectElevationJump(elevs: altitudes, maxJump: 50.0) {
             score -= 10
         }
         
         // 规则 4：坡度极端
-        let slopeStats = computeSlopeStats(path: pathData)
+        let slopeStats = computeSlopeStats(path: basePathData)
         if slopeStats.maxSlope > 1.0 {
             // 最大坡度 > 100% 非现实
             score -= 10
@@ -501,7 +524,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 规则 5：GPS 跳变数
-        let jumpCount = countGpsJumps(path: pathData, maxReasonableKmh: 50)
+        let jumpCount = countGpsJumps(path: basePathData, maxReasonableKmh: 50)
         score -= jumpCount * 5
         
         // 规则 6：功率 / 心率 一致性（如果有）
@@ -537,18 +560,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     func verifyRunningMatchData() -> Bool {
         guard startTime != nil else { return false }
-        guard let lastPointLat = pathData.last?.lat,
-              let lastPointLon = pathData.last?.lon,
-              let startTime = pathData.first?.timestamp,
-              let endTime = pathData.last?.timestamp,
+        guard let startTime = basePathData.first?.timestamp,
+              let endTime = basePathData.last?.timestamp,
               startTime < endTime else {
             return false
         }
-        let location = CLLocation(latitude: lastPointLat, longitude: lastPointLon)
-        let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
-        guard dis <= safetyRadius else { return false }
         
-        guard pathData.count >= 2 else {
+        guard !pathPointInEndSafetyRadius.isEmpty else { return false }
+        
+        guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
             return false
         }
@@ -557,7 +577,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         var score = 100
         
         let totalTime = endTime - startTime  // 秒
-        let totalMeters = computeTotalDistance(path: pathData)
+        let totalMeters = computeTotalDistance(path: basePathData)
         let avgSpeedKmh = (totalMeters / totalTime) * 3.6  // 转 km/h
         
         // 规则 1：平均速度太低 → 不进行深度校验（直接视为合法）
@@ -565,7 +585,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             return true
         }
         // 规则 2：局部速度极端段
-        let segSpeeds = computeSegmentSpeeds(path: pathData, windowMeters: 100)
+        let segSpeeds = computeSegmentSpeeds(path: basePathData, windowMeters: 100)
         for v in segSpeeds {
             if v > 30 {
                 score -= 20
@@ -577,13 +597,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 规则 3：海拔跳跃异常
-        let altitudes = pathData.map { $0.altitude }
+        let altitudes = basePathData.map { $0.altitude }
         if detectElevationJump(elevs: altitudes, maxJump: 50.0) {
             score -= 10
         }
         
         // 规则 4：坡度极端
-        let slopeStats = computeSlopeStats(path: pathData)
+        let slopeStats = computeSlopeStats(path: basePathData)
         if slopeStats.maxSlope > 2 {
             // 最大坡度 > 100% 非现实
             score -= 10
@@ -592,7 +612,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 规则 5：GPS 跳变数
-        let jumpCount = countGpsJumps(path: pathData, maxReasonableKmh: 30)
+        let jumpCount = countGpsJumps(path: basePathData, maxReasonableKmh: 30)
         score -= jumpCount * 5
         
         // 规则 6：功率 / 心率 一致性（如果有）
@@ -619,17 +639,90 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
     }
     
+    // 整理轨迹和计算最终成绩
     func organizeEndTime() -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let endTime = formatter.string(from: Date())
-        return endTime
+        
+        guard !pathPointInEndSafetyRadius.isEmpty else {
+            return formatter.string(from: Date())
+        }
+        
+        // Step 1: 第一个在终点内的点
+        for p in pathPointInEndSafetyRadius {
+            let distance = CLLocation(latitude: p.lat, longitude: p.lon)
+                .distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
+            if distance <= endRadius {
+                return formatter.string(from: Date(timeIntervalSince1970: p.timestamp))
+            }
+        }
+        
+        // Step 2: 检查线段是否穿过终点圆
+        for i in 1..<pathPointInEndSafetyRadius.count {
+            let p1 = pathPointInEndSafetyRadius[i-1]
+            let p2 = pathPointInEndSafetyRadius[i]
+            if let t = intersectionRatioBetweenSegment(p1, p2, circleCenter: endCoordinate, radius: endRadius) {
+                let crossTimestamp = p1.timestamp + (p2.timestamp - p1.timestamp) * t
+                return formatter.string(from: Date(timeIntervalSince1970: crossTimestamp))
+            }
+        }
+        
+        // Step 3: 最后一个点外推
+        if let last = pathPointInEndSafetyRadius.last {
+            let distance = CLLocation(latitude: last.lat, longitude: last.lon)
+                .distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
+            if last.speed > 0.5 {
+                let deltaTime = distance / last.speed
+                let adjustedTime = last.timestamp + deltaTime
+                return formatter.string(from: Date(timeIntervalSince1970: adjustedTime))
+            } else {
+                return formatter.string(from: Date(timeIntervalSince1970: last.timestamp))
+            }
+        }
+        
+        // fallback
+        return formatter.string(from: Date())
+    }
+    
+    // 判断线段 (p1, p2) 是否与以 circleCenter, radius 的圆相交，
+    // 如果相交则返回交点在 p1→p2 上的比例 t（0~1），否则返回 nil
+    private func intersectionRatioBetweenSegment(
+        _ p1: PathPoint, _ p2: PathPoint,
+        circleCenter: CLLocationCoordinate2D, radius: Double
+    ) -> Double? {
+        let x1 = p1.lon, y1 = p1.lat
+        let x2 = p2.lon, y2 = p2.lat
+        let cx = circleCenter.longitude, cy = circleCenter.latitude
+        
+        // 将经纬度近似为局部平面坐标（误差可忽略）
+        let dx = x2 - x1
+        let dy = y2 - y1
+        let fx = x1 - cx
+        let fy = y1 - cy
+        
+        let a = dx*dx + dy*dy
+        let b = 2 * (fx*dx + fy*dy)
+        let c = fx*fx + fy*fy - radius*radius
+        
+        let discriminant = b*b - 4*a*c
+        if discriminant < 0 { return nil } // 没有交点
+        
+        let sqrtDisc = sqrt(discriminant)
+        let t1 = (-b - sqrtDisc) / (2*a)
+        let t2 = (-b + sqrtDisc) / (2*a)
+        
+        // 取第一个合法交点（0~1）
+        if (0...1).contains(t1) {
+            return t1
+        } else if (0...1).contains(t2) {
+            return t2
+        } else {
+            return nil
+        }
     }
     
     // todo: 暂时开始时间和结束时间都由客户端决定，未来可在服务端接收到请求后记录时间进行二次验证
     func finishCompetition_server() {
-        
-        // 校验 & 整理轨迹和时间
         let optimizeEndTime = organizeEndTime()
         
         if let record = currentBikeRecord, sport == .Bike {
@@ -640,12 +733,12 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             //print("BikeMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
-            let requestData = FinishMatchRequest(
+            let requestData = BikeFinishMatchRequest(
                 validation_status: validationResult,
                 record_id: record.record_id,
                 end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
-                path: pathData
+                path: bikePathData
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else {
                 return
@@ -673,12 +766,12 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             //print("RunningMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
-            let requestData = FinishMatchRequest(
+            let requestData = RunningFinishMatchRequest(
                 validation_status: validationResult,
                 record_id: record.record_id,
                 end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
-                path: pathData
+                path: runningPathData
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else {
                 return
@@ -752,8 +845,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func startRecordingSession() {
+        // 清理定时器任务可能残留的数据
         matchContext.reset()
         matchContext.isTeam = isTeam
+        realtimeStatisticData.reset()
+        basePathData = []
+        bikePathData = []
+        runningPathData = []
+        dataFusionManager.elapsedTime = 0
+        
         // 默认将所有加载卡牌添加进 matchContext 中
         for card in activeCardEffects {
             matchContext.addOrUpdateBonus(cardID: card.cardID, bonus: 0)
@@ -803,6 +903,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     // 启动定时器
+    // todo: 使用定时 Task 代替 GCD 定时器，彻底解决残留定时任务与清理任务的竞态问题
     private func startTimer() {
         // 在比赛开始时已记录下 startTime = Date()
         let timer = DispatchSource.makeTimerSource(queue: timerQueue)
@@ -813,7 +914,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             guard let self = self, self.isRecording, let start = self.startTime else { return }
             
             // 记录 phone 端数据
-            if self.sensorRequest & 0b000001 != 0 {
+            if self.sensorRequest & 0b000001 != 0 && self.isRecording {
                 self.recordMotionData()
             }
             
@@ -832,7 +933,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
             
             // 每3秒记录一次 path 数据 & 发出 matchCycleUpdate 信号
-            if tickCounter % 60 == 0 { // 60 * 0.05s = 3s
+            if tickCounter % 60 == 0 && self.isRecording { // 60 * 0.05s = 3s
                 self.recordPath()
                 eventBus.emit(.matchCycleUpdate, context: matchContext)
                 tickCounter = 0 // 重置计数器
@@ -856,19 +957,54 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     // 记录path数据
     private func recordPath() {
         guard let location = LocationManager.shared.getLocation() else {
-            print("location data missed in path point.")
+            //print("location data missed in path point.")
             return
         }
-        let altitude = LocationManager.shared.getLocation()?.altitude ?? -11034
-        let speed = LocationManager.shared.getLocation()?.speed ?? -1
-        let pathPoint = PathPoint(
+        //let altitude = LocationManager.shared.getLocation()?.altitude ?? -11034
+        //let speed = LocationManager.shared.getLocation()?.speed ?? -1
+        let basePoint = PathPoint(
             lat: location.coordinate.latitude,
             lon: location.coordinate.longitude,
-            speed: speed,
-            altitude: altitude,
-            timestamp: location.timestamp.timeIntervalSince1970
+            speed: location.speed,
+            altitude: location.altitude,
+            heart_rate: matchContext.latestHeartRate,
+            timestamp: Date().timeIntervalSince1970
         )
-        pathData.append(pathPoint)
+        basePathData.append(basePoint)
+        if currentBikeRecord != nil, sport == .Bike {
+            let pathPoint = BikePathPoint(
+                base: basePoint,
+                power: matchContext.latestPower,
+                pedal_cadence: matchContext.pedalCadence
+            )
+            if let lastPoint = bikePathData.last {
+                let distance = horizontalDistance(from: lastPoint.base, to: pathPoint.base)
+                DispatchQueue.main.async {
+                    self.realtimeStatisticData.distance += distance
+                    self.realtimeStatisticData.avgSpeed = 3.6 * self.realtimeStatisticData.distance / self.dataFusionManager.elapsedTime
+                }
+            }
+            bikePathData.append(pathPoint)
+        }
+        if currentRunningRecord != nil, sport == .Running {
+            let pathPoint = RunningPathPoint(
+                base: basePoint,
+                power: matchContext.latestPower,
+                step_cadence: matchContext.stepCadence,
+                vertical_amplitude: nil,
+                touchdown_time: nil,
+                step_size: nil
+            )
+            if let lastPoint = runningPathData.last {
+                let distance = horizontalDistance(from: lastPoint.base, to: pathPoint.base)
+                DispatchQueue.main.async {
+                    self.realtimeStatisticData.distance += distance
+                    self.realtimeStatisticData.avgSpeed = 3.6 * self.realtimeStatisticData.distance / self.dataFusionManager.elapsedTime
+                }
+            }
+            runningPathData.append(pathPoint)
+        }
+        //print(pathPoint)
     }
     
     // 记录运动数据
@@ -998,14 +1134,18 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         sport = .Bike
         currentBikeRecord = record
         startCoordinate = record.trackStart
+        startRadius = CLLocationDistance(record.trackStartRadius)
         endCoordinate = record.trackEnd
+        endRadius = CLLocationDistance(record.trackEndRadius)
     }
     
     func resetRunningRaceRecord(record: RunningRaceRecord) {
         sport = .Running
         currentRunningRecord = record
         startCoordinate = record.trackStart
+        startRadius = CLLocationDistance(record.trackStartRadius)
         endCoordinate = record.trackEnd
+        endRadius = CLLocationDistance(record.trackEndRadius)
     }
     
     func activateCards(_ cards: [MagicCard]) {
@@ -1016,8 +1156,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 卸载所有effects
+        // todo: 未来考虑是否将清理操作分散到 every card effect 里的 unload() 中
         sensorRequest = 0
         dataFusionManager.resetAll()
+        deviceManager.resetAllDeviceStatus()
         
         selectedCards = cards
         activeCardEffects = selectedCards.map { card in
@@ -1051,12 +1193,18 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         activeCardEffects.removeAll()
         eventBus.reset()
         matchContext.reset()
+        realtimeStatisticData.reset()
         sensorRequest = 0
         startCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+        startRadius = 0.0
         endCoordinate = CLLocationCoordinate2D(latitude: 1, longitude: 1)
+        endRadius = 0.0
         startTime = nil
         sport = .Default
-        pathData = []
+        
+        basePathData = []
+        bikePathData = []
+        runningPathData = []
         //expectedStatsWatchCount = 0
         
         isInValidArea = false
@@ -1094,9 +1242,7 @@ extension CompetitionManager {
             let p1 = path[i - 1]
             let p2 = path[i]
             
-            let dt = p2.timestamp - p1.timestamp
-            var dist = horizontalDistance(from: p1, to: p2)
-            
+            let dist = horizontalDistance(from: p1, to: p2)
             accumulatedDistance += dist
             
             if accumulatedDistance >= windowMeters {
@@ -1205,32 +1351,38 @@ enum MatchEvent {
 
 class MatchContext {
     var isTeam: Bool
-    var latestHeartRate: Double
-    var latestPower: Double
-    var avgHeartRate: Double
-    var totalEnergy: Double
-    var avgPower: Double
+    var latestHeartRate: Double?
+    var latestPower: Double?
+    var avgHeartRate: Double?
+    var totalEnergy: Double?
+    var avgPower: Double?
+    var pedalCadence: Double?
+    var stepCadence: Double?
     var sensorData: DataSnapshot
     var bonusEachCards: [CardBonusItem]
     
     init() {
         self.isTeam = false
-        self.latestHeartRate = 0
-        self.latestPower = 0
-        self.avgHeartRate = 0
-        self.totalEnergy = 0
-        self.avgPower = 0
+        self.latestHeartRate = nil
+        self.latestPower = nil
+        self.avgHeartRate = nil
+        self.totalEnergy = nil
+        self.avgPower = nil
+        self.pedalCadence = nil
+        self.stepCadence = nil
         self.sensorData = DataSnapshot(phoneSlice: [], sensorSlice: [], predictTime: 0)
         self.bonusEachCards = []
     }
     
     func reset() {
         isTeam = false
-        latestHeartRate = 0
-        latestPower = 0
-        avgHeartRate = 0
-        totalEnergy = 0
-        avgPower = 0
+        latestHeartRate = nil
+        latestPower = nil
+        avgHeartRate = nil
+        totalEnergy = nil
+        avgPower = nil
+        pedalCadence = nil
+        stepCadence = nil
         sensorData = DataSnapshot(phoneSlice: [], sensorSlice: [], predictTime: 0)
         bonusEachCards = []
     }
@@ -1253,7 +1405,25 @@ struct PathPoint: Codable {
     let lon: Double
     let speed: Double
     let altitude: Double
+    let heart_rate: Double?
     let timestamp: TimeInterval
+}
+
+struct BikePathPoint: Codable {
+    let base: PathPoint
+    
+    let power: Double?
+    let pedal_cadence: Double?
+}
+
+struct RunningPathPoint: Codable {
+    let base: PathPoint
+    
+    let power: Double?
+    let step_cadence: Double?
+    let vertical_amplitude: Double?
+    let touchdown_time: Double?
+    let step_size: Double?
 }
 
 struct CardBonusItem: Codable {
@@ -1261,12 +1431,50 @@ struct CardBonusItem: Codable {
     var bonus_time: Double
 }
 
-struct FinishMatchRequest: Codable {
+struct BikeFinishMatchRequest: Codable {
     let validation_status: Bool
     let record_id: String
     let end_time: String
     let bonus_in_cards: [CardBonusItem]
-    let path: [PathPoint]
+    let path: [BikePathPoint]
+}
+
+struct RunningFinishMatchRequest: Codable {
+    let validation_status: Bool
+    let record_id: String
+    let end_time: String
+    let bonus_in_cards: [CardBonusItem]
+    let path: [RunningPathPoint]
+}
+
+class StatisticData {
+    var distance: Double        // 距离/m
+    var avgSpeed: Double        // 平均速度km/h
+    var heartRate: Int?         // 心率
+    var totalEnergy: Int?       // 能耗
+    var pedalCadence: Int?      // 踏频
+    var runningCadence: Int?    // 步频
+    var power: Int?             // 功率
+    
+    init() {
+        self.distance = 0
+        self.avgSpeed = 0
+        self.heartRate = nil
+        self.totalEnergy = nil
+        self.pedalCadence = nil
+        self.runningCadence = nil
+        self.power = nil
+    }
+    
+    func reset() {
+        distance = 0
+        avgSpeed = 0
+        heartRate = nil
+        totalEnergy = nil
+        pedalCadence = nil
+        runningCadence = nil
+        power = nil
+    }
 }
 
 // phone端完整数据格式

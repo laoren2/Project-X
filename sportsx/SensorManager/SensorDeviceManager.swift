@@ -7,6 +7,8 @@
 
 import Foundation
 import WatchConnectivity
+import os
+
 
 enum BodyPosition: Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
@@ -128,7 +130,7 @@ class DeviceManager: NSObject, ObservableObject {
             session.delegate = self
             session.activate()
         } else {
-            print("WCSession not supported")
+            Logger.competition.notice_public("WCSession not supported")
         }
     }
     
@@ -155,19 +157,28 @@ class DeviceManager: NSObject, ObservableObject {
         }
         return false
     }
+    
+    // 用来卸载卡牌时清理状态
+    func resetAllDeviceStatus() {
+        for pos in BodyPosition.allCases {
+            if var dev = getDevice(at: pos) {
+                dev.enableIMU = false
+            }
+        }
+    }
 }
 
 extension DeviceManager: WCSessionDelegate {
     func sessionDidBecomeInactive(_ session: WCSession) {
-        print("sessionDidBecomeInactive")
+        Logger.competition.notice_public("[DeviceManager] sessionDidBecomeInactive")
     }
     
     func sessionDidDeactivate(_ session: WCSession) {
-        print("sessionDidDeactivate")
+        Logger.competition.notice_public("[DeviceManager] sessionDidDeactivate")
         session.activate()
     }
     
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        print("activationState: \(activationState.rawValue)")
+        Logger.competition.notice_public("[DeviceManager] activationState: \(activationState.rawValue)")
     }
 }

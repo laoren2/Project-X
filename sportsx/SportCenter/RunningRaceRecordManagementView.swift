@@ -158,6 +158,7 @@ struct RunningRaceRecordManagementView: View {
             .ignoresSafeArea()
         }
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshRecordManageView {
                 Task {
@@ -236,7 +237,7 @@ struct RunningCompetitionRecordCard: View {
                             return min(start.addingTimeInterval(7200), end)
                         }()
                         
-                        Text("有效比赛时间: \(DateDisplay.formattedDate(record.teamCompetitionDate)) - \(DateDisplay.formattedDate(competitionEnd))")
+                        Text("有效开始时间: \(DateDisplay.formattedDate(record.teamCompetitionDate)) - \(DateDisplay.formattedDate(competitionEnd))")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }

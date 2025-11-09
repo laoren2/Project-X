@@ -14,13 +14,14 @@ struct RunningCompetitionView: View {
     @StateObject var viewModel = RunningCompetitionViewModel()
     @ObservedObject var centerViewModel: CompetitionCenterViewModel
     @ObservedObject var locationManager = LocationManager.shared
-    @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject var userManager = UserManager.shared
     let assetManager = AssetManager.shared
     
     @State private var selectedDetailEvent: RunningEvent? = nil
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
     @State private var firstOnAppear = true
+    @State private var selectedTrackForFullMap: RunningTrack? = nil
     
     @Binding var isDragging: Bool
     
@@ -31,7 +32,7 @@ struct RunningCompetitionView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 10) {
                     // 赛事选择区域
-                    HStack {
+                    HStack(alignment: .center) {
                         // 添加1个按钮管理我的队伍
                         VStack(spacing: 2) {
                             CommonIconButton(icon: "person.2") {
@@ -60,36 +61,31 @@ struct RunningCompetitionView: View {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     ForEach(viewModel.events) { event in
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            CommonIconButton(icon: "info.circle") {
-                                                selectedDetailEvent = event
-                                            }
-                                            .foregroundColor(Color.thirdText)
-                                            Text(event.name)
-                                                .font(.subheadline)
-                                                .foregroundColor(.white)
-                                                .fontWeight(.semibold)
-                                        }
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 12)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(viewModel.selectedEvent?.eventID == event.eventID ?
-                                                      Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(viewModel.selectedEvent?.eventID == event.eventID ?
-                                                        Color.blue : Color.clear, lineWidth: 2)
-                                        )
-                                        .exclusiveTouchTapGesture {
-                                            // 防止频繁刷新
-                                            if viewModel.selectedEvent?.eventID != event.eventID {
-                                                //withAnimation {
+                                        Text(event.name)
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.white)
+                                            .fontWeight(.semibold)
+                                            .frame(width: 100, height: 50)
+                                            .padding(.vertical, 8)
+                                            .padding(.horizontal, 12)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(viewModel.selectedEvent?.eventID == event.eventID ?
+                                                          Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(viewModel.selectedEvent?.eventID == event.eventID ?
+                                                            Color.orange.opacity(0.6) : Color.clear, lineWidth: 2)
+                                            )
+                                            .exclusiveTouchTapGesture {
+                                                // 防止频繁刷新
+                                                if viewModel.selectedEvent?.eventID != event.eventID {
+                                                    //withAnimation {
                                                     viewModel.switchEvent(to: event)
-                                                //}
+                                                    //}
+                                                }
                                             }
-                                        }
                                     }
                                 }
                                 .padding(.horizontal)
@@ -118,60 +114,43 @@ struct RunningCompetitionView: View {
                         }
                     }
                     
-                    // 使用安全检查显示地图
                     ScrollView {
-                        if let track = viewModel.selectedTrack {
-                            TrackMapView(
-                                fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
-                                toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to)
-                            )
-                            .frame(height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                            )
-                            .shadow(radius: 2)
-                            .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
-                        } else {
-                            VStack(spacing: 20) {
-                                Image(systemName: "map")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(.thirdText)
-                                    .opacity(0.5)
-                                Text(AttributedString("无赛道数据\n1.请检查当前网络环境\n2.请切换位置区域重试"))
+                        if let event = viewModel.selectedEvent {
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack(alignment: .top) {
+                                    Text("赛事信息")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .lineLimit(1)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text("详情>")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color.secondText)
+                                        .exclusiveTouchTapGesture {
+                                            selectedDetailEvent = event
+                                        }
+                                }
+                                
+                                Divider()
+                                
+                                Text("开始时间: \(DateDisplay.formattedDate(event.startDate))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondText)
+                                
+                                Text("结束时间: \(DateDisplay.formattedDate(event.endDate))")
+                                    .font(.subheadline)
                                     .foregroundColor(.secondText)
                             }
-                            .frame(height: 200)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
+                            .padding()
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(20)
                         }
                     }
-                    .frame(height: 200)
-                    .disabled(true)
-                    
-                    HStack {
-                        Spacer()
-                        Image(systemName: chevronDirection2 ? "chevron.up" : "chevron.down")
-                            .foregroundStyle(.white)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle()) // 将整个 HStack 设为可点击区域
-                    .exclusiveTouchTapGesture {
-                        chevronDirection2.toggle()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            withAnimation {
-                                chevronDirection.toggle()
-                            }
-                        }
-                    }
-                    .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
                     
                     // 赛道选择
                     if viewModel.tracks.isEmpty {
-                        Text("当前赛事暂无可用赛道")
+                        Text("当前赛事暂无可用赛道\n1.请检查当前网络环境\n2.请切换位置区域重试")
                             .foregroundColor(.secondText)
                             .padding()
                             .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
@@ -187,19 +166,17 @@ struct RunningCompetitionView: View {
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
                                                 .fill(viewModel.selectedTrack?.trackID == track.trackID ?
-                                                      Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+                                                      Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
                                         )
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 10)
                                                 .stroke(viewModel.selectedTrack?.trackID == track.trackID ?
-                                                        Color.blue : Color.clear, lineWidth: 1)
+                                                        Color.orange : Color.clear, lineWidth: 1)
                                         )
                                         .exclusiveTouchTapGesture {
                                             // 防止频繁刷新
                                             if viewModel.selectedTrack?.trackID != track.trackID {
-                                                //withAnimation {
-                                                    viewModel.switchTrack(to: track)
-                                                //}
+                                                viewModel.switchTrack(to: track)
                                             }
                                         }
                                 }
@@ -207,206 +184,302 @@ struct RunningCompetitionView: View {
                             .padding(.vertical, 1)
                             .padding(.horizontal, 1)
                         }
-                        .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
                     }
                     
                     // 赛道信息
                     if let track = viewModel.selectedTrack {
                         VStack(alignment: .leading, spacing: 12) {
-                            // 赛道信息卡片
-                            VStack(alignment: .leading, spacing: 10) {
-                                // 赛道标题
+                            ScrollView {
+                                ZStack {
+                                    TrackMapView(
+                                        fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
+                                        toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to),
+                                        startRadius: CLLocationDistance(track.fromRadius),
+                                        endRadius: CLLocationDistance(track.toRadius)
+                                    )
+                                    .frame(height: 200)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                    )
+                                    .shadow(radius: 2)
+                                    .disabled(true)
+
+                                    Rectangle()
+                                        .fill(Color.clear)
+                                        .contentShape(Rectangle())
+                                        .exclusiveTouchTapGesture {
+                                            selectedTrackForFullMap = track
+                                        }
+                                }
+                                .offset(y: chevronDirection ? 0 : -210)
+                            }
+                            
+                            VStack(spacing: 12) {
                                 HStack {
-                                    Text(track.name)
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .lineLimit(1)
-                                        .foregroundColor(.white)
-                                    
                                     Spacer()
+                                    Image(systemName: chevronDirection2 ? "chevron.up" : "chevron.down")
+                                        .foregroundStyle(.white)
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle()) // 将整个 HStack 设为可点击区域
+                                .exclusiveTouchTapGesture {
+                                    chevronDirection2.toggle()
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                        withAnimation {
+                                            chevronDirection.toggle()
+                                        }
+                                    }
+                                }
+                                
+                                // 赛道信息卡片
+                                VStack(alignment: .leading, spacing: 10) {
+                                    // 赛道标题
+                                    HStack {
+                                        Text("赛道信息")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .lineLimit(1)
+                                            .foregroundColor(.white)
+                                        
+                                        Spacer()
+                                        
+                                        // 参与人数信息
+                                        HStack(spacing: 5) {
+                                            Image(systemName: "person.2")
+                                                .font(.system(size: 13))
+                                                .foregroundColor(.secondText)
+                                            //.frame(width: 24, height: 24, alignment: .center)
+                                            Text("总参与人数: \(track.totalParticipants)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondText)
+                                                .lineLimit(1)
+                                        }
+                                    }
                                     
-                                    // 参与人数信息
-                                    HStack(spacing: 5) {
-                                        Image(systemName: "person.2")
-                                            .font(.system(size: 13))
-                                            .foregroundColor(.secondText)
-                                        //.frame(width: 24, height: 24, alignment: .center)
-                                        Text("总参与人数: \(track.totalParticipants)")
-                                            .font(.caption)
+                                    Divider()
+                                    
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "calendar")
+                                        Text("开始时间: \(DateDisplay.formattedDate(track.startDate))")
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondText)
+                                    
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "flag.checkered")
+                                        Text("结束时间: \(DateDisplay.formattedDate(track.endDate))")
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondText)
+                                    
+                                    Divider()
+                                    
+                                    // 赛道详细信息 - 使用LazyVGrid布局
+                                    LazyVGrid(columns: [
+                                        GridItem(.flexible(), spacing: 16),
+                                        GridItem(.flexible(), spacing: 16)
+                                    ], alignment: .leading, spacing: 12) {
+                                        // 地形
+                                        InfoItemView(
+                                            iconName: "mountain.2",
+                                            iconColor: .white.opacity(0.6),
+                                            text: "地形: \(track.terrainType.rawValue)"
+                                        )
+                                        // 海拔差
+                                        InfoItemView(
+                                            iconName: "arrow.up.arrow.down",
+                                            iconColor: .blue,
+                                            text: "海拔差: \(track.elevationDifference)m"
+                                        )
+                                        // 路程
+                                        InfoItemView(
+                                            iconName: "road.lanes.curved.right",
+                                            iconColor: .black,
+                                            text: "路程: \(track.distance)"
+                                        )
+                                        // 奖金池
+                                        InfoItemView(
+                                            iconName: "dollarsign.circle",
+                                            iconColor: .orange,
+                                            text: "奖金池: \(track.prizePool)"
+                                        )
+                                        // 地理区域
+                                        InfoItemView(
+                                            iconName: "map",
+                                            iconColor: .green,
+                                            text: "覆盖区域: \(track.regionName)"
+                                        )
+                                        // 当前参与人数
+                                        InfoItemView(
+                                            iconName: "person.2",
+                                            iconColor: .purple,
+                                            text: "当前参与: \(track.currentParticipants)"
+                                        )
+                                        // 赛道积分
+                                        InfoItemView(
+                                            iconName: "staroflife.fill",
+                                            iconColor: .red,
+                                            text: "赛道积分: \(track.score)"
+                                        )
+                                    }
+                                    .padding(.vertical, 6)
+                                }
+                                .padding()
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(20)
+                                
+                                VStack(alignment: .leading, spacing: 10) {
+                                    HStack {
+                                        Text("队伍信息")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .lineLimit(1)
+                                            .foregroundColor(.white)
+                                        
+                                        Spacer()
+                                        
+                                        Text("我的>")
+                                            .font(.subheadline)
                                             .foregroundColor(.secondText)
                                             .lineLimit(1)
+                                            .exclusiveTouchTapGesture {
+                                                appState.navigationManager.append(.runningTeamManagementView)
+                                            }
                                     }
-                                }
-                                
-                                Divider()
-                                
-                                // 赛道详细信息 - 使用LazyVGrid布局
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible(), spacing: 16),
-                                    GridItem(.flexible(), spacing: 16)
-                                ], alignment: .leading, spacing: 12) {
-                                    // 海拔差
-                                    InfoItemView(
-                                        iconName: "arrow.up.arrow.down",
-                                        iconColor: .blue,
-                                        text: "海拔差: \(track.elevationDifference)"
-                                    )
-                                    // 奖金池
-                                    InfoItemView(
-                                        iconName: "dollarsign.circle",
-                                        iconColor: .orange,
-                                        text: "奖金池: \(track.prizePool)"
-                                    )
-                                    // 地理区域
-                                    InfoItemView(
-                                        iconName: "map",
-                                        iconColor: .green,
-                                        text: "覆盖区域: \(track.regionName)"
-                                    )
-                                    // 当前参与人数
-                                    InfoItemView(
-                                        iconName: "person.2",
-                                        iconColor: .purple,
-                                        text: "当前参与: \(track.currentParticipants)"
-                                    )
-                                    // 路程
-                                    InfoItemView(
-                                        iconName: "road.lanes.curved.right",
-                                        iconColor: .black,
-                                        text: "路程: \(track.distance)"
-                                    )
-                                    // 赛道积分
-                                    InfoItemView(
-                                        iconName: "staroflife.fill",
-                                        iconColor: .red,
-                                        text: "赛道积分: \(track.score)"
-                                    )
-                                }
-                                .padding(.vertical, 6)
-                                
-                                Divider()
-                                
-                                // 按钮区
-                                HStack(spacing: 12) {
-                                    HStack {
-                                        Image(systemName: "person.badge.plus")
-                                        Text("创建队伍")
-                                    }
-                                    .font(.system(size: 15))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                    .exclusiveTouchTapGesture {
-                                        guard let competitionDate = track.endDate, competitionDate > Date() else {
-                                            let toast = Toast(message: "比赛已结束")
-                                            ToastManager.shared.show(toast: toast)
-                                            return
+                                    Divider()
+                                    HStack(spacing: 12) {
+                                        HStack {
+                                            //Image(systemName: "person.badge.plus")
+                                            Text("创建队伍")
                                         }
-                                        navigationManager.append(.runningTeamCreateView(trackID: track.trackID, competitionDate: competitionDate))
-                                    }
-                                    
-                                    HStack {
-                                        Image(systemName: "person.3")
-                                        Text("加入队伍")
-                                    }
-                                    .font(.system(size: 15))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                    .exclusiveTouchTapGesture {
-                                        guard let competitionDate = track.endDate, competitionDate > Date() else {
-                                            let toast = Toast(message: "比赛已结束")
-                                            ToastManager.shared.show(toast: toast)
-                                            return
+                                        .font(.system(size: 15))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .background(Color.blue.opacity(0.8))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                        .exclusiveTouchTapGesture {
+                                            guard let competitionDate = track.endDate, competitionDate > Date() else {
+                                                let toast = Toast(message: "比赛已结束")
+                                                ToastManager.shared.show(toast: toast)
+                                                return
+                                            }
+                                            appState.navigationManager.append(.runningTeamCreateView(trackID: track.trackID, competitionDate: competitionDate))
                                         }
-                                        navigationManager.append(.runningTeamJoinView(trackID: track.trackID))
+                                        
+                                        HStack {
+                                            //Image(systemName: "person.3")
+                                            Text("加入队伍")
+                                        }
+                                        .font(.system(size: 15))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .background(Color.green.opacity(0.8))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                        .exclusiveTouchTapGesture {
+                                            guard let competitionDate = track.endDate, competitionDate > Date() else {
+                                                let toast = Toast(message: "比赛已结束")
+                                                ToastManager.shared.show(toast: toast)
+                                                return
+                                            }
+                                            appState.navigationManager.append(.runningTeamJoinView(trackID: track.trackID))
+                                        }
                                     }
                                 }
-                            }
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(20)
-                            
-                            if let rankInfo = viewModel.selectedRankInfo {
-                                VStack {
-                                    HStack {
-                                        Text("我的最好成绩")
+                                .padding()
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(20)
+                                
+                                if let rankInfo = viewModel.selectedRankInfo {
+                                    VStack {
+                                        HStack(alignment: .top) {
+                                            Text("我的成绩")
+                                                .font(.headline)
+                                                .fontWeight(.bold)
+                                            Spacer()
+                                            Text("排行榜")
+                                                .font(.subheadline)
+                                                .padding(.vertical, 4)
+                                                .padding(.horizontal, 10)
+                                                .background(Color.orange.opacity(0.6))
+                                                .cornerRadius(8)
+                                                .exclusiveTouchTapGesture {
+                                                    appState.navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                                }
+                                        }
+                                        .foregroundColor(.white)
+                                        Divider()
+                                        HStack {
+                                            Text("用时: \(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))")
+                                            Spacer()
+                                            if let rank = rankInfo.rank {
+                                                Text("名次: \(rank)")
+                                            } else {
+                                                Text("无数据")
+                                            }
+                                            Spacer()
+                                            Text("积分: \(rankInfo.score ?? 0)")
+                                        }
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondText)
+                                        Divider()
+                                        HStack(spacing: 4) {
+                                            Text("奖励: ")
+                                            Image(systemName: CCAssetType.voucher.iconName)
+                                            Text("\(rankInfo.voucherAmount ?? 0)")
+                                            Spacer()
+                                            if let recordID = rankInfo.recordID {
+                                                Text("详情")
+                                                    .padding(.vertical, 4)
+                                                    .padding(.horizontal, 10)
+                                                    .background(Color.gray.opacity(0.6))
+                                                    .cornerRadius(8)
+                                                    .exclusiveTouchTapGesture {
+                                                        appState.navigationManager.append(.runningRecordDetailView(recordID: recordID))
+                                                    }
+                                            }
+                                        }
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondText)
+                                    }
+                                    .padding()
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(20)
+                                } else {
+                                    HStack(alignment: .top) {
+                                        Text("我的成绩")
                                             .font(.headline)
                                             .fontWeight(.bold)
                                         Spacer()
-                                        if let rank = rankInfo.rank {
-                                            Text("No. \(rank)")
-                                                .font(.headline)
-                                        } else {
-                                            Text("无数据")
-                                                .font(.headline)
-                                        }
+                                        Text("登陆后查看")
+                                            .font(.headline)
                                         Spacer()
                                         Text("排行榜")
                                             .font(.subheadline)
-                                            .padding(5)
-                                            .background(Color.orange.opacity(0.5))
+                                            .padding(.vertical, 4)
+                                            .padding(.horizontal, 10)
+                                            .background(Color.orange.opacity(0.6))
                                             .cornerRadius(8)
                                             .exclusiveTouchTapGesture {
-                                                navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                                appState.navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
                                             }
                                     }
                                     .foregroundColor(.white)
-                                    Divider()
-                                    HStack(spacing: 0) {
-                                        Text("用时: ")
-                                        Text(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))
-                                        Spacer()
-                                        Text(rankInfo.recordID ?? "未知")
-                                    }
-                                    .font(.caption)
-                                    .foregroundColor(.secondText)
-                                    Divider()
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "staroflife.fill")
-                                        Text("\(rankInfo.score ?? 0)")
-                                        Spacer()
-                                        Image(systemName: CCAssetType.voucher.iconName)
-                                        Text("\(rankInfo.voucherAmount ?? 0)")
-                                    }
+                                    .padding()
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(20)
                                 }
-                                .padding()
-                                .background(.ultraThinMaterial)
-                                .cornerRadius(20)
-                            } else {
-                                HStack {
-                                    Text("我的最好成绩")
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                    Spacer()
-                                    Text("登陆后查看")
-                                            .font(.headline)
-                                    Spacer()
-                                    Text("排行榜")
-                                        .font(.subheadline)
-                                        .padding(5)
-                                        .background(Color.orange.opacity(0.5))
-                                        .cornerRadius(8)
-                                        .exclusiveTouchTapGesture {
-                                            navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
-                                        }
-                                }
-                                .foregroundColor(.white)
-                                .padding()
-                                .background(.ultraThinMaterial)
-                                .cornerRadius(20)
                             }
+                            .offset(y: chevronDirection ? 0 : -210)
                         }
-                        .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
                     }
                 }
                 .padding(.horizontal, 10)
                 .padding(.bottom, 70)
-                .padding(.top, 5)
+                .padding(.top, 8)
                 .onScrollDragChanged($isDragging)
             }
             
@@ -493,7 +566,7 @@ struct RunningCompetitionView: View {
                         }
                     }
                     .exclusiveTouchTapGesture {
-                        navigationManager.showTeamRegisterSheet = true
+                        appState.navigationManager.showTeamRegisterSheet = true
                     }
                     .disabled(appState.competitionManager.isRecording)
                     Spacer()
@@ -518,6 +591,13 @@ struct RunningCompetitionView: View {
                 }
             }
         }
+        .onValueChange(of: userManager.isLoggedIn) {
+            if userManager.isLoggedIn {
+                if let track = viewModel.selectedTrack {
+                    viewModel.queryRankInfo(trackID: track.trackID)
+                }
+            }
+        }
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshCompetitionView {
                 if let region = locationManager.region {
@@ -532,6 +612,14 @@ struct RunningCompetitionView: View {
             firstOnAppear = false
         }
         .ignoresSafeArea(.keyboard)
+        .fullScreenCover(item: $selectedTrackForFullMap) { track in
+            FullScreenMapView(
+                fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
+                toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to),
+                startRadius: CLLocationDistance(track.fromRadius),
+                endRadius: CLLocationDistance(track.toRadius)
+            )
+        }
     }
     
     // 单人报名
@@ -597,31 +685,20 @@ struct RunningEventDetailView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        // 比赛规则
+                        // 赛事详情
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("比赛规则")
+                            Text("赛事详情")
                                 .font(.headline)
                             Text(event.description)
                                 .font(.subheadline)
-                            Text("1. 参赛者需在指定时间内完成比赛\n2. 比赛过程中需遵守交通规则\n3. 成绩以完成时间计算\n4. 禁止使用任何交通工具\n5. 需全程开启运动记录")
-                                .foregroundColor(.secondary)
                         }
                         
-                        // 赛道信息
+                        // 比赛规则
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("赛道信息")
+                            Text("注意事项")
                                 .font(.headline)
-                            
-                            ForEach(event.tracks) { track in
-                                HStack {
-                                    Image(systemName: "figure.run")
-                                    Text(track.name)
-                                    Spacer()
-                                    Text("\(track.from.latitude), \(track.from.longitude) → \(track.to.latitude), \(track.to.longitude)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
+                            Text("1. 参赛者需在指定时间内完成比赛\n2. 比赛过程中需遵守交通规则\n3. 成绩以完成时间计算\n4. 禁止使用任何交通工具\n5. 需全程开启运动记录")
+                                .foregroundColor(.secondary)
                         }
                     }
                     .padding()
@@ -650,7 +727,7 @@ struct RunningTeamCreateView: View {
     @State var teamTitle: String = ""
     @State var teamDescription: String = ""
     @State var teamSize: Int = 5 // 默认值
-    @State var teamCompetitionDate = Date().addingTimeInterval(86400 * 7) // 默认一周后
+    @State var teamCompetitionDate = Date().addingTimeInterval(3600 * 2)
     @State var isPublic: Bool = false
     
     var body: some View {
@@ -704,12 +781,7 @@ struct RunningTeamCreateView: View {
                     }
                     
                     HStack {
-                        Text("最多输入10个字符")
-                            .font(.footnote)
-                            .foregroundStyle(Color.thirdText)
-                        
                         Spacer()
-                        
                         Text("已输入\(teamTitle.count)/10字符")
                             .font(.footnote)
                             .foregroundStyle(Color.thirdText)
@@ -740,12 +812,7 @@ struct RunningTeamCreateView: View {
                     }
                     
                     HStack {
-                        Text("最多输入50个字符")
-                            .font(.footnote)
-                            .foregroundStyle(Color.thirdText)
-                        
                         Spacer()
-                        
                         Text("已输入\(teamDescription.count)/50字符")
                             .font(.footnote)
                             .foregroundStyle(Color.thirdText)
@@ -777,6 +844,7 @@ struct RunningTeamCreateView: View {
         .enableSwipeBackGesture()
         .background(Color.defaultBackground)
         .hideKeyboardOnScroll()
+        .ignoresSafeArea(.keyboard)
         .environment(\.colorScheme, .dark)
     }
     
@@ -786,7 +854,10 @@ struct RunningTeamCreateView: View {
             ToastManager.shared.show(toast: toast)
             return
         }
-        
+        if teamCompetitionDate < Date() || teamCompetitionDate > competitionDate {
+            ToastManager.shared.show(toast: Toast(message: "比赛时间不合法"))
+            return
+        }
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         let body: [String: String] = [
@@ -937,6 +1008,8 @@ struct RunningTeamJoinView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
+        .hideKeyboardOnScroll()
+        .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $viewModel.showDetailSheet) {
             TeamDescriptionView(showDetailSheet: $viewModel.showDetailSheet, selectedDescription: $viewModel.selectedDescription)
                 .presentationDetents([.fraction(0.4)])

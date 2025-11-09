@@ -368,21 +368,26 @@ struct SignInSectionView: View {
                     Button("取消") {
                         showSheet = false
                     }
+                    .foregroundStyle(Color.thirdText)
                     Spacer()
                     Button("保存") {
                         vm.updateReminderTime(tempDate)
                         showSheet = false
                     }
+                    .foregroundStyle(Color.white)
                 }
                 DatePicker("提醒时间", selection: $tempDate, displayedComponents: .hourAndMinute)
+                    .tint(Color.orange)
                 Spacer()
             }
             .padding()
+            .background(Color.defaultBackground)
             .presentationDetents([.fraction(0.2)])
             .interactiveDismissDisabled() // 防止点击过快导致弹窗高度错误
             .onStableAppear {
                 tempDate = vm.reminderTime
             }
+            .preferredColorScheme(.dark)
         }
     }
 }
@@ -459,7 +464,7 @@ struct SignInDayView: View {
                 }
             }
             .onTapGesture {
-                if day.state == .available && Calendar.current.isDateInToday(day.date) {
+                if day.state_vip == .available && Calendar.current.isDateInToday(day.date) {
                     vm.signInTodayVip()
                 }
             }

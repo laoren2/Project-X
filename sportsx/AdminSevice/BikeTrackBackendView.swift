@@ -163,18 +163,28 @@ struct BikeTrackCreateView: View {
     
     @State var from_la: String = ""
     @State var from_lo: String = ""
+    @State var from_radius: Int = 10
     @State var to_la: String = ""
     @State var to_lo: String = ""
+    @State var to_radius: Int = 10
     
     @State var elevationDifference: String = ""
     @State var subRegioName: String = ""
     @State var prizePool: String = ""
     @State var score: String = ""
+    @State var terrainType: BikeTrackTerrainType = .other
     
     @State var trackImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
     
+    let types = [
+        BikeTrackTerrainType.road,
+        BikeTrackTerrainType.crossCountry,
+        BikeTrackTerrainType.enduro,
+        BikeTrackTerrainType.downHill,
+        BikeTrackTerrainType.other
+    ]
     
     var body: some View {
         VStack {
@@ -186,20 +196,41 @@ struct BikeTrackCreateView: View {
                     TextField("区域名称", text: $regionName)
                 }
                 Section(header: Text("时间")) {
-                    DatePicker("开始时间", selection: $startDate, displayedComponents: [.date])
-                    DatePicker("结束时间", selection: $endDate, displayedComponents: [.date])
+                    DatePicker("开始时间", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("结束时间", selection: $endDate, displayedComponents: [.date, .hourAndMinute])
                 }
                 Section(header: Text("位置信息")) {
                     TextField("起点纬度", text: $from_la)
                         .keyboardType(.decimalPad)
                     TextField("起点经度", text: $from_lo)
                         .keyboardType(.decimalPad)
+                    TextField("起点半径", value: $from_radius, format: .number)
+                        .keyboardType(.numberPad)
                     TextField("终点纬度", text: $to_la)
                         .keyboardType(.decimalPad)
                     TextField("终点经度", text: $to_lo)
                         .keyboardType(.decimalPad)
+                    TextField("终点半径", value: $to_radius, format: .number)
+                        .keyboardType(.numberPad)
                 }
                 Section(header: Text("赛道信息")) {
+                    Menu {
+                        ForEach(types, id: \.self) { type in
+                            Button(type.rawValue) {
+                                terrainType = type
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(terrainType.rawValue)
+                                .font(.subheadline)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .cornerRadius(8)
+                    }
                     TextField("海拔差", text: $elevationDifference)
                         .keyboardType(.numberPad)
                     TextField("子区域", text: $subRegioName)
@@ -232,7 +263,7 @@ struct BikeTrackCreateView: View {
                         name.isEmpty || eventName.isEmpty || seasonName.isEmpty || regionName.isEmpty
                         || from_la.isEmpty || from_lo.isEmpty || to_la.isEmpty || to_lo.isEmpty
                         || elevationDifference.isEmpty || subRegioName.isEmpty || prizePool.isEmpty
-                        || score.isEmpty
+                        || score.isEmpty || from_radius == 0 || to_radius == 0
                     )
                 }
             }
@@ -259,23 +290,25 @@ struct BikeTrackCreateView: View {
         var body = Data()
         
         // 文字字段
-        var textFields: [String : String] = [
+        let textFields: [String : String] = [
             "name": name,
             "start_date": ISO8601DateFormatter().string(from: startDate),
             "end_date": ISO8601DateFormatter().string(from: endDate),
             "event_name": eventName,
             "season_name": seasonName,
-            "region_name": regionName
+            "region_name": regionName,
+            "terrain_type": terrainType.rawValue,
+            "from_latitude": from_la,
+            "from_longitude": from_lo,
+            "from_radius": "\(from_radius)",
+            "to_latitude": to_la,
+            "to_longitude": to_lo,
+            "to_radius": "\(to_radius)",
+            "elevationDifference": elevationDifference ,
+            "subRegioName": subRegioName,
+            "prizePool": prizePool,
+            "score": score
         ]
-        
-        if !from_la.isEmpty { textFields["from_latitude"] = from_la }
-        if !from_lo.isEmpty { textFields["from_longitude"] = from_lo }
-        if !to_la.isEmpty { textFields["to_latitude"] = to_la }
-        if !to_lo.isEmpty { textFields["to_longitude"] = to_lo }
-        if !elevationDifference.isEmpty { textFields["elevationDifference"] = elevationDifference }
-        if !subRegioName.isEmpty { textFields["subRegioName"] = subRegioName }
-        if !prizePool.isEmpty { textFields["prizePool"] = prizePool }
-        if !score.isEmpty { textFields["score"] = score }
         
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
@@ -288,7 +321,7 @@ struct BikeTrackCreateView: View {
             ("track_image", trackImage, "background.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 1000) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
                 body.append("Content-Type: image/jpeg\r\n\r\n")
@@ -313,6 +346,13 @@ struct BikeTrackUpdateView: View {
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
     
+    let types = [
+        BikeTrackTerrainType.road,
+        BikeTrackTerrainType.crossCountry,
+        BikeTrackTerrainType.enduro,
+        BikeTrackTerrainType.downHill,
+        BikeTrackTerrainType.other
+    ]
     
     var body: some View {
         VStack {
@@ -321,20 +361,41 @@ struct BikeTrackUpdateView: View {
                     TextField("赛道名称", text: $viewModel.name)
                 }
                 Section(header: Text("时间")) {
-                    DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date])
-                    DatePicker("结束时间", selection: $viewModel.endDate, displayedComponents: [.date])
+                    DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("结束时间", selection: $viewModel.endDate, displayedComponents: [.date, .hourAndMinute])
                 }
                 Section(header: Text("位置信息")) {
                     TextField("起点纬度", text: $viewModel.from_la)
                         .keyboardType(.decimalPad)
                     TextField("起点经度", text: $viewModel.from_lo)
                         .keyboardType(.decimalPad)
+                    TextField("起点半径", value: $viewModel.from_radius, format: .number)
+                        .keyboardType(.numberPad)
                     TextField("终点纬度", text: $viewModel.to_la)
                         .keyboardType(.decimalPad)
                     TextField("终点经度", text: $viewModel.to_lo)
                         .keyboardType(.decimalPad)
+                    TextField("终点半径", value: $viewModel.to_radius, format: .number)
+                        .keyboardType(.numberPad)
                 }
                 Section(header: Text("赛道信息")) {
+                    Menu {
+                        ForEach(types, id: \.self) { type in
+                            Button(type.rawValue) {
+                                viewModel.terrainType = type
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(viewModel.terrainType.rawValue)
+                                .font(.subheadline)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .cornerRadius(8)
+                    }
                     TextField("海拔差", text: $viewModel.elevationDifference)
                         .keyboardType(.numberPad)
                     TextField("子区域", text: $viewModel.subRegioName)
@@ -404,12 +465,15 @@ struct BikeTrackUpdateView: View {
             "end_date": ISO8601DateFormatter().string(from: viewModel.endDate),
             "from_latitude": viewModel.from_la,
             "from_longitude": viewModel.from_lo,
+            "from_radius": "\(viewModel.from_radius)",
             "to_latitude": viewModel.to_la,
             "to_longitude": viewModel.to_lo,
+            "to_radius": "\(viewModel.to_radius)",
             "elevationDifference": viewModel.elevationDifference,
             "subRegioName": viewModel.subRegioName,
             "prizePool": viewModel.prizePool,
-            "score": viewModel.score
+            "score": viewModel.score,
+            "terrain_type": viewModel.terrainType.rawValue
         ]
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
@@ -422,7 +486,7 @@ struct BikeTrackUpdateView: View {
             ("track_image", trackImage, "background.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 1000) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
                 body.append("Content-Type: image/jpeg\r\n\r\n")
@@ -492,12 +556,15 @@ struct BikeTrackCardView: View {
         viewModel.image_url = track.image_url
         viewModel.from_la = track.from_latitude
         viewModel.from_lo = track.from_longitude
+        viewModel.from_radius = track.from_radius
         viewModel.to_la = track.to_latitude
         viewModel.to_lo = track.to_longitude
+        viewModel.to_radius = track.to_radius
         
         viewModel.elevationDifference = track.elevationDifference
         viewModel.subRegioName = track.subRegioName
         viewModel.prizePool = track.prizePool
         viewModel.score = track.score
+        viewModel.terrainType = track.terrain_type
     }
 }

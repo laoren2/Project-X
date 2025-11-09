@@ -40,7 +40,9 @@ class WatchDataManager: NSObject, ObservableObject {
     private let updateInterval = 1.0 / 20.0  // 20Hz
     
     private var sensorBuffer: [SensorDataItem] = []
-    private var bufferTimer: Timer?
+    
+    private var timer: DispatchSourceTimer?
+    private let timerQueue = DispatchQueue(label: "com.sportsx.watch.timer", qos: .userInitiated)
     
     // WatchConnectivity
     private let session = WCSession.default
@@ -61,7 +63,7 @@ class WatchDataManager: NSObject, ObservableObject {
     func syncStatus() {
         let context = session.receivedApplicationContext
         guard !context.isEmpty else {
-            Logger.competition.notice_public("syncStatus: no context received yet.")
+            //print("syncStatus: no context received yet.")
             return
         }
         
@@ -69,7 +71,7 @@ class WatchDataManager: NSObject, ObservableObject {
             if let ts = context["timestamp"] as? Double {
                 let now = Date().timeIntervalSince1970
                 if abs(now - ts) > 30 {
-                    Logger.competition.notice_public("syncStatus: context expired (timestamp \(ts), now \(now)), skipping startCollection.")
+                    //print("syncStatus: context expired (timestamp \(ts), now \(now)), skipping startCollection.")
                     return
                 }
             }
@@ -87,13 +89,12 @@ class WatchDataManager: NSObject, ObservableObject {
             }
             configuration.locationType = (locationType.lowercased() == "indoor") ? .indoor : .outdoor
             enableIMU = context["enableIMU"] as? Bool ?? false
-            Logger.competition.notice_public("syncStatus: forcing start collection, type=\(activityType), location=\(locationType)")
+            //print("syncStatus: forcing start collection, type=\(activityType), location=\(locationType)")
             DispatchQueue.main.async {
                 self.tryStartWorkout(config: configuration)
-                //self.startCollecting()
             }
         } else {
-            Logger.competition.notice_public("syncStatus: no startCollection command in context.")
+            print("syncStatus: no startCollection command in context.")
         }
     }
     
@@ -160,14 +161,16 @@ class WatchDataManager: NSObject, ObservableObject {
     func tryStartWorkout(config: HKWorkoutConfiguration) {
         // 检查权限
         checkHealthAuthorization() { authorized in
-            if authorized {
-                self.showingAuthToast = false
-                self.showingSummaryView = false
-                self.startWorkout(config: config)
-            } else {
-                // 已经拒绝过，提示用户去设置里开
-                self.isNeedWaitingAuth = false
-                self.showingAuthToast = true
+            DispatchQueue.main.async {
+                if authorized {
+                    self.showingAuthToast = false
+                    self.showingSummaryView = false
+                    self.startWorkout(config: config)
+                } else {
+                    // 已经拒绝过，提示用户去设置里开
+                    self.isNeedWaitingAuth = false
+                    self.showingAuthToast = true
+                }
             }
         }
     }
@@ -180,7 +183,7 @@ class WatchDataManager: NSObject, ObservableObject {
             builder = WKsession?.associatedWorkoutBuilder()
         } catch {
             // Handle any exceptions.
-            Logger.competition.notice_public("WKsession create error")
+            print("WKsession create error")
             return
         }
         
@@ -208,15 +211,17 @@ class WatchDataManager: NSObject, ObservableObject {
             motionManager.deviceMotionUpdateInterval = updateInterval
             motionManager.startDeviceMotionUpdates(using: .xArbitraryZVertical)
         } else {
-            Logger.competition.notice_public("DeviceMotion service not available on AW")
+            print("DeviceMotion service not available on AW")
         }
         
         // 用 Timer 每 1/20s 取一次数据，存入 buffer，并每3秒发送一次 SummaryData
+        timer?.cancel()  // 防止重复创建
+        timer = DispatchSource.makeTimerSource(queue: timerQueue)
+        timer?.schedule(deadline: .now(), repeating: updateInterval)
+        
         var timerTickCount: Int = 0
-        bufferTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
-            guard let self = self else {
-                return
-            }
+        timer?.setEventHandler { [weak self] in
+            guard let self = self else { return }
             timerTickCount += 1
             
             if self.enableIMU {
@@ -236,12 +241,12 @@ class WatchDataManager: NSObject, ObservableObject {
                     )
                     self.sensorBuffer.append(item)
                 } else {
-                    Logger.competition.notice_public("device motion data not available")
+                    print("device motion data not available")
                 }
                 
                 // 如果 buffer 达到 20 条(1秒数据), 立即发送给 iPhone
                 if self.sensorBuffer.count >= 20 {
-                    Logger.competition.notice_public("Send data to phone...")
+                    //print("Send data to phone...")
                     self.sendBufferToiPhone()
                 }
             }
@@ -258,13 +263,13 @@ class WatchDataManager: NSObject, ObservableObject {
                 
                 // incremental detection: only send if values changed significantly
                 if self.shouldSendSummary(currentSummary) {
-                    Logger.competition.notice_public("Send summary data to phone...")
+                    //print("Send summary data to phone...")
                     self.sendSummaryToiPhone(currentSummary)
                     self.lastSummarySent = currentSummary
                 }
             }
         }
-        RunLoop.current.add(bufferTimer!, forMode: .default)
+        timer?.resume()
     }
     
     private func shouldSendSummary(_ newSummary: SummaryData) -> Bool {
@@ -298,7 +303,7 @@ class WatchDataManager: NSObject, ObservableObject {
     
     private func sendSummaryToiPhone(_ summary: SummaryData) {
         guard session.isReachable else {
-            Logger.competition.notice_public("Session not reachable, statsData buffer send failed")
+            print("Session not reachable, statsData buffer send failed")
             return
         }
         
@@ -311,15 +316,15 @@ class WatchDataManager: NSObject, ObservableObject {
         ]
         
         session.sendMessage(["statsData": summaryDict], replyHandler: nil) { error in
-            Logger.competition.notice_public("Error sending summaryData: \(error.localizedDescription)")
+            print("Error sending summaryData: \(error.localizedDescription)")
         }
     }
     
     func stopCollecting() {
-        if self.bufferTimer != nil {
-            self.bufferTimer?.invalidate()
-            self.bufferTimer = nil
-        }
+        timer?.setEventHandler(handler: nil)
+        timer?.cancel()
+        timer = nil
+        
         if motionManager.isDeviceMotionAvailable {
             motionManager.stopDeviceMotionUpdates()
         }
@@ -341,7 +346,7 @@ class WatchDataManager: NSObject, ObservableObject {
     private func sendBufferToiPhone() {
         guard session.isReachable else {
             // isReachable 表示 iPhone 当前与 Watch App 前台可直连
-            Logger.competition.notice_public("Session not reachable, send imu buffer failed")
+            print("Session not reachable, send imu buffer failed")
             return
         }
         
@@ -360,7 +365,7 @@ class WatchDataManager: NSObject, ObservableObject {
         
         // 发送
         session.sendMessage(["IMUBatch": batch], replyHandler: nil) { error in
-            Logger.competition.notice_public("Error sending watchBatch: \(error.localizedDescription)")
+            print("Error sending watchBatch: \(error.localizedDescription)")
         }
         
         // 清空 buffer
@@ -416,7 +421,7 @@ class WatchDataManager: NSObject, ObservableObject {
 extension WatchDataManager: WCSessionDelegate {
     // 激活回调
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        Logger.competition.notice_public("Watch session activationDidComplete: \(activationState.rawValue), error: \(String(describing: error))")
+        print("Watch session activationDidComplete: \(activationState.rawValue), error: \(String(describing: error))")
     }
     
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
@@ -424,23 +429,22 @@ extension WatchDataManager: WCSessionDelegate {
             if let ts = applicationContext["timestamp"] as? Double {
                 let now = Date().timeIntervalSince1970
                 if abs(now - ts) > 30 {
-                    Logger.competition.notice_public("syncStatus: context expired (timestamp \(ts), now \(now)), skipping startCollection.")
+                    //print("syncStatus: context expired (timestamp \(ts), now \(now)), skipping startCollection.")
                     return
                 }
             }
             enableIMU = applicationContext["enableIMU"] as? Bool ?? false
-            Logger.competition.notice_public("Set enableIMU to \(enableIMU)")
             //print(("Set enableIMU to \(enableIMU)"))
         }
         if let command = applicationContext["command"] as? String, command == "stopCollection" {
             if let ts = applicationContext["timestamp"] as? Double {
                 let now = Date().timeIntervalSince1970
                 if abs(now - ts) > 30 {
-                    Logger.competition.notice_public("syncStatus: context expired (timestamp \(ts), now \(now)), skipping stopCollection.")
+                    //print("syncStatus: context expired (timestamp \(ts), now \(now)), skipping stopCollection.")
                     return
                 }
             }
-            Logger.competition.notice_public("stop collecting...")
+            //print("stop collecting...")
             DispatchQueue.main.async {
                 self.stopCollecting()
             }
@@ -451,7 +455,7 @@ extension WatchDataManager: WCSessionDelegate {
     /*func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         if let command = message["command"] as? String, command == "stopCollection" {
             if running {
-                Logger.competition.notice_public("stop collecting...")
+                print("stop collecting...")
                 DispatchQueue.main.async {
                     self.showingSummaryView = true
                     self.stopCollecting()
@@ -463,9 +467,9 @@ extension WatchDataManager: WCSessionDelegate {
     
     func sessionReachabilityDidChange(_ session: WCSession) {
         if session.isReachable {
-            Logger.competition.notice_public("[AppleWatchDevice] Watch is now reachable.")
+            print("[AppleWatchDevice] Watch is now reachable.")
         } else {
-            Logger.competition.notice_public("[AppleWatchDevice] Watch is no longer reachable.")
+            print("[AppleWatchDevice] Watch is no longer reachable.")
         }
     }
     
@@ -483,18 +487,18 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
         }
         
         if toState == .running {
-            Logger.competition.notice_public("WKsession state change to running")
+            print("WKsession state change to running")
         }
 
         // Wait for the session to transition states before ending the builder.
         if toState == .ended {
-            Logger.competition.notice_public("WKsession state change to end")
+            print("WKsession state change to end")
             builder?.endCollection(withEnd: date) { (success, error) in
                 //print("endCollection success: \(success) error: \(error)")
                 guard success, error == nil else { return }
                 self.builder?.finishWorkout { (workout, error) in
                     guard error == nil, let workout = workout else {
-                        Logger.competition.notice_public("finishWorkout error: \(String(describing: error))")
+                        print("finishWorkout error: \(String(describing: error))")
                         return
                     }
                     DispatchQueue.main.async {
@@ -524,7 +528,7 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
     }
 
     func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: Error) {
-        Logger.competition.notice_public("WKsession error")
+        print("WKsession error")
     }
 }
 

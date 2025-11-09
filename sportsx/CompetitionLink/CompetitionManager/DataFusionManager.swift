@@ -89,17 +89,19 @@ class DataFusionManager: ObservableObject {
         dataCollectQueue.async {
             if self.baseTime == nil {
                 self.baseTime = data.timestamp
+                //Logger.competition.notice_public("set baseTime to: \(data.timestamp) from addPhoneData")
             }
             
             let slotIndex = self.computeSlotIndex(for: data.timestamp)
             let newIndex = self.storePhoneData(data, slotIndex: slotIndex)
+            //Logger.competition.notice_public("slotIndex: \(slotIndex) newIndex: \(newIndex)")
             
             if newIndex == -1 { return }
             
             // 更新稀疏度
             let nonNilCount = self.sensorPhoneWindow.filter { $0 != nil }.count
             let lastNonNilIndex = self.lastNonNilIndex(in: self.sensorPhoneWindow)
-            //print("phone nonNilCnt: ", nonNilCount, "lastNonNilIndex: ", lastNonNilIndex)
+            //Logger.competition.notice_public("phone nonNilCnt: ", nonNilCount, "lastNonNilIndex: ", lastNonNilIndex)
             self.sparsity[0] = nonNilCount == 0 ? 0 : Float(nonNilCount) / Float(lastNonNilIndex + 1)
             
             let windowLen = self.getPredictWindowLen()
@@ -109,7 +111,7 @@ class DataFusionManager: ObservableObject {
                 let snapshot = self.makeSnapshot(upTo: windowLen, time: 1)
                 // 发布快照
                 self.predictionSubject.send(snapshot)
-                Logger.competition.notice_public("sparsity: \(self.sparsity) from addPhoneData")
+                //Logger.competition.notice_public("sparsity: \(self.sparsity) from addPhoneData")
             }
         }
     }
@@ -118,15 +120,14 @@ class DataFusionManager: ObservableObject {
     func addSensorData(_ sensorIndex: Int, _ batch: [SensorData]) {
         dataCollectQueue.async {
             if self.baseTime == nil {
-                Logger.competition.notice_public("baseTime is nil from addSensorData")
-                for item in batch {
-                    Logger.competition.notice_public("first batch timestamp : \(item.timestamp)")
-                }
+                //for item in batch {
+                //    Logger.competition.notice_public("first batch timestamp : \(item.timestamp)")
+                //}
                 let zone = NSTimeZone.system
                 let timeInterval = zone.secondsFromGMT()
                 let dateNow = Date().addingTimeInterval(TimeInterval(timeInterval))
                 self.baseTime = dateNow
-                Logger.competition.notice_public("set baseTime to: \(dateNow)")
+                //Logger.competition.notice_public("set baseTime to: \(dateNow) from addSensorData")
             }
             
             var shiftSum: Int = 0

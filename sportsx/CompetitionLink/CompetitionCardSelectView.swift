@@ -11,16 +11,17 @@ import SwiftUI
 struct CompetitionCardSelectView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
+    @ObservedObject var userManager = UserManager.shared
     @State private var showCardSelection = false
     
     // 卡牌容器的常量
     private let cardWidth: CGFloat = 100
-    private let cardHeight: CGFloat = 140
-    private let maxCards = 3
+    //private let cardHeight: CGFloat = 140
+    private var maxCards: Int { return userManager.user.isVip ? 4 : 3}
     
     var body: some View {
         VStack {
-            HStack {
+            HStack(spacing: 4) {
                 CommonIconButton(icon: "chevron.left") {
                     // 销毁计时器a和b
                     appState.competitionManager.stopAllTeamJoinTimers()
@@ -32,9 +33,16 @@ struct CompetitionCardSelectView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
                 Spacer()
-                Text("cardselect")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
+                Image(systemName: appState.competitionManager.sport.iconName)
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color.white)
+                Text(appState.competitionManager.isTeam ? "组队" : "单人")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.secondText)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 6)
+                    .background(appState.competitionManager.isTeam ? Color.orange.opacity(0.6) : Color.green.opacity(0.6))
+                    .cornerRadius(6)
                 Spacer()
                 // 平衡布局的空按钮
                 Button(action: {}) {
@@ -44,8 +52,6 @@ struct CompetitionCardSelectView: View {
                 }
             }
             .padding(.horizontal)
-            
-            Spacer()
             
             // 组队模式显示区域
             if appState.competitionManager.isTeam {
@@ -61,69 +67,124 @@ struct CompetitionCardSelectView: View {
                             .padding()
                     }
                 }
-                .padding(.bottom, 20)
-                
+                .frame(height: 150)
+            } else {
+                Rectangle()
+                    .fill(Color.clear)
+                    .contentShape(Rectangle())
+                    .frame(height: 150)
+            }
+            
+            HStack {
+                if userManager.user.isVip {
+                    Spacer()
+                }
+                Text("请选择你的装备卡")
+                    .font(.headline)
+                    .foregroundStyle(.white)
                 Spacer()
-            }
-            
-            Text("我的卡牌阵容")
-                .font(.headline)
-                .padding(.bottom, 5)
-                .foregroundStyle(.white)
-            
-            // 固定的三个卡牌位
-            HStack(spacing: 20) {
-                ForEach(appState.competitionManager.selectedCards) { card in
-                    MagicCardView(card: card)
-                        .frame(width: cardWidth, height: cardHeight)
-                }
-                ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) {_ in
-                    EmptyCardSlot()
-                        .frame(width: cardWidth, height: cardHeight)
+                if !userManager.user.isVip {
+                    HStack {
+                        Image(systemName: "v.circle.fill")
+                            .font(.system(size: 15))
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.red)
+                        Text("订阅获得额外卡牌槽")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                    }
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 8)
+                    .background(Color.gray.opacity(0.8))
+                    .cornerRadius(10)
                 }
             }
-            .padding(.bottom, 30)
+            .padding(.horizontal)
+            .padding(.bottom, 10)
             
-            Text("选择卡片")
-                .padding(.horizontal, 30)
-                .padding(.vertical, 12)
-                .foregroundColor(.white)
-                .background(Color.blue)
-                .cornerRadius(12)
-                .exclusiveTouchTapGesture {
-                    showCardSelection = true
+            VStack {
+                // 卡牌位
+                if userManager.user.isVip {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 20) {
+                            ForEach(appState.competitionManager.selectedCards) { card in
+                                MagicCardView(card: card)
+                                    .frame(width: cardWidth)
+                            }
+                            ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
+                                if index == 3 {
+                                    EmptyCardVipSlot()
+                                        .frame(width: cardWidth)
+                                } else {
+                                    EmptyCardSlot()
+                                        .frame(width: cardWidth)
+                                }
+                            }
+                        }
+                        .padding(2)
+                    }
+                    .padding(.bottom)
+                } else {
+                    HStack {
+                        let selected = appState.competitionManager.selectedCards
+                        let placeholders = Array(selected.count..<maxCards)
+                        let allViews: [AnyView] = selected.map { card in
+                            AnyView(
+                                MagicCardView(card: card)
+                                    .frame(width: cardWidth)
+                            )
+                        } + placeholders.map { _ in
+                            AnyView(
+                                EmptyCardSlot()
+                                    .frame(width: cardWidth)
+                            )
+                        }
+                        
+                        ForEach(0..<allViews.count, id: \.self) { i in
+                            allViews[i]
+                            if i < allViews.count - 1 {
+                                Spacer()
+                            }
+                        }
+                    }
+                    .padding(.bottom)
                 }
-                .disabled(appState.competitionManager.isRecording)
-            
-            Text("我准备好了")
-                .frame(minWidth: 180)
-                .padding(.vertical, 15)
-                .background(Color.green)
-                .cornerRadius(12)
-                .foregroundColor(.white)
-                .padding(.top, 10)
-                .exclusiveTouchTapGesture {
-                    appState.navigationManager.append(.competitionRealtimeView)
-                }
-                .disabled(appState.competitionManager.isRecording)
-            
+                
+                Text("选择卡片")
+                    .padding(.horizontal, 30)
+                    .padding(.vertical, 12)
+                    .foregroundColor(.white)
+                    .background(Color.white.opacity(0.5))
+                    .cornerRadius(12)
+                    .exclusiveTouchTapGesture {
+                        showCardSelection = true
+                    }
+                    .disabled(appState.competitionManager.isRecording)
+            }
+            .padding()
+            .background(Color.white.opacity(0.2))
+            .cornerRadius(10)
+            .padding(.horizontal)
             Spacer()
+            HStack {
+                Text("下一步")
+                Image(systemName: "arrowshape.right")
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 15)
+            .background(Color.green)
+            .cornerRadius(12)
+            .exclusiveTouchTapGesture {
+                appState.navigationManager.append(.competitionRealtimeView)
+            }
+            .disabled(appState.competitionManager.isRecording)
+            .padding(.bottom, 120)
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        //.enableBackGesture() {
-            // 销毁计时器a和b
-        //    appState.competitionManager.stopAllTeamJoinTimers()
-        //    appState.navigationManager.removeLast()
-        //    if !appState.competitionManager.isRecording {
-        //        appState.competitionManager.resetCompetitionProperties()
-        //    }
-        //}
         .enableSwipeBackGesture(false)
         .onFirstAppear {
-            //if assetManager.magicCards.isEmpty {
-            //    assetManager.queryMagicCards(withLoadingToast: false)
-            //}
             // 如果是组队模式，启动计时器a
             if appState.competitionManager.isTeam {
                 appState.competitionManager.startTeamJoinTimerA()
@@ -131,6 +192,19 @@ struct CompetitionCardSelectView: View {
         }
         .bottomSheet(isPresented: $showCardSelection, size: .large) {
             CardSelectionView(showCardSelection: $showCardSelection)
+        }
+    }
+    
+    @ViewBuilder
+    func interleavedHStack<Views: View>(@ViewBuilder _ views: () -> [Views]) -> some View {
+        let list = views()
+        HStack {
+            ForEach(0..<list.count, id: \.self) { i in
+                list[i]
+                if i < list.count - 1 {
+                    Spacer()
+                }
+            }
         }
     }
 }

@@ -304,7 +304,7 @@ struct MagicCardCreateView: View {
             ("image", coverImage, "cover.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 200) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
                 body.append("Content-Type: image/jpeg\r\n\r\n")

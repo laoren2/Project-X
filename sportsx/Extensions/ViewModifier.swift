@@ -183,7 +183,9 @@ struct ScrollDragObserver: UIViewRepresentable {
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {
+        //print(isDragging)
+    }
 
     private func findScrollView(from view: UIView) -> UIScrollView? {
         var responder: UIResponder? = view
@@ -206,6 +208,7 @@ struct ScrollDragObserver: UIViewRepresentable {
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
             DispatchQueue.main.async {
                 self.isDragging = true
+                //print("scrollViewWillBeginDragging")
             }
         }
 
@@ -213,6 +216,7 @@ struct ScrollDragObserver: UIViewRepresentable {
             if !decelerate {
                 DispatchQueue.main.async {
                     self.isDragging = false
+                    //print("scrollViewDidEndDragging")
                 }
             }
         }
@@ -220,12 +224,14 @@ struct ScrollDragObserver: UIViewRepresentable {
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             DispatchQueue.main.async {
                 self.isDragging = false
+                //print("scrollViewDidEndDecelerating")
             }
         }
     }
 }
 
 // MARK: 监听 ScrollView 拖动状态变化
+// todo: 在 UserView 中偶现失效
 extension View {
     func onScrollDragChanged(_ isDragging: Binding<Bool>) -> some View {
         self.background(
@@ -598,42 +604,67 @@ extension View {
 }
 
 // MARK: 系统原生侧滑返回手势
-struct SwipeBackGestureController: UIViewControllerRepresentable {
-    let isEnabled: Bool
-    
-    func makeUIViewController(context: Context) -> UIViewController {
-        let controller = UIViewController()
-        controller.view.backgroundColor = .clear
-        controller.view.isUserInteractionEnabled = false
-        controller.view.isOpaque = false
-        controller.view.isHidden = true
-        return controller
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        DispatchQueue.main.async {
-            if let nav = uiViewController.navigationController {
-                nav.interactivePopGestureRecognizer?.isEnabled = isEnabled
-                // 仅当启用时移除 delegate，否则还原默认 delegate
-                nav.interactivePopGestureRecognizer?.delegate = isEnabled ? nil : context.coordinator
-            }
-        }
-    }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-    
-    class Coordinator: NSObject, UIGestureRecognizerDelegate {}
-}
-
+// todo: 未来版本可能不支持，需寻找更好的解决方案
 extension View {
     func enableSwipeBackGesture(_ enabled: Bool = true) -> some View {
-        self.background(
-            SwipeBackGestureController(isEnabled: enabled)
-                .frame(width: 0, height: 0)
-                .opacity(0)
-                .allowsHitTesting(false)
+        modifier(SwipeBackGestureEnabler(enabled: enabled))
+    }
+}
+
+private struct SwipeBackGestureEnabler: ViewModifier {
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onStableAppear {
+                GlobalConfig.shared.swipeBackEnabled = enabled
+            }
+    }
+}
+
+extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        interactivePopGestureRecognizer?.delegate = self
+    }
+
+    // 允许隐藏标准导航栏后使用滑动返回手势。
+    public func gestureRecognizerShouldBegin(_: UIGestureRecognizer) -> Bool {
+        guard viewControllers.count > 1 else { return false }
+        guard GlobalConfig.shared.swipeBackEnabled else { return false }
+        // 防止模态视图展示期间手势冲突
+        // 检查是否存在任何展示的视图控制器
+        if presentedViewController != nil {
+            return false
+        }
+
+        return true
+    }
+
+    // 允许 interactivePopGestureRecognizer 与其他手势同时工作。
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        viewControllers.count > 1
+    }
+
+    // 当 interactivePopGestureRecognizer 开始时阻止其他手势
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        viewControllers.count > 1
+    }
+}
+
+
+extension MKCoordinateRegion {
+    /// 按指定的纬度/经度方向偏移中心点
+    func centerOffset(byLatitudeMeters latMeters: CLLocationDistance = 0,
+                      byLongitudeMeters lonMeters: CLLocationDistance = 0) -> MKCoordinateRegion {
+        let metersPerDegreeLat = 111_000.0
+        let metersPerDegreeLon = metersPerDegreeLat * cos(center.latitude * .pi / 180.0)
+        
+        let newLat = center.latitude + latMeters / metersPerDegreeLat
+        let newLon = center.longitude + lonMeters / metersPerDegreeLon
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: newLat, longitude: newLon),
+            span: span
         )
     }
 }

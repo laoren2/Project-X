@@ -89,7 +89,7 @@ enum Tab: Int, CaseIterable {
 }
 
 struct NaviView: View {
-    @EnvironmentObject var appState: AppState
+    @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject var user = UserManager.shared
     let sidebarWidth: CGFloat = 300
     
@@ -99,24 +99,21 @@ struct NaviView: View {
                 RealNaviView(sidebarWidth: sidebarWidth)
                     .overlay(
                         CompetitionWidget()
-                            .padding()
-                            .offset(y: -50),
-                        alignment: .bottomTrailing // 右下角对齐
                     )
                 
                 Color.gray
-                    .opacity((appState.navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
+                    .opacity((navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
                     .ignoresSafeArea()
                     .exclusiveTouchTapGesture {
                         withAnimation(.easeIn(duration: 0.25)) {
-                            appState.navigationManager.showSideBar = false
+                            navigationManager.showSideBar = false
                         }
                     }
                 
                 // 运动选择侧边栏
                 SportSelectionSidebar()
                     .frame(width: sidebarWidth)
-                    .offset(x: (appState.navigationManager.showSideBar ? 0 : -sidebarWidth))
+                    .offset(x: (navigationManager.showSideBar ? 0 : -sidebarWidth))
                 
                 // 自定义弹窗
                 
@@ -289,6 +286,7 @@ struct RealNaviView: View {
 
 struct CustomTabBar: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject private var userManager = UserManager.shared
     
 
@@ -303,10 +301,10 @@ struct CustomTabBar: View {
                             .font(.system(size: 22, weight: .regular))
                             .frame(height: 20)
                         
-                        Text((tab == appState.navigationManager.selectedTab && tab == .sportCenter) ? (appState.navigationManager.isTrainingView ? "训练中心" : "竞技中心") : tab.title)
+                        Text(/*(tab == navigationManager.selectedTab && tab == .sportCenter) ? (navigationManager.isTrainingView ? "训练中心" : "竞技中心") : */tab.title)
                             .font(.system(size: 15))
                     }
-                    .foregroundColor(appState.navigationManager.selectedTab == tab ? .white : .thirdText)
+                    .foregroundColor(navigationManager.selectedTab == tab ? .white : .thirdText)
                     .padding(.vertical, 8)
                     .frame(maxWidth: .infinity)
                     
@@ -314,18 +312,18 @@ struct CustomTabBar: View {
                 }
                 .contentShape(Rectangle())
                 .exclusiveTouchTapGesture {
-                    if tab == appState.navigationManager.selectedTab && tab == .sportCenter {
-                        appState.navigationManager.isTrainingView.toggle()
-                    }
+                    //if tab == navigationManager.selectedTab && tab == .sportCenter {
+                    //    navigationManager.isTrainingView.toggle()
+                    //}
                     if shouldAllowSwitch(to: tab) {
-                        appState.navigationManager.selectedTab = tab
+                        navigationManager.selectedTab = tab
                     }
                 }
             }
         }
         .padding(.bottom, 25)
         .frame(height: 85)
-        .background(appState.navigationManager.selectedTab == .user ? userManager.backgroundColor : .defaultBackground)
+        .background(navigationManager.selectedTab == .user ? userManager.backgroundColor : .defaultBackground)
     }
 
     func shouldAllowSwitch(to tab: Tab) -> Bool {

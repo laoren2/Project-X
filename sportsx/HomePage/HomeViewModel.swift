@@ -182,7 +182,6 @@ class HomeViewModel: ObservableObject {
                         let today = Calendar.current.startOfDay(for: Date())
                         if let idx = self.items.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: today) }) {
                             self.items[idx].state = .claimed
-                            // todo: 更新资产
                             self.assetManager.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
                         } else {
                             self.fetchStatus()
@@ -197,7 +196,30 @@ class HomeViewModel: ObservableObject {
     }
     
     func signInTodayVip() {
+        guard !isLoadingVip else { return }
+        isLoadingVip = true
         
+        let request = APIRequest(path: "/user/sign_in_vip/today", method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: SignInResultDTO.self, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                self.isLoadingVip = false
+                switch result {
+                case .success(let data):
+                    if let unwrappedData = data {
+                        let today = Calendar.current.startOfDay(for: Date())
+                        if let idx = self.items.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: today) }) {
+                            self.items[idx].state_vip = .claimed
+                            self.assetManager.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
+                        } else {
+                            self.fetchStatus()
+                        }
+                        //self.continuousDays = unwrappedData.continuous_days
+                    }
+                default:
+                    break
+                }
+            }
+        }
     }
 }
 
@@ -220,7 +242,7 @@ final class SignInReminderManager {
         UNUserNotificationCenter.current()
     }
     
-    /// 请求通知权限（只在用户开启提醒时调用）
+    // 请求通知权限（只在用户开启提醒时调用）
     func requestAuthorization(completion: @escaping (Bool) -> Void) {
         center.getNotificationSettings { settings in
             switch settings.authorizationStatus {
@@ -288,19 +310,19 @@ final class SignInReminderManager {
         }
     }
     
-    /// 取消签到提醒（包括 pending & delivered）
+    // 取消签到提醒（包括 pending & delivered）
     func cancelReminder() {
         center.removePendingNotificationRequests(withIdentifiers: [notificationIdentifier])
         center.removeDeliveredNotifications(withIdentifiers: [notificationIdentifier])
         print("[SignInReminderManager] cancelled reminder")
     }
     
-    /// 更新时间（内部调用 schedule 替换旧提醒）
+    // 更新时间（内部调用 schedule 替换旧提醒）
     func updateReminderTime(to time: Date) {
         scheduleDailyReminder(at: time)
     }
     
-    /// 检查是否已有提醒在排队（pending）
+    // 检查是否已有提醒在排队（pending）
     func isReminderScheduled(completion: @escaping (Bool) -> Void) {
         center.getPendingNotificationRequests { requests in
             let exists = requests.contains { $0.identifier == self.notificationIdentifier }
@@ -310,7 +332,7 @@ final class SignInReminderManager {
         }
     }
     
-    /// 检查通知权限是否已授权（authorized/provisional/ephemeral）
+    // 检查通知权限是否已授权（authorized/provisional/ephemeral）
     func checkNotificationPermission(completion: @escaping (Bool) -> Void) {
         center.getNotificationSettings { settings in
             switch settings.authorizationStatus {
@@ -322,14 +344,12 @@ final class SignInReminderManager {
         }
     }
     
-    /// 获取“去系统设置”URL（用于用户拒绝权限后的引导）
+    // 获取“去系统设置”URL（用于用户拒绝权限后的引导）
     func settingsURL() -> URL? {
         URL(string: UIApplication.openSettingsURLString)
     }
     
     // MARK: - 存储提醒时间
-    
-    /// 以 "HH:mm" 格式保存时间到 UserDefaults
     private func persistReminderTime(_ date: Date) {
         let calendar = Calendar.current
         let comps = calendar.dateComponents([.hour, .minute], from: date)
@@ -338,7 +358,7 @@ final class SignInReminderManager {
         UserDefaults.standard.setValue(string, forKey: timeKey)
     }
     
-    /// 获取保存的时间（若无则返回今天 09:00）
+    // 获取保存的时间（若无则返回今天 09:00）
     func storedReminderTime() -> Date {
         if let s = UserDefaults.standard.string(forKey: timeKey) {
             let parts = s.split(separator: ":").compactMap { Int($0) }

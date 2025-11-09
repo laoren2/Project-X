@@ -13,6 +13,67 @@ struct BikeRecordDetailView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeRecordDetailViewModel
     
+    @State private var progressIndex: Int = 0
+    @State var isHeartDetail: Bool = false
+    @State var isAltitudeDetail: Bool = false
+    @State var isSpeedDetail: Bool = false
+    let formHeight: CGFloat = 80
+    
+    var overallHeartRateRange: (min: Double?, max: Double?) {
+        let mins = viewModel.samplePath.compactMap { $0.heart_rate_min }
+        let maxs = viewModel.samplePath.compactMap { $0.heart_rate_max }
+        if mins.isEmpty && maxs.isEmpty {
+            return (nil, nil)
+        }
+        let minVal = mins.min()
+        let maxVal = maxs.max()
+        return (minVal, maxVal)
+    }
+    
+    var overallAltitudeRange: (min: Double, max: Double) {
+        let altitudes = viewModel.samplePath.compactMap { $0.altitude_avg }
+        let minVal = altitudes.min() ?? 0
+        let maxVal = altitudes.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
+    var overallSpeedRange: (min: Double, max: Double) {
+        let altitudes = viewModel.samplePath.compactMap { $0.speed_avg }
+        let minVal = altitudes.min() ?? 0
+        let maxVal = altitudes.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
+    var heartRateAvg: Double? {
+        let validHeartRates = viewModel.basePath.compactMap { $0.heart_rate }
+        guard !validHeartRates.isEmpty else { return nil }
+        return validHeartRates.reduce(0, +) / Double(validHeartRates.count)
+    }
+    
+    var speedAvg: Double {
+        guard !viewModel.basePath.isEmpty else { return 0 }
+        
+        var totalDistance: Double = 0
+        for i in 0..<(viewModel.basePath.count - 1) {
+            let p1 = viewModel.basePath[i]
+            let p2 = viewModel.basePath[i + 1]
+            totalDistance += GeographyTool.haversineDistance(
+                lat1: p1.lat, lon1: p1.lon,
+                lat2: p2.lat, lon2: p2.lon
+            )
+        }
+        let duration = max(viewModel.basePath.last!.timestamp - viewModel.basePath.first!.timestamp, 0.0001)
+        return (totalDistance / duration) * 3.6
+    }
+    
+    var altitudeAvg: Double {
+        let altitudes = viewModel.basePath.map { $0.altitude }
+        guard !altitudes.isEmpty else { return 0 }
+        return altitudes.reduce(0, +) / Double(altitudes.count)
+    }
+    
+    var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
+    
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID))
     }
@@ -39,17 +100,36 @@ struct BikeRecordDetailView: View {
             .padding(.horizontal)
             
             if let detailInfo = viewModel.recordDetailInfo {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Map-style placeholder showing path segments colored by speed
-                        if !detailInfo.path.isEmpty {
-                            GradientPathMapView(path: detailInfo.path)
-                                .frame(height: 220)
-                                .cornerRadius(12)
-                                .padding(.horizontal)
+                VStack(spacing: 20) {
+                    ZStack(alignment: .bottom) {
+                        GradientPathMapView(path: viewModel.basePath, highlightedIndex: progressIndex)
+                            .frame(height: 280)
+                            .cornerRadius(12)
+                        if !viewModel.samplePath.isEmpty {
+                            // 当前选中时间段
+                            HStack {
+                                Text(TimeDisplay.formattedTime(viewModel.samplePath[progressIndex].timestamp_min - viewModel.samplePath[0].timestamp_min))
+                                Spacer()
+                                Text(TimeDisplay.formattedTime(viewModel.samplePath[progressIndex].timestamp_max - viewModel.samplePath[0].timestamp_min))
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 5)
+                            .foregroundStyle(Color.white)
+                            .background(Color.black.opacity(0.2))
+                            .background(.ultraThinMaterial)
+                            .clipShape(.rect(bottomLeadingRadius: 12, bottomTrailingRadius: 12))
                         }
-                        
-                        // Original time, final time, and status
+                    }
+                    ScrollView(showsIndicators: false) {
+                        HStack {
+                            Text("成绩与数据")
+                                .font(.title2)
+                                .bold()
+                                .foregroundStyle(Color.secondText)
+                            Spacer()
+                        }
+                        .padding(.bottom, 20)
+                        // 成绩总览
                         VStack(spacing: 8) {
                             HStack {
                                 Text("原始时间:")
@@ -97,18 +177,237 @@ struct BikeRecordDetailView: View {
                                 }
                             }
                         }
-                        .padding()
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                        Divider()
+                            .environment(\.colorScheme, .dark)
+                        // 数据统计
+                        if !viewModel.samplePath.isEmpty {
+                            VStack {
+                                if let rangeMin = overallHeartRateRange.min, let rangeMax = overallHeartRateRange.max {
+                                    if isHeartDetail {
+                                        VStack {
+                                            ZStack(alignment: .center) {
+                                                HStack {
+                                                    Text("心率")
+                                                    Spacer()
+                                                    Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                }
+                                                .foregroundStyle(Color.red)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    isHeartDetail.toggle()
+                                                }
+                                                if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
+                                                   let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
+                                                    Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
+                                                        .padding(.horizontal)
+                                                        .padding(.vertical, 10)
+                                                        .font(.caption2)
+                                                        .foregroundColor(.white)
+                                                        .background(Color.red.opacity(0.8))
+                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                } else {
+                                                    Text("无数据")
+                                                        .padding(.horizontal)
+                                                        .padding(.vertical, 10)
+                                                        .font(.caption2)
+                                                        .foregroundColor(.white)
+                                                        .background(Color.gray.opacity(0.8))
+                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                }
+                                            }
+                                            //.border(.red)
+                                            ZStack {
+                                                HStack(alignment: .center, spacing: spacingWidth) {
+                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                        // 根据采样数据心率区间的最大值和最小值计算柱状图高度
+                                                        if let hrMin = viewModel.samplePath[i].heart_rate_min,
+                                                           let hrMax = viewModel.samplePath[i].heart_rate_max {
+                                                            let region = rangeMax - rangeMin
+                                                            let height = region > 0 ? max(formHeight * (hrMax - hrMin) / region, 4) : 4
+                                                            
+                                                            // 根据采样数据心率区间的最小值调整Y轴偏移，使柱状图底部对齐
+                                                            let offsetY = region > 0 ? (40 - height / 2 - (hrMin - rangeMin) * formHeight / region) : 0
+                                                            
+                                                            RoundedRectangle(cornerRadius: 1)
+                                                                .fill(i == progressIndex ? Color.red : Color.gray.opacity(0.5))
+                                                                .frame(width: 2, height: height)
+                                                                .offset(y: offsetY)
+                                                        } else {
+                                                            RoundedRectangle(cornerRadius: 1)
+                                                                .frame(width: 2, height: 2)
+                                                                .hidden()
+                                                        }
+                                                    }
+                                                }
+                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                            }
+                                            .frame(height: formHeight)
+                                            Rectangle()
+                                                .foregroundStyle(Color.gray)
+                                                .frame(height: 1)
+                                            HStack {
+                                                Text("00:00")
+                                                Spacer()
+                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                }
+                                            }
+                                            .font(.caption)
+                                            .foregroundStyle(Color.gray)
+                                        }
+                                    } else {
+                                        HStack {
+                                            Text("心率")
+                                            Spacer()
+                                            if let bpmAvg = heartRateAvg {
+                                                Text(String(format: "平均 %.0f 次/分", bpmAvg))
+                                            }
+                                        }
+                                        .padding()
+                                        .foregroundStyle(Color.white)
+                                        .background(Color.red.opacity(0.8))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .onTapGesture {
+                                            isHeartDetail.toggle()
+                                        }
+                                    }
+                                }
+                                if isAltitudeDetail {
+                                    VStack {
+                                        ZStack(alignment: .center) {
+                                            HStack {
+                                                Text("海拔")
+                                                Spacer()
+                                                Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
+                                            }
+                                            .foregroundStyle(Color.green)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                isAltitudeDetail.toggle()
+                                            }
+                                            Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
+                                                .padding(.horizontal)
+                                                .padding(.vertical, 10)
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                                .background(Color.green.opacity(0.8))
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        }
+                                        ZStack {
+                                            HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                    let overall = (overallAltitudeRange.max - overallAltitudeRange.min)
+                                                    let ratio = overall > 0 ? (viewModel.samplePath[i].altitude_avg - overallAltitudeRange.min) / overall : 1/2
+                                                    let height = max(formHeight * ratio, 0) + 4
+                                                    
+                                                    RoundedRectangle(cornerRadius: 1)
+                                                        .fill(i == progressIndex ? Color.green : Color.gray.opacity(0.5))
+                                                        .frame(width: 2, height: height)
+                                                }
+                                            }
+                                            GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                        }
+                                        .frame(height: formHeight)
+                                        Rectangle()
+                                            .foregroundStyle(Color.gray)
+                                            .frame(height: 1)
+                                        HStack {
+                                            Text("00:00")
+                                            Spacer()
+                                            if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                            }
+                                        }
+                                        .font(.caption)
+                                        .foregroundStyle(Color.gray)
+                                    }
+                                } else {
+                                    HStack {
+                                        Text("海拔")
+                                        Spacer()
+                                        Text(String(format: "平均 %.0f 米", altitudeAvg))
+                                    }
+                                    .padding()
+                                    .foregroundStyle(Color.white)
+                                    .background(Color.green.opacity(0.8))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .onTapGesture {
+                                        isAltitudeDetail.toggle()
+                                    }
+                                }
+                                if isSpeedDetail {
+                                    VStack {
+                                        ZStack(alignment: .center) {
+                                            HStack {
+                                                Text("速度")
+                                                Spacer()
+                                                Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
+                                            }
+                                            .foregroundStyle(Color.orange)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                isSpeedDetail.toggle()
+                                            }
+                                            Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
+                                                .padding(.horizontal)
+                                                .padding(.vertical, 10)
+                                                .font(.caption2)
+                                                .foregroundColor(.white)
+                                                .background(Color.orange.opacity(0.8))
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        }
+                                        ZStack {
+                                            HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                    let overall = (overallSpeedRange.max - overallSpeedRange.min)
+                                                    let ratio = overall > 0 ? (viewModel.samplePath[i].speed_avg - overallSpeedRange.min) / overall : 1/2
+                                                    let height = max(formHeight * ratio, 0) + 4
+                                                    
+                                                    RoundedRectangle(cornerRadius: 1)
+                                                        .fill(i == progressIndex ? Color.orange : Color.gray.opacity(0.5))
+                                                        .frame(width: 2, height: height)
+                                                }
+                                            }
+                                            GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                        }
+                                        .frame(height: formHeight)
+                                        Rectangle()
+                                            .foregroundStyle(Color.gray)
+                                            .frame(height: 1)
+                                        HStack {
+                                            Text("00:00")
+                                            Spacer()
+                                            if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                            }
+                                        }
+                                        .font(.caption)
+                                        .foregroundStyle(Color.gray)
+                                    }
+                                } else {
+                                    HStack {
+                                        Text("速度")
+                                        Spacer()
+                                        Text(String(format: "平均 %.0f 公里/小时", speedAvg))
+                                    }
+                                    .padding()
+                                    .foregroundStyle(Color.white)
+                                    .background(Color.orange.opacity(0.8))
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .onTapGesture {
+                                        isSpeedDetail.toggle()
+                                    }
+                                }
+                            }
+                        }
                         
-                        // List of card bonuses
+                        // 卡牌收益
                         if !detailInfo.cardBonus.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("卡牌收益")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
-                                    .padding(.horizontal)
                                 ForEach(detailInfo.cardBonus) { bonus in
                                     HStack(spacing: 16) {
                                         MagicCardView(card: bonus.card)
@@ -129,7 +428,6 @@ struct BikeRecordDetailView: View {
                                     }
                                     .padding()
                                     .cornerRadius(12)
-                                    .padding(.horizontal)
                                 }
                             }
                         }
@@ -141,7 +439,6 @@ struct BikeRecordDetailView: View {
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
-                                    .padding(.horizontal)
                                 ForEach(detailInfo.teamMemberScores) { score in
                                     HStack(spacing: 16) {
                                         HStack(spacing: 10) {
@@ -179,13 +476,12 @@ struct BikeRecordDetailView: View {
                                     }
                                     .padding()
                                     .cornerRadius(12)
-                                    .padding(.horizontal)
                                 }
                             }
                         }
                     }
-                    .padding(.vertical)
                 }
+                .padding(.horizontal)
             } else {
                 VStack {
                     Spacer()
@@ -195,11 +491,9 @@ struct BikeRecordDetailView: View {
                 }
             }
         }
+        .ignoresSafeArea(edges: .bottom)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        //.enableBackGesture() {
-        //    adjustNavigationPath()
-        //}
         .enableSwipeBackGesture(false)
         .onFirstAppear {
             viewModel.queryRecordDetail()
@@ -223,6 +517,12 @@ struct BikeRecordDetailView: View {
 struct RunningRecordDetailView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningRecordDetailViewModel
+    
+    @State private var progressIndex: Int = 0
+    @State var isHeartDetail: Bool = false
+    @State var isAltitudeDetail: Bool = false
+    @State var isSpeedDetail: Bool = false
+    let formHeight: CGFloat = 80
     
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID))
@@ -253,7 +553,7 @@ struct RunningRecordDetailView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         if !detailInfo.path.isEmpty {
-                            GradientPathMapView(path: detailInfo.path)
+                            GradientPathMapView(path: detailInfo.basePath, highlightedIndex: progressIndex)
                                 .frame(height: 220)
                                 .cornerRadius(12)
                                 .padding(.horizontal)
@@ -404,9 +704,7 @@ struct RunningRecordDetailView: View {
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
-        //.enableBackGesture() {
-        //    adjustNavigationPath()
-        //}
+        .enableSwipeBackGesture(false)
         .onFirstAppear {
             viewModel.queryRecordDetail()
         }
@@ -426,6 +724,53 @@ struct RunningRecordDetailView: View {
     }
 }
 
+struct GestureOverlayView: View {
+    @State private var lastHapticTime: TimeInterval = 0
+    let pointsCount: Int
+    @Binding var progressIndex: Int
+    let formWidth: CGFloat = UIScreen.main.bounds.width - 32
+
+    var body: some View {
+        Color.clear
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onEnded { value in
+                        // 点击时手势位移太大会被忽略
+                        if abs(value.location.x - value.startLocation.x) > 5 ||
+                           abs(value.location.y - value.startLocation.y) > 5 {
+                            return
+                        }
+
+                        updateProgress(for: value.location.x)
+                    }
+            )
+            .gesture(
+                DragGesture(minimumDistance: 30)
+                    .onChanged { value in
+                        updateProgress(for: value.location.x)
+                    }
+                    .onEnded { _ in }
+            )
+    }
+
+    private func updateProgress(for x: CGFloat) {
+        guard pointsCount > 0, formWidth > 0 else { return }
+
+        var ratio = x / formWidth
+        ratio = min(max(ratio, 0), 0.999)
+        let idx = min(Int(ratio * CGFloat(pointsCount)), pointsCount - 1)
+        if idx != progressIndex {
+            progressIndex = idx
+            // 节流：每 0.1s 最多触发一次震动
+            let now = Date().timeIntervalSince1970
+            if now - lastHapticTime > 0.1 {
+                lastHapticTime = now
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+        }
+    }
+}
 
 #Preview {
     let appState = AppState.shared

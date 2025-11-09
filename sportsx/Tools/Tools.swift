@@ -10,6 +10,20 @@ import CoreLocation
 import SwiftUI
 
 
+struct GeographyTool {
+    // 使用 Haversine 公式计算两点间距离（单位：米）
+    static func haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
+        let R = 6371000.0 // 地球半径（米）
+        let dLat = (lat2 - lat1) * .pi / 180
+        let dLon = (lon2 - lon1) * .pi / 180
+        let a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(lat1 * .pi / 180) * cos(lat2 * .pi / 180) *
+                sin(dLon / 2) * sin(dLon / 2)
+        let c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
+    }
+}
+
 struct CoordinateConverter {
     // 判断是否在中国境内
     // todo: 添加ip判断
@@ -102,8 +116,12 @@ struct DateDisplay {
     }
 }
 
+enum TimePart {
+    case hour, minute, second, all
+}
+
 struct TimeDisplay {
-    static func formattedTime(_ interval: TimeInterval?, showFraction: Bool = false) -> String {
+    static func formattedTime(_ interval: TimeInterval?, showFraction: Bool = false, part: TimePart = .all) -> String {
         guard let duration = interval else { return "无数据" }
         
         let totalSeconds = Int(duration)
@@ -121,9 +139,27 @@ struct TimeDisplay {
             }
         } else {
             if hours > 0 {
-                return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+                switch part {
+                case .hour:
+                    return String(format: "%02d", hours)
+                case .minute:
+                    return String(format: "%02d", minutes)
+                case .second:
+                    return String(format: "%02d", seconds)
+                default:
+                    return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+                }
             } else {
-                return String(format: "%02d:%02d", minutes, seconds)
+                switch part {
+                case .hour:
+                    return "00"
+                case .minute:
+                    return String(format: "%02d", minutes)
+                case .second:
+                    return String(format: "%02d", seconds)
+                default:
+                    return String(format: "%02d:%02d", minutes, seconds)
+                }
             }
         }
     }

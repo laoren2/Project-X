@@ -36,7 +36,9 @@ struct BikeRaceRecord: Identifiable, Equatable {
     let eventName: String                   // 赛事名
     let trackName: String                   // 赛道名
     let trackStart: CLLocationCoordinate2D  // 赛道出发点
+    let trackStartRadius: Int               // 赛道出发点半径
     let trackEnd: CLLocationCoordinate2D    // 赛道终点
+    let trackEndRadius: Int                 // 赛道终点半径
     let trackEndDate: Date?                 // 赛道结束时间
     let status: CompetitionStatus           // 比赛状态
     let startDate: Date?                    // 记录比赛开始时间
@@ -55,7 +57,9 @@ struct BikeRaceRecord: Identifiable, Equatable {
         self.eventName = record.event_name
         self.trackName = record.track_name
         self.trackStart = CLLocationCoordinate2D(latitude: record.track_start_lat, longitude: record.track_start_lng)
+        self.trackStartRadius = record.track_start_radius
         self.trackEnd = CLLocationCoordinate2D(latitude: record.track_end_lat, longitude: record.track_end_lng)
+        self.trackEndRadius = record.track_end_radius
         self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
         self.status = record.status
         self.startDate = formatter.date(from: record.start_date ?? "")
@@ -84,8 +88,10 @@ struct BikeRaceRecordDTO: Codable {
     let track_name: String
     let track_start_lat: Double
     let track_start_lng: Double
+    let track_start_radius: Int
     let track_end_lat: Double
     let track_end_lng: Double
+    let track_end_radius: Int
     let track_end_date: String
     let status: CompetitionStatus
     let start_date: String?
@@ -115,7 +121,9 @@ struct RunningRaceRecord: Identifiable, Equatable {
     let eventName: String                   // 赛事名
     let trackName: String                   // 赛道名
     let trackStart: CLLocationCoordinate2D  // 赛道出发点
+    let trackStartRadius: Int               // 赛道出发点半径
     let trackEnd: CLLocationCoordinate2D    // 赛道终点
+    let trackEndRadius: Int                 // 赛道终点半径
     let trackEndDate: Date?                 // 赛道结束时间
     let status: CompetitionStatus           // 比赛状态
     let startDate: Date?                    // 记录比赛开始时间
@@ -134,7 +142,9 @@ struct RunningRaceRecord: Identifiable, Equatable {
         self.eventName = record.event_name
         self.trackName = record.track_name
         self.trackStart = CLLocationCoordinate2D(latitude: record.track_start_lat, longitude: record.track_start_lng)
+        self.trackStartRadius = record.track_start_radius
         self.trackEnd = CLLocationCoordinate2D(latitude: record.track_end_lat, longitude: record.track_end_lng)
+        self.trackEndRadius = record.track_end_radius
         self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
         self.status = record.status
         self.startDate = formatter.date(from: record.start_date ?? "")
@@ -163,8 +173,10 @@ struct RunningRaceRecordDTO: Codable {
     let track_name: String
     let track_start_lat: Double
     let track_start_lng: Double
+    let track_start_radius: Int
     let track_end_lat: Double
     let track_end_lng: Double
+    let track_end_radius: Int
     let track_end_date: String
     let status: CompetitionStatus
     let start_date: String?

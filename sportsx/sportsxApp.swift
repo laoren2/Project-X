@@ -21,15 +21,19 @@ class AppState: ObservableObject {
     
     private init() {
         // 当 competitionManager 有变化时，让 AppState 也发出变化通知
-        competitionManager.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
-        .store(in: &cancellables)
+        competitionManager.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
         
-        navigationManager.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
-        .store(in: &cancellables)
+        navigationManager.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -163,7 +167,3 @@ struct MailBoxStatus: Codable {
     let has_unread: Bool
     let unread_count: Int
 }
-
-
-
-

@@ -14,7 +14,32 @@
 import Foundation
 import CoreLocation
 import Combine
+import SwiftUI
 
+
+enum GPSStrength: String {
+    case excellent, good, fair, poor, unknown
+    
+    var color: Color {
+        switch self {
+        case .excellent: return .green
+        case .good: return .yellow
+        case .fair: return .orange
+        case .poor: return .red
+        case .unknown: return .gray
+        }
+    }
+    
+    var bars: Int {
+        switch self {
+        case .excellent: return 4
+        case .good: return 3
+        case .fair: return 2
+        case .poor: return 1
+        case .unknown: return 0
+        }
+    }
+}
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = LocationManager()
@@ -25,6 +50,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var lastAllowsBackgroundLocationUpdates: Bool = false
     private var lastPausesLocationUpdatesAutomatically: Bool = true
     
+    // GPS信号强度
+    @Published var signalStrength: GPSStrength = .unknown
     // 设备国家定位
     @Published var countryCode: String? = nil
     // 运动中心已选择的地区
@@ -194,6 +221,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.distanceFilter = lastDistanceFilter
         locationManager.pausesLocationUpdatesAutomatically = lastPausesLocationUpdatesAutomatically
         locationManager.allowsBackgroundLocationUpdates = lastAllowsBackgroundLocationUpdates
+        //print("back to \(locationManager.desiredAccuracy)")
+        //print("back to \(locationManager.allowsBackgroundLocationUpdates)")
     }
     
     
@@ -212,6 +241,24 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         locationSubject.send(location)
+        //print(locationManager.desiredAccuracy)
+        //print(locationManager.allowsBackgroundLocationUpdates)
+        DispatchQueue.main.async {
+            let accuracy = location.horizontalAccuracy
+            //print(accuracy)
+            switch accuracy {
+            case 0..<5:
+                self.signalStrength = .excellent
+            case 5..<10:
+                self.signalStrength = .good
+            case 10..<25:
+                self.signalStrength = .fair
+            case 25..<50:
+                self.signalStrength = .poor
+            default:
+                self.signalStrength = .unknown
+            }
+        }
         //print("send location \(location)")
     }
     

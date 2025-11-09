@@ -10,6 +10,7 @@ import SwiftUI
 struct CardSelectionView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
+    @ObservedObject var userManager = UserManager.shared
     @State private var tempSelectedCards: [MagicCard] = []
     @State private var searchText: String = ""
     @Binding var showCardSelection: Bool
@@ -17,7 +18,7 @@ struct CardSelectionView: View {
     // 卡牌容器的常量
     private let cardWidth: CGFloat = 100
     private let cardHeight: CGFloat = 140
-    private let maxCards = 3
+    private var maxCards: Int { return userManager.user.isVip ? 4 : 3}
     
     // 定义4列网格
     let columns = [
@@ -73,40 +74,78 @@ struct CardSelectionView: View {
                 Text("已选择")
                     .font(.headline)
                     .foregroundStyle(Color.secondText)
-                    .padding(.top, 10)
                 
-                HStack(spacing: 20) {
-                    ForEach(tempSelectedCards) { card in
-                        // 显示已选择的卡牌
-                        ZStack(alignment: .topTrailing) {
-                            MagicCardView(card: card)
-                                .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
-                            
-                            // 卸载按钮
-                            Button(action: {
-                                tempSelectedCards.removeAll { $0.cardID == card.cardID }
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
-                                    .background(Circle().fill(Color.white))
-                                    .shadow(radius: 1)
+                if userManager.user.isVip {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 20) {
+                            ForEach(tempSelectedCards) { card in
+                                // 显示已选择的卡牌
+                                ZStack(alignment: .topTrailing) {
+                                    MagicCardView(card: card)
+                                        .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
+                                    
+                                    // 卸载按钮
+                                    Button(action: {
+                                        tempSelectedCards.removeAll { $0.cardID == card.cardID }
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.red)
+                                            .background(Circle().fill(Color.white))
+                                            .shadow(radius: 1)
+                                    }
+                                    .offset(x: 8, y: -8)
+                                }
                             }
-                            .offset(x: 8, y: -8)
+                            // 占位卡牌
+                            ForEach(tempSelectedCards.count..<maxCards, id: \.self) { index in
+                                if index == 3 {
+                                    EmptyCardVipSlot()
+                                        .frame(width: cardWidth * 0.8)
+                                } else {
+                                    EmptyCardSlot()
+                                        .frame(width: cardWidth * 0.8)
+                                }
+                            }
+                        }
+                        .padding(2)
+                        .padding(.top, 6)
+                    }
+                } else {
+                    HStack {
+                        ForEach(tempSelectedCards) { card in
+                            // 显示已选择的卡牌
+                            Spacer()
+                            ZStack(alignment: .topTrailing) {
+                                MagicCardView(card: card)
+                                    .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
+                                
+                                // 卸载按钮
+                                Button(action: {
+                                    tempSelectedCards.removeAll { $0.cardID == card.cardID }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.red)
+                                        .background(Circle().fill(Color.white))
+                                        .shadow(radius: 1)
+                                }
+                                .offset(x: 8, y: -8)
+                            }
+                            Spacer()
+                        }
+                        // 占位卡牌
+                        ForEach(tempSelectedCards.count..<maxCards, id: \.self) { _ in
+                            Spacer()
+                            EmptyCardSlot()
+                                .frame(width: cardWidth * 0.8)
+                            Spacer()
                         }
                     }
-                    // 占位卡牌
-                    ForEach(tempSelectedCards.count..<maxCards, id: \.self) { _ in
-                        EmptyCardSlot()
-                            .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
-                    }
                 }
-                .padding(.bottom, 20)
-                .padding(.leading, 30)
-                .padding(.trailing, 30)
             }
+            .padding()
             .background(Color.gray.opacity(0.1))
             .cornerRadius(12)
-            
+            .padding()
             
             // 搜索框
             HStack {

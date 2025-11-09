@@ -28,7 +28,7 @@ class UserManager: ObservableObject {
     
     @Published var mailboxUnreadCount: Int = 0
     
-    var role: UserRole = UserRole.user  // 用户权限
+    @Published var role: UserRole = UserRole.user  // 用户权限
     
     private init() {
         if let token = KeychainHelper.standard.read(forKey: "access_token") {
@@ -233,6 +233,7 @@ class UserManager: ObservableObject {
         defaults.set(followerCount, forKey: "followerCount")
         defaults.set(friendCount, forKey: "friendCount")
         defaults.set(user.defaultSport.rawValue, forKey: "user.defaultSport")
+        defaults.set(user.isVip, forKey: "user.isVip")
     }
     
     private func loadUserInfoCache() {
@@ -260,7 +261,8 @@ class UserManager: ObservableObject {
             isDisplayLocation: defaults.bool(forKey: "user.isDisplayLocation"),
             enableAutoLocation: defaults.bool(forKey: "user.enableAutoLocation"),
             isDisplayIdentity: defaults.bool(forKey: "user.isDisplayIdentity"),
-            defaultSport: defaultSport ?? .Bike
+            defaultSport: defaultSport ?? .Bike,
+            isVip: defaults.bool(forKey: "user.isVip")
         )
         
         followedCount = defaults.integer(forKey: "followedCount")
@@ -308,6 +310,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.enableAutoLocation")
         defaults.removeObject(forKey: "user.isDisplayIdentity")
         defaults.removeObject(forKey: "user.defaultSport")
+        defaults.removeObject(forKey: "user.isVip")
         
         defaults.removeObject(forKey: "followedCount")
         defaults.removeObject(forKey: "followerCount")
@@ -548,6 +551,7 @@ struct UserDTO: Codable {
     
     let default_sport: SportName      // 主页默认展示的运动
     let status: UserStatus              // 用户账号状态
+    let is_vip: Bool
 }
 
 struct User: Identifiable, Codable, Hashable {
@@ -575,6 +579,7 @@ struct User: Identifiable, Codable, Hashable {
     var isDisplayIdentity: Bool     // 是否展示身份名称
     var defaultSport: SportName     // 主页默认展示的运动
     let status: UserStatus
+    let isVip: Bool
     
     init(
         userID: String = "未知",
@@ -596,7 +601,8 @@ struct User: Identifiable, Codable, Hashable {
         enableAutoLocation: Bool = false,
         isDisplayIdentity: Bool = false,
         defaultSport: SportName = .Bike,
-        status: UserStatus = .normal
+        status: UserStatus = .normal,
+        isVip: Bool = false
     ) {
         self.userID = userID
         self.nickname = nickname
@@ -618,6 +624,7 @@ struct User: Identifiable, Codable, Hashable {
         self.isDisplayIdentity = isDisplayIdentity
         self.defaultSport = defaultSport
         self.status = status
+        self.isVip = isVip
     }
 
     init(from dto: UserDTO) {
@@ -641,5 +648,6 @@ struct User: Identifiable, Codable, Hashable {
         self.isDisplayIdentity = dto.is_display_identity
         self.defaultSport = dto.default_sport
         self.status = dto.status
+        self.isVip = dto.is_vip
     }
 }

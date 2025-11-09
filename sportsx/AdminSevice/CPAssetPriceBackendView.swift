@@ -119,9 +119,9 @@ struct CPAssetPriceBackendView: View {
         .sheet(isPresented: $viewModel.showCreateSheet) {
             CPAssetPriceCreateView(viewModel: viewModel)
         }
-        .sheet(isPresented: $viewModel.showUpdateSheet) {
-            CPAssetPriceUpdateView(viewModel: viewModel)
-        }
+        //.sheet(isPresented: $viewModel.showUpdateSheet) {
+        //    CPAssetPriceUpdateView(viewModel: viewModel)
+        //}
     }
     
     func queryCPAssets() {
@@ -231,7 +231,7 @@ struct CPAssetPriceCreateView: View {
     }
 }
 
-struct CPAssetPriceUpdateView: View {
+/*struct CPAssetPriceUpdateView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: CPAssetPriceBackendViewModel
     
@@ -338,7 +338,7 @@ struct CPAssetPriceUpdateView: View {
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
     }
-}
+}*/
 
 struct CPAssetPriceView: View {
     @ObservedObject var viewModel: CPAssetPriceBackendViewModel
