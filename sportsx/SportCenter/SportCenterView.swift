@@ -305,6 +305,13 @@ struct TrackMapView: UIViewRepresentable {
         mapView.delegate = context.coordinator
         mapView.addAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation])
         
+        // 隐藏底部 "Legal" 图标
+        for subview in mapView.subviews {
+            if String(describing: type(of: subview)).contains("Attribution") {
+                subview.isHidden = true
+            }
+        }
+        
         return mapView
     }
     
@@ -437,6 +444,13 @@ struct FullScreenMapRepresentable: UIViewRepresentable {
         let circle1 = MKCircle(center: fromCoordinate, radius: startRadius)
         let circle2 = MKCircle(center: toCoordinate, radius: endRadius)
         mapView.addOverlays([circle1, circle2])
+        
+        // 隐藏底部 "Legal" 图标
+        for subview in mapView.subviews {
+            if String(describing: type(of: subview)).contains("Attribution") {
+                subview.isHidden = true
+            }
+        }
         
         return mapView
     }
