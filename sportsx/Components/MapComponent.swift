@@ -144,9 +144,9 @@ struct RealtimeMapView: UIViewRepresentable {
             if let userLocation = userLocation {
                 let location = isReverse ? CoordinateConverter.reverseParseCoordinate(coordinate: userLocation.coordinate) : CoordinateConverter.parseCoordinate(coordinate: userLocation.coordinate)
                 let region = MKCoordinateRegion(center: location,
-                                                latitudinalMeters: 300,
-                                                longitudinalMeters: 300)
-                    .centerOffset(byLatitudeMeters: -100)
+                                                latitudinalMeters: 3 * startRadius,
+                                                longitudinalMeters: 3 * startRadius)
+                    .centerOffset(byLatitudeMeters: -startRadius / 2)
                 context.coordinator.isProgrammaticChange = true
                 mapView.setRegion(region, animated: context.coordinator.lastMode != .followUser ? true : false)
                 DispatchQueue.main.async {
