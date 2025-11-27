@@ -70,28 +70,28 @@ struct TestBikePathDetailView: View {
     }
     
     var pedalCountAvg: Double {
-        let steps = appState.competitionManager.bikePathData.compactMap { $0.estimate_pedal_count }
+        let steps = appState.competitionManager.bikePathData_debug.compactMap { $0.estimate_pedal_count }
         return steps.reduce(0, +) / Double(steps.count)
     }
     
     var speedAvg: Double {
-        guard !appState.competitionManager.basePathData.isEmpty else { return 0 }
+        guard !appState.competitionManager.basePathData_debug.isEmpty else { return 0 }
         
         var totalDistance: Double = 0
-        for i in 0..<(appState.competitionManager.basePathData.count - 1) {
-            let p1 = appState.competitionManager.basePathData[i]
-            let p2 = appState.competitionManager.basePathData[i + 1]
+        for i in 0..<(appState.competitionManager.basePathData_debug.count - 1) {
+            let p1 = appState.competitionManager.basePathData_debug[i]
+            let p2 = appState.competitionManager.basePathData_debug[i + 1]
             totalDistance += GeographyTool.haversineDistance(
                 lat1: p1.lat, lon1: p1.lon,
                 lat2: p2.lat, lon2: p2.lon
             )
         }
-        let duration = max(appState.competitionManager.basePathData.last!.timestamp - appState.competitionManager.basePathData.first!.timestamp, 0.0001)
+        let duration = max(appState.competitionManager.basePathData_debug.last!.timestamp - appState.competitionManager.basePathData_debug.first!.timestamp, 0.0001)
         return (totalDistance / duration) * 3.6
     }
     
     var altitudeAvg: Double {
-        let altitudes = appState.competitionManager.basePathData.map { $0.altitude }
+        let altitudes = appState.competitionManager.basePathData_debug.map { $0.altitude }
         guard !altitudes.isEmpty else { return 0 }
         return altitudes.reduce(0, +) / Double(altitudes.count)
     }
@@ -102,7 +102,7 @@ struct TestBikePathDetailView: View {
         if !vm.samplePath.isEmpty {
             ScrollView {
                 ZStack(alignment: .bottom) {
-                    GradientPathMapView(path: appState.competitionManager.basePathData, highlightedIndex: progressIndex)
+                    GradientPathMapView(path: appState.competitionManager.basePathData_debug, highlightedIndex: progressIndex)
                         .frame(height: 280)
                         .cornerRadius(12)
                     if !vm.samplePath.isEmpty {
@@ -164,7 +164,7 @@ struct TestBikePathDetailView: View {
                             HStack {
                                 Text("00:00")
                                 Spacer()
-                                if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                if let EndTime = appState.competitionManager.basePathData_debug.last?.timestamp, let startTime = appState.competitionManager.basePathData_debug.first?.timestamp {
                                     Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                 }
                             }
@@ -227,7 +227,7 @@ struct TestBikePathDetailView: View {
                             HStack {
                                 Text("00:00")
                                 Spacer()
-                                if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                if let EndTime = appState.competitionManager.basePathData_debug.last?.timestamp, let startTime = appState.competitionManager.basePathData_debug.first?.timestamp {
                                     Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                 }
                             }
@@ -290,7 +290,7 @@ struct TestBikePathDetailView: View {
                             HStack {
                                 Text("00:00")
                                 Spacer()
-                                if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                if let EndTime = appState.competitionManager.basePathData_debug.last?.timestamp, let startTime = appState.competitionManager.basePathData_debug.first?.timestamp {
                                     Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                 }
                             }

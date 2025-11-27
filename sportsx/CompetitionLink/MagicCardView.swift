@@ -259,7 +259,14 @@ struct MagicCardSelectableView: View {
         }
         // 检查传感器
         if let location = card.sensorLocation {
-            guard DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) else { return false }
+            if !DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) {
+                if card.sensorLocation2 == nil {
+                    return false
+                }
+                if let location2 = card.sensorLocation2, !DeviceManager.shared.checkSensorLocation(at: location2 >> 1, in: card.sensorType) {
+                    return false
+                }
+            }
         }
         // 检查版本
         guard AppVersionManager.shared.checkMinimumVersion(card.version) else { return false }
@@ -360,30 +367,54 @@ struct CardDetailView: View {
                                 .foregroundColor(.secondary)
                             
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 15) {
-                                    if (location & 0b000001) != 0 {
-                                        sensorIcon(name: "iphone", text: "手机")
+                                HStack {
+                                    HStack(spacing: 15) {
+                                        if (location & 0b000001) != 0 {
+                                            sensorIcon(name: "iphone", text: "手机")
+                                        }
+                                        if (location & 0b000010) != 0 {
+                                            sensorIcon(name: "hand.raised.fill", text: "左手")
+                                        }
+                                        if (location & 0b000100) != 0 {
+                                            sensorIcon(name: "hand.point.right.fill", text: "右手")
+                                        }
+                                        if (location & 0b001000) != 0 {
+                                            sensorIcon(name: "figure.walk", text: "左脚")
+                                        }
+                                        if (location & 0b010000) != 0 {
+                                            sensorIcon(name: "figure.walk", text: "右脚")
+                                        }
+                                        if (location & 0b100000) != 0 {
+                                            sensorIcon(name: "waveform.path.ecg", text: "腰部")
+                                        }
                                     }
-                                    if (location & 0b000010) != 0 {
-                                        sensorIcon(name: "hand.raised.fill", text: "左手")
-                                    }
-                                    if (location & 0b000100) != 0 {
-                                        sensorIcon(name: "hand.point.right.fill", text: "右手")
-                                    }
-                                    if (location & 0b001000) != 0 {
-                                        sensorIcon(name: "figure.walk", text: "左脚")
-                                    }
-                                    if (location & 0b010000) != 0 {
-                                        sensorIcon(name: "figure.walk", text: "右脚")
-                                    }
-                                    if (location & 0b100000) != 0 {
-                                        sensorIcon(name: "waveform.path.ecg", text: "腰部")
+                                    if let location2 = card.sensorLocation2 {
+                                        Text("或")
+                                        HStack(spacing: 15) {
+                                            if (location2 & 0b000001) != 0 {
+                                                sensorIcon(name: "iphone", text: "手机")
+                                            }
+                                            if (location2 & 0b000010) != 0 {
+                                                sensorIcon(name: "hand.raised.fill", text: "左手")
+                                            }
+                                            if (location2 & 0b000100) != 0 {
+                                                sensorIcon(name: "hand.point.right.fill", text: "右手")
+                                            }
+                                            if (location2 & 0b001000) != 0 {
+                                                sensorIcon(name: "figure.walk", text: "左脚")
+                                            }
+                                            if (location2 & 0b010000) != 0 {
+                                                sensorIcon(name: "figure.walk", text: "右脚")
+                                            }
+                                            if (location2 & 0b100000) != 0 {
+                                                sensorIcon(name: "waveform.path.ecg", text: "腰部")
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                    // todo: 添加Skill1/2/3的显示区域，区域展示description和对应level，level以点亮5个小方形矩形的方式展示
                     // 技能展示
                     Divider()
                     VStack(alignment: .leading, spacing: 15) {

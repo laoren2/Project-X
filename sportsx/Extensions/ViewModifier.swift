@@ -421,14 +421,16 @@ struct BottomSheetView<Content: View>: View {
     @Binding var isPresented: Bool
     let size: BottomSheetSize?
     let customizeHeight: CGFloat?
+    let destroyOnDismiss: Bool
     let content: Content
 
     @State private var offsetY: CGFloat = 0
 
-    init(isPresented: Binding<Bool>, size: BottomSheetSize?, customizeHeight: CGFloat?, @ViewBuilder content: () -> Content) {
+    init(isPresented: Binding<Bool>, size: BottomSheetSize?, customizeHeight: CGFloat?, destroyOnDismiss: Bool, @ViewBuilder content: () -> Content) {
         self._isPresented = isPresented
         self.size = size
         self.customizeHeight = customizeHeight
+        self.destroyOnDismiss = destroyOnDismiss
         self.content = content()
     }
 
@@ -446,11 +448,31 @@ struct BottomSheetView<Content: View>: View {
                     }
                 
                 // 内容区域
-                content
-                    .frame(maxWidth: .infinity)
-                    .frame(height: sheetHeight)
-                    .clipShape(.rect(topLeadingRadius: 10, topTrailingRadius: 10, style: .continuous))
-                    .offset(y: isPresented ? 0 : sheetHeight)
+                ZStack {
+                    Color.defaultBackground
+                    ZStack {
+                        if isPresented {
+                            content
+                                .transition(
+                                    .move(edge: .bottom)
+                                    .combined(with: .opacity)
+                                )
+                        } else if destroyOnDismiss {
+                            // Placeholder keeps animation container alive
+                            Color.clear
+                                .transition(
+                                    .move(edge: .bottom)
+                                    .combined(with: .opacity)
+                                )
+                        } else {
+                            content
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: sheetHeight)
+                .clipShape(.rect(topLeadingRadius: 10, topTrailingRadius: 10, style: .continuous))
+                .offset(y: isPresented ? 0 : sheetHeight)
             }
             .ignoresSafeArea(.container, edges: .bottom)
             .animation(.easeInOut(duration: 0.3), value: isPresented)
@@ -484,9 +506,18 @@ extension View {
         isPresented: Binding<Bool>,
         size: BottomSheetSize? = nil,
         customizeHeight: CGFloat? = nil,
+        destroyOnDismiss: Bool = false,
         @ViewBuilder content: @escaping () -> SheetContent
     ) -> some View {
-        self.modifier(BottomSheetModifier(isPresented: isPresented, size: size, customizeHeight: customizeHeight, content: content))
+        self.modifier(
+            BottomSheetModifier(
+                isPresented: isPresented,
+                size: size,
+                customizeHeight: customizeHeight,
+                destroyOnDismiss: destroyOnDismiss,
+                content: content
+            )
+        )
     }
 }
 
@@ -494,12 +525,19 @@ struct BottomSheetModifier<SheetContent: View>: ViewModifier {
     @Binding var isPresented: Bool
     let size: BottomSheetSize?
     let customizeHeight: CGFloat?
+    let destroyOnDismiss: Bool
     let content: () -> SheetContent
 
     func body(content base: Content) -> some View {
         ZStack {
             base
-            BottomSheetView(isPresented: $isPresented, size: size, customizeHeight: customizeHeight, content: self.content)
+            BottomSheetView(
+                isPresented: $isPresented,
+                size: size,
+                customizeHeight: customizeHeight,
+                destroyOnDismiss: destroyOnDismiss,
+                content: self.content
+            )
         }
     }
 }

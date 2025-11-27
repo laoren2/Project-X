@@ -17,8 +17,26 @@ struct SensorBindView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("多位置设备绑定示例")
-                .font(.headline)
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(Color.secondText)
+                Spacer()
+                Text("多位置设备绑定")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.secondText)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
+            
+            Spacer()
             
             // 生成 5 个位置的绑定按钮
             ForEach(BodyPosition.allCases, id: \.self) { position in
@@ -32,6 +50,7 @@ struct SensorBindView: View {
                         Text("点击解绑")
                             .padding(.vertical, 4)
                             .buttonStyle(.bordered)
+                            .foregroundColor(.white)
                             .exclusiveTouchTapGesture {
                                 deviceManager.unbindDevice(at: position)
                             }
@@ -46,6 +65,7 @@ struct SensorBindView: View {
                             Text("点击绑定")
                                 .padding(.vertical, 4)
                                 .buttonStyle(.bordered)
+                                .foregroundColor(.white)
                                 .exclusiveTouchTapGesture {
                                     selectedPosition = position
                                 }
@@ -61,8 +81,11 @@ struct SensorBindView: View {
                 )
                 .border(.gray, width: 1)
             }
+            Spacer()
         }
-        .padding()
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .sheet(item: $selectedPosition) { pos in
             VStack {
                 Text("选择设备")

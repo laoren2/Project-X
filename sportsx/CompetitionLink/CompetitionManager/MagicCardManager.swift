@@ -713,13 +713,24 @@ class HeartRateEffect_C_0ee41ac7: MagicCardEffect {
         self.cardID = cardID
         self.level = level
         self.params = params
-        self.bonus_ratio = params["bonus_time"]?.doubleValue ?? 0
+        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
     }
     
     func load() async -> Bool {
-        let sensorLocation = params["sensor_location"]?.intValue ?? 0
-        CompetitionManager.shared.sensorRequest |= sensorLocation
-        return true
+        // 设置真实绑定方案
+        var sensorTypes: [SensorType] = []
+        if let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
+            sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        }
+        if let sensorLocation = params["sensor_location"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation >> 1, in: sensorTypes) {
+            CompetitionManager.shared.sensorRequest |= sensorLocation
+            return true
+        }
+        if let sensorLocation2 = params["sensor_location2"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation2 >> 1, in: sensorTypes) {
+            CompetitionManager.shared.sensorRequest |= sensorLocation2
+            return true
+        }
+        return false
     }
     
     func register(eventBus: MatchEventBus) {
@@ -743,19 +754,30 @@ class HeartRateEffect_B_464ffa29: MagicCardEffect {
         self.cardID = cardID
         self.level = level
         self.params = params
-        self.bonus_ratio = params["bonus_time"]?.doubleValue ?? 0
+        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
         self.bonus_time_skill1 = params["skill1", "bonus_time_skill1"]?.doubleValue ?? 0
     }
     
     func load() async -> Bool {
-        let sensorLocation = params["sensor_location"]?.intValue ?? 0
-        CompetitionManager.shared.sensorRequest |= sensorLocation
-        return true
+        // 设置真实绑定方案
+        var sensorTypes: [SensorType] = []
+        if let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
+            sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        }
+        if let sensorLocation = params["sensor_location"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation >> 1, in: sensorTypes) {
+            CompetitionManager.shared.sensorRequest |= sensorLocation
+            return true
+        }
+        if let sensorLocation2 = params["sensor_location2"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation2 >> 1, in: sensorTypes) {
+            CompetitionManager.shared.sensorRequest |= sensorLocation2
+            return true
+        }
+        return false
     }
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchCycleUpdate) { context in
-            if let heartRate = context.latestHeartRate, heartRate >= 120, heartRate <= 160  {
+            if let heartRate = context.latestHeartRate, heartRate >= 120, heartRate <= 160 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.01 * self.bonus_ratio * 3)
             }
         }
@@ -778,7 +800,6 @@ class XposeTestEffect: MagicCardEffect {
     let bonusTimeSkill1: Double
     let inputWindowInSamples: Int
     let predictionIntervalInSamples: Int
-    let sensorLocation: Int
     
     private let modelKey: String
     private var predictModel: GenericPredictModel<BoolHandler>? = nil
@@ -794,18 +815,33 @@ class XposeTestEffect: MagicCardEffect {
         self.predictionIntervalInSamples = params["prediction_interval_in_samples"]?.intValue ?? 0
         self.modelKey = params["model_key"]?.stringValue ?? "empty_model"
         self.inputWindowInSamples = params["input_window_in_samples"]?.intValue ?? 0
-        self.sensorLocation = params["sensor_location"]?.intValue ?? 0
     }
     
     func load() async -> Bool {
+        var sensorTypes: [SensorType] = []
+        if let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
+            sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        }
+        var sensor_location: Int = 0
+        if let sensorLocation = params["sensor_location"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation >> 1, in: sensorTypes) {
+            sensor_location = sensorLocation
+            CompetitionManager.shared.sensorRequest |= sensorLocation
+        } else {
+            if let sensorLocation2 = params["sensor_location2"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation2 >> 1, in: sensorTypes) {
+                sensor_location = sensorLocation2
+                CompetitionManager.shared.sensorRequest |= sensorLocation2
+            } else {
+                return false
+            }
+        }
+        
         if predictModel == nil {
             if let model = await ModelManager.shared.loadModel(for: modelKey) {
-                CompetitionManager.shared.sensorRequest |= sensorLocation
                 DataFusionManager.shared.setPredictWindow(maxWindow: inputWindowInSamples)
-                predictModel = GenericPredictModel(params: params, model: model, handler: BoolHandler())
+                predictModel = GenericPredictModel(location: sensor_location, params: params, model: model, handler: BoolHandler())
                 // 设置device开启imu收集
                 for (pos, dev) in DeviceManager.shared.deviceMap {
-                    if var device = dev, (sensorLocation & (1 << (pos.rawValue + 1))) != 0 {
+                    if var device = dev, (sensor_location & (1 << (pos.rawValue + 1))) != 0 {
                         device.enableIMU = true
                     }
                 }
@@ -839,83 +875,6 @@ class XposeTestEffect: MagicCardEffect {
         } else {
             return predictionIntervalInSamples
         }
-    }
-}
-
-class PedalRPMEffect: MagicCardEffect {
-    let cardID: String
-    let level: Int
-    let params: JSONValue
-    
-    let threshold: Double
-    let bonusMultiplier: Double
-    
-    let thresholdSkill1: Double
-    let bonusMultiplierSkill1: Double
-    let predictionIntervalInSamples: Int
-    
-    private let modelKey: String
-    private var predictModel: GenericPredictModel<IntHandler>? = nil
-    
-    var pedalCnt: Int = 0
-    
-    init(cardID: String, level: Int, with params: JSONValue) {
-        self.cardID = cardID
-        self.level = level
-        self.params = params
-        self.threshold = params["threshold"]?.doubleValue ?? 0
-        self.bonusMultiplier = params["bonus_multiplier"]?.doubleValue ?? 1.0
-        self.thresholdSkill1 = params["skill1", "threshold_skill1"]?.doubleValue ?? 0
-        self.bonusMultiplierSkill1 = params["skill1", "bonus_multiplier_skill1"]?.doubleValue ?? 1.0
-        self.predictionIntervalInSamples = params["predictionIntervalInSamples"]?.intValue ?? 0
-        self.modelKey = params["model_key"]?.stringValue ?? "empty_model"
-    }
-    
-    func load() async -> Bool {
-        if predictModel == nil {
-            if let model = await ModelManager.shared.loadModel(for: modelKey) {
-                let inputWindowInSamples = params["input_window_in_samples"]?.intValue ?? 0
-                let sensorLocation = params["sensor_location"]?.intValue ?? 0
-                CompetitionManager.shared.sensorRequest |= sensorLocation
-                DataFusionManager.shared.setPredictWindow(maxWindow: inputWindowInSamples)
-                predictModel = GenericPredictModel(params: params, model: model, handler: IntHandler())
-                return true
-            } else {
-                print("模型 \(modelKey) 加载失败")
-                return false
-            }
-        }
-        return true
-    }
-    
-    func register(eventBus: MatchEventBus) {
-        eventBus.on(.matchIMUSensorUpdate) { context in
-            self.predictModel?.checkForPrediction(with: context.sensorData) { result in
-                self.onPrediction(result: result)
-                // 根据结果调整下次预测的时机
-                return self.nextPredictStep()
-            }
-        }
-        eventBus.on(.matchEnd) { context in
-            let recordingMin = DataFusionManager.shared.elapsedTime / 60
-            let pedalAvg = Double(self.pedalCnt) / recordingMin
-            if pedalAvg >= self.threshold {
-                let bonus = self.bonusMultiplier * DataFusionManager.shared.elapsedTime
-                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
-            }
-            if self.level >= 3 && pedalAvg >= self.thresholdSkill1 {
-                let bonus = self.bonusMultiplierSkill1 * DataFusionManager.shared.elapsedTime
-                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
-            }
-        }
-    }
-    
-    func onPrediction(result: Int) {
-        pedalCnt += result
-    }
-    
-    func nextPredictStep() -> Int {
-        return predictionIntervalInSamples
     }
 }
 

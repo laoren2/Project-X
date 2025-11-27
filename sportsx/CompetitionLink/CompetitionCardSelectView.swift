@@ -45,10 +45,12 @@ struct CompetitionCardSelectView: View {
                     .cornerRadius(6)
                 Spacer()
                 // 平衡布局的空按钮
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: {
+                    appState.navigationManager.append(.sensorBindView)
+                }) {
+                    Image(systemName: "applewatch.side.right")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.clear)
+                        .foregroundColor(.white)
                 }
             }
             .padding(.horizontal)
@@ -191,7 +193,7 @@ struct CompetitionCardSelectView: View {
                 appState.competitionManager.startTeamJoinTimerA()
             }
         }
-        .bottomSheet(isPresented: $showCardSelection, size: .large) {
+        .bottomSheet(isPresented: $showCardSelection, size: .large, destroyOnDismiss: true) {
             CardSelectionView(showCardSelection: $showCardSelection)
         }
     }

@@ -26,11 +26,11 @@ class GenericPredictModel<Handler: PredictionOutputHandler> {
     let mlModel: MLModel
     let handler: Handler
     
-    init(params: JSONValue, model: MLModel, handler: Handler) {
+    init(location: Int, params: JSONValue, model: MLModel, handler: Handler) {
         self.inputWindowInSamples = params["input_window_in_samples"]?.intValue ?? 0
         self.predictionIntervalInSamples = params["prediction_interval_in_samples"]?.intValue ?? 0
         //self.requiresDecisionBasedInterval = params["requires_decision_based_interval"]?.boolValue ?? false
-        self.sensorLocation = params["sensor_location"]?.intValue ?? 0
+        self.sensorLocation = location
         self.isPhoneData = params["is_phone_data"]?.boolValue ?? false
         self.remainingSamples = self.predictionIntervalInSamples
         self.mlModel = model
