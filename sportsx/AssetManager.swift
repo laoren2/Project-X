@@ -416,6 +416,7 @@ struct MagicCard: Identifiable, Equatable {
     let levelSkill2: Int?       // 0-5级，level=6时解锁
     let levelSkill3: Int?       // 0-5级，level=10时解锁
     let imageURL: String
+    
     // 传感器类型要求
     let sensorType: [SensorType]
     // 传感器绑定位置要求
@@ -423,6 +424,8 @@ struct MagicCard: Identifiable, Equatable {
     //       |   |   |   |   |    |
     //      WST  RF  LF  RH  LH  PHONE
     let sensorLocation: Int?
+    let sensorLocation2: Int?   // 备选方案(可选)
+    
     let lucky: Double
     let rarity: String
     let description: String
@@ -452,6 +455,9 @@ struct MagicCard: Identifiable, Equatable {
         }
         let location = card.effect_def["sensor_location"]?.intValue
         self.sensorLocation = location
+        let location2 = card.effect_def["sensor_location2"]?.intValue
+        self.sensorLocation2 = location2
+        
         self.lucky = card.lucky
         self.rarity = card.rarity
         
@@ -502,6 +508,7 @@ struct MagicCard: Identifiable, Equatable {
         self.imageURL = card.imageURL
         self.sensorType = card.sensorType
         self.sensorLocation = card.sensorLocation
+        self.sensorLocation2 = card.sensorLocation2
         self.lucky = -1
         self.rarity = card.rarity
         self.description = card.description
@@ -558,6 +565,7 @@ struct MagicCardShop: Identifiable, Equatable {
     let imageURL: String
     let sensorType: [SensorType]
     let sensorLocation: Int?
+    let sensorLocation2: Int?   // 备选方案（可选）
     let rarity: String
     let description: String
     let descriptionSkill1: String?
@@ -573,6 +581,7 @@ struct MagicCardShop: Identifiable, Equatable {
         self.name = card.name
         self.sportType = card.sport_type
         self.imageURL = card.image_url
+        
         if let sensorStrings = card.effect_config["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
             self.sensorType = sensorStrings.compactMap { SensorType(rawValue: $0) }
         } else {
@@ -580,6 +589,9 @@ struct MagicCardShop: Identifiable, Equatable {
         }
         let location = card.effect_config["sensor_location"]?.intValue
         self.sensorLocation = location
+        let location2 = card.effect_config["sensor_location2"]?.intValue
+        self.sensorLocation2 = location2
+        
         self.rarity = card.rarity
         self.description = card.description.rendered(with: card.effect_config)
         if let description1 = card.skill1_description {

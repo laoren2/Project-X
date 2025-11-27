@@ -60,7 +60,6 @@ struct CardSelectionView: View {
                 
                 Button(action:{
                     showCardSelection = false
-                    //appState.competitionManager.activateCards(tempSelectedCards)
                     appState.competitionManager.selectedCards = tempSelectedCards
                 }) {
                     Text("完成")
@@ -215,12 +214,8 @@ struct CardSelectionView: View {
             }
         }
         .background(Color.defaultBackground)
-        .onValueChange(of: showCardSelection) {
-            if !showCardSelection {
-                tempSelectedCards = appState.competitionManager.selectedCards
-            }
-        }
-        .onFirstAppear {
+        .onStableAppear {
+            tempSelectedCards = appState.competitionManager.selectedCards
             if assetManager.magicCards.isEmpty {
                 Task {
                     await assetManager.queryMagicCards(withLoadingToast: false)
@@ -247,9 +242,15 @@ struct CardSelectionView: View {
             }
             // 检查传感器
             if let location = card.sensorLocation {
-                guard DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) else {
-                    ToastManager.shared.show(toast: Toast(message: "传感器未绑定"))
-                    return
+                if !DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) {
+                    if card.sensorLocation2 == nil {
+                        ToastManager.shared.show(toast: Toast(message: "传感器未绑定"))
+                        return
+                    }
+                    if let location2 = card.sensorLocation2, !DeviceManager.shared.checkSensorLocation(at: location2 >> 1, in: card.sensorType) {
+                        ToastManager.shared.show(toast: Toast(message: "传感器未绑定"))
+                        return
+                    }
                 }
             }
             // 检查版本

@@ -293,7 +293,7 @@ struct CompetitionRealtimeView: View {
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
                                                     if let index = appState.competitionManager.matchContext.bonusEachCards.firstIndex(where: { $0.card_id == card.cardID }) {
-                                                        Text("奖励时间: \(appState.competitionManager.matchContext.bonusEachCards[index].bonus_time)")
+                                                        Text("奖励时间: \(TimeDisplay.formattedTime( appState.competitionManager.matchContext.bonusEachCards[index].bonus_time, showFraction: true))")
                                                             .font(.subheadline)
                                                             .foregroundColor(.white)
                                                         Spacer()
