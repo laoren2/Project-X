@@ -179,7 +179,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         let dateFormatter = ISO8601DateFormatter()
         
         for data in dataBatch {
-            let timestamp = dateFormatter.string(from: data.timestamp)
+            let timestamp = data.timestamp
             let accX = data.accX
             let accY = data.accY
             let accZ = data.accZ
@@ -243,7 +243,7 @@ extension AppleWatchDevice: WCSessionDelegate {
             //Logger.competition.notice_public("Start convert message...")
             for item in batchArray {
                 cnt += 1
-                if let timestamp = item["timestamp"] as? Date,
+                if let timestamp = item["timestamp"] as? TimeInterval,
                    let accx = item["accX"] as? Double,
                    let accy = item["accY"] as? Double,
                    let accz = item["accZ"] as? Double,

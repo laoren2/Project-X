@@ -54,14 +54,17 @@ enum AppRoute: Hashable {
     case seasonBackendView
     case runningEventBackendView
     case runningTrackBackendView
+    case runningRecordBackendView
     case bikeEventBackendView
     case bikeTrackBackendView
+    case bikeRecordBackendView
     case regionSelectedView
     case cpAssetBackendView
     case cpAssetPriceBackendView
     case userAssetManageBackendView
     case magicCardBackendView
     case magicCardPriceBackendView
+    case bikeMatchDebugView
 #endif
     
     var string: String {
@@ -147,10 +150,14 @@ enum AppRoute: Hashable {
             return "runningEventBackendView"
         case .runningTrackBackendView:
             return "runningTrackBackendView"
+        case .runningRecordBackendView:
+            return "runningRecordBackendView"
         case .bikeEventBackendView:
             return "bikeEventBackendView"
         case .bikeTrackBackendView:
             return "bikeTrackBackendView"
+        case .bikeRecordBackendView:
+            return "bikeRecordBackendView"
         case .regionSelectedView:
             return "regionSelectedView"
         case .cpAssetBackendView:
@@ -163,6 +170,8 @@ enum AppRoute: Hashable {
             return "magicCardBackendView"
         case .magicCardPriceBackendView:
             return "magicCardPriceBackendView"
+        case .bikeMatchDebugView:
+            return "bikeMatchDebugView"
 #endif
         }
     }

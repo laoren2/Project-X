@@ -305,13 +305,14 @@ struct GradientPathMapView: UIViewRepresentable {
     
     func updateUIView(_ mapView: MKMapView, context: Context) {
         guard !path.isEmpty, highlightedIndex < path.count else { return }
-        
+        let ratio = Double(path.count) / 80.0
+        let sampleIndex = path.count < 80 ? highlightedIndex : Int(Double(highlightedIndex) * ratio)
         // 移除旧的高亮 annotation
         let existing = mapView.annotations.filter { $0.title == highlightAnnotationId }
         mapView.removeAnnotations(existing)
         
         // 添加新的高亮 annotation
-        let coord = CoordinateConverter.parseCoordinate(coordinate: CLLocationCoordinate2D(latitude: path[highlightedIndex].lat, longitude: path[highlightedIndex].lon))
+        let coord = CoordinateConverter.parseCoordinate(coordinate: CLLocationCoordinate2D(latitude: path[Int(sampleIndex)].lat, longitude: path[Int(sampleIndex)].lon))
         let annotation = MKPointAnnotation()
         annotation.coordinate = coord
         annotation.title = highlightAnnotationId

@@ -170,7 +170,7 @@ struct MagicCardCreateView: View {
     @State var description2: String = ""
     @State var description3: String = ""
     @State var rarity: String = ""
-    @State var typeName: String = ""
+    //@State var typeName: String = ""
     @State var version: String = ""
     @State private var tags: String = ""
     //["team_mode", "rain_day"]
@@ -217,7 +217,7 @@ struct MagicCardCreateView: View {
                     TextField("卡牌描述2(选填)", text: $description2)
                     TextField("卡牌描述3(选填)", text: $description3)
                     TextField("稀有度", text: $rarity)
-                    TextField("卡牌effect名称", text: $typeName)
+                    //TextField("卡牌effect名称", text: $typeName)
                     TextField("version", text: $version)
                 }
                 Section(header: Text("过滤标签(选填)")) {
@@ -246,7 +246,7 @@ struct MagicCardCreateView: View {
                         viewModel.showCreateSheet = false
                         createMagicCard()
                     }
-                    .disabled(name.isEmpty || sportType.isEmpty || description.isEmpty || typeName.isEmpty || version.isEmpty || effectConfig.isEmpty)
+                    .disabled(name.isEmpty || sportType.isEmpty || description.isEmpty || version.isEmpty || effectConfig.isEmpty)
                 }
             }
         }
@@ -278,7 +278,7 @@ struct MagicCardCreateView: View {
             "rarity": rarity,
             "description": description,
             "version": version,
-            "type_name": typeName,
+            //"type_name": typeName,
             "effect_config": effectConfig
         ]
         if !description1.isEmpty {

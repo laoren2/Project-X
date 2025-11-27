@@ -279,7 +279,7 @@ struct MainUserView: View {
                                                     .foregroundColor(.white)
                                                     .padding(.vertical, 8)
                                                     .padding(.horizontal, 30)
-                                                    .background(.gray)
+                                                    .background(.white.opacity(0.4))
                                                     .cornerRadius(8)
                                                     .exclusiveTouchTapGesture {
                                                         viewModel.cancelFollow()

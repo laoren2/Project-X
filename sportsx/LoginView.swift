@@ -168,7 +168,7 @@ struct LoginView: View {
                         userManager.user = User(from: user)
                         userManager.role = unwrappedData.role
                         userManager.saveUserInfoToCache()
-                        config.refreshAll()
+                        //config.refreshAll()
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
                     }

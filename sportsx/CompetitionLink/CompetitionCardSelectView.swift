@@ -177,6 +177,7 @@ struct CompetitionCardSelectView: View {
             .cornerRadius(12)
             .exclusiveTouchTapGesture {
                 appState.navigationManager.append(.competitionRealtimeView)
+                appState.competitionManager.activateCards()
             }
             .disabled(appState.competitionManager.isRecording)
             .padding(.bottom, 120)

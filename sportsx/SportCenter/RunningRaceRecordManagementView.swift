@@ -194,6 +194,11 @@ struct RunningCompetitionRecordCard: View {
                         .font(.subheadline)
                         .foregroundColor(.red)
                 }
+                if record.status == .toBeVerified {
+                    Text("(校验中...)")
+                        .font(.subheadline)
+                        .foregroundColor(.orange)
+                }
                 if record.status == .invalid {
                     Text("(校验失败)")
                         .font(.subheadline)
@@ -254,7 +259,7 @@ struct RunningCompetitionRecordCard: View {
                 }
             }
             
-            if record.status == .completed || record.status == .expired || record.status == .invalid {
+            if record.status != .notStarted && record.status != .recording {
                 // 开始时间
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
@@ -341,7 +346,7 @@ struct RunningCompetitionRecordCard: View {
             }
             
             // 对于已完成的比赛，添加详情按钮
-            if record.status == .completed || record.status == .expired || record.status == .invalid {
+            if record.status != .notStarted && record.status != .recording {
                 HStack {
                     Text("\(record.regionName)-\(record.eventName)")
                         .font(.caption)

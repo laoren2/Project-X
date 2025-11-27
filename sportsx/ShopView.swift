@@ -195,6 +195,7 @@ struct ShopView: View {
                                                 }
                                             }
                                         }
+                                        .contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
                                         .onTapGesture {
                                             if selectedCard?.id == card.id {
                                                 selectedCard = nil
@@ -267,8 +268,10 @@ struct ShopView: View {
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshShopView {
                 Task {
-                    selectedAsset = nil
-                    selectedCard = nil
+                    DispatchQueue.main.async {
+                        selectedAsset = nil
+                        selectedCard = nil
+                    }
                     await queryCPAssets(withLoadingToast: true)
                     await queryMagicCards(withLoadingToast: true)
                 }
@@ -301,7 +304,7 @@ struct ShopView: View {
     
     func queryMagicCards(withLoadingToast: Bool) async {
         DispatchQueue.main.async {
-            magicCards.removeAll()
+            magicCards = []
         }
         let request = APIRequest(path: "/asset/query_equip_cards_on_shelves", method: .get, requiresAuth: true)
         

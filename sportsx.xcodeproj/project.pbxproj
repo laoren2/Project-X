@@ -124,6 +124,7 @@
 		A9B9A53D2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppTests"; sourceTree = "<group>"; };
 		A9B9A5472D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sportsx_Watch Watch AppUITests"; sourceTree = "<group>"; };
 		A9D812762D2EEF6600185548 /* SensorManager */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SensorManager; sourceTree = "<group>"; };
+		A9DA6F5C2ED38C5B004C6B08 /* DebugModule */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = DebugModule; sourceTree = "<group>"; };
 		A9E269EF2D873003002C2033 /* CompetitionLink */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CompetitionLink; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -204,6 +205,7 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9DA6F5C2ED38C5B004C6B08 /* DebugModule */,
 				A99050202E8A9A1D00FB9701 /* sportsxDebug.entitlements */,
 				A9BF94912E4CD858000EC9D7 /* AppVersionManager.swift */,
 				A912CD862E1D6F62009062AD /* StoreHouseView.swift */,
@@ -286,6 +288,7 @@
 				A97D14812DAFB098002F0B1E /* Tools */,
 				A9B2825A2DD9101A00DCBCBD /* Extensions */,
 				A9D812762D2EEF6600185548 /* SensorManager */,
+				A9DA6F5C2ED38C5B004C6B08 /* DebugModule */,
 				A9E269EF2D873003002C2033 /* CompetitionLink */,
 			);
 			name = sportsx;
@@ -730,7 +733,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = sportsx/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "x玩家";
+				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSCameraUsageDescription = testCamera;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "需要位置权限来展示当前地区比赛信息";
@@ -779,7 +782,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = sportsx/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "x玩家";
+				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSCameraUsageDescription = testCamera;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "需要位置权限来展示当前地区比赛信息";
@@ -886,6 +889,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -896,7 +900,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "x玩家";
+				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "App 需要读取健康数据在运动中使用";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App 需要写入健康数据以记录运动";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -905,7 +909,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.renjie.sportsx.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -924,6 +928,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -932,7 +937,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "x玩家";
+				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "App 需要读取健康数据在运动中使用";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App 需要写入健康数据以记录运动";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -941,7 +946,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.renjie.sportsx.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -4,18 +4,53 @@
 //
 //  Created by 任杰 on 2025/3/21.
 //
-
+import SwiftUI
 import Foundation
 import MapKit
 
 
 // 比赛记录状态枚举
 enum CompetitionStatus: String, Codable {
-    case notStarted = "notStarted"
-    case recording = "recording"
-    case completed = "completed"
-    case expired = "expired"
-    case invalid = "invalid"
+    case notStarted = "notStarted"          // 记录未开始
+    case recording = "recording"            // 记录进行中
+    case completed = "completed"            // 记录已完成（可能存在数据统计延迟的情况如受部分卡牌影响）
+    case expired = "expired"                // 记录已过期（可能由于非正常结束等原因已被服务端清理）
+    case toBeVerified = "toBeVerified"      // 运动数据待校验
+    case invalid = "invalid"                // 运动数据校验失败
+    
+    var displayName: String {
+        switch self {
+        case .notStarted:
+            return "未开始"
+        case .recording:
+            return "进行中"
+        case .completed:
+            return "已完成"
+        case .expired:
+            return "已过期"
+        case .toBeVerified:
+            return "校验中"
+        case .invalid:
+            return "校验失败"
+        }
+    }
+    
+    var backgroundColor: Color {
+        switch self {
+        case .notStarted:
+            return .gray
+        case .recording:
+            return .orange
+        case .completed:
+            return .green
+        case .expired:
+            return .gray
+        case .toBeVerified:
+            return .orange
+        case .invalid:
+            return .red
+        }
+    }
 }
 
 // 队伍成员结构

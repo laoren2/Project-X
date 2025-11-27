@@ -60,7 +60,8 @@ struct CardSelectionView: View {
                 
                 Button(action:{
                     showCardSelection = false
-                    appState.competitionManager.activateCards(tempSelectedCards)
+                    //appState.competitionManager.activateCards(tempSelectedCards)
+                    appState.competitionManager.selectedCards = tempSelectedCards
                 }) {
                     Text("完成")
                         .font(.system(size: 16))
@@ -261,7 +262,7 @@ struct CardSelectionView: View {
                 ToastManager.shared.show(toast: Toast(message: "不可重复装备"))
                 return
             }
-            if tempSelectedCards.count < 3 {
+            if tempSelectedCards.count < maxCards {
                 tempSelectedCards.append(card)
             }
         }

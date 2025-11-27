@@ -17,6 +17,7 @@ struct BikeRecordDetailView: View {
     @State var isHeartDetail: Bool = false
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
+    @State var isPedalDetail: Bool = false
     let formHeight: CGFloat = 80
     
     var overallHeartRateRange: (min: Double?, max: Double?) {
@@ -41,6 +42,13 @@ struct BikeRecordDetailView: View {
         let altitudes = viewModel.samplePath.compactMap { $0.speed_avg }
         let minVal = altitudes.min() ?? 0
         let maxVal = altitudes.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
+    var overallPedalCountRange: (min: Double, max: Double) {
+        let pedals = viewModel.samplePath.compactMap { $0.pedal_count_avg }
+        let minVal = pedals.min() ?? 0
+        let maxVal = pedals.max() ?? 0
         return (minVal, maxVal)
     }
     
@@ -70,6 +78,11 @@ struct BikeRecordDetailView: View {
         let altitudes = viewModel.basePath.map { $0.altitude }
         guard !altitudes.isEmpty else { return 0 }
         return altitudes.reduce(0, +) / Double(altitudes.count)
+    }
+    
+    var pedalCountAvg: Double {
+        let steps = viewModel.pathData.compactMap { $0.estimate_pedal_count }
+        return steps.reduce(0, +) / Double(steps.count)
     }
     
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
@@ -120,123 +133,195 @@ struct BikeRecordDetailView: View {
                             .clipShape(.rect(bottomLeadingRadius: 12, bottomTrailingRadius: 12))
                         }
                     }
+                    .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
-                        HStack {
-                            Text("成绩与数据")
-                                .font(.title2)
-                                .bold()
-                                .foregroundStyle(Color.secondText)
-                            Spacer()
-                        }
-                        .padding(.bottom, 20)
-                        // 成绩总览
-                        VStack(spacing: 8) {
+                        VStack(spacing: 20) {
                             HStack {
-                                Text("原始时间:")
+                                Text("成绩与数据")
+                                    .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
-                                Text("\(detailInfo.originalTime)")
-                                    .font(.system(.body, design: .rounded))
-                                    .bold()
-                                    .foregroundStyle(Color.white)
                             }
-                            HStack {
-                                Text("有效时间:")
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                Spacer()
-                                Text("\(detailInfo.finalTime)")
-                                    .font(.system(.body, design: .rounded))
-                                    .bold()
-                                    .foregroundStyle(Color.white)
-                            }
-                            HStack {
-                                Text("状态:")
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                Spacer()
-                                if detailInfo.status == .completed {
-                                    if detailInfo.isFinishComputed == false {
-                                        Text("计算中...")
+                            .padding(.top, 10)
+                            // 成绩总览
+                            VStack(spacing: 8) {
+                                HStack {
+                                    Text("原始时间:")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(detailInfo.originalTime, showFraction: true))")
+                                        .font(.system(.body, design: .rounded))
+                                        .bold()
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    Text("有效时间:")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
+                                        .font(.system(.body, design: .rounded))
+                                        .bold()
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    Text("状态:")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    if detailInfo.status == .completed {
+                                        if detailInfo.isFinishComputed == false {
+                                            Text("计算中...")
+                                                .foregroundColor(.orange)
+                                                .bold()
+                                        } else {
+                                            Text("已完成")
+                                                .foregroundColor(.green)
+                                                .bold()
+                                        }
+                                    } else if detailInfo.status == .expired {
+                                        Text("数据异常")
+                                            .foregroundColor(.red)
+                                            .bold()
+                                    } else if detailInfo.status == .toBeVerified {
+                                        Text("数据校验中...")
                                             .foregroundColor(.orange)
                                             .bold()
-                                    } else {
-                                        Text("已完成")
-                                            .foregroundColor(.green)
+                                    } else if detailInfo.status == .invalid {
+                                        Text("数据校验失败")
+                                            .foregroundColor(.red)
                                             .bold()
                                     }
-                                } else if detailInfo.status == .expired {
-                                    Text("数据异常")
-                                        .foregroundColor(.red)
-                                        .bold()
-                                } else if detailInfo.status == .invalid {
-                                    Text("数据校验失败")
-                                        .foregroundColor(.red)
-                                        .bold()
                                 }
                             }
-                        }
-                        Divider()
-                            .environment(\.colorScheme, .dark)
-                        // 数据统计
-                        if !viewModel.samplePath.isEmpty {
-                            VStack {
-                                if let rangeMin = overallHeartRateRange.min, let rangeMax = overallHeartRateRange.max {
-                                    if isHeartDetail {
+                            Divider()
+                                .environment(\.colorScheme, .dark)
+                            // 数据统计
+                            if !viewModel.samplePath.isEmpty {
+                                VStack {
+                                    if let rangeMin = overallHeartRateRange.min, let rangeMax = overallHeartRateRange.max {
+                                        if isHeartDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("心率")
+                                                        Spacer()
+                                                        Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                    }
+                                                    .foregroundStyle(Color.red)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isHeartDetail.toggle()
+                                                    }
+                                                    if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
+                                                       let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
+                                                        Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.red.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    } else {
+                                                        Text("无数据")
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.gray.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    }
+                                                }
+                                                //.border(.red)
+                                                ZStack {
+                                                    HStack(alignment: .center, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            // 根据采样数据心率区间的最大值和最小值计算柱状图高度
+                                                            if let hrMin = viewModel.samplePath[i].heart_rate_min,
+                                                               let hrMax = viewModel.samplePath[i].heart_rate_max {
+                                                                let region = rangeMax - rangeMin
+                                                                let height = region > 0 ? max(formHeight * (hrMax - hrMin) / region, 4) : 4
+                                                                
+                                                                // 根据采样数据心率区间的最小值调整Y轴偏移，使柱状图底部对齐
+                                                                let offsetY = region > 0 ? (40 - height / 2 - (hrMin - rangeMin) * formHeight / region) : 0
+                                                                
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .fill(i == progressIndex ? Color.red : Color.gray.opacity(0.5))
+                                                                    .frame(width: 2, height: height)
+                                                                    .offset(y: offsetY)
+                                                            } else {
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .frame(width: 2, height: 2)
+                                                                    .hidden()
+                                                            }
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
+                                                HStack {
+                                                    Text("00:00")
+                                                    Spacer()
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                    }
+                                                }
+                                                .font(.caption)
+                                                .foregroundStyle(Color.gray)
+                                            }
+                                        } else {
+                                            HStack {
+                                                Text("心率")
+                                                Spacer()
+                                                if let bpmAvg = heartRateAvg {
+                                                    Text(String(format: "平均 %.0f 次/分", bpmAvg))
+                                                }
+                                            }
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.red.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isHeartDetail.toggle()
+                                            }
+                                        }
+                                    }
+                                    if isAltitudeDetail {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("心率")
+                                                    Text("海拔")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                    Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
                                                 }
-                                                .foregroundStyle(Color.red)
+                                                .foregroundStyle(Color.green)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
-                                                    isHeartDetail.toggle()
+                                                    isAltitudeDetail.toggle()
                                                 }
-                                                if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
-                                                   let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
-                                                    Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
-                                                        .padding(.horizontal)
-                                                        .padding(.vertical, 10)
-                                                        .font(.caption2)
-                                                        .foregroundColor(.white)
-                                                        .background(Color.red.opacity(0.8))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                } else {
-                                                    Text("无数据")
-                                                        .padding(.horizontal)
-                                                        .padding(.vertical, 10)
-                                                        .font(.caption2)
-                                                        .foregroundColor(.white)
-                                                        .background(Color.gray.opacity(0.8))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                }
+                                                Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.green.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                                             }
-                                            //.border(.red)
                                             ZStack {
-                                                HStack(alignment: .center, spacing: spacingWidth) {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
                                                     ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                        // 根据采样数据心率区间的最大值和最小值计算柱状图高度
-                                                        if let hrMin = viewModel.samplePath[i].heart_rate_min,
-                                                           let hrMax = viewModel.samplePath[i].heart_rate_max {
-                                                            let region = rangeMax - rangeMin
-                                                            let height = region > 0 ? max(formHeight * (hrMax - hrMin) / region, 4) : 4
-                                                            
-                                                            // 根据采样数据心率区间的最小值调整Y轴偏移，使柱状图底部对齐
-                                                            let offsetY = region > 0 ? (40 - height / 2 - (hrMin - rangeMin) * formHeight / region) : 0
-                                                            
-                                                            RoundedRectangle(cornerRadius: 1)
-                                                                .fill(i == progressIndex ? Color.red : Color.gray.opacity(0.5))
-                                                                .frame(width: 2, height: height)
-                                                                .offset(y: offsetY)
-                                                        } else {
-                                                            RoundedRectangle(cornerRadius: 1)
-                                                                .frame(width: 2, height: 2)
-                                                                .hidden()
-                                                        }
+                                                        let overall = (overallAltitudeRange.max - overallAltitudeRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].altitude_avg - overallAltitudeRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.green : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
                                                     }
                                                 }
                                                 GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
@@ -257,231 +342,273 @@ struct BikeRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("心率")
+                                            Text("海拔")
                                             Spacer()
-                                            if let bpmAvg = heartRateAvg {
-                                                Text(String(format: "平均 %.0f 次/分", bpmAvg))
-                                            }
+                                            Text(String(format: "平均 %.0f 米", altitudeAvg))
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
-                                        .background(Color.red.opacity(0.8))
+                                        .background(Color.green.opacity(0.8))
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                         .onTapGesture {
-                                            isHeartDetail.toggle()
+                                            isAltitudeDetail.toggle()
                                         }
                                     }
-                                }
-                                if isAltitudeDetail {
-                                    VStack {
-                                        ZStack(alignment: .center) {
+                                    if isSpeedDetail {
+                                        VStack {
+                                            ZStack(alignment: .center) {
+                                                HStack {
+                                                    Text("速度")
+                                                    Spacer()
+                                                    Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
+                                                }
+                                                .foregroundStyle(Color.orange)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    isSpeedDetail.toggle()
+                                                }
+                                                Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.orange.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            }
+                                            ZStack {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                        let overall = (overallSpeedRange.max - overallSpeedRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].speed_avg - overallSpeedRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.orange : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
+                                                    }
+                                                }
+                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                            }
+                                            .frame(height: formHeight)
+                                            Rectangle()
+                                                .foregroundStyle(Color.gray)
+                                                .frame(height: 1)
                                             HStack {
-                                                Text("海拔")
+                                                Text("00:00")
                                                 Spacer()
-                                                Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
-                                            }
-                                            .foregroundStyle(Color.green)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                isAltitudeDetail.toggle()
-                                            }
-                                            Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
-                                                .padding(.horizontal)
-                                                .padding(.vertical, 10)
-                                                .font(.caption2)
-                                                .foregroundColor(.white)
-                                                .background(Color.green.opacity(0.8))
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        }
-                                        ZStack {
-                                            HStack(alignment: .bottom, spacing: spacingWidth) {
-                                                ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                    let overall = (overallAltitudeRange.max - overallAltitudeRange.min)
-                                                    let ratio = overall > 0 ? (viewModel.samplePath[i].altitude_avg - overallAltitudeRange.min) / overall : 1/2
-                                                    let height = max(formHeight * ratio, 0) + 4
-                                                    
-                                                    RoundedRectangle(cornerRadius: 1)
-                                                        .fill(i == progressIndex ? Color.green : Color.gray.opacity(0.5))
-                                                        .frame(width: 2, height: height)
+                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                                 }
                                             }
-                                            GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
-                                        }
-                                        .frame(height: formHeight)
-                                        Rectangle()
+                                            .font(.caption)
                                             .foregroundStyle(Color.gray)
-                                            .frame(height: 1)
+                                        }
+                                    } else {
                                         HStack {
-                                            Text("00:00")
+                                            Text("速度")
                                             Spacer()
-                                            if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                            }
+                                            Text(String(format: "平均 %.0f 公里/小时", speedAvg))
                                         }
-                                        .font(.caption)
-                                        .foregroundStyle(Color.gray)
+                                        .padding()
+                                        .foregroundStyle(Color.white)
+                                        .background(Color.orange.opacity(0.8))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .onTapGesture {
+                                            isSpeedDetail.toggle()
+                                        }
                                     }
-                                } else {
-                                    HStack {
-                                        Text("海拔")
-                                        Spacer()
-                                        Text(String(format: "平均 %.0f 米", altitudeAvg))
-                                    }
-                                    .padding()
-                                    .foregroundStyle(Color.white)
-                                    .background(Color.green.opacity(0.8))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .onTapGesture {
-                                        isAltitudeDetail.toggle()
-                                    }
-                                }
-                                if isSpeedDetail {
-                                    VStack {
-                                        ZStack(alignment: .center) {
+                                    if isPedalDetail {
+                                        VStack {
+                                            ZStack(alignment: .center) {
+                                                HStack {
+                                                    Text("测试踏频")
+                                                    Spacer()
+                                                    Text(String(format: "%.0f - %.0f 次/分", overallPedalCountRange.min, overallPedalCountRange.max))
+                                                }
+                                                .foregroundStyle(Color.pink)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    isPedalDetail.toggle()
+                                                }
+                                                Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].pedal_count_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.pink.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            }
+                                            ZStack {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                        let overall = (overallPedalCountRange.max - overallPedalCountRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].pedal_count_avg - overallPedalCountRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
+                                                    }
+                                                }
+                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                            }
+                                            .frame(height: formHeight)
+                                            Rectangle()
+                                                .foregroundStyle(Color.gray)
+                                                .frame(height: 1)
                                             HStack {
-                                                Text("速度")
+                                                Text("00:00")
                                                 Spacer()
-                                                Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
-                                            }
-                                            .foregroundStyle(Color.orange)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                isSpeedDetail.toggle()
-                                            }
-                                            Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
-                                                .padding(.horizontal)
-                                                .padding(.vertical, 10)
-                                                .font(.caption2)
-                                                .foregroundColor(.white)
-                                                .background(Color.orange.opacity(0.8))
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        }
-                                        ZStack {
-                                            HStack(alignment: .bottom, spacing: spacingWidth) {
-                                                ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                    let overall = (overallSpeedRange.max - overallSpeedRange.min)
-                                                    let ratio = overall > 0 ? (viewModel.samplePath[i].speed_avg - overallSpeedRange.min) / overall : 1/2
-                                                    let height = max(formHeight * ratio, 0) + 4
-                                                    
-                                                    RoundedRectangle(cornerRadius: 1)
-                                                        .fill(i == progressIndex ? Color.orange : Color.gray.opacity(0.5))
-                                                        .frame(width: 2, height: height)
+                                                if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                                 }
                                             }
-                                            GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
-                                        }
-                                        .frame(height: formHeight)
-                                        Rectangle()
+                                            .font(.caption)
                                             .foregroundStyle(Color.gray)
-                                            .frame(height: 1)
-                                        HStack {
-                                            Text("00:00")
-                                            Spacer()
-                                            if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                            }
                                         }
-                                        .font(.caption)
-                                        .foregroundStyle(Color.gray)
-                                    }
-                                } else {
-                                    HStack {
-                                        Text("速度")
-                                        Spacer()
-                                        Text(String(format: "平均 %.0f 公里/小时", speedAvg))
-                                    }
-                                    .padding()
-                                    .foregroundStyle(Color.white)
-                                    .background(Color.orange.opacity(0.8))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .onTapGesture {
-                                        isSpeedDetail.toggle()
+                                    } else {
+                                        HStack {
+                                            Text("测试踏频")
+                                            Spacer()
+                                            Text(String(format: "平均 %.0f 次/分", pedalCountAvg))
+                                        }
+                                        .padding()
+                                        .foregroundStyle(Color.white)
+                                        .background(Color.pink.opacity(0.8))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .onTapGesture {
+                                            isPedalDetail.toggle()
+                                        }
                                     }
                                 }
                             }
-                        }
-                        
-                        // 卡牌收益
-                        if !detailInfo.cardBonus.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("卡牌收益")
-                                    .font(.title2)
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                ForEach(detailInfo.cardBonus) { bonus in
-                                    HStack(spacing: 16) {
-                                        MagicCardView(card: bonus.card)
-                                            .frame(width: 60)
-                                        VStack(alignment: .leading) {
-                                            Spacer()
-                                            Text(bonus.card.name)
-                                                .font(.headline)
-                                                .bold()
-                                                .foregroundStyle(Color.secondText)
-                                            Spacer()
-                                            Text("奖励时间: \(bonus.bonusTime)")
-                                                .font(.subheadline)
-                                                .foregroundColor(.white)
-                                            Spacer()
+                            
+                            // 我的卡牌收益
+                            if !detailInfo.cardBonus.isEmpty {
+                                VStack(alignment: .leading, spacing: 20) {
+                                    Text("卡牌收益（我的）")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    VStack(spacing: 10) {
+                                        ForEach(detailInfo.cardBonus) { bonus in
+                                            HStack(spacing: 16) {
+                                                MagicCardView(card: bonus.card)
+                                                    .frame(width: 60)
+                                                VStack(alignment: .leading) {
+                                                    Spacer()
+                                                    Text(bonus.card.name)
+                                                        .font(.headline)
+                                                        .bold()
+                                                        .foregroundStyle(Color.secondText)
+                                                    Spacer()
+                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.white)
+                                                    Spacer()
+                                                }
+                                                Spacer()
+                                            }
                                         }
-                                        Spacer()
                                     }
                                     .padding()
+                                    .background(Color.white.opacity(0.4))
                                     .cornerRadius(12)
                                 }
                             }
-                        }
-                        
-                        // team mode 下的队友状态和成绩
-                        if !detailInfo.teamMemberScores.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("队伍状态")
-                                    .font(.title2)
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                ForEach(detailInfo.teamMemberScores) { score in
-                                    HStack(spacing: 16) {
-                                        HStack(spacing: 10) {
-                                            CachedAsyncImage(
-                                                urlString: score.userInfo.avatarUrl,
-                                                placeholder: Image(systemName: "person"),
-                                                errorImage: Image(systemName: "photo.badge.exclamationmark")
-                                            )
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 40, height: 40)
-                                            .clipShape(Circle())
-                                            .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.userView(id: score.userInfo.userID))
+                            
+                            // 其他卡牌收益
+                            if !detailInfo.extraCardBonus.isEmpty {
+                                VStack(alignment: .leading, spacing: 20) {
+                                    Text("卡牌收益（其他）")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    VStack(spacing: 10) {
+                                        ForEach(detailInfo.extraCardBonus) { bonus in
+                                            HStack(spacing: 16) {
+                                                MagicCardView(card: bonus.card)
+                                                    .frame(width: 60)
+                                                VStack(alignment: .leading) {
+                                                    Spacer()
+                                                    Text(bonus.card.name)
+                                                        .font(.headline)
+                                                        .bold()
+                                                        .foregroundStyle(Color.secondText)
+                                                    Spacer()
+                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.white)
+                                                    Spacer()
+                                                }
+                                                Spacer()
                                             }
-                                            
-                                            VStack(alignment: .leading, spacing: 3) {
-                                                Text(score.userInfo.name)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(Color.secondText)
-                                            }
-                                        }
-                                        Spacer()
-                                        HStack {
-                                            Text(score.status.rawValue)
-                                                .font(.caption)
-                                                .padding(.vertical, 5)
-                                                .padding(.horizontal, 8)
-                                                .foregroundStyle(Color.secondText)
-                                                .background(Color.orange.opacity(0.5))
-                                                .cornerRadius(10)
-                                            Text("成绩: \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))")
-                                                .font(.caption)
-                                                .foregroundColor(.white)
                                         }
                                     }
                                     .padding()
+                                    .background(Color.white.opacity(0.4))
                                     .cornerRadius(12)
                                 }
                             }
+                            
+                            // team mode 下的队友状态和成绩
+                            if !detailInfo.teamMemberScores.isEmpty {
+                                VStack(alignment: .leading, spacing: 20) {
+                                    Text("队伍状态")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    VStack (spacing: 10) {
+                                        ForEach(detailInfo.teamMemberScores) { score in
+                                            HStack(spacing: 16) {
+                                                HStack(spacing: 10) {
+                                                    CachedAsyncImage(
+                                                        urlString: score.userInfo.avatarUrl,
+                                                        placeholder: Image(systemName: "person"),
+                                                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                                    )
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(width: 40, height: 40)
+                                                    .clipShape(Circle())
+                                                    .exclusiveTouchTapGesture {
+                                                        appState.navigationManager.append(.userView(id: score.userInfo.userID))
+                                                    }
+                                                    
+                                                    VStack(alignment: .leading, spacing: 3) {
+                                                        Text(score.userInfo.userID == UserManager.shared.user.userID ? "我" : score.userInfo.name)
+                                                            .font(.subheadline)
+                                                            .foregroundColor(Color.secondText)
+                                                    }
+                                                }
+                                                Spacer()
+                                                HStack {
+                                                    Text(score.status.displayName)
+                                                        .font(.caption)
+                                                        .padding(.vertical, 5)
+                                                        .padding(.horizontal, 8)
+                                                        .foregroundStyle(Color.secondText)
+                                                        .background(score.status.backgroundColor.opacity(0.8))
+                                                        .cornerRadius(6)
+                                                    if score.status == .completed {
+                                                        Text("成绩: \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))")
+                                                            .font(.caption)
+                                                            .foregroundColor(.white)
+                                                    }
+                                                }
+                                            }
+                                            .padding(.horizontal)
+                                            .padding(.vertical, 10)
+                                            .background(Color.white.opacity(0.4))
+                                            .cornerRadius(12)
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        .padding(.horizontal)
+                        .padding(.bottom, 80)
                     }
                 }
-                .padding(.horizontal)
             } else {
                 VStack {
                     Spacer()
@@ -522,6 +649,8 @@ struct RunningRecordDetailView: View {
     @State var isHeartDetail: Bool = false
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
+    @State var isStepCountDetail: Bool = false
+    @State var isStepCadenceDetail: Bool = false
     let formHeight: CGFloat = 80
     
     var overallHeartRateRange: (min: Double?, max: Double?) {
@@ -546,6 +675,25 @@ struct RunningRecordDetailView: View {
         let altitudes = viewModel.samplePath.compactMap { $0.speed_avg }
         let minVal = altitudes.min() ?? 0
         let maxVal = altitudes.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
+#if DEBUG
+    var overallStepCountRange: (min: Double, max: Double) {
+        let steps = viewModel.samplePath.compactMap { $0.step_count_avg }
+        let minVal = steps.min() ?? 0
+        let maxVal = steps.max() ?? 0
+        return (minVal, maxVal)
+    }
+#endif
+    
+    var overallStepCadenceRange: (min: Double?, max: Double?) {
+        let steps = viewModel.samplePath.compactMap { $0.step_cadence_avg }
+        if steps.isEmpty {
+            return (nil, nil)
+        }
+        let minVal = steps.min() ?? 0
+        let maxVal = steps.max() ?? 0
         return (minVal, maxVal)
     }
     
@@ -577,6 +725,17 @@ struct RunningRecordDetailView: View {
         return altitudes.reduce(0, +) / Double(altitudes.count)
     }
     
+    var stepCadenceAvg: Double? {
+        let steps = viewModel.pathData.compactMap { $0.step_cadence }
+        guard !steps.isEmpty else { return nil }
+        return steps.reduce(0, +) / Double(steps.count)
+    }
+    
+    var stepCountAvg: Double {
+        let steps = viewModel.pathData.compactMap { $0.estimate_step_count }
+        return 20.0 * steps.reduce(0, +) / Double(steps.count)
+    }
+    
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
     
     init(recordID: String) {
@@ -584,7 +743,7 @@ struct RunningRecordDetailView: View {
     }
     
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             HStack {
                 CommonIconButton(icon: "chevron.left") {
                     adjustNavigationPath()
@@ -625,123 +784,195 @@ struct RunningRecordDetailView: View {
                             .clipShape(.rect(bottomLeadingRadius: 12, bottomTrailingRadius: 12))
                         }
                     }
+                    .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
-                        HStack {
-                            Text("成绩与数据")
-                                .font(.title2)
-                                .bold()
-                                .foregroundStyle(Color.secondText)
-                            Spacer()
-                        }
-                        .padding(.bottom, 20)
-                        // 成绩总览
-                        VStack(spacing: 8) {
+                        VStack(spacing: 20) {
                             HStack {
-                                Text("原始时间:")
+                                Text("成绩与数据")
+                                    .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
-                                Text("\(detailInfo.originalTime)")
-                                    .font(.system(.body, design: .rounded))
-                                    .bold()
-                                    .foregroundStyle(Color.white)
                             }
-                            HStack {
-                                Text("有效时间:")
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                Spacer()
-                                Text("\(detailInfo.finalTime)")
-                                    .font(.system(.body, design: .rounded))
-                                    .bold()
-                                    .foregroundStyle(Color.white)
-                            }
-                            HStack {
-                                Text("状态:")
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                Spacer()
-                                if detailInfo.status == .completed {
-                                    if detailInfo.isFinishComputed == false {
-                                        Text("计算中...")
+                            .padding(.top, 10)
+                            // 成绩总览
+                            VStack(spacing: 8) {
+                                HStack {
+                                    Text("原始时间:")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(detailInfo.originalTime, showFraction: true))")
+                                        .font(.system(.body, design: .rounded))
+                                        .bold()
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    Text("有效时间:")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
+                                        .font(.system(.body, design: .rounded))
+                                        .bold()
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    Text("状态:")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    if detailInfo.status == .completed {
+                                        if detailInfo.isFinishComputed == false {
+                                            Text("计算中...")
+                                                .foregroundColor(.orange)
+                                                .bold()
+                                        } else {
+                                            Text("已完成")
+                                                .foregroundColor(.green)
+                                                .bold()
+                                        }
+                                    } else if detailInfo.status == .expired {
+                                        Text("数据异常")
+                                            .foregroundColor(.red)
+                                            .bold()
+                                    } else if detailInfo.status == .toBeVerified {
+                                        Text("数据校验中...")
                                             .foregroundColor(.orange)
                                             .bold()
-                                    } else {
-                                        Text("已完成")
-                                            .foregroundColor(.green)
+                                    } else if detailInfo.status == .invalid {
+                                        Text("数据校验失败")
+                                            .foregroundColor(.red)
                                             .bold()
                                     }
-                                } else if detailInfo.status == .expired {
-                                    Text("数据异常")
-                                        .foregroundColor(.red)
-                                        .bold()
-                                } else if detailInfo.status == .invalid {
-                                    Text("数据校验失败")
-                                        .foregroundColor(.red)
-                                        .bold()
                                 }
                             }
-                        }
-                        Divider()
-                            .environment(\.colorScheme, .dark)
-                        // 数据统计
-                        if !viewModel.samplePath.isEmpty {
-                            VStack {
-                                if let rangeMin = overallHeartRateRange.min, let rangeMax = overallHeartRateRange.max {
-                                    if isHeartDetail {
+                            Divider()
+                                .environment(\.colorScheme, .dark)
+                            // 数据统计
+                            if !viewModel.samplePath.isEmpty {
+                                VStack {
+                                    if let rangeMin = overallHeartRateRange.min, let rangeMax = overallHeartRateRange.max {
+                                        if isHeartDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("心率")
+                                                        Spacer()
+                                                        Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                    }
+                                                    .foregroundStyle(Color.red)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isHeartDetail.toggle()
+                                                    }
+                                                    if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
+                                                       let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
+                                                        Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.red.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    } else {
+                                                        Text("无数据")
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.gray.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    }
+                                                }
+                                                //.border(.red)
+                                                ZStack {
+                                                    HStack(alignment: .center, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            // 根据采样数据心率区间的最大值和最小值计算柱状图高度
+                                                            if let hrMin = viewModel.samplePath[i].heart_rate_min,
+                                                               let hrMax = viewModel.samplePath[i].heart_rate_max {
+                                                                let region = rangeMax - rangeMin
+                                                                let height = region > 0 ? max(formHeight * (hrMax - hrMin) / region, 4) : 4
+                                                                
+                                                                // 根据采样数据心率区间的最小值调整Y轴偏移，使柱状图底部对齐
+                                                                let offsetY = region > 0 ? (40 - height / 2 - (hrMin - rangeMin) * formHeight / region) : 0
+                                                                
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .fill(i == progressIndex ? Color.red : Color.gray.opacity(0.5))
+                                                                    .frame(width: 2, height: height)
+                                                                    .offset(y: offsetY)
+                                                            } else {
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .frame(width: 2, height: 2)
+                                                                    .hidden()
+                                                            }
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
+                                                HStack {
+                                                    Text("00:00")
+                                                    Spacer()
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                    }
+                                                }
+                                                .font(.caption)
+                                                .foregroundStyle(Color.gray)
+                                            }
+                                        } else {
+                                            HStack {
+                                                Text("心率")
+                                                Spacer()
+                                                if let bpmAvg = heartRateAvg {
+                                                    Text(String(format: "平均 %.0f 次/分", bpmAvg))
+                                                }
+                                            }
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.red.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isHeartDetail.toggle()
+                                            }
+                                        }
+                                    }
+                                    if isAltitudeDetail {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("心率")
+                                                    Text("海拔")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                    Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
                                                 }
-                                                .foregroundStyle(Color.red)
+                                                .foregroundStyle(Color.green)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
-                                                    isHeartDetail.toggle()
+                                                    isAltitudeDetail.toggle()
                                                 }
-                                                if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
-                                                   let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
-                                                    Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
-                                                        .padding(.horizontal)
-                                                        .padding(.vertical, 10)
-                                                        .font(.caption2)
-                                                        .foregroundColor(.white)
-                                                        .background(Color.red.opacity(0.8))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                } else {
-                                                    Text("无数据")
-                                                        .padding(.horizontal)
-                                                        .padding(.vertical, 10)
-                                                        .font(.caption2)
-                                                        .foregroundColor(.white)
-                                                        .background(Color.gray.opacity(0.8))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                                }
+                                                Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.green.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                                             }
-                                            //.border(.red)
                                             ZStack {
-                                                HStack(alignment: .center, spacing: spacingWidth) {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
                                                     ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                        // 根据采样数据心率区间的最大值和最小值计算柱状图高度
-                                                        if let hrMin = viewModel.samplePath[i].heart_rate_min,
-                                                           let hrMax = viewModel.samplePath[i].heart_rate_max {
-                                                            let region = rangeMax - rangeMin
-                                                            let height = region > 0 ? max(formHeight * (hrMax - hrMin) / region, 4) : 4
-                                                            
-                                                            // 根据采样数据心率区间的最小值调整Y轴偏移，使柱状图底部对齐
-                                                            let offsetY = region > 0 ? (40 - height / 2 - (hrMin - rangeMin) * formHeight / region) : 0
-                                                            
-                                                            RoundedRectangle(cornerRadius: 1)
-                                                                .fill(i == progressIndex ? Color.red : Color.gray.opacity(0.5))
-                                                                .frame(width: 2, height: height)
-                                                                .offset(y: offsetY)
-                                                        } else {
-                                                            RoundedRectangle(cornerRadius: 1)
-                                                                .frame(width: 2, height: 2)
-                                                                .hidden()
-                                                        }
+                                                        let overall = (overallAltitudeRange.max - overallAltitudeRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].altitude_avg - overallAltitudeRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.green : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
                                                     }
                                                 }
                                                 GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
@@ -762,231 +993,357 @@ struct RunningRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("心率")
+                                            Text("海拔")
                                             Spacer()
-                                            if let bpmAvg = heartRateAvg {
-                                                Text(String(format: "平均 %.0f 次/分", bpmAvg))
-                                            }
+                                            Text(String(format: "平均 %.0f 米", altitudeAvg))
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
-                                        .background(Color.red.opacity(0.8))
+                                        .background(Color.green.opacity(0.8))
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                         .onTapGesture {
-                                            isHeartDetail.toggle()
+                                            isAltitudeDetail.toggle()
                                         }
                                     }
-                                }
-                                if isAltitudeDetail {
-                                    VStack {
-                                        ZStack(alignment: .center) {
+                                    if isSpeedDetail {
+                                        VStack {
+                                            ZStack(alignment: .center) {
+                                                HStack {
+                                                    Text("速度")
+                                                    Spacer()
+                                                    Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
+                                                }
+                                                .foregroundStyle(Color.orange)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    isSpeedDetail.toggle()
+                                                }
+                                                Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.orange.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            }
+                                            ZStack {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                        let overall = (overallSpeedRange.max - overallSpeedRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].speed_avg - overallSpeedRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.orange : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
+                                                    }
+                                                }
+                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                            }
+                                            .frame(height: formHeight)
+                                            Rectangle()
+                                                .foregroundStyle(Color.gray)
+                                                .frame(height: 1)
                                             HStack {
-                                                Text("海拔")
+                                                Text("00:00")
                                                 Spacer()
-                                                Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
-                                            }
-                                            .foregroundStyle(Color.green)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                isAltitudeDetail.toggle()
-                                            }
-                                            Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
-                                                .padding(.horizontal)
-                                                .padding(.vertical, 10)
-                                                .font(.caption2)
-                                                .foregroundColor(.white)
-                                                .background(Color.green.opacity(0.8))
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        }
-                                        ZStack {
-                                            HStack(alignment: .bottom, spacing: spacingWidth) {
-                                                ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                    let overall = (overallAltitudeRange.max - overallAltitudeRange.min)
-                                                    let ratio = overall > 0 ? (viewModel.samplePath[i].altitude_avg - overallAltitudeRange.min) / overall : 1/2
-                                                    let height = max(formHeight * ratio, 0) + 4
-                                                    
-                                                    RoundedRectangle(cornerRadius: 1)
-                                                        .fill(i == progressIndex ? Color.green : Color.gray.opacity(0.5))
-                                                        .frame(width: 2, height: height)
+                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                                 }
                                             }
-                                            GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
-                                        }
-                                        .frame(height: formHeight)
-                                        Rectangle()
+                                            .font(.caption)
                                             .foregroundStyle(Color.gray)
-                                            .frame(height: 1)
+                                        }
+                                    } else {
                                         HStack {
-                                            Text("00:00")
+                                            Text("速度")
                                             Spacer()
-                                            if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                            }
+                                            Text(String(format: "平均 %.0f 公里/小时", speedAvg))
                                         }
-                                        .font(.caption)
-                                        .foregroundStyle(Color.gray)
+                                        .padding()
+                                        .foregroundStyle(Color.white)
+                                        .background(Color.orange.opacity(0.8))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .onTapGesture {
+                                            isSpeedDetail.toggle()
+                                        }
                                     }
-                                } else {
-                                    HStack {
-                                        Text("海拔")
-                                        Spacer()
-                                        Text(String(format: "平均 %.0f 米", altitudeAvg))
-                                    }
-                                    .padding()
-                                    .foregroundStyle(Color.white)
-                                    .background(Color.green.opacity(0.8))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .onTapGesture {
-                                        isAltitudeDetail.toggle()
-                                    }
-                                }
-                                if isSpeedDetail {
-                                    VStack {
-                                        ZStack(alignment: .center) {
+                                    
+                                    if let rangeMin = overallStepCadenceRange.min, let rangeMax = overallStepCadenceRange.max {
+                                        if isStepCadenceDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("步频")
+                                                        Spacer()
+                                                        Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                    }
+                                                    .foregroundStyle(Color.blue)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isStepCadenceDetail.toggle()
+                                                    }
+                                                    if let avg = viewModel.samplePath[progressIndex].step_cadence_avg {
+                                                        Text(String(format: "%.0f 次/分", avg))
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.blue.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    } else {
+                                                        Text("无数据")
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.gray.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    }
+                                                }
+                                                ZStack {
+                                                    HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            if let step_avg = viewModel.samplePath[i].step_cadence_avg {
+                                                                let overall = rangeMax - rangeMin
+                                                                let ratio = overall > 0 ? (step_avg - rangeMin) / overall : 1/2
+                                                                let height = max(formHeight * ratio, 0) + 4
+                                                                
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .fill(i == progressIndex ? Color.blue : Color.gray.opacity(0.5))
+                                                                    .frame(width: 2, height: height)
+                                                            } else {
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .frame(width: 2, height: 2)
+                                                                    .hidden()
+                                                            }
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
+                                                HStack {
+                                                    Text("00:00")
+                                                    Spacer()
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                    }
+                                                }
+                                                .font(.caption)
+                                                .foregroundStyle(Color.gray)
+                                            }
+                                        } else {
                                             HStack {
-                                                Text("速度")
+                                                Text("步频")
                                                 Spacer()
-                                                Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
-                                            }
-                                            .foregroundStyle(Color.orange)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                isSpeedDetail.toggle()
-                                            }
-                                            Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
-                                                .padding(.horizontal)
-                                                .padding(.vertical, 10)
-                                                .font(.caption2)
-                                                .foregroundColor(.white)
-                                                .background(Color.orange.opacity(0.8))
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        }
-                                        ZStack {
-                                            HStack(alignment: .bottom, spacing: spacingWidth) {
-                                                ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                    let overall = (overallSpeedRange.max - overallSpeedRange.min)
-                                                    let ratio = overall > 0 ? (viewModel.samplePath[i].speed_avg - overallSpeedRange.min) / overall : 1/2
-                                                    let height = max(formHeight * ratio, 0) + 4
-                                                    
-                                                    RoundedRectangle(cornerRadius: 1)
-                                                        .fill(i == progressIndex ? Color.orange : Color.gray.opacity(0.5))
-                                                        .frame(width: 2, height: height)
+                                                if let stepAvg = stepCadenceAvg {
+                                                    Text(String(format: "平均 %.0f 次/分", stepAvg))
                                                 }
                                             }
-                                            GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
-                                        }
-                                        .frame(height: formHeight)
-                                        Rectangle()
-                                            .foregroundStyle(Color.gray)
-                                            .frame(height: 1)
-                                        HStack {
-                                            Text("00:00")
-                                            Spacer()
-                                            if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.blue.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isStepCadenceDetail.toggle()
                                             }
                                         }
-                                        .font(.caption)
-                                        .foregroundStyle(Color.gray)
                                     }
-                                } else {
-                                    HStack {
-                                        Text("速度")
-                                        Spacer()
-                                        Text(String(format: "平均 %.0f 公里/小时", speedAvg))
+#if DEBUG
+                                    if isStepCountDetail {
+                                        VStack {
+                                            ZStack(alignment: .center) {
+                                                HStack {
+                                                    Text("测试步数")
+                                                    Spacer()
+                                                    Text(String(format: "%.0f - %.0f 次/分", overallStepCountRange.min, overallStepCountRange.max))
+                                                }
+                                                .foregroundStyle(Color.pink)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    isStepCountDetail.toggle()
+                                                }
+                                                Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].step_count_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.pink.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            }
+                                            ZStack {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                        let overall = (overallStepCountRange.max - overallStepCountRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].step_count_avg - overallStepCountRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
+                                                    }
+                                                }
+                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                            }
+                                            .frame(height: formHeight)
+                                            Rectangle()
+                                                .foregroundStyle(Color.gray)
+                                                .frame(height: 1)
+                                            HStack {
+                                                Text("00:00")
+                                                Spacer()
+                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                }
+                                            }
+                                            .font(.caption)
+                                            .foregroundStyle(Color.gray)
+                                        }
+                                    } else {
+                                        HStack {
+                                            Text("测试步数")
+                                            Spacer()
+                                            Text(String(format: "平均 %.0f 次/分", stepCountAvg))
+                                        }
+                                        .padding()
+                                        .foregroundStyle(Color.white)
+                                        .background(Color.pink.opacity(0.8))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .onTapGesture {
+                                            isStepCountDetail.toggle()
+                                        }
                                     }
-                                    .padding()
-                                    .foregroundStyle(Color.white)
-                                    .background(Color.orange.opacity(0.8))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    .onTapGesture {
-                                        isSpeedDetail.toggle()
-                                    }
+#endif
                                 }
                             }
-                        }
-                        
-                        // 卡牌收益
-                        if !detailInfo.cardBonus.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("卡牌收益")
-                                    .font(.title2)
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                ForEach(detailInfo.cardBonus) { bonus in
-                                    HStack(spacing: 16) {
-                                        MagicCardView(card: bonus.card)
-                                            .frame(width: 60)
-                                        VStack(alignment: .leading) {
-                                            Spacer()
-                                            Text(bonus.card.name)
-                                                .font(.headline)
-                                                .bold()
-                                                .foregroundStyle(Color.secondText)
-                                            Spacer()
-                                            Text("奖励时间: \(bonus.bonusTime)")
-                                                .font(.subheadline)
-                                                .foregroundColor(.white)
-                                            Spacer()
+                            
+                            // 我的卡牌收益
+                            if !detailInfo.cardBonus.isEmpty {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("卡牌收益")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    VStack(spacing: 10) {
+                                        ForEach(detailInfo.cardBonus) { bonus in
+                                            HStack(spacing: 16) {
+                                                MagicCardView(card: bonus.card)
+                                                    .frame(width: 60)
+                                                VStack(alignment: .leading) {
+                                                    Spacer()
+                                                    Text(bonus.card.name)
+                                                        .font(.headline)
+                                                        .bold()
+                                                        .foregroundStyle(Color.secondText)
+                                                    Spacer()
+                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.white)
+                                                    Spacer()
+                                                }
+                                                Spacer()
+                                            }
                                         }
-                                        Spacer()
                                     }
                                     .padding()
+                                    .background(Color.white.opacity(0.4))
                                     .cornerRadius(12)
                                 }
                             }
-                        }
-                        
-                        // team mode 下的队友状态和成绩
-                        if !detailInfo.teamMemberScores.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("队伍状态")
-                                    .font(.title2)
-                                    .bold()
-                                    .foregroundStyle(Color.secondText)
-                                ForEach(detailInfo.teamMemberScores) { score in
-                                    HStack(spacing: 16) {
-                                        HStack(spacing: 10) {
-                                            CachedAsyncImage(
-                                                urlString: score.userInfo.avatarUrl,
-                                                placeholder: Image(systemName: "person"),
-                                                errorImage: Image(systemName: "photo.badge.exclamationmark")
-                                            )
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 40, height: 40)
-                                            .clipShape(Circle())
-                                            .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.userView(id: score.userInfo.userID))
+                            
+                            // 其他卡牌收益
+                            if !detailInfo.extraCardBonus.isEmpty {
+                                VStack(alignment: .leading, spacing: 20) {
+                                    Text("卡牌收益（其他）")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    VStack(spacing: 10) {
+                                        ForEach(detailInfo.extraCardBonus) { bonus in
+                                            HStack(spacing: 16) {
+                                                MagicCardView(card: bonus.card)
+                                                    .frame(width: 60)
+                                                VStack(alignment: .leading) {
+                                                    Spacer()
+                                                    Text(bonus.card.name)
+                                                        .font(.headline)
+                                                        .bold()
+                                                        .foregroundStyle(Color.secondText)
+                                                    Spacer()
+                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.white)
+                                                    Spacer()
+                                                }
+                                                Spacer()
                                             }
-                                            
-                                            VStack(alignment: .leading, spacing: 3) {
-                                                Text(score.userInfo.name)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(Color.secondText)
-                                            }
-                                        }
-                                        Spacer()
-                                        HStack {
-                                            Text(score.status.rawValue)
-                                                .font(.caption)
-                                                .padding(.vertical, 5)
-                                                .padding(.horizontal, 8)
-                                                .foregroundStyle(Color.secondText)
-                                                .background(Color.orange.opacity(0.5))
-                                                .cornerRadius(10)
-                                            Text("成绩: \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))")
-                                                .font(.caption)
-                                                .foregroundColor(.white)
                                         }
                                     }
                                     .padding()
+                                    .background(Color.white.opacity(0.4))
                                     .cornerRadius(12)
                                 }
                             }
+                            
+                            // team mode 下的队友状态和成绩
+                            if !detailInfo.teamMemberScores.isEmpty {
+                                VStack(alignment: .leading, spacing: 20) {
+                                    Text("队伍状态")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    VStack (spacing: 10) {
+                                        ForEach(detailInfo.teamMemberScores) { score in
+                                            HStack(spacing: 16) {
+                                                HStack(spacing: 10) {
+                                                    CachedAsyncImage(
+                                                        urlString: score.userInfo.avatarUrl,
+                                                        placeholder: Image(systemName: "person"),
+                                                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                                    )
+                                                    .aspectRatio(contentMode: .fill)
+                                                    .frame(width: 40, height: 40)
+                                                    .clipShape(Circle())
+                                                    .exclusiveTouchTapGesture {
+                                                        appState.navigationManager.append(.userView(id: score.userInfo.userID))
+                                                    }
+                                                    
+                                                    VStack(alignment: .leading, spacing: 3) {
+                                                        Text(score.userInfo.userID == UserManager.shared.user.userID ? "我" : score.userInfo.name)
+                                                            .font(.subheadline)
+                                                            .foregroundColor(Color.secondText)
+                                                    }
+                                                }
+                                                Spacer()
+                                                HStack {
+                                                    Text(score.status.displayName)
+                                                        .font(.caption)
+                                                        .padding(.vertical, 5)
+                                                        .padding(.horizontal, 8)
+                                                        .foregroundStyle(Color.secondText)
+                                                        .background(score.status.backgroundColor.opacity(0.8))
+                                                        .cornerRadius(6)
+                                                    Text("成绩: \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))")
+                                                        .font(.caption)
+                                                        .foregroundColor(.white)
+                                                }
+                                            }
+                                            .padding(.horizontal)
+                                            .padding(.vertical, 10)
+                                            .background(Color.white.opacity(0.4))
+                                            .cornerRadius(12)
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        .padding(.horizontal)
+                        .padding(.bottom, 80)
                     }
                 }
-                .padding(.horizontal)
             } else {
                 VStack {
                     Spacer()
