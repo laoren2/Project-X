@@ -81,7 +81,7 @@ struct UserSetUpView: View {
                 }
                 .cornerRadius(20)
                 .padding()
-                
+#if DEBUG
                 if userManager.role == .admin {
                     VStack(spacing: 0) {
                         SetUpItemView(icon: "pc", title: "后台管理", showDivider: false) {
@@ -91,6 +91,14 @@ struct UserSetUpView: View {
                     .cornerRadius(20)
                     .padding()
                 }
+                VStack(spacing: 0) {
+                    SetUpItemView(icon: "pc", title: "本地bike调试") {
+                        NavigationManager.shared.append(.bikeMatchDebugView)
+                    }
+                    .cornerRadius(20)
+                    .padding()
+                }
+#endif
                 Spacer()
                 VStack {
                     HStack(spacing: 10) {

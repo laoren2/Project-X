@@ -11,6 +11,7 @@ import SwiftUI
 struct StoreHouseView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
+    @ObservedObject var userManager = UserManager.shared
     @State var selectedCPAsset: CPAssetUserInfo? = nil
     @State var selectedCard: MagicCard? = nil
     @State var selectedTab: Int = 0
@@ -170,6 +171,7 @@ struct StoreHouseView: View {
                                                 }
                                             }
                                         }
+                                        .contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
                                         .onTapGesture {
                                             if selectedCard?.id == card.id {
                                                 selectedCard = nil
@@ -252,11 +254,20 @@ struct StoreHouseView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onValueChange(of: userManager.isLoggedIn) {
+            selectedCPAsset = nil
+            selectedCard = nil
+            if !userManager.isLoggedIn {
+                assetManager.resetAll()
+            }
+        }
         .onStableAppear {
             if globalConfig.refreshStoreHouseView {
                 Task {
-                    selectedCPAsset = nil
-                    selectedCard = nil
+                    DispatchQueue.main.async {
+                        selectedCPAsset = nil
+                        selectedCard = nil
+                    }
                     await assetManager.queryCPAssets(withLoadingToast: true)
                     await assetManager.queryMagicCards(withLoadingToast: true)
                 }

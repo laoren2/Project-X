@@ -16,8 +16,8 @@ import CoreML
 import os
 
 
-// phone数据保存到本地
-let SAVEPHONEDATA: Bool = {
+// phone原始数据保存到本地
+let SAVEPHONERAWDATA: Bool = {
     #if DEBUG
     return false
     #else
@@ -43,6 +43,15 @@ let SKIPMATCHVERIFY: Bool = {
     #endif
 }()
 
+// 是否暂存每场比赛的路径数据
+let SAVEPATHDATA: Bool = {
+    #if DEBUG
+    return true
+    #else
+    return false
+    #endif
+}()
+
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = CompetitionManager()
     
@@ -50,7 +59,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     let dataFusionManager = DataFusionManager.shared
     let modelManager = ModelManager.shared
     let deviceManager = DeviceManager.shared
-    let user = UserManager.shared
+    let userManager = UserManager.shared
     let globalConfig = GlobalConfig.shared
     let dailyTaskManager = DailyTaskManager.shared
     
@@ -100,9 +109,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var audioRecorder: AVAudioRecorder!
     private var startTime: Date?
     
+#if DEBUG
     // 仅用于保存传感器数据到本地调试
     private var competitionData: [PhoneData] = []
     private let batchSize = 60 // 每次采集60条数据后写入文件
+    
+    var basePathData_debug: [PathPoint] = []
+    var bikePathData_debug: [BikePathPoint] = []
+    var runningPathData_debug: [RunningPathPoint] = []
+#endif
     
     @Published var basePathData: [PathPoint] = []               // 基本轨迹数据
     @Published var bikePathData: [BikePathPoint] = []           // 轨迹数据
@@ -456,56 +471,66 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func finalizeCompetition() {
-        if SAVEPHONEDATA {
+        if SAVEPHONERAWDATA {
             self.finalizeCompetitionData()
         }
         eventBus.emit(.matchEnd, context: matchContext)
         
         finishCompetition_server()
-        
+        if SAVEPATHDATA {
+            basePathData_debug = basePathData
+            bikePathData_debug = bikePathData
+            runningPathData_debug = runningPathData
+        }
         resetCompetitionProperties()
         Logger.competition.notice_public("competition stop")
     }
     
     // todo: 使用机器学习模型校验
-    func verifyBikeMatchData() -> Bool {
-        guard startTime != nil else { return false }
+    func verifyBikeMatchData() -> Double {
+        guard startTime != nil else { return -1 }
         guard let startTime = basePathData.first?.timestamp,
               let endTime = basePathData.last?.timestamp,
               startTime < endTime else {
-            return false
+            return -1
         }
         
-        guard !pathPointInEndSafetyRadius.isEmpty else { return false }
+        guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
         
         guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
-            return false
+            return -1
         }
         
         // 总分数为100
-        var score = 100
+        var score = 100.0
         
         let totalTime = endTime - startTime  // 秒
         let totalMeters = computeTotalDistance(path: basePathData)
         let avgSpeedKmh = (totalMeters / totalTime) * 3.6  // 转 km/h
         
-        // 规则 1：平均速度太低 → 不进行深度校验（直接视为合法）
+        // 规则 1：平均速度太低或太高 → 不进行深度校验，直接视为合法或非法
         if avgSpeedKmh < 20 {
-            return true
+            return score
+        }
+        if avgSpeedKmh > 50 {
+            return 0
         }
         
         // 规则 2：局部速度极端段
-        let segSpeeds = computeSegmentSpeeds(path: basePathData, windowMeters: 100)
+        var fastSpeedPoints = 0.0
+        let segSpeeds = computeSegmentSpeeds(path: basePathData, windowMeters: 200)
         for v in segSpeeds {
-            if v > 80 {
-                // 极端超速段
-                score -= 20
-            } else if v > 60 {
-                score -= 10
+            if v > 60 {
+                fastSpeedPoints += 5
             } else if v > 50 {
-                score -= 5
+                fastSpeedPoints += 2
+            } else if v > 40 {
+                fastSpeedPoints += 1
             }
+        }
+        if fastSpeedPoints >= 50 {
+            score -= (fastSpeedPoints - 50) / 10
         }
         
         // 规则 3：海拔跳跃异常
@@ -514,129 +539,223 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             score -= 10
         }
         
-        // 规则 4：坡度极端
-        let slopeStats = computeSlopeStats(path: basePathData)
-        if slopeStats.maxSlope > 1.0 {
-            // 最大坡度 > 100% 非现实
-            score -= 10
-        } else if slopeStats.maxSlope > 0.7 {
-            score -= 5
+        // 规则 4：检测上坡路段的踏频是否与速度匹配
+        var abnormalCounts = 0
+        let pedalThreshold = 30.0
+        let minSegmentLength = 3    // 避免太短的段误判
+        let minAltitudeGain = -1.0  // >= -1.0m 算上坡
+        let minSpeedDrop = 1.0      // 上坡期逐 pathpoint speed 至少下降 1 m/s
+        var startIndex: Int? = nil
+        
+        // 找出 pedal_count <= 30 的连续段
+        for i in 0..<bikePathData.count {
+            let c = bikePathData[i].estimate_pedal_count
+            
+            if c <= pedalThreshold {
+                if startIndex == nil { startIndex = i }
+                abnormalCounts += 1
+            } else {
+                if let s = startIndex, i - s >= minSegmentLength {
+                    // 完成一个区段
+                    processSegment(s..<i)
+                }
+                startIndex = nil
+            }
         }
+        
+        // 末尾收尾
+        if let s = startIndex, bikePathData.count - s >= minSegmentLength {
+            processSegment(s..<bikePathData.count)
+        }
+        
+        func processSegment(_ range: Range<Int>) {
+            let segment = Array(bikePathData[range])
+            
+            // Step 2 — 判断是否明显上坡（总升高 > minAltitudeGain）
+            let altStart = segment.first?.base.altitude ?? 0
+            let altEnd = segment.last?.base.altitude ?? 0
+            let altitudeGain = altEnd - altStart
+            
+            guard altitudeGain >= minAltitudeGain else { return }
+            
+            // Step 3 — 判断速度是否下降
+            let startSpeed = segment.first?.base.speed ?? 0
+            let endSpeed = segment.last?.base.speed ?? 0
+            
+            let speedDrop = startSpeed - endSpeed
+            
+            // 如果速度没有下降 → 可疑
+            if speedDrop < minSpeedDrop {
+                score -= (5 + minSpeedDrop - speedDrop)
+            }
+        }
+        let cnt = max((abnormalCounts - bikePathData.count / 2), 0)
+        score -= 10.0 * Double(cnt / bikePathData.count)
         
         // 规则 5：GPS 跳变数
         let jumpCount = countGpsJumps(path: basePathData, maxReasonableKmh: 50)
-        score -= jumpCount * 5
+        score -= Double(jumpCount) * 5
         
-        // 规则 6：功率 / 心率 一致性（如果有）
-        //if let avgPower = matchContext.avgPower {
-            // 假设你有功率数据
-            // 这里用示例 isPowerConsistent
-            // if !isPowerConsistent(speed: avgSpeedKmh, power: avgPower) {
-            //     score -= 10
-            // }
-        //}
-        
+        // 规则 6：功率 / 心率 一致性
         // 规则 7: 上坡时的速度 & 心率变化
-        
         // 限制最低分数
         if score < 0 { score = 0 }
-        
-        // 根据最终 score 决定验证结果
-        // 可以定义不同分数区间：
-        // ≥ 80 : 合法
-        // 60–80 : 可疑（可能人工复核）
-        // < 60 : 拒绝 / 判定为作弊
-        
-        if score >= 80 {
-            return true  // 合法
-        } else if score >= 60 {
-            // 可疑：你可以考虑半通过 / 标记给后台 / 或者人工审核
-            return true  // 也可以返回 false / 标记可疑
-        } else {
-            // 严重异常
-            return false
-        }
+        return score
     }
     
-    func verifyRunningMatchData() -> Bool {
-        guard startTime != nil else { return false }
+    func verifyRunningMatchData() -> Double {
+        guard startTime != nil else { return -1 }
         guard let startTime = basePathData.first?.timestamp,
               let endTime = basePathData.last?.timestamp,
               startTime < endTime else {
-            return false
+            return -1
         }
         
-        guard !pathPointInEndSafetyRadius.isEmpty else { return false }
+        // 未完成比赛
+        guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
         
         guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
-            return false
+            return -1
         }
         
         // 总分数为100
-        var score = 100
+        var score = 100.0
         
         let totalTime = endTime - startTime  // 秒
         let totalMeters = computeTotalDistance(path: basePathData)
         let avgSpeedKmh = (totalMeters / totalTime) * 3.6  // 转 km/h
         
-        // 规则 1：平均速度太低 → 不进行深度校验（直接视为合法）
+        // 规则 1：平均速度太低或太高 → 不进行深度校验，直接视为合法或非法
         if avgSpeedKmh < 10 {
-            return true
+            return score
         }
+        if avgSpeedKmh > 30 {
+            return 0
+        }
+        
         // 规则 2：局部速度极端段
+        var fastSpeedPoints = 0.0
         let segSpeeds = computeSegmentSpeeds(path: basePathData, windowMeters: 100)
         for v in segSpeeds {
             if v > 30 {
-                score -= 20
+                fastSpeedPoints += 5
             } else if v > 25 {
-                score -= 10
+                fastSpeedPoints += 2
             } else if v > 20 {
-                score -= 5
+                fastSpeedPoints += 1
             }
+        }
+        if fastSpeedPoints >= 50 {
+            score -= (fastSpeedPoints - 50) / 10
         }
         
         // 规则 3：海拔跳跃异常
         let altitudes = basePathData.map { $0.altitude }
-        if detectElevationJump(elevs: altitudes, maxJump: 50.0) {
-            score -= 10
+        if detectElevationJump(elevs: altitudes, maxJump: 10.0) {
+            score -= 5
         }
         
-        // 规则 4：坡度极端
-        let slopeStats = computeSlopeStats(path: basePathData)
-        if slopeStats.maxSlope > 2 {
-            // 最大坡度 > 100% 非现实
-            score -= 10
-        } else if slopeStats.maxSlope > 1 {
-            score -= 5
+        // 规则 4：检测是否存在步数与速度不匹配的情况
+        // 1). 连续 estimate_step_count == 0 的路段，如果在该连续段内位置发生明显移动 (>20m)，则视为异常段，每段减 5 分
+        if !runningPathData.isEmpty {
+            var zeroSegmentStartIndex: Int? = nil
+            var penaltyCount = 0.0
+
+            for i in 0..<runningPathData.count {
+                let rpt = runningPathData[i]
+                if rpt.estimate_step_count == 0 {
+                    if zeroSegmentStartIndex == nil {
+                        zeroSegmentStartIndex = i
+                    }
+                } else {
+                    // segment ended at i-1
+                    if let start = zeroSegmentStartIndex {
+                        // compute moved distance within [start, i-1]
+                        var moved: Double = 0.0
+                        if i - 1 > start {
+                            for j in (start + 1)...(i - 1) {
+                                moved += horizontalDistance(from: runningPathData[j-1].base, to: runningPathData[j].base)
+                            }
+                        } else {
+                            // only one point in segment -> no movement
+                            moved = 0.0
+                        }
+                        // 补上前 3s 的距离
+                        if start > 0 {
+                            moved += horizontalDistance(from: runningPathData[start-1].base, to: runningPathData[start].base)
+                        }
+                        if moved > 20.0 {
+                            penaltyCount += 1.0
+                        }
+                        zeroSegmentStartIndex = nil
+                    }
+                }
+            }
+            // handle tail segment if ended with zeros
+            if let start = zeroSegmentStartIndex {
+                var moved: Double = 0.0
+                if runningPathData.count - 1 > start {
+                    for j in (start + 1)...(runningPathData.count - 1) {
+                        moved += horizontalDistance(from: runningPathData[j-1].base, to: runningPathData[j].base)
+                    }
+                }
+                // 补上前 3s 的距离
+                if start > 0 {
+                    moved += horizontalDistance(from: runningPathData[start-1].base, to: runningPathData[start].base)
+                }
+                if moved > 20.0 {
+                    penaltyCount += 1.0
+                }
+            }
+
+            // apply penalty: 每个异常段 -5 分
+            if penaltyCount > 0 {
+                score -= 5.0 * penaltyCount
+            }
+        }
+
+        // 2). 每 10 个轨迹点为一个区间（非重叠），计算区间内总距离 / 总步数 = 步长 l（单位：m）
+        //    若 l > 2m 则视为不合理，按 (l - 2) / 2 分扣分（注：可累加）
+        let windowSize = 10
+        if runningPathData.count >= windowSize {
+            var idx = 0
+            while idx + windowSize <= runningPathData.count {
+                let window = Array(runningPathData[idx..<idx + windowSize])
+                // total distance in window
+                var totalDist: Double = 0.0
+                for k in 1..<window.count {
+                    totalDist += horizontalDistance(from: window[k-1].base, to: window[k].base)
+                }
+                // total estimated steps in this window (sum of estimate_step_count)
+                let totalSteps = window.reduce(0.0) { $0 + $1.estimate_step_count }
+                if totalSteps > 0.0 {
+                    let stepLength = totalDist / totalSteps // meters per step
+                    if stepLength > 2.0 {
+                        let penalty = (stepLength - 2.0) / 2.0
+                        score -= penalty
+                    }
+                } else {
+                    // 若 totalSteps == 0 且有明显移动（例如 > 8m）可适当扣分（防止零步计但有移动）
+                    if totalDist > 8.0 {
+                        // 这里扣较小分，以免过度惩罚
+                        score -= 1.0
+                    }
+                }
+                idx += windowSize
+            }
         }
         
         // 规则 5：GPS 跳变数
         let jumpCount = countGpsJumps(path: basePathData, maxReasonableKmh: 30)
-        score -= jumpCount * 5
+        score -= Double(jumpCount) * 5
         
-        // 规则 6：功率 / 心率 一致性（如果有）
-        //if let avgPower = matchContext.avgPower {
-            // 假设你有功率数据
-            // 这里用示例 isPowerConsistent
-            // if !isPowerConsistent(speed: avgSpeedKmh, power: avgPower) {
-            //     score -= 10
-            // }
-        //}
-        
+        // 规则 6：功率 / 心率 一致性
         // 规则 7: 上坡时的速度 & 心率变化
-        
         // 限制最低分数
         if score < 0 { score = 0 }
         
-        if score >= 80 {
-            return true  // 合法
-        } else if score >= 60 {
-            return true
-        } else {
-            // 严重异常
-            return false
-        }
+        return score
     }
     
     // 整理轨迹和计算最终成绩
@@ -728,16 +847,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         if let record = currentBikeRecord, sport == .Bike {
             var validationResult = verifyBikeMatchData()
             if SKIPMATCHVERIFY {
-                validationResult = true
+                validationResult = 100.0
             }
             //print("BikeMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
             let requestData = BikeFinishMatchRequest(
-                validation_status: validationResult,
+                validation_score: validationResult,
                 record_id: record.record_id,
                 end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
+                team_bonus: matchContext.teamBonus,
                 path: bikePathData
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else {
@@ -752,7 +872,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
                         self.navigationManager.append(.bikeRecordDetailView(recordID: record.record_id))
-                        self.dailyTaskManager.queryDailyTask(sport: .Bike)
+                        self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
                     }
                 default: break
                 }
@@ -761,16 +881,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         if let record = currentRunningRecord, sport == .Running {
             var validationResult = verifyRunningMatchData()
             if SKIPMATCHVERIFY {
-                validationResult = true
+                validationResult = 100.0
             }
             //print("RunningMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
             let requestData = RunningFinishMatchRequest(
-                validation_status: validationResult,
+                validation_score: validationResult,
                 record_id: record.record_id,
                 end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
+                team_bonus: matchContext.teamBonus,
                 path: runningPathData
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else {
@@ -785,7 +906,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
                         self.navigationManager.append(.runningRecordDetailView(recordID: record.record_id))
-                        self.dailyTaskManager.queryDailyTask(sport: .Running)
+                        self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
                     }
                 default: break
                 }
@@ -844,6 +965,27 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         return false
     }
     
+    // 组队比赛开始时使用队伍奖励卡牌的逻辑
+    func startCompetitionWithTeamBonusCard() {
+        guard isTeam else { return }
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/start_competition_with_team_bonus_card") else { return }
+        if let record = currentBikeRecord, sport == .Bike {
+            components.queryItems = [
+                URLQueryItem(name: "record_id", value: record.record_id)
+            ]
+        }
+        if let record = currentRunningRecord, sport == .Running {
+            components.queryItems = [
+                URLQueryItem(name: "record_id", value: record.record_id)
+            ]
+        }
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showErrorToast: true) { _ in }
+    }
+    
     func startRecordingSession() {
         // 清理定时器任务可能残留的数据
         matchContext.reset()
@@ -855,9 +997,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         dataFusionManager.elapsedTime = 0
         
         // 默认将所有加载卡牌添加进 matchContext 中
-        for card in activeCardEffects {
-            matchContext.addOrUpdateBonus(cardID: card.cardID, bonus: 0)
-        }
+        //for card in activeCardEffects {
+        //    matchContext.addOrUpdateBonus(cardID: card.cardID, bonus: 0)
+        //}
         eventBus.emit(.matchStart, context: matchContext)
         
         // 重置组队模式下的计时环境
@@ -866,7 +1008,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         isTeamJoinWindowExpired = false
         
         isRecording = true
-        competitionData = []
+        
+        if SAVEPHONERAWDATA {
+            competitionData = []
+        }
         
         // Start location updates
         LocationManager.shared.changeToHighUpdate()
@@ -933,7 +1078,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
             
             // 每3秒记录一次 path 数据 & 发出 matchCycleUpdate 信号
-            if tickCounter % 60 == 0 && self.isRecording { // 60 * 0.05s = 3s
+            if tickCounter % 60 == 0 && self.isRecording {
                 self.recordPath()
                 eventBus.emit(.matchCycleUpdate, context: matchContext)
                 tickCounter = 0 // 重置计数器
@@ -960,8 +1105,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             //print("location data missed in path point.")
             return
         }
-        //let altitude = LocationManager.shared.getLocation()?.altitude ?? -11034
-        //let speed = LocationManager.shared.getLocation()?.speed ?? -1
         let basePoint = PathPoint(
             lat: location.coordinate.latitude,
             lon: location.coordinate.longitude,
@@ -975,7 +1118,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             let pathPoint = BikePathPoint(
                 base: basePoint,
                 power: matchContext.latestPower,
-                pedal_cadence: matchContext.pedalCadence
+                pedal_cadence: matchContext.pedalCadence,
+                estimate_pedal_count: matchContext.estimatePedal
             )
             if let lastPoint = bikePathData.last {
                 let distance = horizontalDistance(from: lastPoint.base, to: pathPoint.base)
@@ -993,7 +1137,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 step_cadence: matchContext.stepCadence,
                 vertical_amplitude: nil,
                 touchdown_time: nil,
-                step_size: nil
+                step_size: nil,
+                estimate_step_count: matchContext.estimateStep
             )
             if let lastPoint = runningPathData.last {
                 let distance = horizontalDistance(from: lastPoint.base, to: pathPoint.base)
@@ -1022,12 +1167,12 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         let gyro = motionManager.gyroData?.rotationRate ?? CMRotationRate(x: 0, y: 0, z: 0)
         let magneticField = motionManager.magnetometerData?.magneticField ?? CMMagneticField(x: 0, y: 0, z: 0)
         let audioSample: Bool = false // 根据需要处理音频数据
-        let zone = NSTimeZone.system
-        let timeInterval = zone.secondsFromGMT()
-        let dateNow = Date().addingTimeInterval(TimeInterval(timeInterval))
+        //let zone = NSTimeZone.system
+        //let timeInterval = zone.secondsFromGMT()
+        //let dateNow = Date().addingTimeInterval(TimeInterval(timeInterval))
         
         let dataPoint = PhoneData(
-            timestamp: dateNow,
+            timestamp: Date().timeIntervalSince1970,
             altitude: altitude,
             speed: speed,
             accX: acceleration.x,
@@ -1045,68 +1190,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 暂时默认都使用dataFusionManager管理phone data
         self.dataFusionManager.addPhoneData(dataPoint)
         
-        if SAVEPHONEDATA {
+        if SAVEPHONERAWDATA {
             competitionData.append(dataPoint)
             // 检查是否达到批量保存条件
             if competitionData.count >= batchSize {
                 let batch = competitionData
                 competitionData.removeAll()
                 saveBatchAsCSV(dataBatch: batch)
-            }
-        }
-    }
-    
-    // 保存批次数据为CSV
-    private func saveBatchAsCSV(dataBatch: [PhoneData]) {
-        // 定义CSV文件路径
-        let fileManager = FileManager.default
-        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileURL = documentsDirectory.appendingPathComponent("competitionData_phone.csv")
-        
-        // 如果文件不存在，创建并写入头部
-        if !fileManager.fileExists(atPath: fileURL.path) {
-            let csvHeader = "timestamp,altitude,speed,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z,audioSample\n"
-            do {
-                try csvHeader.write(to: fileURL, atomically: true, encoding: .utf8)
-            } catch {
-                Logger.competition.notice_public("Failed to write CSV header: \(error)")
-                return
-            }
-        }
-        
-        // 构建CSV内容
-        var csvString = ""
-        let dateFormatter = ISO8601DateFormatter()
-        
-        for data in dataBatch {
-            let timestamp = dateFormatter.string(from: data.timestamp)
-            let altitude = data.altitude
-            let speed = data.speed
-            let accX = data.accX
-            let accY = data.accY
-            let accZ = data.accZ
-            let gyroX = data.gyroX
-            let gyroY = data.gyroY
-            let gyroZ = data.gyroZ
-            let magX = data.magX
-            let magY = data.magY
-            let magZ = data.magZ
-            let audioSample = data.audioSample ? "1" : "0" // 简单表示有无音频数据
-            
-            let row = "\(timestamp),\(altitude),\(speed),\(accX),\(accY),\(accZ),\(gyroX),\(gyroY),\(gyroZ),\(magX),\(magY),\(magZ),\(audioSample)\n"
-            csvString.append(row)
-        }
-        
-        // 追加到CSV文件
-        if let dataToAppend = csvString.data(using: .utf8) {
-            do {
-                let fileHandle = try FileHandle(forWritingTo: fileURL)
-                fileHandle.seekToEndOfFile()
-                fileHandle.write(dataToAppend)
-                fileHandle.closeFile()
-                Logger.competition.notice_public("phone batch saved as CSV.")
-            } catch {
-                Logger.competition.notice_public("phone failed to append CSV: \(error)")
             }
         }
     }
@@ -1148,10 +1238,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         endRadius = CLLocationDistance(record.trackEndRadius)
     }
     
-    func activateCards(_ cards: [MagicCard]) {
+    func activateCards() {
         isEffectsFinishPrepare = false
-        guard cards.count <= 3 else {
-            ToastManager.shared.show(toast: Toast(message: "最多选择3张卡牌"))
+        guard selectedCards.count <= 4 else {
+            ToastManager.shared.show(toast: Toast(message: "卡牌数量超过限制"))
             return
         }
         
@@ -1161,9 +1251,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         dataFusionManager.resetAll()
         deviceManager.resetAllDeviceStatus()
         
-        selectedCards = cards
         activeCardEffects = selectedCards.map { card in
             MagicCardFactory.createEffect(level: card.level, from: card.cardDef)
+        }
+        if sport == .Running {
+            activeCardEffects.append(RunningValidationEffect())
+        } else if sport == .Bike {
+            activeCardEffects.append(BikeValidationEffect())
         }
         eventBus.reset()
         Task {
@@ -1213,14 +1307,14 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
 }
 
 extension CompetitionManager {
-    // 计算两点之间的地面水平距离（忽略高度差），单位 m
+    // 计算两点之间的距离（包含高度差），单位 m
     func horizontalDistance(from p1: PathPoint, to p2: PathPoint) -> Double {
         let loc1 = CLLocation(latitude: p1.lat, longitude: p1.lon)
         let loc2 = CLLocation(latitude: p2.lat, longitude: p2.lon)
         return loc1.distance(from: loc2)
     }
     
-    // 计算路径的总水平距离（累计每段水平距离），单位 m
+    // 计算路径的总距离（累计每段距离），单位 m
     func computeTotalDistance(path: [PathPoint]) -> Double {
         guard path.count >= 2 else { return 0.0 }
         var total: Double = 0
@@ -1323,6 +1417,72 @@ extension CompetitionManager {
 //        let minimalExpectedPower = kmh * 2.0  // 经验系数（kmh × 2）
 //        return power >= minimalExpectedPower
 //    }
+    
+// 本地快速调试比赛链路
+#if DEBUG
+    func startRecordingSession_debug(with sportName: SportName) {
+        sport = sportName
+        let testDTO = BikeRaceRecordDTO(record_id: "", region_name: "", event_name: "", track_name: "", track_start_lat: 0, track_start_lng: 0, track_start_radius: 0, track_end_lat: 0, track_end_lng: 0, track_end_radius: 0, track_end_date: "", status: .notStarted, start_date: nil, end_date: nil, duration_seconds: nil, is_team: false, team_title: nil, team_competition_date: nil, created_at: "")
+        currentBikeRecord = BikeRaceRecord(from: testDTO)
+        activateCards()
+        startTime = Date()
+        startRecordingSession()
+    }
+    
+    // 保存批次数据为CSV
+    private func saveBatchAsCSV(dataBatch: [PhoneData]) {
+        // 定义CSV文件路径
+        let fileManager = FileManager.default
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = documentsDirectory.appendingPathComponent("competitionData_phone_raw.csv")
+        
+        // 如果文件不存在，创建并写入头部
+        if !fileManager.fileExists(atPath: fileURL.path) {
+            let csvHeader = "timestamp,altitude,speed,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,mag_x,mag_y,mag_z,audioSample\n"
+            do {
+                try csvHeader.write(to: fileURL, atomically: true, encoding: .utf8)
+            } catch {
+                Logger.competition.notice_public("Failed to write CSV header: \(error)")
+                return
+            }
+        }
+        
+        // 构建CSV内容
+        var csvString = ""
+        
+        for data in dataBatch {
+            let timestamp = data.timestamp
+            let altitude = data.altitude
+            let speed = data.speed
+            let accX = data.accX
+            let accY = data.accY
+            let accZ = data.accZ
+            let gyroX = data.gyroX
+            let gyroY = data.gyroY
+            let gyroZ = data.gyroZ
+            let magX = data.magX
+            let magY = data.magY
+            let magZ = data.magZ
+            let audioSample = data.audioSample ? "1" : "0" // 简单表示有无音频数据
+            
+            let row = "\(timestamp),\(altitude),\(speed),\(accX),\(accY),\(accZ),\(gyroX),\(gyroY),\(gyroZ),\(magX),\(magY),\(magZ),\(audioSample)\n"
+            csvString.append(row)
+        }
+        
+        // 追加到CSV文件
+        if let dataToAppend = csvString.data(using: .utf8) {
+            do {
+                let fileHandle = try FileHandle(forWritingTo: fileURL)
+                fileHandle.seekToEndOfFile()
+                fileHandle.write(dataToAppend)
+                fileHandle.closeFile()
+                Logger.competition.notice_public("phone batch saved as CSV.")
+            } catch {
+                Logger.competition.notice_public("phone failed to append CSV: \(error)")
+            }
+        }
+    }
+#endif
 }
 
 class MatchEventBus {
@@ -1351,40 +1511,60 @@ enum MatchEvent {
 
 class MatchContext {
     var isTeam: Bool
+    var distance: Double        // 累计距离/m
+    var speed: Double           // 实时速度 km/h
+    var altitude: Double        // 实时海拔 m
+    
     var latestHeartRate: Double?
     var latestPower: Double?
     var avgHeartRate: Double?
     var totalEnergy: Double?
     var avgPower: Double?
     var pedalCadence: Double?
+    var estimatePedal: Double
     var stepCadence: Double?
+    var estimateStep: Double
+    
     var sensorData: DataSnapshot
     var bonusEachCards: [CardBonusItem]
+    var teamBonus: TeamMagicCardBonusItem?
     
     init() {
         self.isTeam = false
+        self.distance = 0
+        self.speed = 0
+        self.altitude = 0
         self.latestHeartRate = nil
         self.latestPower = nil
         self.avgHeartRate = nil
         self.totalEnergy = nil
         self.avgPower = nil
         self.pedalCadence = nil
+        self.estimatePedal = 0
         self.stepCadence = nil
+        self.estimateStep = 0
         self.sensorData = DataSnapshot(phoneSlice: [], sensorSlice: [], predictTime: 0)
         self.bonusEachCards = []
+        self.teamBonus = nil
     }
     
     func reset() {
         isTeam = false
+        distance = 0
+        speed = 0
+        altitude = 0
         latestHeartRate = nil
         latestPower = nil
         avgHeartRate = nil
         totalEnergy = nil
         avgPower = nil
         pedalCadence = nil
+        estimatePedal = 0
         stepCadence = nil
+        estimateStep = 0
         sensorData = DataSnapshot(phoneSlice: [], sensorSlice: [], predictTime: 0)
         bonusEachCards = []
+        teamBonus = nil
     }
     
     func addOrUpdateBonus(cardID: String, bonus: Double) {
@@ -1392,6 +1572,18 @@ class MatchContext {
             bonusEachCards[idx].bonus_time += bonus
         } else {
             bonusEachCards.append(CardBonusItem(card_id: cardID, bonus_time: bonus))
+        }
+    }
+    
+    func addOrUpdateTeamBonusTime(cardID: String, bonusTime: Double) {
+        if var item = teamBonus {
+            if let time = item.bonus_seconds {
+                item.bonus_seconds = time + bonusTime
+            } else {
+                item.bonus_seconds = bonusTime
+            }
+        } else {
+            teamBonus = TeamMagicCardBonusItem(card_id: cardID, bonus_ratio: nil, bonus_seconds: bonusTime)
         }
     }
 }
@@ -1414,6 +1606,7 @@ struct BikePathPoint: Codable {
     
     let power: Double?
     let pedal_cadence: Double?
+    let estimate_pedal_count: Double    // 预测的踏频用于校验
 }
 
 struct RunningPathPoint: Codable {
@@ -1424,6 +1617,7 @@ struct RunningPathPoint: Codable {
     let vertical_amplitude: Double?
     let touchdown_time: Double?
     let step_size: Double?
+    let estimate_step_count: Double     // 预测的步频用于校验
 }
 
 struct CardBonusItem: Codable {
@@ -1431,19 +1625,27 @@ struct CardBonusItem: Codable {
     var bonus_time: Double
 }
 
+struct TeamMagicCardBonusItem: Codable {
+    let card_id: String
+    var bonus_ratio: Double?
+    var bonus_seconds: Double?
+}
+
 struct BikeFinishMatchRequest: Codable {
-    let validation_status: Bool
+    let validation_score: Double
     let record_id: String
     let end_time: String
     let bonus_in_cards: [CardBonusItem]
+    let team_bonus: TeamMagicCardBonusItem?
     let path: [BikePathPoint]
 }
 
 struct RunningFinishMatchRequest: Codable {
-    let validation_status: Bool
+    let validation_score: Double
     let record_id: String
     let end_time: String
     let bonus_in_cards: [CardBonusItem]
+    let team_bonus: TeamMagicCardBonusItem?
     let path: [RunningPathPoint]
 }
 
@@ -1453,7 +1655,7 @@ class StatisticData {
     var heartRate: Int?         // 心率
     var totalEnergy: Int?       // 能耗
     var pedalCadence: Int?      // 踏频
-    var runningCadence: Int?    // 步频
+    var stepCadence: Int?       // 步频
     var power: Int?             // 功率
     
     init() {
@@ -1462,7 +1664,7 @@ class StatisticData {
         self.heartRate = nil
         self.totalEnergy = nil
         self.pedalCadence = nil
-        self.runningCadence = nil
+        self.stepCadence = nil
         self.power = nil
     }
     
@@ -1472,14 +1674,57 @@ class StatisticData {
         heartRate = nil
         totalEnergy = nil
         pedalCadence = nil
-        runningCadence = nil
+        stepCadence = nil
         power = nil
+    }
+}
+
+class IMUFilter {
+    // 简单一阶低通滤波
+    private var previousFilteredValue: Double = 0.0
+    private let alpha: Double = 0.1     // 0<alpha<1, alpha 越小 抑制越强
+    // 简单高通滤波（用于移除重力／慢摆动成分）
+    private var previousInput: Double = 0.0
+    private var previousHighPassOutput: Double = 0.0
+    private let highPassCutoff: Double  // 单位 Hz
+    private let sampleRate: Double      // Hz
+    
+    init(highPassCutoff: Double, sampleRate: Double) {
+        self.highPassCutoff = highPassCutoff
+        self.sampleRate = sampleRate
+    }
+    
+    func lowPass(current: Double) -> Double {
+        let filtered = alpha * current + (1.0 - alpha) * previousFilteredValue
+        previousFilteredValue = filtered
+        return filtered
+    }
+    
+    func highPass(current: Double) -> Double {
+        let rc = 1.0 / (2.0 * Double.pi * highPassCutoff)
+        let dt = 1.0 / sampleRate
+        let alphaHP = rc / (rc + dt)
+        let filtered = alphaHP * (previousHighPassOutput + current - previousInput)
+        previousInput = current
+        previousHighPassOutput = filtered
+        return filtered
+    }
+
+    // 数据处理，先高通移除重力，再低通平滑
+    func filteredSamples(x: Double, y: Double, z: Double) -> Double {
+        // 1) 计算模值（向量长度）
+        let raw = sqrt(x * x + y * y + z * z)
+        // 2) remove gravity / slow drift
+        let hp = highPass(current: raw)
+        // 3) smooth
+        let lp = lowPass(current: hp)
+        return lp
     }
 }
 
 // phone端完整数据格式
 struct PhoneData {
-    let timestamp: Date
+    let timestamp: TimeInterval
     let altitude: CLLocationDistance
     let speed: CLLocationSpeed
     let accX: Double
@@ -1494,7 +1739,7 @@ struct PhoneData {
     let audioSample: Bool // 简化为布尔值，表示是否有音频数据
     
     init() {
-        timestamp = .now
+        timestamp = 0
         altitude = 0
         speed = 0
         accX = 0
@@ -1509,7 +1754,7 @@ struct PhoneData {
         audioSample = false
     }
     
-    init(timestamp: Date, altitude: CLLocationDistance, speed: CLLocationSpeed, accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double, magX: Double, magY: Double, magZ: Double, audioSample: Bool) {
+    init(timestamp: TimeInterval, altitude: CLLocationDistance, speed: CLLocationSpeed, accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double, magX: Double, magY: Double, magZ: Double, audioSample: Bool) {
         self.timestamp = timestamp
         self.altitude = altitude
         self.speed = speed
@@ -1526,12 +1771,9 @@ struct PhoneData {
     }
 }
 
-// todo
-struct PhoneTrainingData {}
-
 // 传感器数据格式（ watch端/phone端 ）
 struct SensorData {
-    let timestamp: Date
+    let timestamp: TimeInterval
     let accX: Double
     let accY: Double
     let accZ: Double
@@ -1543,7 +1785,7 @@ struct SensorData {
     //let magZ: Double
     
     init() {
-        timestamp = .now
+        timestamp = 0
         accX = 0
         accY = 0
         accZ = 0
@@ -1555,7 +1797,7 @@ struct SensorData {
         //magZ = 0
     }
     
-    init(timestamp: Date, accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double/*, magX: Double, magY: Double, magZ: Double*/) {
+    init(timestamp: TimeInterval, accX: Double, accY: Double, accZ: Double, gyroX: Double, gyroY: Double, gyroZ: Double/*, magX: Double, magY: Double, magZ: Double*/) {
         self.timestamp = timestamp
         self.accX = accX
         self.accY = accY

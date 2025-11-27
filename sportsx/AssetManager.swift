@@ -224,6 +224,17 @@ class AssetManager: ObservableObject {
         }
     }
     
+    func resetAll() {
+        coin = 0
+        coupon = 0
+        voucher = 0
+        stone1 = 0
+        stone2 = 0
+        stone3 = 0
+        cpassets = []
+        magicCards = []
+    }
+    
     func fetchBalance() {
         // 调用 API 获取最新余额
     }
@@ -389,7 +400,8 @@ enum SensorType: String, Codable {
 
 struct MagicCardDef {
     let cardID: String
-    let typeName: String
+    //let typeName: String
+    let defID: String
     let params: JSONValue
 }
 
@@ -472,7 +484,7 @@ struct MagicCard: Identifiable, Equatable {
         }
         self.version = AppVersion(card.version)
         self.tags = card.tags
-        self.cardDef = MagicCardDef(cardID: card.card_id, typeName: card.type_name, params: finalJsonValue)
+        self.cardDef = MagicCardDef(cardID: card.card_id, defID: card.def_id, params: finalJsonValue)
     }
     
     // 暂时复用MagicCardView和DetailView来展示商店卡牌信息
@@ -499,7 +511,7 @@ struct MagicCard: Identifiable, Equatable {
         self.version = card.version
         // 用不到cardDef和tags
         self.tags = []
-        self.cardDef = MagicCardDef(cardID: "example_id", typeName: "example_type", params: .null)
+        self.cardDef = MagicCardDef(cardID: "example_id", defID: "example_def_id", params: .null)
     }
     
     static func == (lhs: MagicCard, rhs: MagicCard) -> Bool {
@@ -529,7 +541,7 @@ struct MagicCardUserDTO: Codable {
     let multiplier_skill3: Double?
     let version: String
     
-    let type_name: String
+    //let type_name: String
     let tags: [String]
     let effect_def: JSONValue
 }
@@ -539,7 +551,7 @@ struct MagicCardUserResponse: Codable {
 }
 
 struct MagicCardShop: Identifiable, Equatable {
-    var id: String { def_id }
+    let id: UUID
     let def_id: String
     let name: String
     let sportType: SportName
@@ -556,6 +568,7 @@ struct MagicCardShop: Identifiable, Equatable {
     let price: Int
     
     init(from card: MagicCardShopDTO) {
+        self.id = UUID()
         self.def_id = card.def_id
         self.name = card.name
         self.sportType = card.sport_type
@@ -590,7 +603,7 @@ struct MagicCardShop: Identifiable, Equatable {
     }
     
     static func == (lhs: MagicCardShop, rhs: MagicCardShop) -> Bool {
-        return lhs.def_id == rhs.def_id
+        return lhs.id == rhs.id
     }
 }
 

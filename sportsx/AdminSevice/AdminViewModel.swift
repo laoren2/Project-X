@@ -4,6 +4,8 @@
 //
 //  Created by 任杰 on 2025/6/3.
 //
+
+#if DEBUG
 import Foundation
 import UIKit
 import _PhotosUI_SwiftUI
@@ -190,6 +192,119 @@ struct RunningTracksInternalResponse: Codable {
     let tracks: [RunningTrackInfoInternalDTO]
 }
 
+class RunningRecordBackendViewModel: ObservableObject {
+    @Published var records: [RunningUnverifiedRecordInfo] = []
+    @Published var isLoading: Bool = false
+    
+    @Published var selectedRecord: RunningUnverifiedRecordInfo?
+    
+    var hasMoreRecords: Bool = true
+    var currentPage: Int = 1
+    var pageSize: Int = 10
+    
+    func queryRecords() {
+        isLoading = true
+        guard var components = URLComponents(string: "/competition/running/query_unverified_records") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "page", value: "\(currentPage)"),
+            URLQueryItem(name: "size", value: "\(pageSize)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: RunningUnverifiedRecordResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for record in unwrappedData.records {
+                            self.records.append(RunningUnverifiedRecordInfo(from: record))
+                        }
+                    }
+                    if unwrappedData.records.count < self.pageSize {
+                        self.hasMoreRecords = false
+                    } else {
+                        self.hasMoreRecords = true
+                        self.currentPage += 1
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func handleVerify(recordID: String, result: Bool) {
+        guard var components = URLComponents(string: "/competition/running/handle_unverified_record") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "record_id", value: recordID),
+            URLQueryItem(name: "result", value: "\(result)")
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if let index = self.records.firstIndex(where: { $0.record_id == recordID }) {
+                        self.records.remove(at: index)
+                    }
+                default: break
+                }
+                self.selectedRecord = nil
+            }
+        }
+    }
+}
+
+struct RunningUnverifiedRecordInfo: Identifiable, Equatable {
+    let id: UUID
+    let is_vip: Bool
+    let record_id: String
+    let validation_score: Double?
+    let basePath: [PathPoint]
+    let path: [RunningPathPoint]
+    let samplePath: [RunningSamplePathPoint]
+    let finished_at: Date?
+    
+    init(from record: RunningUnverifiedRecordDTO) {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        id = UUID()
+        is_vip = record.is_vip
+        record_id = record.record_id
+        validation_score = record.validation_score
+        path = record.path
+        basePath = record.path.map { $0.base }
+        samplePath = RunningPathPointTool.computeSamplePoints(pathData: record.path)
+        if let finishedTime = record.finished_at {
+            finished_at = formatter.date(from: finishedTime)
+        } else {
+            finished_at = nil
+        }
+    }
+    
+    static func == (lhs: RunningUnverifiedRecordInfo, rhs: RunningUnverifiedRecordInfo) -> Bool {
+        return lhs.record_id == rhs.record_id
+    }
+}
+
+struct RunningUnverifiedRecordDTO: Codable {
+    let is_vip: Bool
+    let record_id: String
+    let validation_score: Double?
+    let path: [RunningPathPoint]
+    let finished_at: String?
+}
+
+struct RunningUnverifiedRecordResponse: Codable {
+    let records: [RunningUnverifiedRecordDTO]
+}
+
 
 class BikeEventBackendViewModel: ObservableObject {
     @Published var events: [BikeEventCardEntry] = []
@@ -369,6 +484,119 @@ struct BikeTracksInternalResponse: Codable {
     let tracks: [BikeTrackInfoInternalDTO]
 }
 
+class BikeRecordBackendViewModel: ObservableObject {
+    @Published var records: [BikeUnverifiedRecordInfo] = []
+    @Published var isLoading: Bool = false
+    
+    @Published var selectedRecord: BikeUnverifiedRecordInfo?
+    
+    var hasMoreRecords: Bool = true
+    var currentPage: Int = 1
+    var pageSize: Int = 10
+    
+    func queryRecords() {
+        isLoading = true
+        guard var components = URLComponents(string: "/competition/bike/query_unverified_records") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "page", value: "\(currentPage)"),
+            URLQueryItem(name: "size", value: "\(pageSize)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: BikeUnverifiedRecordResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for record in unwrappedData.records {
+                            self.records.append(BikeUnverifiedRecordInfo(from: record))
+                        }
+                    }
+                    if unwrappedData.records.count < self.pageSize {
+                        self.hasMoreRecords = false
+                    } else {
+                        self.hasMoreRecords = true
+                        self.currentPage += 1
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func handleVerify(recordID: String, result: Bool) {
+        guard var components = URLComponents(string: "/competition/bike/handle_unverified_record") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "record_id", value: recordID),
+            URLQueryItem(name: "result", value: "\(result)")
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if let index = self.records.firstIndex(where: { $0.record_id == recordID }) {
+                        self.records.remove(at: index)
+                    }
+                default: break
+                }
+                self.selectedRecord = nil
+            }
+        }
+    }
+}
+
+struct BikeUnverifiedRecordInfo: Identifiable, Equatable {
+    let id: UUID
+    let is_vip: Bool
+    let record_id: String
+    let validation_score: Double?
+    let basePath: [PathPoint]
+    let path: [BikePathPoint]
+    let samplePath: [BikeSamplePathPoint]
+    let finished_at: Date?
+    
+    init(from record: BikeUnverifiedRecordDTO) {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        id = UUID()
+        is_vip = record.is_vip
+        record_id = record.record_id
+        validation_score = record.validation_score
+        path = record.path
+        basePath = record.path.map { $0.base }
+        samplePath = BikePathPointTool.computeSamplePoints(pathData: record.path)
+        if let finishedTime = record.finished_at {
+            finished_at = formatter.date(from: finishedTime)
+        } else {
+            finished_at = nil
+        }
+    }
+    
+    static func == (lhs: BikeUnverifiedRecordInfo, rhs: BikeUnverifiedRecordInfo) -> Bool {
+        return lhs.record_id == rhs.record_id
+    }
+}
+
+struct BikeUnverifiedRecordDTO: Codable {
+    let is_vip: Bool
+    let record_id: String
+    let validation_score: Double?
+    let path: [BikePathPoint]
+    let finished_at: String?
+}
+
+struct BikeUnverifiedRecordResponse: Codable {
+    let records: [BikeUnverifiedRecordDTO]
+}
+
 
 class CPAssetBackendViewModel: ObservableObject {
     @Published var assets: [CPAssetCardEntry] = []
@@ -531,7 +759,7 @@ struct MagicCardDefDTO: Codable {
     let skill2_description: String?
     let skill3_description: String?
     let version: String
-    let type_name: String
+    //let type_name: String
     let tags: [String]
     let effect_config: JSONValue
 }
@@ -600,3 +828,4 @@ struct MagicCardPriceDTO: Codable {
 struct MagicCardPriceInternalResponse: Codable {
     let cards: [MagicCardPriceDTO]
 }
+#endif

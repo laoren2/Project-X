@@ -46,7 +46,7 @@ class DataFusionManager: ObservableObject {
     private var phoneCapacity = 0
     private var sensorCapacity = 0
     private let timeStep: TimeInterval = 0.05
-    private var baseTime: Date? = nil
+    private var baseTime: TimeInterval? = nil
     
     // 所有数据序列的起始SlotIndex，用于添加数据时确定位置
     private var startSlotIndex: Int = 0
@@ -101,12 +101,13 @@ class DataFusionManager: ObservableObject {
             // 更新稀疏度
             let nonNilCount = self.sensorPhoneWindow.filter { $0 != nil }.count
             let lastNonNilIndex = self.lastNonNilIndex(in: self.sensorPhoneWindow)
-            //Logger.competition.notice_public("phone nonNilCnt: ", nonNilCount, "lastNonNilIndex: ", lastNonNilIndex)
+            //Logger.competition.notice_public("phone nonNilCnt: \(nonNilCount) lastNonNilIndex: \(lastNonNilIndex)")
             self.sparsity[0] = nonNilCount == 0 ? 0 : Float(nonNilCount) / Float(lastNonNilIndex + 1)
             
             let windowLen = self.getPredictWindowLen()
             
             // 发布预测信号
+            // todo: 解决偶尔slotIndex重复映射导致的重复快照问题
             if windowLen >= 0 && windowLen == self.lastNonNilIndex(in: self.sensorPhoneWindow) {
                 let snapshot = self.makeSnapshot(upTo: windowLen, time: 1)
                 // 发布快照
@@ -119,14 +120,12 @@ class DataFusionManager: ObservableObject {
     // 添加传感器设备数据
     func addSensorData(_ sensorIndex: Int, _ batch: [SensorData]) {
         dataCollectQueue.async {
+            guard !batch.isEmpty else { return }
             if self.baseTime == nil {
                 //for item in batch {
                 //    Logger.competition.notice_public("first batch timestamp : \(item.timestamp)")
                 //}
-                let zone = NSTimeZone.system
-                let timeInterval = zone.secondsFromGMT()
-                let dateNow = Date().addingTimeInterval(TimeInterval(timeInterval))
-                self.baseTime = dateNow
+                self.baseTime = batch.first?.timestamp
                 //Logger.competition.notice_public("set baseTime to: \(dateNow) from addSensorData")
             }
             
@@ -408,9 +407,9 @@ class DataFusionManager: ObservableObject {
         startSlotIndex += shiftCount
     }
     
-    private func computeSlotIndex(for time: Date) -> Int {
+    private func computeSlotIndex(for time: TimeInterval) -> Int {
         guard let base = baseTime else { return 0 }
-        let delta = time.timeIntervalSince(base)
+        let delta = time - base
         let idx = Int(floor(delta / timeStep))
         return max(idx, 0)
     }

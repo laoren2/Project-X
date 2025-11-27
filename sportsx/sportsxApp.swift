@@ -94,7 +94,7 @@ struct sportsxApp: App {
             NaviView()
                 .environmentObject(appState)
                 .preferredColorScheme(.light)
-            //TestView()
+            //CompetitionTestView()
             //    .environmentObject(appState)
         }
     }
@@ -111,14 +111,43 @@ struct sportsxApp: App {
     }
     
     func registerAllCardTypes() {
-        MagicCardFactory.register(type: "avg_pedal_rpm_1") { cardID, level, params in
-            return PedalRPMEffect(cardID: cardID, level: level, with: params)
+        // running
+        MagicCardFactory.register(defID: "equipcard_def_0ee41ac7") { cardID, level, params in
+            return HeartRateEffect_C_0ee41ac7(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(type: "heart_rate_test_1") { cardID, level, params in
-            return HeartRateBoostEffect(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_def_464ffa29") { cardID, level, params in
+            return HeartRateEffect_B_464ffa29(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(type: "xpose_test_1") { cardID, level, params in
-            return XposeTestEffect(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_def_c6d9b2ac") { cardID, level, params in
+            return AltitudeEffect_C_c6d9b2ac(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_57263168") { cardID, level, params in
+            return AltitudeEffect_B_57263168(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_9d861474") { cardID, level, params in
+            return SpeedEffect_B_9d861474(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_ed38de79") { cardID, level, params in
+            return SpeedEffect_A_ed38de79(cardID: cardID, level: level, with: params)
+        }
+        // bike
+        MagicCardFactory.register(defID: "equipcard_def_9c2d915e") { cardID, level, params in
+            return HeartRateEffect_C_0ee41ac7(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_f26d439d") { cardID, level, params in
+            return HeartRateEffect_B_464ffa29(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_be490d44") { cardID, level, params in
+            return AltitudeEffect_C_c6d9b2ac(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_3c09fe86") { cardID, level, params in
+            return AltitudeEffect_B_57263168(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_255b9406") { cardID, level, params in
+            return SpeedEffect_B_255b9406(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_def_e30c207c") { cardID, level, params in
+            return SpeedEffect_A_e30c207c(cardID: cardID, level: level, with: params)
         }
     }
     

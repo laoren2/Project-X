@@ -174,7 +174,7 @@ struct CareerView: View {
             }
         }
         .padding()
-        .background(.gray.opacity(0.5))
+        .background(.white.opacity(0.3))
         .cornerRadius(12)
     }
     
@@ -196,7 +196,7 @@ struct CareerView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(.gray.opacity(0.5))
+        .background(.white.opacity(0.3))
         .cornerRadius(10)
     }
     
@@ -369,7 +369,7 @@ struct LocalCareerView: View {
             }
         }
         .padding()
-        .background(.gray.opacity(0.5))
+        .background(.white.opacity(0.3))
         .cornerRadius(12)
     }
     
@@ -391,7 +391,7 @@ struct LocalCareerView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(.gray.opacity(0.5))
+        .background(.white.opacity(0.3))
         .cornerRadius(10)
     }
     
@@ -552,7 +552,7 @@ struct CompetitionScoreCard: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal)
-            .background(.gray.opacity(0.5))
+            .background(.white.opacity(0.3))
             
             HStack(alignment: .center) {
                 Text("日期")
@@ -563,7 +563,7 @@ struct CompetitionScoreCard: View {
             .foregroundColor(.secondText)
             .padding(.vertical, 8)
             .padding(.horizontal)
-            .background(.gray.opacity(0.5))
+            .background(.white.opacity(0.3))
             
             HStack {
                 Text("记录详情")
@@ -591,7 +591,7 @@ struct CompetitionScoreCard: View {
             .padding(.vertical, 5)
             .padding(.horizontal)
             .foregroundStyle(Color.secondText)
-            .background(.gray.opacity(0.5))
+            .background(.white.opacity(0.3))
         }
         .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)

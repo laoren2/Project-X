@@ -263,10 +263,14 @@ struct RealNaviView: View {
                     RunningEventBackendView()
                 case .runningTrackBackendView:
                     RunningTrackBackendView()
+                case .runningRecordBackendView:
+                    RunningRecordBackendView()
                 case .bikeEventBackendView:
                     BikeEventBackendView()
                 case .bikeTrackBackendView:
                     BikeTrackBackendView()
+                case .bikeRecordBackendView:
+                    BikeRecordBackendView()
                 case .cpAssetBackendView:
                     CPAssetBackendView()
                 case .cpAssetPriceBackendView:
@@ -277,6 +281,8 @@ struct RealNaviView: View {
                     MagicCardBackendView()
                 case .magicCardPriceBackendView:
                     MagicCardPriceBackendView()
+                case .bikeMatchDebugView:
+                    BikeMatchDebugView()
 #endif
                 }
             }
