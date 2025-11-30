@@ -78,7 +78,10 @@ struct RegionSelectedView: View {
             .padding(.horizontal)
             
             HStack {
-                Image(systemName: "location.fill")
+                Image("location")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                     .foregroundColor(.white)
                 Text(locationManager.region ?? "未知")
                     .font(.headline)

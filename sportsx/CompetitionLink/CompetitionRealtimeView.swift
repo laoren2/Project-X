@@ -127,7 +127,10 @@ struct CompetitionRealtimeView: View {
                         Button {
                             mapMode = .followUser
                         } label: {
-                            Image(systemName: "location.fill")
+                            Image("location")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
                                 .foregroundColor(.white)
                                 .padding()
                                 .background(Color.black.opacity(0.3))
@@ -399,7 +402,7 @@ struct CompetitionRealtimeView: View {
             return
         }
         guard appState.competitionManager.isEffectsFinishPrepare else {
-            let toast = Toast(message: "资源加载中...")
+            let toast = Toast(message: "装备卡牌加载中...")
             ToastManager.shared.show(toast: toast)
             return
         }

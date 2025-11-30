@@ -586,6 +586,7 @@ struct CardSelectedSheetView: View {
         .background(Color.defaultBackground)
         .onFirstAppear {
             if assetManager.magicCards.isEmpty {
+                print("no cards on first appear")
                 Task {
                     await assetManager.queryMagicCards(withLoadingToast: false)
                 }

@@ -10,7 +10,6 @@ import MapKit
 
 
 struct SportCenterView: View {
-    @EnvironmentObject var appState: AppState
     @StateObject var viewModel = CompetitionCenterViewModel()
     
     var body: some View {
@@ -52,15 +51,19 @@ struct CompetitionCenterView: View {
                 ZStack {
                     HStack {
                         // 运动选择模块
-                        HStack(spacing: 5) {
-                            Image(systemName: "list.dash")
-                                .bold()
+                        HStack(spacing: 4) {
+                            Image("sport_selected_side_bar_button")
+                                //.renderingMode(.template)     // 告诉系统这是“模板图标”
+                                .resizable()
+                                .scaledToFit()
+                                //.foregroundStyle(Color.orange)
+                                .frame(width: 20, height: 20)
                             
-                            Text(appState.sport.name)
-                                .font(.headline)
+                            //Text(appState.sport.name)
+                            //    .font(.headline)
                             
                             Image(systemName: appState.sport.iconName)
-                                .font(.system(size: 18))
+                                .font(.system(size: 20))
                         }
                         .foregroundStyle(.white)
                         .exclusiveTouchTapGesture {
@@ -74,9 +77,11 @@ struct CompetitionCenterView: View {
                         Spacer()
                         
                         // 定位
-                        HStack(spacing: 6) {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(.white)
+                        HStack(spacing: 2) {
+                            Image("location")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
                             Text(locationManager.region ?? "未知")
                                 .foregroundColor(.white)
                         }

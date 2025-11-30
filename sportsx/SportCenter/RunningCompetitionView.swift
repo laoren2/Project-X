@@ -124,12 +124,15 @@ struct RunningCompetitionView: View {
                                         .lineLimit(1)
                                         .foregroundColor(.white)
                                     Spacer()
-                                    Text("详情>")
-                                        .font(.subheadline)
-                                        .foregroundColor(Color.secondText)
-                                        .exclusiveTouchTapGesture {
-                                            selectedDetailEvent = event
-                                        }
+                                    HStack {
+                                        Text("详情")
+                                        Image(systemName: "chevron.right")
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondText)
+                                    .exclusiveTouchTapGesture {
+                                        selectedDetailEvent = event
+                                    }
                                 }
                                 
                                 Divider()
@@ -340,13 +343,16 @@ struct RunningCompetitionView: View {
                                         
                                         Spacer()
                                         
-                                        Text("我的>")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondText)
-                                            .lineLimit(1)
-                                            .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.runningTeamManagementView)
-                                            }
+                                        HStack {
+                                            Text("我的")
+                                            Image(systemName: "chevron.right")
+                                        }
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondText)
+                                        .lineLimit(1)
+                                        .exclusiveTouchTapGesture {
+                                            appState.navigationManager.append(.runningTeamManagementView)
+                                        }
                                     }
                                     Divider()
                                     HStack(spacing: 12) {

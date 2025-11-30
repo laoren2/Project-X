@@ -34,8 +34,8 @@ let SAVESENSORDATA: Bool = {
     #endif
 }()
 
-// 是否跳过比赛数据校验
-let SKIPMATCHVERIFY: Bool = {
+// 是否上传非真实比赛校验分数
+let SKIPVARIFYSCOREUPLOAD: Bool = {
     #if DEBUG
     return true
     #else
@@ -43,8 +43,17 @@ let SKIPMATCHVERIFY: Bool = {
     #endif
 }()
 
-// 是否暂存每场比赛的路径数据
-let SAVEPATHDATA: Bool = {
+// 是否忽略比赛终点范围校验
+let IGNOREENDRADIUS: Bool = {
+    #if DEBUG
+    return true
+    #else
+    return false
+    #endif
+}()
+
+// 是否 dump 每场比赛的详细数据
+let DUMPMATCHDATA: Bool = {
     #if DEBUG
     return true
     #else
@@ -117,6 +126,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     var basePathData_debug: [PathPoint] = []
     var bikePathData_debug: [BikePathPoint] = []
     var runningPathData_debug: [RunningPathPoint] = []
+    
+    var validationScore_debug: Double = 0
 #endif
     
     @Published var basePathData: [PathPoint] = []               // 基本轨迹数据
@@ -301,24 +312,26 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         DispatchQueue.global(qos: .background).async { [self] in
             if isRecording {
                 // 比赛进行中，检查用户是否在终点的安全区域内
-                let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
-                let inEndZone = dis <= endRadius
-                let inSafetyEndZone = dis <= 2 * endRadius
-                //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
-                if inSafetyEndZone {
-                    let point = PathPoint(
-                        lat: location.coordinate.latitude,
-                        lon: location.coordinate.longitude,
-                        speed: location.speed,
-                        altitude: location.altitude,
-                        heart_rate: nil,
-                        timestamp: location.timestamp.timeIntervalSince1970
-                    )
-                    pathPointInEndSafetyRadius.append(point)
-                }
-                if inEndZone {
-                    DispatchQueue.main.async {
-                        self.stopCompetition()
+                if !IGNOREENDRADIUS {
+                    let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
+                    let inEndZone = dis <= endRadius
+                    let inSafetyEndZone = dis <= 2 * endRadius
+                    //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
+                    if inSafetyEndZone {
+                        let point = PathPoint(
+                            lat: location.coordinate.latitude,
+                            lon: location.coordinate.longitude,
+                            speed: location.speed,
+                            altitude: location.altitude,
+                            heart_rate: nil,
+                            timestamp: location.timestamp.timeIntervalSince1970
+                        )
+                        pathPointInEndSafetyRadius.append(point)
+                    }
+                    if inEndZone {
+                        DispatchQueue.main.async {
+                            self.stopCompetition()
+                        }
                     }
                 }
             } else {
@@ -428,6 +441,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         // Stop audio recording if applicable
         //stopRecordingAudio()
+        
         // 停止手机和传感器设备的数据收集
         self.stopTimer()
         for (pos, dev) in deviceManager.deviceMap {
@@ -437,7 +451,20 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 device.stopCollection()
             }
         }
-        finalizeCompetition()
+        
+        if SAVEPHONERAWDATA {
+            self.finalizeCompetitionData()
+        }
+        eventBus.emit(.matchEnd, context: matchContext)
+        
+        finishCompetition_server()
+        if DUMPMATCHDATA {
+            basePathData_debug = basePathData
+            bikePathData_debug = bikePathData
+            runningPathData_debug = runningPathData
+        }
+        resetCompetitionProperties()
+        Logger.competition.notice_public("competition stop")
     }
     
     // 处理外设发送来的统计数据
@@ -470,22 +497,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
     }
     
-    func finalizeCompetition() {
-        if SAVEPHONERAWDATA {
-            self.finalizeCompetitionData()
-        }
-        eventBus.emit(.matchEnd, context: matchContext)
-        
-        finishCompetition_server()
-        if SAVEPATHDATA {
-            basePathData_debug = basePathData
-            bikePathData_debug = bikePathData
-            runningPathData_debug = runningPathData
-        }
-        resetCompetitionProperties()
-        Logger.competition.notice_public("competition stop")
-    }
-    
     // todo: 使用机器学习模型校验
     func verifyBikeMatchData() -> Double {
         guard startTime != nil else { return -1 }
@@ -495,7 +506,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             return -1
         }
         
-        guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
+        if !IGNOREENDRADIUS {
+            guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
+        }
         
         guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
@@ -612,7 +625,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 未完成比赛
-        guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
+        if !IGNOREENDRADIUS {
+            guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
+        }
         
         guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
@@ -846,7 +861,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         if let record = currentBikeRecord, sport == .Bike {
             var validationResult = verifyBikeMatchData()
-            if SKIPMATCHVERIFY {
+            if DUMPMATCHDATA {
+                validationScore_debug = validationResult
+            }
+            if SKIPVARIFYSCOREUPLOAD {
                 validationResult = 100.0
             }
             //print("BikeMatchData verify result: \(validationResult)")
@@ -880,7 +898,10 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         if let record = currentRunningRecord, sport == .Running {
             var validationResult = verifyRunningMatchData()
-            if SKIPMATCHVERIFY {
+            if DUMPMATCHDATA {
+                validationScore_debug = validationResult
+            }
+            if SKIPVARIFYSCOREUPLOAD {
                 validationResult = 100.0
             }
             //print("RunningMatchData verify result: \(validationResult)")

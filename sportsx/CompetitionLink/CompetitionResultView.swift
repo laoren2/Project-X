@@ -17,7 +17,7 @@ struct BikeRecordDetailView: View {
     @State var isHeartDetail: Bool = false
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
-    @State var isPedalDetail: Bool = false
+    
     let formHeight: CGFloat = 80
     
     var overallHeartRateRange: (min: Double?, max: Double?) {
@@ -42,13 +42,6 @@ struct BikeRecordDetailView: View {
         let altitudes = viewModel.samplePath.compactMap { $0.speed_avg }
         let minVal = altitudes.min() ?? 0
         let maxVal = altitudes.max() ?? 0
-        return (minVal, maxVal)
-    }
-    
-    var overallPedalCountRange: (min: Double, max: Double) {
-        let pedals = viewModel.samplePath.compactMap { $0.pedal_count_avg }
-        let minVal = pedals.min() ?? 0
-        let maxVal = pedals.max() ?? 0
         return (minVal, maxVal)
     }
     
@@ -80,10 +73,19 @@ struct BikeRecordDetailView: View {
         return altitudes.reduce(0, +) / Double(altitudes.count)
     }
     
+#if DEBUG
+    @State var isPedalDetail: Bool = false
+    var overallPedalCountRange: (min: Double, max: Double) {
+        let pedals = viewModel.samplePath.compactMap { $0.pedal_count_avg }
+        let minVal = pedals.min() ?? 0
+        let maxVal = pedals.max() ?? 0
+        return (minVal, maxVal)
+    }
     var pedalCountAvg: Double {
         let steps = viewModel.pathData.compactMap { $0.estimate_pedal_count }
         return steps.reduce(0, +) / Double(steps.count)
     }
+#endif
     
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
     
@@ -417,6 +419,7 @@ struct BikeRecordDetailView: View {
                                             isSpeedDetail.toggle()
                                         }
                                     }
+#if DEBUG
                                     if isPedalDetail {
                                         VStack {
                                             ZStack(alignment: .center) {
@@ -480,6 +483,7 @@ struct BikeRecordDetailView: View {
                                             isPedalDetail.toggle()
                                         }
                                     }
+#endif
                                 }
                             }
                             
@@ -649,8 +653,8 @@ struct RunningRecordDetailView: View {
     @State var isHeartDetail: Bool = false
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
-    @State var isStepCountDetail: Bool = false
     @State var isStepCadenceDetail: Bool = false
+    
     let formHeight: CGFloat = 80
     
     var overallHeartRateRange: (min: Double?, max: Double?) {
@@ -677,15 +681,6 @@ struct RunningRecordDetailView: View {
         let maxVal = altitudes.max() ?? 0
         return (minVal, maxVal)
     }
-    
-#if DEBUG
-    var overallStepCountRange: (min: Double, max: Double) {
-        let steps = viewModel.samplePath.compactMap { $0.step_count_avg }
-        let minVal = steps.min() ?? 0
-        let maxVal = steps.max() ?? 0
-        return (minVal, maxVal)
-    }
-#endif
     
     var overallStepCadenceRange: (min: Double?, max: Double?) {
         let steps = viewModel.samplePath.compactMap { $0.step_cadence_avg }
@@ -731,10 +726,19 @@ struct RunningRecordDetailView: View {
         return steps.reduce(0, +) / Double(steps.count)
     }
     
+#if DEBUG
+    @State var isStepCountDetail: Bool = false
+    var overallStepCountRange: (min: Double, max: Double) {
+        let steps = viewModel.samplePath.compactMap { $0.step_count_avg }
+        let minVal = steps.min() ?? 0
+        let maxVal = steps.max() ?? 0
+        return (minVal, maxVal)
+    }
     var stepCountAvg: Double {
         let steps = viewModel.pathData.compactMap { $0.estimate_step_count }
         return 20.0 * steps.reduce(0, +) / Double(steps.count)
     }
+#endif
     
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
     

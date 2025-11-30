@@ -121,6 +121,9 @@ struct TestBikePathDetailView: View {
                     }
                 }
                 .padding(.horizontal)
+                
+                Text("校验分数：\(appState.competitionManager.validationScore_debug)")
+                
                 VStack {
                     if isPedalDetail {
                         VStack {

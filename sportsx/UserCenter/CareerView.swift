@@ -293,18 +293,21 @@ struct LocalCareerView: View {
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
-                        Text("积分榜 >")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondText)
-                            .exclusiveTouchTapGesture {
-                                if let season = viewModel.selectedSeason {
-                                    if viewModel.sport == .Bike {
-                                        appState.navigationManager.append(.bikeScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
-                                    } else if viewModel.sport == .Running {
-                                        appState.navigationManager.append(.runningScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
-                                    }
+                        HStack {
+                            Text("积分榜")
+                            Image(systemName: "chevron.right")
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondText)
+                        .exclusiveTouchTapGesture {
+                            if let season = viewModel.selectedSeason {
+                                if viewModel.sport == .Bike {
+                                    appState.navigationManager.append(.bikeScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
+                                } else if viewModel.sport == .Running {
+                                    appState.navigationManager.append(.runningScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
                                 }
                             }
+                        }
                     }
                     
                     statsCard(title: "赛季积分", value: viewModel.totalScore, iconName: "star.fill", color: .green)
@@ -579,14 +582,18 @@ struct CompetitionScoreCard: View {
                         }
                     }
                 Spacer()
-                Text("完整排行>")
-                    .exclusiveTouchTapGesture {
-                        if sport == .Bike {
-                            appState.navigationManager.append(.bikeRankingListView(trackID: trackRecord.trackID, gender: userManager.user.gender ?? .male, isHistory: true))
-                        } else if sport == .Running {
-                            appState.navigationManager.append(.runningRankingListView(trackID: trackRecord.trackID, gender: userManager.user.gender ?? .male, isHistory: true))
-                        }
+                
+                HStack {
+                    Text("完整排行")
+                    Image(systemName: "chevron.right")
+                }
+                .exclusiveTouchTapGesture {
+                    if sport == .Bike {
+                        appState.navigationManager.append(.bikeRankingListView(trackID: trackRecord.trackID, gender: userManager.user.gender ?? .male, isHistory: true))
+                    } else if sport == .Running {
+                        appState.navigationManager.append(.runningRankingListView(trackID: trackRecord.trackID, gender: userManager.user.gender ?? .male, isHistory: true))
                     }
+                }
             }
             .padding(.vertical, 5)
             .padding(.horizontal)
