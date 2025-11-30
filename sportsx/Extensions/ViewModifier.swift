@@ -450,20 +450,21 @@ struct BottomSheetView<Content: View>: View {
                 // 内容区域
                 ZStack {
                     Color.defaultBackground
-                    ZStack {
-                        if isPresented {
-                            content
-                                .transition(
-                                    .move(edge: .bottom)
-                                    .combined(with: .opacity)
-                                )
-                        } else if destroyOnDismiss {
-                            // Placeholder keeps animation container alive
-                            Color.clear
-                                .transition(
-                                    .move(edge: .bottom)
-                                    .combined(with: .opacity)
-                                )
+                    ZStack {    // 不加这个 ZStack 动画效果会异常
+                        if destroyOnDismiss {
+                            if isPresented {
+                                content
+                                    .transition(
+                                        .move(edge: .bottom)
+                                        .combined(with: .opacity)
+                                    )
+                            } else {
+                                Color.clear
+                                    .transition(
+                                        .move(edge: .bottom)
+                                        .combined(with: .opacity)
+                                    )
+                            }
                         } else {
                             content
                         }

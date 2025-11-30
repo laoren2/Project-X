@@ -8,15 +8,36 @@
 import SwiftUI
 import UIKit
 import AuthenticationServices
+import SafariServices
 
+
+struct WebPage: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        return SFSafariViewController(url: url)
+    }
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+}
 
 struct LoginView: View {
     @ObservedObject private var userManager = UserManager.shared
     @State private var phoneNumber: String = ""
     @State private var verificationCode: String = ""
-    @State private var sendButtonText: String = "发送验证码"
-    @State private var sendButtonColor: Color = .green
+    //@State private var enableRetryCodeSend: Bool = false
+    @State private var testCode: String = ""
 
+    @State private var showingWebView = false
+    @State private var webPage: WebPage?
+    @State private var agreed = false
+    @State private var countdown: Int = 60
+    @State private var alreadySendCode = false
+    
+    @State private var timer: Timer?
     
     let config = GlobalConfig.shared
 
@@ -37,7 +58,7 @@ struct LoginView: View {
                 .padding(.top, 10)
                 
                 HStack {
-                    Text("欢迎来到 SportsX")
+                    Text("欢迎来到 Sporreer")
                         .font(.title)
                         .foregroundStyle(.white)
                     Spacer()
@@ -68,38 +89,81 @@ struct LoginView: View {
                             .keyboardType(.numberPad)
                     }
                     
-                    HStack {
-                        TextField("请输入验证码", text: $verificationCode)
-                            .padding(.trailing, 10)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.numberPad)
-                        Button(action: {
-                            sendSmsCode()
-                            print("验证码已发送")
-                        }) {
-                            Text(sendButtonText)
-                                .foregroundStyle(.white)
-                                .font(.system(size: 15))
+                    if alreadySendCode {
+                        Text(countdown == 0 ? "\(testCode) 没收到验证码？点击重新发送" : "验证码\(testCode)已发送，\(countdown)秒后可重新发送")
+                            .foregroundStyle(Color.secondText)
+                        HStack {
+                            TextField("请输入验证码", text: $verificationCode)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .keyboardType(.numberPad)
+                            
+                            Button(action: {
+                                if countdown == 0 {
+                                    sendSmsCode()
+                                }
+                            }) {
+                                Text("重新发送")
+                                    .foregroundStyle(.white)
+                                    .font(.system(size: 15))
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(countdown == 0 ? Color.green : Color.gray)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .disabled(countdown != 0)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(sendButtonColor)
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
                     }
                     
-                    Button("登录") {
-                        loginWithSMS()
+                    Button(action: {
+                        if alreadySendCode {
+                            loginWithSMS()
+                        } else {
+                            sendSmsCode()
+                        }
+                    }) {
+                        Text(alreadySendCode ? "登陆" : "验证并登陆")
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(agreed ? Color.orange : Color.orange.opacity(0.2))
+                            .foregroundStyle(agreed ? Color.white : Color.thirdText)
+                            .cornerRadius(10)
+                            .padding(.top, 10)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.top, 10)
                 }
                 .padding(.top, 50)
+                
+                HStack(spacing: 5) {
+                    Image(systemName: agreed ? "checkmark.circle" : "circle")
+                        .frame(width: 15, height: 15)
+                        .foregroundStyle(agreed ? Color.orange : Color.secondText)
+                        .onTapGesture {
+                            agreed.toggle()
+                        }
+                    Text("已阅读并同意")
+                    Text("用户协议")
+                        .underline()
+                        .foregroundStyle(Color.orange.opacity(0.6))
+                        .onTapGesture {
+                            webPage = WebPage(url: URL(string: "https://www.valbara.top/user-agreement")!)
+                        }
+                    Text("和")
+                    Text("隐私政策")
+                        .underline()
+                        .foregroundStyle(Color.orange.opacity(0.6))
+                        .onTapGesture {
+                            webPage = WebPage(url: URL(string: "https://www.valbara.top/privacy")!)
+                        }
+                }
+                .font(.system(size: 13))
+                .foregroundStyle(Color.thirdText)
+                .sheet(item: $webPage) { item in
+                    SafariView(url: item.url)
+                        .ignoresSafeArea()
+                }
+                
                 Spacer()
             }
+            
             // 使用ZStack布局可以暂时解决键盘弹出挤压问题
             VStack {
                 Image("appleid_button")
@@ -126,6 +190,10 @@ struct LoginView: View {
     }
     
     func loginWithAppleID() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "请同意用户协议和隐私政策"))
+            return
+        }
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
         
@@ -136,6 +204,10 @@ struct LoginView: View {
     }
     
     func loginWithSMS() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "请同意用户协议和隐私政策"))
+            return
+        }
         guard phoneNumber.count == 11 else {
             ToastManager.shared.show(toast: Toast(message: "请输入正确的号码"))
             return
@@ -193,6 +265,10 @@ struct LoginView: View {
     }
     
     func sendSmsCode() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "请同意用户协议和隐私政策"))
+            return
+        }
         guard phoneNumber.count == 11 else {
             ToastManager.shared.show(toast: Toast(message: "请输入正确的号码"))
             return
@@ -207,13 +283,16 @@ struct LoginView: View {
         
         let request = APIRequest(path: "/user/send_code", method: .post, headers: headers, body: encodedBody, requiresAuth: false)
         
-        NetworkService.sendRequest(with: request, decodingType: SmsCodeResponse.self, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: SmsCodeResponse.self, showSuccessToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
-                    print("验证码: \(unwrappedData.code)")
-                    sendButtonText = "已发送:\(unwrappedData.code)"
-                    sendButtonColor = .gray
+                    DispatchQueue.main.async {
+                        testCode = unwrappedData.code
+                        alreadySendCode = true
+                        // 开始倒计时60s，60s后可重新发送验证码
+                        startCodeTimer()
+                    }
                 }
             default:
                 break
@@ -221,11 +300,30 @@ struct LoginView: View {
         }
     }
     
+    // 开始倒计时60s并更新remainingSeconds，结束后更新enableRetryCodeSend
+    func startCodeTimer() {
+        timer?.invalidate()
+        countdown = 60
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if countdown > 0 {
+                countdown -= 1
+            } else {
+                timer?.invalidate()
+                timer = nil
+            }
+        }
+    }
+    
     func clearAll() {
         phoneNumber = ""
         verificationCode = ""
-        sendButtonText = "发送验证码"
-        sendButtonColor = .green
+        testCode = ""
+        alreadySendCode = false
+        countdown = 0
+        agreed = false
+        
+        timer?.invalidate()
+        timer = nil
     }
 }
 

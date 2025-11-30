@@ -79,41 +79,25 @@ enum Tab: Int, CaseIterable {
 
     var icon: String {
         switch self {
-        case .home: return "house"
+        case .home: return "single_app_icon"
         case .shop: return "storefront"
         case .sportCenter: return "sportscourt"
-        case .storeHouse: return "message"
+        case .storeHouse: return "store_house"
         case .user: return "person"
         }
     }
 }
 
 struct NaviView: View {
-    @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject var user = UserManager.shared
-    let sidebarWidth: CGFloat = 300
     
     var body: some View {
         ToastContainerView() {
-            ZStack(alignment: .topLeading) {
-                RealNaviView(sidebarWidth: sidebarWidth)
+            ZStack {
+                RealNaviView()
                     .overlay(
                         CompetitionWidget()
                     )
-                
-                Color.gray
-                    .opacity((navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
-                    .ignoresSafeArea()
-                    .exclusiveTouchTapGesture {
-                        withAnimation(.easeIn(duration: 0.25)) {
-                            navigationManager.showSideBar = false
-                        }
-                    }
-                
-                // 运动选择侧边栏
-                SportSelectionSidebar()
-                    .frame(width: sidebarWidth)
-                    .offset(x: (navigationManager.showSideBar ? 0 : -sidebarWidth))
                 
                 // 自定义弹窗
                 
@@ -129,37 +113,53 @@ struct NaviView: View {
 
 struct RealNaviView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject var user = UserManager.shared
     @State private var isAppLaunching = true // 用于区分冷启动和后台恢复
-    
-    let sidebarWidth: CGFloat
+    let sidebarWidth: CGFloat = 300
     
     var body: some View {
         NavigationStack(path: appState.navigationManager.binding) {
-            ZStack(alignment: .bottom) {
-                TabView(selection: $appState.navigationManager.selectedTab) {
-                    HomeView()
-                        .tag(Tab.home)
+            ZStack(alignment: .topLeading) {
+                ZStack(alignment: .bottom) {
+                    TabView(selection: $appState.navigationManager.selectedTab) {
+                        HomeView()
+                            .tag(Tab.home)
+                        
+                        ShopView()
+                            .tag(Tab.shop)
+                        
+                        SportCenterView()
+                            .tag(Tab.sportCenter)
+                        
+                        StoreHouseView()
+                            .tag(Tab.storeHouse)
+                        
+                        LocalUserView()
+                            .tag(Tab.user)
+                    }
                     
-                    ShopView()
-                        .tag(Tab.shop)
+                    // 防止穿透到TabView原生bar的暂时hack
+                    Color.clear
+                        .frame(height: 100) // 估算系统tabbar高度
+                        .contentShape(Rectangle())
                     
-                    SportCenterView()
-                        .tag(Tab.sportCenter)
-                    
-                    StoreHouseView()
-                        .tag(Tab.storeHouse)
-                    
-                    LocalUserView()
-                        .tag(Tab.user)
+                    CustomTabBar()
                 }
                 
-                // 防止穿透到TabView原生bar的暂时hack
-                Color.clear
-                    .frame(height: 100) // 估算系统tabbar高度
-                    .contentShape(Rectangle())
+                Color.gray
+                    .opacity((navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
+                    .ignoresSafeArea()
+                    .exclusiveTouchTapGesture {
+                        withAnimation(.easeIn(duration: 0.25)) {
+                            navigationManager.showSideBar = false
+                        }
+                    }
                 
-                CustomTabBar()
+                // 运动选择侧边栏
+                SportSelectionSidebar()
+                    .frame(width: sidebarWidth)
+                    .offset(x: (navigationManager.showSideBar ? 0 : -sidebarWidth))
             }
             .ignoresSafeArea(edges: .bottom)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
@@ -303,9 +303,19 @@ struct CustomTabBar: View {
                     Spacer()
                     
                     VStack(spacing: 4) {
-                        Image(systemName: tab == .home ? appState.sport.iconName : tab.icon)
-                            .font(.system(size: 22, weight: .regular))
-                            .frame(height: 20)
+                        if tab == .home || tab == .storeHouse {
+                            Image(tab.icon)
+                                .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
+                                //.border(.red)
+                        } else {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 22, weight: .regular))
+                                .frame(height: 20)
+                                //.border(.red)
+                        }
                         
                         Text(/*(tab == navigationManager.selectedTab && tab == .sportCenter) ? (navigationManager.isTrainingView ? "训练中心" : "竞技中心") : */tab.title)
                             .font(.system(size: 15))
@@ -317,6 +327,7 @@ struct CustomTabBar: View {
                     Spacer()
                 }
                 .contentShape(Rectangle())
+                //.border(.red)
                 .exclusiveTouchTapGesture {
                     //if tab == navigationManager.selectedTab && tab == .sportCenter {
                     //    navigationManager.isTrainingView.toggle()

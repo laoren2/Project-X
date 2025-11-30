@@ -576,10 +576,14 @@ struct MainUserView: View {
                                     
                                     Spacer()
                                     
-                                    HStack {
+                                    HStack(spacing: 0) {
                                         Image(systemName: viewModel.sport.iconName)
                                             .font(.system(size: 16))
-                                        Image(systemName: "list.dash")
+                                        Image("sport_selected_side_bar_button")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .scaleEffect(x: -1, y: 1)
+                                            .frame(width: 16, height: 16)
                                     }
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 8)
@@ -1036,16 +1040,20 @@ struct LocalMainUserView: View {
                                                 .font(.subheadline)
                                         }
                                         Spacer()
-                                        Text("去竞技>")
-                                            .padding(.vertical, 4)
-                                            .padding(.horizontal, 8)
-                                            .font(.subheadline)
-                                            .background(Color.orange.opacity(0.8))
-                                            .cornerRadius(12)
-                                            .exclusiveTouchTapGesture {
-                                                appState.sport = viewModel.sport
-                                                appState.navigationManager.selectedTab = .sportCenter
-                                            }
+                                        
+                                        HStack {
+                                            Text("去竞技")
+                                            Image(systemName: "chevron.right")
+                                        }
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
+                                        .font(.subheadline)
+                                        .background(Color.orange.opacity(0.8))
+                                        .cornerRadius(12)
+                                        .exclusiveTouchTapGesture {
+                                            appState.sport = viewModel.sport
+                                            appState.navigationManager.selectedTab = .sportCenter
+                                        }
                                     }
                                     .padding(.top, 20)
                                     .padding(.horizontal, 10)
@@ -1227,8 +1235,11 @@ struct LocalMainUserView: View {
                             
                             ZStack {
                                 HStack(alignment: .center) {
-                                    HStack {
-                                        Image(systemName: "list.dash")
+                                    HStack(spacing: 0) {
+                                        Image("sport_selected_side_bar_button")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 16, height: 16)
                                         Image(systemName: viewModel.sport.iconName)
                                             .font(.system(size: 16))
                                     }

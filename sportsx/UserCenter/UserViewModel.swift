@@ -548,7 +548,7 @@ struct SetUpItemView<Content: View>: View {
             HStack(alignment: .center) {
                 Image(systemName: icon)
                     .foregroundColor(isDarkScheme ? .secondText : .black)
-                    .frame(width: 18, height: 18, alignment: .leading)
+                    .frame(width: 22, height: 22)
                 
                 Text(title)
                     .font(.system(size: 16))
