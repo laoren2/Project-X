@@ -254,6 +254,12 @@ struct RealNaviView: View {
                     MailBoxView()
                 case .mailBoxDetailView(let id):
                     MailBoxDetailView(mailID: id)
+                case .subscriptionDetailView:
+                    SubscriptionDetailView()
+                case .iapHelpView:
+                    IAPHelpView()
+                case .iapCouponView:
+                    IAPCouponView()
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()

@@ -87,6 +87,11 @@ struct sportsxApp: App {
         }
         // 查询邮件未读状态
         UserManager.shared.queryMailBox()
+        // 加载IAP
+        Task {
+            await IAPManager.shared.loadCouponProducts()
+            await IAPManager.shared.loadSubscriptionProducts()
+        }
     }
     
     var body: some Scene {

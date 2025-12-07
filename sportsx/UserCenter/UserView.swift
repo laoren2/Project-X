@@ -925,17 +925,17 @@ struct LocalMainUserView: View {
                                         .font(.title3)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
-                                    if userManager.user.isVip {
-                                        Image(systemName: "v.circle.fill")
-                                            .font(.system(size: 15))
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(Color.red)
-                                    } else {
-                                        Image(systemName: "v.circle.fill")
-                                            .font(.system(size: 15))
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(Color.thirdText)
-                                    }
+                                    Image(systemName: "v.circle.fill")
+                                        .font(.system(size: 15))
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(userManager.user.isVip ? Color.red : Color.thirdText)
+                                        .exclusiveTouchTapGesture {
+                                            guard UserManager.shared.isLoggedIn else {
+                                                UserManager.shared.showingLogin = true
+                                                return
+                                            }
+                                            appState.navigationManager.append(.subscriptionDetailView)
+                                        }
                                 }
                             }
                             .padding(.top, 120)

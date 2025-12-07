@@ -49,6 +49,9 @@ enum AppRoute: Hashable {
     case runningTeamDetailView(teamID: String)
     case mailBoxView
     case mailBoxDetailView(mailID: String)
+    case subscriptionDetailView
+    case iapHelpView
+    case iapCouponView
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -141,6 +144,12 @@ enum AppRoute: Hashable {
             return "mailBoxView"
         case .mailBoxDetailView:
             return "mailBoxDetailView"
+        case .subscriptionDetailView:
+            return "subscriptionDetailView"
+        case .iapHelpView:
+            return "iapHelpView"
+        case .iapCouponView:
+            return "iapCouponView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"
