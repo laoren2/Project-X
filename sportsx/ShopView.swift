@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import StoreKit
 
 
 struct ShopView: View {
@@ -37,19 +38,32 @@ struct ShopView: View {
             
             VStack(spacing: 0) {
                 // 顶部资产栏
-                HStack(spacing: 15) {
+                HStack(spacing: 4) {
                     Spacer()
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color.secondText)
-                        .onTapGesture {
-                            assetManager.queryCCAssets()
+                    HStack(spacing: 10) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.secondText)
+                            .onTapGesture {
+                                assetManager.queryCCAssets()
+                            }
+                        AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
+                        AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
+                        AssetCounterView(icon: CCAssetType.coupon.iconName, amount: assetManager.coupon)
+                    }
+                    Button(action:{
+                        guard UserManager.shared.isLoggedIn else {
+                            UserManager.shared.showingLogin = true
+                            return
                         }
-                    AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
-                    AssetCounterView(icon: CCAssetType.coupon.iconName, amount: assetManager.coupon)
-                    AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
+                        appState.navigationManager.append(.iapCouponView)
+                    }) {
+                        Image(systemName: "plus.rectangle.fill")
+                            .foregroundStyle(Color.white)
+                            .font(.system(size: 18))
+                    }
                 }
-                .padding(10)
+                .padding(15)
                 
                 HStack(spacing: 0) {
                     HStack {
@@ -329,7 +343,7 @@ struct AssetCounterView: View {
     let amount: Int
     
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.system(size: 15))
             Text("\(amount)")
@@ -399,8 +413,94 @@ struct MagicCardShopCardView: View {
     }
 }
 
+struct IAPCouponView: View {
+    @ObservedObject var assetManager = AssetManager.shared
+    @ObservedObject private var iapManager = IAPManager.shared
+    
+    var body: some View {
+        VStack {
+            HStack(alignment: .bottom) {
+                Text("点券商城")
+                    .font(.title)
+                Spacer()
+                HStack {
+                    Text("点券：\(assetManager.coupon)")
+                }
+            }
+            .padding()
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 20),
+                    GridItem(.flexible(), spacing: 20),
+                    GridItem(.flexible(), spacing: 20)
+                ],
+                spacing: 20
+            ) {
+                ForEach(iapManager.couponProducts, id: \.id) { info in
+                    CouponCardView(productInfo: info)
+                        .frame(height: 200)
+                        .exclusiveTouchTapGesture {
+                            Task {
+                                let progressToast = LoadingToast()
+                                DispatchQueue.main.async {
+                                    ToastManager.shared.start(toast: progressToast)
+                                }
+                                await iapManager.purchaseCoupon(product: info.product)
+                                DispatchQueue.main.async {
+                                    ToastManager.shared.finish()
+                                }
+                            }
+                        }
+                        .border(.blue)
+                }
+            }
+        }
+        .onFirstAppear {
+            Task {
+                await iapManager.loadCouponProducts()
+            }
+        }
+    }
+}
+
+struct CouponCardView: View {
+    let productInfo: CouponProductInfo
+    
+    var body: some View {
+        ZStack {
+            Image("Ads")
+                .resizable()
+                .scaledToFit()
+                .clipped()
+                //.aspectRatio(5/7, contentMode: .fit)
+                .border(.red)
+            VStack(spacing: 0) {
+                Image("single_app_icon")
+                    //.renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .clipped()
+                    .border(.yellow)
+                HStack(spacing: 0) {
+                    Text("\(productInfo.count)")
+                    if let gift = productInfo.count_gift {
+                        Text("+\(gift)")
+                    }
+                }
+                .padding(.vertical, 5)
+                Text(productInfo.product.displayPrice)
+                    .padding(.vertical, 5)
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+                    .background(Color.orange)
+                    .border(.green)
+            }
+        }
+    }
+}
+
 #Preview {
-    let appState = AppState.shared
-    return ShopView()
-        .environmentObject(appState)
+    //let appState = AppState.shared
+    return IAPCouponView()
+        //.environmentObject(appState)
 }

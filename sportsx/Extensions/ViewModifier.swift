@@ -329,12 +329,13 @@ extension UIColor {
         
         let white = UIColor.white
         var color = self
-        for _ in 0..<3 {
+        for _ in 0..<4 {
             if color.contrastRatio(with: white) >= 4.0 {
                 return Color(uiColor: color)
             }
             let (red, green, blue) = color.rgbComponents
             color = UIColor(red: red * 0.8, green: green * 0.8, blue: blue * 0.8, alpha: 1)
+            //print("soft! \(color)")
         }
         
         let palette = UIColor.softDarkPalette()
@@ -343,7 +344,7 @@ extension UIColor {
         let best = palette.min(by: {
             $0.distance(to: self) < $1.distance(to: self)
         }) ?? fallback
-        //print(best)
+        //print("result: \(best)")
         return Color(best)
     }
 }
@@ -705,5 +706,79 @@ extension MKCoordinateRegion {
             center: CLLocationCoordinate2D(latitude: newLat, longitude: newLon),
             span: span
         )
+    }
+}
+
+// 两端对齐文本
+/*struct JustifiedText: UIViewRepresentable {
+    private let text: String
+    private let font: UIFont
+    
+    init(_ text: String, font: UIFont = .systemFont(ofSize: 18)) {
+        self.text = text
+        self.font = font
+    }
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.font = font
+        textView.textAlignment = .justified
+        
+        textView.isScrollEnabled = false        // 关闭滚动
+        textView.isEditable = false             // 禁止编辑
+        textView.isSelectable = false           // 禁止选择
+        textView.backgroundColor = .clear
+        textView.textContainerInset = .zero     // 去掉默认内边距
+        textView.textContainer.lineFragmentPadding = 0
+        return textView
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        uiView.text = text
+    }
+}*/
+
+struct JustifiedText: UIViewRepresentable {
+    let text: String
+    let font: UIFont
+    let textColor: UIColor
+    
+    init(_ text: String,
+         font: UIFont = .systemFont(ofSize: 18),
+         textColor: UIColor = .label) {
+        self.text = text
+        self.font = font
+        self.textColor = textColor
+    }
+
+    func makeUIView(context: Context) -> UITextView {
+        let tv = UITextView()
+        tv.isScrollEnabled = false            // 不滚动
+        tv.isEditable = false                 // 不编辑
+        tv.isSelectable = false               // 不选中
+        tv.backgroundColor = .clear
+        tv.textContainerInset = .zero         // 去掉内边距
+        tv.textContainer.lineFragmentPadding = 0
+        tv.textContainer.widthTracksTextView = true  // 宽度跟随 view
+        tv.font = font
+        tv.textColor = textColor
+        tv.textAlignment = .justified
+        tv.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return tv
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        uiView.text = text
+    }
+
+    // SwiftUI layout hints
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
+        // 如果父视图给了宽度，就根据内容计算高度
+        if let width = proposal.width {
+            let targetSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+            let size = uiView.sizeThatFits(targetSize)
+            return CGSize(width: width, height: size.height)
+        }
+        return nil
     }
 }
