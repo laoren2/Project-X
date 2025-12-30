@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import SwiftUI
 
+
 class UserManager: ObservableObject {
     static let shared = UserManager()
     
@@ -32,9 +33,26 @@ class UserManager: ObservableObject {
     
     var originTransactionID: String? = nil
     
-    private init() {
-        if let token = KeychainHelper.standard.read(forKey: "access_token") {
-            print("read access_token success : \(token)")
+    var userRegion: LocalizedStringKey? {
+        for (_, cities) in regionTable_HK {
+            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        for (_, cities) in regionTable {
+            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        return nil
+    }
+    
+    private init() {}
+    
+    @MainActor
+    func bootstrap() async {
+        if KeychainHelper.standard.loadToken() {
+            print("read access_token success")
             loadUserInfoCache()
             isLoggedIn = true
         } else {
@@ -58,7 +76,7 @@ class UserManager: ObservableObject {
         isLoggedIn = false
         showingLogin = true
         
-        KeychainHelper.standard.delete(forKey: "access_token")
+        KeychainHelper.standard.deleteToken()
         clearUserInfoCache()
         config.refreshCompetitionView = true
     }
@@ -171,10 +189,10 @@ class UserManager: ObservableObject {
         }
     }
     
-    func updateUserLocation(region: String) {
+    func updateUserLocation(regionID: String) {
         guard var components = URLComponents(string: "/user/update_location") else { return }
         components.queryItems = [
-            URLQueryItem(name: "region", value: region)
+            URLQueryItem(name: "regionID", value: regionID)
         ]
         guard let urlPath = components.string else { return }
         
@@ -219,6 +237,7 @@ class UserManager: ObservableObject {
         defaults.set(user.nickname, forKey: "user.nickname")
         defaults.set(user.phoneNumber, forKey: "user.phoneNumber")
         defaults.set(user.apple_email, forKey: "user.appleEmail")
+        defaults.set(user.email, forKey: "user.email")
         defaults.set(user.avatarImageURL, forKey: "user.avatarImageURL")
         defaults.set(user.backgroundImageURL, forKey: "user.backgroundImageURL")
         defaults.set(user.introduction, forKey: "user.introduction")
@@ -252,6 +271,7 @@ class UserManager: ObservableObject {
             nickname: defaults.string(forKey: "user.nickname") ?? "未登录",
             phoneNumber: defaults.string(forKey: "user.phoneNumber"),
             apple_email: defaults.string(forKey: "user.appleEmail"),
+            email: defaults.string(forKey: "user.email"),
             avatarImageURL: defaults.string(forKey: "user.avatarImageURL") ?? "",
             backgroundImageURL: defaults.string(forKey: "user.backgroundImageURL") ?? "",
             introduction: defaults.string(forKey: "user.introduction"),
@@ -273,8 +293,6 @@ class UserManager: ObservableObject {
         followedCount = defaults.integer(forKey: "followedCount")
         followerCount = defaults.integer(forKey: "followerCount")
         friendCount = defaults.integer(forKey: "friendCount")
-        
-        config.location = user.location
 
         let avatarPath = getLocalImagePath(filename: "avatar.jpg")
         let backgroundPath = getLocalImagePath(filename: "background.jpg")
@@ -301,6 +319,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.nickname")
         defaults.removeObject(forKey: "user.phoneNumber")
         defaults.removeObject(forKey: "user.appleEmail")
+        defaults.removeObject(forKey: "user.email")
         defaults.removeObject(forKey: "user.avatarImageURL")
         defaults.removeObject(forKey: "user.backgroundImageURL")
         defaults.removeObject(forKey: "user.introduction")
@@ -405,7 +424,8 @@ class DailyTaskManager: ObservableObject {
     
     private init() {}
     
-    func claimReward(stage: Int, sport: SportName) {
+    // 暂时硬编码奖励信息...
+    func claimReward(stage: Int, sport: SportName, rewardImage: String? = nil, rewardCount: Int, rewardURL: String? = nil) {
         if stage == 1 {
             guard !reward1Loading else { return }
             reward1Loading = true
@@ -426,7 +446,7 @@ class DailyTaskManager: ObservableObject {
         guard let urlPath = components.string else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: DailyTaskRewardResponse.self, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: DailyTaskRewardResponse.self, showErrorToast: true) { result in
             DispatchQueue.main.async {
                 if stage == 1 { self.reward1Loading = false }
                 if stage == 2 { self.reward2Loading = false }
@@ -443,6 +463,45 @@ class DailyTaskManager: ObservableObject {
                         if stage == 1 { self.task?.reward_stage1_status = .claimed }
                         if stage == 2 { self.task?.reward_stage2_status = .claimed }
                         if stage == 3 { self.task?.reward_stage3_status = .claimed }
+                        PopupWindowManager.shared.presentPopup(
+                            title: "popup.claim_reward.title",
+                            bottomButtons: [
+                                .confirm()
+                            ]
+                        ) {
+                            VStack {
+                                Text("popup.claim_reward.content")
+                                HStack(spacing: 10) {
+                                    if let image = rewardImage {
+                                        HStack(spacing: 0) {
+                                            Image(image)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
+                                            Text(" * \(rewardCount)")
+                                                .font(.system(size: 15))
+                                                .fontWeight(.semibold)
+                                        }
+                                    }
+                                    HStack(spacing: 0) {
+                                        if let url = rewardURL {
+                                            CachedAsyncImage(
+                                                urlString: url,
+                                                placeholder: Image("Ads"),
+                                                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                            )
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 30)
+                                            .clipped()
+                                            Text(" * \(rewardCount)")
+                                                .font(.system(size: 15))
+                                                .fontWeight(.semibold)
+                                        }
+                                    }
+                                }
+                            }
+                            .foregroundStyle(Color.white)
+                        }
                     }
                 default:
                     break
@@ -503,6 +562,31 @@ enum UserRole: String, Codable {
 enum Gender: String, Codable {
     case male = "male"
     case female = "female"
+    
+    var displayName: String {
+        switch self {
+        case .male: return "common.male"
+        case .female: return "common.female"
+        }
+    }
+}
+
+enum FeedbackMailType: String, Codable, CaseIterable {
+    case iap = "iap"             // iap问题反馈
+    case bug = "bug"             // bug问题反馈
+    case feature = "feature"     // 功能建议反馈
+    case report = "report"       // 举报
+    case other = "other"         // 其他
+    
+    var displayName: String {
+        switch self {
+        case .iap: return "user.setup.feedback.iap"
+        case .bug: return "user.setup.feedback.bug"
+        case .feature: return "user.setup.feedback.feature"
+        case .report: return "user.setup.feedback.report"
+        case .other: return "user.setup.feedback.other"
+        }
+    }
 }
 
 enum UserRelationshipStatus: String, Codable {
@@ -513,9 +597,9 @@ enum UserRelationshipStatus: String, Codable {
     
     var displayName: String {
         switch self {
-        case .friend: return "好友"
-        case .following: return "关注"
-        case .follower: return "粉丝"
+        case .friend: return "user.page.friend"
+        case .following: return "user.page.following"
+        case .follower: return "user.page.follower"
         case .none: return "无关系"
         }
     }
@@ -541,7 +625,8 @@ struct UserDTO: Codable {
     let apple_iap_token: String         // 与 app store 中的 IAP 交易关联
     let nickname: String                // 昵称
     let phone_number: String?           // 手机号
-    let apple_email: String?
+    let apple_email: String?            // apple账号
+    let email: String?                  // 邮箱
     let avatar_image_url: String        // 头像url
     let background_image_url: String    // 封面url
     
@@ -568,14 +653,15 @@ struct User: Identifiable, Codable, Hashable {
     let appleIAPToken: String       // 与 app store 中的 IAP 交易关联
     var nickname: String            // 昵称
     var phoneNumber: String?        // 手机号
-    var apple_email: String?
+    var apple_email: String?        // Apple 账号
+    var email: String?              // 邮箱
     var avatarImageURL: String      // 头像url
     var backgroundImageURL: String  // 封面url
     
     var introduction: String?        // 简介
     var gender: Gender?             // 性别 male/female
     var birthday: String?           // 生日
-    var location: String?           // 地理位置
+    var location: String?           // 地理位置ID
     var identityAuthName: String?   // 身份名称
     
     var isRealnameAuth: Bool    // 是否已实名认证
@@ -596,6 +682,7 @@ struct User: Identifiable, Codable, Hashable {
         nickname: String = "未知",
         phoneNumber: String? = nil,
         apple_email: String? = nil,
+        email: String? = nil,
         avatarImageURL: String = "",
         backgroundImageURL: String = "",
         introduction: String? = nil,
@@ -619,6 +706,7 @@ struct User: Identifiable, Codable, Hashable {
         self.nickname = nickname
         self.phoneNumber = phoneNumber
         self.apple_email = apple_email
+        self.email = email
         self.avatarImageURL = avatarImageURL
         self.backgroundImageURL = backgroundImageURL
         self.introduction = introduction
@@ -644,6 +732,7 @@ struct User: Identifiable, Codable, Hashable {
         self.nickname = dto.nickname
         self.phoneNumber = dto.phone_number
         self.apple_email = dto.apple_email
+        self.email = dto.email
         self.avatarImageURL = dto.avatar_image_url
         self.backgroundImageURL = dto.background_image_url
         self.introduction = dto.introduction

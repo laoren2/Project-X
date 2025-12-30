@@ -348,7 +348,10 @@ struct MagicCardPriceView: View {
     var body: some View {
         HStack {
             Text(card.name)
-            Image(systemName: card.ccasset_type.iconName)
+            Image(card.ccasset_type.iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20)
             Text("\(card.price)")
             Text("上架状态:\(card.is_on_shelves)")
             Spacer()

@@ -100,12 +100,22 @@ struct ImageTool {
 
     // 按比例缩小图像
     private static func resizeImage(_ image: UIImage, scale: CGFloat) -> UIImage? {
-        let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-        UIGraphicsBeginImageContextWithOptions(newSize, false, image.scale)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let resized = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return resized
+        // 避免非整数像素尺寸导致的边缘取样问题
+        let width = floor(image.size.width * scale)
+        let height = floor(image.size.height * scale)
+        guard width > 0, height > 0 else { return nil }
+        let newSize = CGSize(width: width, height: height)
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        // 如果源图是 JPEG（无 alpha），使用 opaque=true 可避免白边
+        format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        let resizedImage = renderer.image { ctx in
+            ctx.cgContext.interpolationQuality = .high
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        return resizedImage
     }
     
     // 计算图片的平均颜色

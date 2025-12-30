@@ -37,7 +37,7 @@ struct StoreHouseView: View {
                 HStack {
                     Spacer()
                     VStack(spacing: 10) {
-                        Text("道具")
+                        Text("shop.tab.props")
                             .font(.system(size: 16, weight: selectedTab == 0 ? .semibold : .regular))
                             .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
                             .onTapGesture {
@@ -51,7 +51,7 @@ struct StoreHouseView: View {
                     }
                     Spacer()
                     VStack(spacing: 10) {
-                        Text("装备卡")
+                        Text("shop.tab.equip_card")
                             .font(.system(size: 16, weight: selectedTab == 1 ? .semibold : .regular))
                             .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
                             .onTapGesture {
@@ -124,10 +124,10 @@ struct StoreHouseView: View {
                                         .cornerRadius(10)
                                     }
                                     
-                                    Text("去购买")
+                                    Text("warehouse.action.goBuy")
                                         .foregroundColor(.white)
+                                        .frame(height: 60)
                                         .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
                                         .background(Color.orange)
                                         .cornerRadius(8)
                                         .onTapGesture {
@@ -140,7 +140,6 @@ struct StoreHouseView: View {
                         }
                     }
                     .frame(maxHeight: .infinity)
-                    .background(Color.gray.opacity(0.2))
                     .tag(0)
                     
                     GeometryReader { geo in
@@ -162,7 +161,7 @@ struct StoreHouseView: View {
                                                 )
                                             if !AppVersionManager.shared.checkMinimumVersion(card.version) {
                                                 GeometryReader { geometry in
-                                                    Text("不可用")
+                                                    Text("warehouse.equipcard.unavailable")
                                                         .font(.system(size: geometry.size.width * 0.2, weight: .bold))
                                                         .foregroundColor(.white)
                                                         .padding(geometry.size.width * 0.04)
@@ -171,7 +170,7 @@ struct StoreHouseView: View {
                                                 }
                                             }
                                         }
-                                        .contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
+                                        //.contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
                                         .onTapGesture {
                                             if selectedCard?.id == card.id {
                                                 selectedCard = nil
@@ -199,7 +198,7 @@ struct StoreHouseView: View {
                                                 .foregroundColor(.white)
                                                 .padding(.horizontal, 5)
                                             if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                Text("客户端版本过低，卡牌暂时无法使用")
+                                                Text("warehouse.equipcard.unavailable.detail")
                                                     .font(.system(size: 13))
                                                     .foregroundColor(.red)
                                             }
@@ -217,19 +216,19 @@ struct StoreHouseView: View {
                                         .background(Color.gray.opacity(0.8))
                                         .cornerRadius(10)
                                     }
-                                    VStack {
-                                        Text("去升级")
+                                    //VStack {
+                                        Text("warehouse.action.goUpgrade")
                                             .foregroundColor(.white)
+                                            .frame(height: 60)
                                             .padding(.horizontal, 16)
-                                            .padding(.vertical, 8)
                                             .background(Color.green)
                                             .cornerRadius(8)
                                             .onTapGesture {
                                                 appState.navigationManager.append(.instituteView)
                                             }
-                                        Text("销毁")
+                                        /*Text("warehouse.action.destroy")
                                             .foregroundColor(.white)
-                                            .padding(.horizontal, 16)
+                                            .frame(width: 100)
                                             .padding(.vertical, 8)
                                             .background(Color.orange)
                                             .cornerRadius(8)
@@ -239,7 +238,7 @@ struct StoreHouseView: View {
                                                     selectedCard = nil
                                                 }
                                             }
-                                    }
+                                    }*/
                                 }
                                 .padding()
                                 .background(Color.black)
@@ -247,10 +246,10 @@ struct StoreHouseView: View {
                         }
                     }
                     .frame(maxHeight: .infinity)
-                    .background(Color.gray.opacity(0.2))
                     .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .background(Color.gray.opacity(0.2))
             }
         }
         .toolbar(.hidden, for: .navigationBar)

@@ -48,13 +48,13 @@ struct RunningCompetitionView: View {
                             )
                             .buttonStyle(PlainButtonStyle())
                             
-                            Text("队伍")
+                            Text("competition.register.team.3")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Color.secondText)
                         }
                         Spacer()
                         if viewModel.events.isEmpty {
-                            Text("当前区域暂无赛事")
+                            Text("competition.event.error.no_events")
                                 .foregroundColor(.secondText)
                                 .padding()
                         } else {
@@ -108,7 +108,7 @@ struct RunningCompetitionView: View {
                             )
                             .buttonStyle(PlainButtonStyle())
                             
-                            Text("记录")
+                            Text("competition.record")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -118,14 +118,14 @@ struct RunningCompetitionView: View {
                         if let event = viewModel.selectedEvent {
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack(alignment: .top) {
-                                    Text("赛事信息")
+                                    Text("competition.event.info")
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .lineLimit(1)
                                         .foregroundColor(.white)
                                     Spacer()
                                     HStack {
-                                        Text("详情")
+                                        Text("action.detail")
                                         Image(systemName: "chevron.right")
                                     }
                                     .font(.subheadline)
@@ -137,11 +137,11 @@ struct RunningCompetitionView: View {
                                 
                                 Divider()
                                 
-                                Text("开始时间: \(DateDisplay.formattedDate(event.startDate))")
+                                (Text("competition.begin_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.startDate))))
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
                                 
-                                Text("结束时间: \(DateDisplay.formattedDate(event.endDate))")
+                                (Text("competition.end_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.endDate))))
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
                             }
@@ -153,7 +153,7 @@ struct RunningCompetitionView: View {
                     
                     // 赛道选择
                     if viewModel.tracks.isEmpty {
-                        Text("当前赛事暂无可用赛道\n1.请检查当前网络环境\n2.请切换位置区域重试")
+                        Text("competition.track.error.no_tracks")
                             .foregroundColor(.secondText)
                             .padding()
                             .offset(y: chevronDirection ? 0 : -210) // 控制视图滑出/滑入
@@ -240,7 +240,7 @@ struct RunningCompetitionView: View {
                                 VStack(alignment: .leading, spacing: 10) {
                                     // 赛道标题
                                     HStack {
-                                        Text("赛道信息")
+                                        Text("competition.track.info")
                                             .font(.headline)
                                             .fontWeight(.bold)
                                             .lineLimit(1)
@@ -254,7 +254,7 @@ struct RunningCompetitionView: View {
                                                 .font(.system(size: 13))
                                                 .foregroundColor(.secondText)
                                             //.frame(width: 24, height: 24, alignment: .center)
-                                            Text("总参与人数: \(track.totalParticipants)")
+                                            Text("competition.track.total_number \(track.totalParticipants)")
                                                 .font(.caption)
                                                 .foregroundColor(.secondText)
                                                 .lineLimit(1)
@@ -265,14 +265,14 @@ struct RunningCompetitionView: View {
                                     
                                     HStack(spacing: 4) {
                                         Image(systemName: "calendar")
-                                        Text("开始时间: \(DateDisplay.formattedDate(track.startDate))")
+                                        Text("competition.begin_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(track.startDate)))
                                     }
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
                                     
                                     HStack(spacing: 4) {
                                         Image(systemName: "flag.checkered")
-                                        Text("结束时间: \(DateDisplay.formattedDate(track.endDate))")
+                                        Text("competition.end_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(track.endDate)))
                                     }
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
@@ -288,43 +288,49 @@ struct RunningCompetitionView: View {
                                         InfoItemView(
                                             iconName: "mountain.2",
                                             iconColor: .white.opacity(0.6),
-                                            text: "地形: \(track.terrainType.rawValue)"
+                                            text: "competition.track.terrain",
+                                            param: track.terrainType.displayName
                                         )
                                         // 海拔差
                                         InfoItemView(
                                             iconName: "arrow.up.arrow.down",
                                             iconColor: .blue,
-                                            text: "海拔差: \(track.elevationDifference)m"
+                                            text: "competition.track.altitude",
+                                            param: "\(track.elevationDifference)m"
                                         )
                                         // 路程
                                         InfoItemView(
                                             iconName: "road.lanes.curved.right",
                                             iconColor: .black,
-                                            text: "路程: \(track.distance)"
+                                            text: "competition.track.distance",
+                                            param: "\(track.distance)"
                                         )
                                         // 奖金池
                                         InfoItemView(
                                             iconName: "dollarsign.circle",
                                             iconColor: .orange,
-                                            text: "奖金池: \(track.prizePool)"
+                                            text: "competition.track.prize_pool",
+                                            param: "\(track.prizePool)"
                                         )
                                         // 地理区域
                                         InfoItemView(
                                             iconName: "map",
                                             iconColor: .green,
-                                            text: "覆盖区域: \(track.regionName)"
+                                            text: "competition.track.sub_region",
+                                            param: "\(track.regionName)"
                                         )
                                         // 当前参与人数
-                                        InfoItemView(
-                                            iconName: "person.2",
-                                            iconColor: .purple,
-                                            text: "当前参与: \(track.currentParticipants)"
-                                        )
+                                        //InfoItemView(
+                                        //    iconName: "person.2",
+                                        //    iconColor: .purple,
+                                        //    text: "当前参与: \(track.currentParticipants)"
+                                        //)
                                         // 赛道积分
                                         InfoItemView(
                                             iconName: "staroflife.fill",
                                             iconColor: .red,
-                                            text: "赛道积分: \(track.score)"
+                                            text: "competition.track.score",
+                                            param: "\(track.score)"
                                         )
                                     }
                                     .padding(.vertical, 6)
@@ -335,7 +341,7 @@ struct RunningCompetitionView: View {
                                 
                                 VStack(alignment: .leading, spacing: 10) {
                                     HStack {
-                                        Text("队伍信息")
+                                        Text("competition.team.info")
                                             .font(.headline)
                                             .fontWeight(.bold)
                                             .lineLimit(1)
@@ -344,7 +350,7 @@ struct RunningCompetitionView: View {
                                         Spacer()
                                         
                                         HStack {
-                                            Text("我的")
+                                            Text("tab.my")
                                             Image(systemName: "chevron.right")
                                         }
                                         .font(.subheadline)
@@ -358,7 +364,7 @@ struct RunningCompetitionView: View {
                                     HStack(spacing: 12) {
                                         HStack {
                                             //Image(systemName: "person.badge.plus")
-                                            Text("创建队伍")
+                                            Text("competition.team.create")
                                         }
                                         .font(.system(size: 15))
                                         .frame(maxWidth: .infinity)
@@ -368,7 +374,7 @@ struct RunningCompetitionView: View {
                                         .cornerRadius(8)
                                         .exclusiveTouchTapGesture {
                                             guard let competitionDate = track.endDate, competitionDate > Date() else {
-                                                let toast = Toast(message: "比赛已结束")
+                                                let toast = Toast(message: "competition.track.error.closed")
                                                 ToastManager.shared.show(toast: toast)
                                                 return
                                             }
@@ -377,7 +383,7 @@ struct RunningCompetitionView: View {
                                         
                                         HStack {
                                             //Image(systemName: "person.3")
-                                            Text("加入队伍")
+                                            Text("competition.team.join")
                                         }
                                         .font(.system(size: 15))
                                         .frame(maxWidth: .infinity)
@@ -387,7 +393,7 @@ struct RunningCompetitionView: View {
                                         .cornerRadius(8)
                                         .exclusiveTouchTapGesture {
                                             guard let competitionDate = track.endDate, competitionDate > Date() else {
-                                                let toast = Toast(message: "比赛已结束")
+                                                let toast = Toast(message: "competition.track.error.closed")
                                                 ToastManager.shared.show(toast: toast)
                                                 return
                                             }
@@ -400,70 +406,74 @@ struct RunningCompetitionView: View {
                                 .cornerRadius(20)
                                 
                                 if let rankInfo = viewModel.selectedRankInfo {
-                                    VStack {
+                                    VStack(spacing: 10) {
                                         HStack(alignment: .top) {
-                                            Text("我的成绩")
+                                            Text("competition.track.my_score")
                                                 .font(.headline)
                                                 .fontWeight(.bold)
                                             Spacer()
-                                            Text("排行榜")
-                                                .font(.subheadline)
-                                                .padding(.vertical, 4)
-                                                .padding(.horizontal, 10)
-                                                .background(Color.orange.opacity(0.6))
-                                                .cornerRadius(8)
-                                                .exclusiveTouchTapGesture {
-                                                    appState.navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
-                                                }
+                                            HStack(spacing: 2) {
+                                                Image(systemName: "align.vertical.bottom.fill")
+                                                Text("competition.track.leaderboard")
+                                            }
+                                            .font(.subheadline)
+                                            .exclusiveTouchTapGesture {
+                                                appState.navigationManager.append(.runningRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                            }
                                         }
                                         .foregroundColor(.white)
                                         Divider()
                                         HStack {
-                                            Text("用时: \(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))")
+                                            Text("competition.record.valid_time") + Text(": \(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))")
                                             Spacer()
                                             if let rank = rankInfo.rank {
-                                                Text("名次: \(rank)")
+                                                Text("competition.track.leaderboard.ranking") + Text(": \(rank)")
                                             } else {
-                                                Text("无数据")
+                                                Text("competition.track.leaderboard.ranking") + Text(": ") + Text("error.no_data")
                                             }
                                             Spacer()
-                                            Text("积分: \(rankInfo.score ?? 0)")
+                                            Text("competition.track.leaderboard.score") + Text(": \(rankInfo.score ?? 0)")
                                         }
                                         .font(.subheadline)
                                         .foregroundColor(.secondText)
                                         Divider()
                                         HStack(spacing: 4) {
-                                            Text("奖励: ")
-                                            Image(systemName: CCAssetType.voucher.iconName)
+                                            Text("competition.track.leaderboard.reference_reward") + Text(":")
+                                            Image(CCAssetType.voucher.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 15)
                                             Text("\(rankInfo.voucherAmount ?? 0)")
                                             Spacer()
                                             if let recordID = rankInfo.recordID {
-                                                Text("详情")
-                                                    .padding(.vertical, 4)
-                                                    .padding(.horizontal, 10)
-                                                    .background(Color.gray.opacity(0.6))
-                                                    .cornerRadius(8)
-                                                    .exclusiveTouchTapGesture {
-                                                        appState.navigationManager.append(.runningRecordDetailView(recordID: recordID))
-                                                    }
+                                                HStack(spacing: 4) {
+                                                    Text("competition.record.detail")
+                                                    Image(systemName: "chevron.right")
+                                                }
+                                                .exclusiveTouchTapGesture {
+                                                    appState.navigationManager.append(.runningRecordDetailView(recordID: recordID))
+                                                }
+                                            } else {
+                                                Text("competition.record.no_data")
                                             }
                                         }
                                         .font(.subheadline)
                                         .foregroundColor(.secondText)
+                                        .padding(.vertical, 4)
                                     }
                                     .padding()
                                     .background(.ultraThinMaterial)
                                     .cornerRadius(20)
                                 } else {
                                     HStack(alignment: .top) {
-                                        Text("我的成绩")
+                                        Text("competition.track.my_score")
                                             .font(.headline)
                                             .fontWeight(.bold)
                                         Spacer()
-                                        Text("登陆后查看")
+                                        Text("toast.no_login.2")
                                             .font(.headline)
                                         Spacer()
-                                        Text("排行榜")
+                                        Text("competition.track.leaderboard")
                                             .font(.subheadline)
                                             .padding(.vertical, 4)
                                             .padding(.horizontal, 10)
@@ -492,101 +502,96 @@ struct RunningCompetitionView: View {
             // 报名按钮区域
             // todo: 解决切换赛道时因selectedTrack变化导致的闪烁问题
             if let track = viewModel.selectedTrack, !appState.competitionManager.isRecording {
-                HStack(spacing: 0) {
-                    Spacer()
-                    Text("立即报名")
+                HStack {
+                    Text("competition.register.now")
                         .font(.title2)
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 25)
                     Spacer()
                     // 单人按钮
-                    ZStack {
-                        // 按钮容器
+                    HStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "person")
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                        Text("competition.register.single")
+                            .font(.subheadline)
+                            .foregroundColor(.secondText)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                        CachedAsyncImage(
+                            urlString: track.singleRegisterCardUrl,
+                            placeholder: Image("Ads"),
+                            errorImage: Image(systemName: "photo.badge.exclamationmark")
+                        )
+                        .id(track.singleRegisterCardUrl)     // 强制重建视图
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30, height: 30)
+                        .clipped()
+                    }
+                    .padding(6)
+                    .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(.yellow.opacity(0.5))
-                            .frame(width: 80, height: 40)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.yellow.opacity(0.8), lineWidth: 1.5)
                             )
                             .shadow(color: Color.yellow.opacity(0.1), radius: 3, x: 0, y: 2)
-                        
-                        // 按钮文字
-                        HStack(alignment: .center, spacing: 4) {
-                            Image(systemName: "person")
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                            
-                            Text("单人")
-                                .font(.subheadline)
-                                .foregroundColor(.secondText)
-                        }
-                    }
+                    )
                     .exclusiveTouchTapGesture {
-                        guard let competitionDate = track.endDate, competitionDate > Date() else {
-                            let toast = Toast(message: "比赛已结束")
-                            ToastManager.shared.show(toast: toast)
-                            return
-                        }
                         singleRegister()
                     }
                     .disabled(appState.competitionManager.isRecording)
-                    .alert(isPresented: $viewModel.showSingleRegisterAlert) {
-                        Alert(
-                            title: Text("报名成功"),
-                            message: Text("单人模式"),
-                            primaryButton: .default(Text("稍后开始")),
-                            secondaryButton: .default(Text("立即开始")) {
-                                if !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
-                                    appState.competitionManager.resetRunningRaceRecord(record: record)
-                                    appState.navigationManager.append(.competitionCardSelectView)
-                                    viewModel.currentRecord = nil
-                                }
-                            }
-                        )
-                    }
-                    
-                    Spacer()
                     
                     // 组队按钮
-                    ZStack {
-                        // 按钮容器
+                    HStack(alignment: .center, spacing: 4) {
+                        Image(systemName: "person.3")
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                        Text("competition.register.team")
+                            .font(.subheadline)
+                            .foregroundColor(.secondText)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                        CachedAsyncImage(
+                            urlString: track.teamRegisterCardUrl,
+                            placeholder: Image("Ads"),
+                            errorImage: Image(systemName: "photo.badge.exclamationmark")
+                        )
+                        .id(track.teamRegisterCardUrl)     // 强制重建视图
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30, height: 30)
+                        .clipped()
+                    }
+                    .padding(6)
+                    .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(.orange.opacity(0.5))
-                            .frame(width: 80, height: 40)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.orange.opacity(0.8), lineWidth: 1.5)
                             )
                             .shadow(color: Color.orange.opacity(0.1), radius: 3, x: 0, y: 2)
-                        
-                        // 按钮文字
-                        HStack(alignment: .center, spacing: 4) {
-                            Image(systemName: "person.3")
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                            
-                            Text("组队")
-                                .font(.subheadline)
-                                .foregroundColor(.secondText)
+                    )
+                    .exclusiveTouchTapGesture {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "competition.register.team.2",
+                            bottomButtons: []
+                        ) {
+                            TeamRegisterView()
                         }
                     }
-                    .exclusiveTouchTapGesture {
-                        appState.navigationManager.showTeamRegisterSheet = true
-                    }
                     .disabled(appState.competitionManager.isRecording)
-                    Spacer()
                 }
-                .padding(.vertical, 10)
+                .padding(10)
                 .background(Color.defaultBackground)
             }
         }
         .sheet(item: $selectedDetailEvent) { event in
             RunningEventDetailView(event: event)
         }
-        .onValueChange(of: locationManager.region) {
-            if let region = locationManager.region {
-                viewModel.fetchEvents(with: region)
+        .onValueChange(of: locationManager.regionID) {
+            if let regionID = locationManager.regionID {
+                viewModel.fetchEvents(with: regionID)
             }
         }
         .onValueChange(of: viewModel.selectedTrack) {
@@ -606,8 +611,8 @@ struct RunningCompetitionView: View {
         }
         .onStableAppear {
             if firstOnAppear || globalConfig.refreshCompetitionView {
-                if let region = locationManager.region {
-                    viewModel.fetchEvents(with: region)
+                if let regionID = locationManager.regionID {
+                    viewModel.fetchEvents(with: regionID)
                 }
                 globalConfig.refreshCompetitionView  = false
                 globalConfig.refreshRankInfo  = false
@@ -631,7 +636,7 @@ struct RunningCompetitionView: View {
     // 单人报名
     func singleRegister() {
         guard let track = viewModel.selectedTrack else {
-            let toast = Toast(message: "请选择一条赛道")
+            let toast = Toast(message: "competition.register.result.failed.no_track")
             ToastManager.shared.show(toast: toast)
             return
         }
@@ -650,7 +655,20 @@ struct RunningCompetitionView: View {
                     DispatchQueue.main.async {
                         assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
                         viewModel.currentRecord = RunningRaceRecord(from: unwrappedData.record)
-                        viewModel.showSingleRegisterAlert = true
+                        PopupWindowManager.shared.presentPopup(
+                            title: "competition.register.result.success",
+                            message: "competition.register.single.result.success",
+                            bottomButtons: [
+                                .cancel("competition.register.single.action.later"),
+                                .confirm("competition.register.single.action.now") {
+                                    if !appState.competitionManager.isRecording, let record = viewModel.currentRecord {
+                                        appState.competitionManager.resetRunningRaceRecord(record: record)
+                                        appState.navigationManager.append(.competitionCardSelectView)
+                                        viewModel.currentRecord = nil
+                                    }
+                                }
+                            ]
+                        )
                     }
                 }
             default: break
@@ -687,13 +705,13 @@ struct RunningEventDetailView: View {
                         // 比赛时间
                         HStack {
                             Image(systemName: "calendar")
-                            Text("\(DateDisplay.formattedDate(event.startDate)) - \(DateDisplay.formattedDate(event.endDate))")
+                            (Text(LocalizedStringKey(DateDisplay.formattedDate(event.startDate))) + Text("-") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.endDate))))
                                 .foregroundColor(.secondary)
                         }
                         
                         // 赛事详情
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("赛事详情")
+                            Text("competition.event.detail")
                                 .font(.headline)
                             Text(event.description)
                                 .font(.subheadline)
@@ -701,9 +719,9 @@ struct RunningEventDetailView: View {
                         
                         // 比赛规则
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("注意事项")
+                            Text("competition.event.precautions")
                                 .font(.headline)
-                            Text("1. 参赛者需在指定时间内完成比赛\n2. 比赛过程中需遵守交通规则\n3. 成绩以完成时间计算\n4. 禁止使用任何交通工具\n5. 需全程开启运动记录")
+                            Text("competition.event.running.precautions.content")
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -713,7 +731,7 @@ struct RunningEventDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") {
+                    Button("action.close") {
                         dismiss()
                     }
                 }
@@ -747,14 +765,14 @@ struct RunningTeamCreateView: View {
                             appState.navigationManager.removeLast()
                         }
                     Spacer()
-                    Text("创建")
+                    Text("action.create")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(Color.white)
                         .exclusiveTouchTapGesture {
                             submitCreateTeamForm()
                         }
                 }
-                Text("创建队伍")
+                (Text("action.create") + Text("competition.register.team.3"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(.white)
             }
@@ -763,14 +781,14 @@ struct RunningTeamCreateView: View {
             ScrollView {
                 VStack(alignment: .leading) {
                     // 队伍名称
-                    Text("基本信息")
+                    Text("competition.team.basic_info")
                         .font(.title)
                         .foregroundStyle(.white)
                         .padding(.top, 20)
                         .padding(.bottom, 10)
                     
                     TextField(text: $teamTitle) {
-                        Text("队伍名称")
+                        Text("competition.team.name")
                             .foregroundColor(.thirdText)
                     }
                     .padding()
@@ -780,15 +798,15 @@ struct RunningTeamCreateView: View {
                     .cornerRadius(20)
                     .onValueChange(of: teamTitle) {
                         DispatchQueue.main.async {
-                            if teamTitle.count > 10 {
-                                teamTitle = String(teamTitle.prefix(10)) // 限制为最多10个字符
+                            if teamTitle.count > 15 {
+                                teamTitle = String(teamTitle.prefix(15)) // 限制为最多10个字符
                             }
                         }
                     }
                     
                     HStack {
                         Spacer()
-                        Text("已输入\(teamTitle.count)/10字符")
+                        Text("user.intro.words_entered \(teamTitle.count) \(15)")
                             .font(.footnote)
                             .foregroundStyle(Color.thirdText)
                     }
@@ -810,7 +828,7 @@ struct RunningTeamCreateView: View {
                                 }
                             }
                         if teamDescription.isEmpty {
-                            Text("队伍简介（50字以内）")
+                            Text("competition.team.intro")
                                 .foregroundColor(.thirdText)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 24)
@@ -819,27 +837,27 @@ struct RunningTeamCreateView: View {
                     
                     HStack {
                         Spacer()
-                        Text("已输入\(teamDescription.count)/50字符")
+                        Text("user.intro.words_entered \(teamDescription.count) \(50)")
                             .font(.footnote)
                             .foregroundStyle(Color.thirdText)
                     }
                     
                     // 队伍设置
-                    Text("队伍设置")
+                    Text("competition.team.setup")
                         .font(.title)
                         .foregroundStyle(.white)
                         .padding(.top, 20)
                         .padding(.bottom, 10)
                     
-                    Stepper("队伍人数: \(teamSize)人", value: $teamSize, in: 2...10)
+                    Stepper("competition.team.member.count \(teamSize)", value: $teamSize, in: 2...10)
                         .foregroundStyle(Color.secondText)
                     
-                    DatePicker("比赛时间", selection: $teamCompetitionDate, in: Date()...competitionDate)
+                    DatePicker("competition.match_date", selection: $teamCompetitionDate, in: Date()...competitionDate)
                         .foregroundStyle(Color.secondText)
                         .tint(Color.orange)
                     
                     // 添加一个开关允许用户选择是否公开队伍信息，开关直接控制viewModel.isPublic
-                    Toggle("公开队伍信息", isOn: $isPublic)
+                    Toggle("competition.team.public", isOn: $isPublic)
                         .tint(.green)
                         .foregroundStyle(Color.secondText)
                 }
@@ -856,12 +874,12 @@ struct RunningTeamCreateView: View {
     
     func submitCreateTeamForm() {
         guard !teamTitle.isEmpty else {
-            let toast = Toast(message: "请输入队伍名称")
+            let toast = Toast(message: "competition.team.toast.no_name")
             ToastManager.shared.show(toast: toast)
             return
         }
         if teamCompetitionDate < Date() || teamCompetitionDate > competitionDate {
-            ToastManager.shared.show(toast: Toast(message: "比赛时间不合法"))
+            ToastManager.shared.show(toast: Toast(message: "competition.team.toast.invalid_time"))
             return
         }
         var headers: [String: String] = [:]
@@ -918,7 +936,7 @@ struct RunningTeamJoinView: View {
                 
                 Spacer()
                 
-                Text("加入队伍")
+                Text("competition.team.join")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 
@@ -937,7 +955,7 @@ struct RunningTeamJoinView: View {
             // 队伍码输入区域
             HStack(spacing: 20) {
                 TextField(text: $viewModel.teamCode) {
-                    Text("输入8位队伍码直接加入")
+                    Text("competition.team.join.placeholder")
                         .foregroundStyle(Color.thirdText)
                 }
                 .padding(8)
@@ -947,7 +965,7 @@ struct RunningTeamJoinView: View {
                 .cornerRadius(10)
                 .keyboardType(.asciiCapable)
                 
-                Text("一键加入")
+                Text("competition.team.join.action")
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding(.vertical, 8)
@@ -956,7 +974,7 @@ struct RunningTeamJoinView: View {
                     .cornerRadius(8)
                     .onTapGesture {
                         guard viewModel.teamCode.count == 8 else {
-                            let toast = Toast(message: "请输入合法的8位队伍码")
+                            let toast = Toast(message: "competition.team.join.toast.invalid_teamcode")
                             ToastManager.shared.show(toast: toast)
                             return
                         }
@@ -973,14 +991,9 @@ struct RunningTeamJoinView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.white.opacity(0.7))
                             .padding(.bottom, 10)
-                        
-                        Text("暂无可加入的队伍")
+                        Text("competition.team.join.no_team")
                             .font(.headline)
-                            .foregroundColor(.white)
-                        
-                        Text("当前赛道还没有可加入的队伍，您可以创建一个新队伍")
-                            .font(.subheadline)
-                            .foregroundColor(.thirdText)
+                            .foregroundColor(.secondText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                     }
@@ -1042,14 +1055,14 @@ struct RunningTeamAppliedView: View {
                 Button(action: {
                     viewModel.showIntroSheet = false
                 }) {
-                    Text("取消")
+                    Text("action.cancel")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.secondText)
                 }
                 
                 Spacer()
                 
-                Text("编辑申请信息")
+                (Text("action.edit") + Text("competition.team.applied.info"))
                     .font(.system(size: 16))
                     .foregroundStyle(.white)
                 
@@ -1059,7 +1072,7 @@ struct RunningTeamAppliedView: View {
                     //UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     appliedJoinTeam()
                 }) {
-                    Text("申请")
+                    Text("competition.team.action.applied")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.orange)
                 }
@@ -1083,7 +1096,7 @@ struct RunningTeamAppliedView: View {
                             }
                         }
                     if introduction.isEmpty {
-                        Text("申请信息（50字以内）")
+                        Text("competition.team.applied.info")
                             .foregroundColor(.thirdText)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 24)
@@ -1091,13 +1104,8 @@ struct RunningTeamAppliedView: View {
                 }
                 
                 HStack {
-                    Text("最多输入50个字符")
-                        .font(.footnote)
-                        .foregroundStyle(Color.thirdText)
-                    
                     Spacer()
-                    
-                    Text("已输入\(introduction.count)/50字符")
+                    Text("user.intro.words_entered \(introduction.count) \(50)")
                         .font(.footnote)
                         .foregroundStyle(Color.thirdText)
                 }
@@ -1159,7 +1167,7 @@ struct RunningTeamPublicCard: View {
                 
                 Spacer()
                 
-                Text("\(team.member_count)/\(team.max_member_size) 人")
+                Text("common.member.a/b \(team.member_count) \(team.max_member_size)")
                     .font(.subheadline)
                     .foregroundColor(.secondText)
                     .padding(.horizontal, 10)
@@ -1172,7 +1180,7 @@ struct RunningTeamPublicCard: View {
             
             // 队长信息
             HStack(spacing: 8) {
-                Text("队长")
+                Text("competition.team.leader")
                     .font(.subheadline)
                     .foregroundColor(.secondText)
                 CachedAsyncImage(
@@ -1197,7 +1205,7 @@ struct RunningTeamPublicCard: View {
             
             // 底部信息
             HStack {
-                Text("比赛时间: \(DateDisplay.formattedDate(team.competition_date))")
+                (Text("competition.match_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(team.competition_date))))
                     .font(.caption)
                     .foregroundColor(Color.thirdText)
                 Spacer()

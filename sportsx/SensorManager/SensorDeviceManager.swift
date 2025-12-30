@@ -21,11 +21,11 @@ enum BodyPosition: Int, CaseIterable, Identifiable {
     
     var name: String {
         switch self {
-        case .posLH: return "左手"
-        case .posRH: return "右手"
-        case .posLF: return "左脚"
-        case .posRF: return "右脚"
-        case .posWST: return "胸前"
+        case .posLH: return "user.page.bind_device.body.lh"
+        case .posRH: return "user.page.bind_device.body.rh"
+        case .posLF: return "user.page.bind_device.body.lf"
+        case .posRF: return "user.page.bind_device.body.rf"
+        case .posWST: return "user.page.bind_device.body.wst"
         }
     }
 }

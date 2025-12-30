@@ -13,12 +13,23 @@ import SwiftUI
 
 
 class HomeViewModel: ObservableObject {
+    let assetManager = AssetManager.shared
+    let userManager = UserManager.shared
+    let reminderManager = SignInReminderManager.shared
+    
+    @Published var ads: [AdInfo] = []
     @Published var items: [SignInDay] = []
     //@Published var continuousDays: Int = 0
+    @Published var announcements: [String] = []
     @Published var isLoading: Bool = false
     @Published var isLoadingVip: Bool = false
     @AppStorage("signInReminderEnabled") var reminderEnabled: Bool = false
     @AppStorage("signInReminderTime") var reminderTimeString: String = "09:00"
+    
+    var hasMoreUsers: Bool = true
+    var page: Int = 1
+    let size: Int = 10
+    @Published var isUserLoading: Bool = false
 
     var reminderTime: Date {
         get {
@@ -46,29 +57,12 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    private let reminderManager = SignInReminderManager.shared
-    
-    let assetManager = AssetManager.shared
-    let userManager = UserManager.shared
-    
-    var ads: [Ad] = [
-        Ad(imageURL: "/resources/placeholder/season.png"),
-        Ad(imageURL: "/resources/placeholder/track.png"),
-        Ad(imageURL: "/resources/placeholder/event.png"),
-        Ad(imageURL: "/resources/placeholder/avatar.png"),
-        Ad(imageURL: "/resources/placeholder/background.png")
-    ]
-    
-    var business: [Ad] = [
-        Ad(imageURL: "/resources/placeholder/season.png"),
-        Ad(imageURL: "/resources/placeholder/season.png"),
-        Ad(imageURL: "https://example.com/ad3.jpg")
-    ]
-    
     // 功能组件数据
     let features = [
-        FeatureComponent(iconName: "star.fill", title: "技巧", destination: .skillView),
-        FeatureComponent(iconName: "star.fill", title: "活动", destination: .activityView)
+        //FeatureComponent(iconName: "star.fill", title: "技巧", destination: .skillView),
+        //FeatureComponent(iconName: "star.fill", title: "活动", destination: .activityView)
+        FeatureComponent(iconName: "list.clipboard", title: "action.feedback", destination: .feedbackView(mailType: .other)),
+        FeatureComponent(iconName: "list.clipboard", title: "home.feature.skill", destination: .usageTipView)
     ]
     
     // Date formatter for "yyyy-MM-dd"
@@ -81,10 +75,17 @@ class HomeViewModel: ObservableObject {
         return f
     }()
     
+    let localAds: [AdInfo] = [
+        AdInfo(imageLocalURL: "Ads", appRoute: .usageTipView),
+        AdInfo(appRoute: .usageTipView)
+    ]
+    
     init() {
         if userManager.isLoggedIn {
             fetchStatus()
         }
+        fetchAdsUrl()
+        fetchAnnouncements()
         syncReminderOnLaunch()
     }
     
@@ -99,7 +100,7 @@ class HomeViewModel: ObservableObject {
                 self.reminderManager.scheduleDailyReminder(at: self.reminderTime)
             } else {
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "请先在系统设置里打开提醒权限"))
+                    ToastManager.shared.show(toast: Toast(message: "home.sigin_in.toast.reminder_permission"))
                     self.reminderEnabled = false
                 }
             }
@@ -146,6 +147,41 @@ class HomeViewModel: ObservableObject {
         }
     }
     
+    func fetchAnnouncements() {
+        let request = APIRequest(path: "/homepage/query_announcements", method: .get)
+        NetworkService.sendRequest(with: request, decodingType: AnnouncementResponse.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    for announcement in unwrappedData.announcements {
+                        self.announcements.append(announcement.content)
+                    }
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    func fetchAdsUrl() {
+        let request = APIRequest(path: "/homepage/query_banner_ads", method: .get)
+        NetworkService.sendRequest(with: request, decodingType: AdResponse.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    for ad in unwrappedData.ads {
+                        self.ads.append(AdInfo(from: ad))
+                    }
+                    self.ads.append(contentsOf: self.localAds)
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
     private func makeItems(from statusDto: SignInStatusDTO) -> [SignInDay] {
         var days: [SignInDay] = []
         for dto in statusDto.items {
@@ -168,12 +204,12 @@ class HomeViewModel: ObservableObject {
         return days
     }
     
-    func signInToday() {
+    func signInToday(day: SignInDay) {
         guard !isLoading else { return }
         isLoading = true
         
         let request = APIRequest(path: "/user/sign_in/today", method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: SignInResultDTO.self, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: SignInResultDTO.self, showErrorToast: true) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
@@ -186,6 +222,26 @@ class HomeViewModel: ObservableObject {
                         } else {
                             self.fetchStatus()
                         }
+                        PopupWindowManager.shared.presentPopup(
+                            title: "popup.claim_reward.title",
+                            bottomButtons: [
+                                .confirm("action.confirm")
+                            ]
+                        ) {
+                            VStack {
+                                Text("home.sign_in.popup.claim_reward_success.content")
+                                HStack(spacing: 4) {
+                                    Image(day.ccassetType.iconName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20)
+                                    Text("* \(day.ccassetReward)")
+                                        .font(.system(size: 15))
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .foregroundStyle(Color.white)
+                        }
                         //self.continuousDays = unwrappedData.continuous_days
                     }
                 default:
@@ -195,12 +251,12 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    func signInTodayVip() {
+    func signInTodayVip(day: SignInDay) {
         guard !isLoadingVip else { return }
         isLoadingVip = true
         
         let request = APIRequest(path: "/user/sign_in_vip/today", method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: SignInResultDTO.self, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: SignInResultDTO.self, showErrorToast: true) { result in
             DispatchQueue.main.async {
                 self.isLoadingVip = false
                 switch result {
@@ -212,6 +268,26 @@ class HomeViewModel: ObservableObject {
                             self.assetManager.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
                         } else {
                             self.fetchStatus()
+                        }
+                        PopupWindowManager.shared.presentPopup(
+                            title: "popup.claim_reward.title",
+                            bottomButtons: [
+                                .confirm("action.confirm")
+                            ]
+                        ) {
+                            VStack {
+                                Text("home.sign_in.popup.claim_reward_success.content_vip")
+                                HStack(spacing: 4) {
+                                    Image(day.ccassetType.iconName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20)
+                                    Text("* \(day.ccassetReward)")
+                                        .font(.system(size: 15))
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .foregroundStyle(Color.white)
                         }
                         //self.continuousDays = unwrappedData.continuous_days
                     }
@@ -267,7 +343,7 @@ final class SignInReminderManager {
     /// - Parameter body: 通知内容（默认：签到提醒文案）
     func scheduleDailyReminder(
         at time: Date,
-        body: String = "签到领取每日奖励，今天也要记得运动哦"
+        body: String.LocalizationValue = "home.sign_in.reminder.content"
     ) {
         // 保存用户选择的时间
         persistReminderTime(time)
@@ -277,8 +353,8 @@ final class SignInReminderManager {
         
         // 创建通知内容
         let content = UNMutableNotificationContent()
-        content.title = "每日签到"
-        content.body = body
+        content.title = String(localized: "home.sign_in.tile")
+        content.body = String(localized: body)
         content.sound = .default
         content.userInfo = ["purpose": "sign_in_reminder"]
         
@@ -382,15 +458,46 @@ final class SignInReminderManager {
 }
 
 
-struct Ad: Identifiable {
+struct AdInfo: Identifiable {
     let id = UUID()
-    let imageURL: String
+    let imageURL: String?
+    let imageLocalURL: String?
+    let webURL: String?
+    let appRoute: AppRoute?
+    
+    init(from ad: AdDTO) {
+        self.imageURL = ad.image_url
+        self.imageLocalURL = nil
+        self.webURL = ad.web_url
+        self.appRoute = nil
+    }
+    
+    init(
+        imageURL: String? = nil,
+        imageLocalURL: String? = nil,
+        webURL: String? = nil,
+        appRoute: AppRoute? = nil
+    ) {
+        self.imageURL = imageURL
+        self.imageLocalURL = imageLocalURL
+        self.webURL = webURL
+        self.appRoute = appRoute
+    }
+}
+
+struct AdDTO: Codable {
+    let image_url: String
+    let web_url: String?
+}
+
+struct AdResponse: Codable {
+    let ads: [AdDTO]
 }
 
 struct FeatureComponent: Identifiable {
     let id = UUID()
     let iconName: String
-    let title: String
+    let title: LocalizedStringKey
     let destination: AppRoute
 }
 
@@ -403,7 +510,7 @@ enum RewardState: String, Codable {
         switch self {
         case .claimed: return .green
         case .available: return .orange
-        case .future: return .gray.opacity(0.6)
+        case .future: return .white.opacity(0.2)
         }
     }
     
@@ -446,3 +553,24 @@ struct SignInResultDTO: Codable {
     let new_ccamount: Int
 }
 
+struct AnnouncementInfo: Identifiable {
+    let id = UUID()
+    let content: String
+    let date: Date?
+    
+    init(from announcement: AnnouncementDTO) {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        self.content = announcement.content
+        self.date = formatter.date(from: announcement.date)
+    }
+}
+
+struct AnnouncementDTO: Codable {
+    let content: String
+    let date: String
+}
+
+struct AnnouncementResponse: Codable {
+    let announcements: [AnnouncementDTO]
+}

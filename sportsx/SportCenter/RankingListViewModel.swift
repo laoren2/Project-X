@@ -67,11 +67,11 @@ class BikeRankingListViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var rankingListEntries: [BikeRankingListEntry] = []
     @Published var gender: Gender = .male
-    @Published var  recordID: String?
-    @Published var  rank: Int?
-    @Published var  duration: Double?
-    @Published var  voucherAmount: Int?
-    @Published var  score: Int?
+    @Published var recordID: String?
+    @Published var rank: Int?
+    @Published var duration: Double?
+    @Published var voucherAmount: Int?
+    @Published var score: Int?
     
     let trackID: String
     let isHistory: Bool
@@ -108,6 +108,7 @@ class BikeRankingListViewModel: ObservableObject {
     }
     
     func queryRankInfo() {
+        guard UserManager.shared.isLoggedIn else { return }
         guard var components = URLComponents(string: "/competition/bike/query_me_rank") else { return }
         components.queryItems = [
             URLQueryItem(name: "track_id", value: trackID)
@@ -407,6 +408,7 @@ class RunningRankingListViewModel: ObservableObject {
     }
     
     func queryRankInfo() {
+        guard UserManager.shared.isLoggedIn else { return }
         guard var components = URLComponents(string: "/competition/running/query_me_rank") else { return }
         components.queryItems = [
             URLQueryItem(name: "track_id", value: trackID)

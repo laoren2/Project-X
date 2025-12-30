@@ -16,7 +16,7 @@ struct SensorBindView: View {
     @State private var selectedPosition: BodyPosition? = nil
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 100) {
             HStack {
                 CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
@@ -24,7 +24,7 @@ struct SensorBindView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.secondText)
                 Spacer()
-                Text("多位置设备绑定")
+                Text("user.page.features.bind_device")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Color.secondText)
                 Spacer()
@@ -36,50 +36,21 @@ struct SensorBindView: View {
             }
             .padding(.horizontal)
             
-            Spacer()
+            BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posWST)
             
-            // 生成 5 个位置的绑定按钮
-            ForEach(BodyPosition.allCases, id: \.self) { position in
-                VStack {
-                    if deviceManager.isBound(at: position),
-                       let device = deviceManager.getDevice(at: position) {
-                        // 已绑定状态 => 显示设备名
-                        Text("已绑定设备: \(device.deviceName)")
-                            .foregroundColor(.green)
-                        
-                        Text("点击解绑")
-                            .padding(.vertical, 4)
-                            .buttonStyle(.bordered)
-                            .foregroundColor(.white)
-                            .exclusiveTouchTapGesture {
-                                deviceManager.unbindDevice(at: position)
-                            }
-                    } else {
-                        // 未绑定状态
-                        if isLoading == position {
-                            ProgressView()
-                        } else {
-                            Text("未绑定")
-                                .foregroundColor(.red)
-                            
-                            Text("点击绑定")
-                                .padding(.vertical, 4)
-                                .buttonStyle(.bordered)
-                                .foregroundColor(.white)
-                                .exclusiveTouchTapGesture {
-                                    selectedPosition = position
-                                }
-                        }
-                    }
-                }
-                .padding()
-                .overlay(
-                    Text(position.name)
-                        .font(.footnote)
-                        .foregroundColor(.blue),
-                    alignment: .topLeading
-                )
-                .border(.gray, width: 1)
+            HStack {
+                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLH)
+                Spacer()
+                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRH)
+            }
+            .padding(.horizontal, 50)
+            
+            HStack {
+                Spacer()
+                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLF)
+                Spacer()
+                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRF)
+                Spacer()
             }
             Spacer()
         }
@@ -88,26 +59,43 @@ struct SensorBindView: View {
         .enableSwipeBackGesture()
         .sheet(item: $selectedPosition) { pos in
             VStack {
-                Text("选择设备")
-                    .bold()
-                    .padding()
-                List {
-                    if deviceManager.existAvailableAW() && !deviceManager.hasAppleWatchBound() {
-                        Button(action: {
-                            bindAWDevice(pos: pos)
-                            selectedPosition = nil
-                        }) {
-                            HStack {
-                                Text("Apple Watch")
-                                Spacer()
-                                Image(systemName: "applewatch")
-                            }
-                        }
-                    }
-                    // more device...
+                HStack {
+                    Spacer()
+                    Text("user.page.bind_device.select")
+                        .foregroundStyle(Color.secondText)
+                    Spacer()
                 }
-                .presentationDetents([.medium])
+                .padding()
+                ScrollView {
+                    VStack {
+                        if deviceManager.existAvailableAW() && !deviceManager.hasAppleWatchBound() {
+                            Button(action: {
+                                bindAWDevice(pos: pos)
+                                selectedPosition = nil
+                            }) {
+                                HStack {
+                                    Text("Apple Watch")
+                                    Spacer()
+                                    Image(systemName: "applewatch")
+                                }
+                                .foregroundStyle(Color.white)
+                                .padding()
+                                .background(Color.gray.opacity(0.6))
+                                .cornerRadius(10)
+                            }
+                        } else {
+                            Text("暂无可连接的设备")
+                                .foregroundStyle(Color.thirdText)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 100)
+                        }
+                        // more device...
+                    }
+                    .padding()
+                }
             }
+            .presentationDetents([.medium])
+            .background(Color.defaultBackground)
         }
     }
     
@@ -128,7 +116,7 @@ struct SensorBindView: View {
                 DispatchQueue.main.async {
                     deviceManager.bindDevice(newWatch, at: pos)
                     isLoading = nil
-                    let toast = Toast(message: "绑定成功")
+                    let toast = Toast(message: "user.page.bind_device.result.success")
                     ToastManager.shared.show(toast: toast)
                 }
                 timer.cancel()
@@ -137,7 +125,7 @@ struct SensorBindView: View {
                 if counter >= 10 {
                     DispatchQueue.main.async {
                         isLoading = nil
-                        let toast = Toast(message: "绑定失败")
+                        let toast = Toast(message: "user.page.bind_device.result.failed")
                         ToastManager.shared.show(toast: toast)
                     }
                     timer.cancel()
@@ -145,6 +133,64 @@ struct SensorBindView: View {
             }
         }
         timer.resume()
+    }
+}
+
+struct BodyBindView: View {
+    @ObservedObject var deviceManager = DeviceManager.shared
+    @Binding var selectedPosition: BodyPosition?
+    @Binding var isLoading: BodyPosition?
+    
+    let position: BodyPosition
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(LocalizedStringKey(position.name))
+                .foregroundStyle(Color.secondText)
+            if deviceManager.isBound(at: position),
+               let device = deviceManager.getDevice(at: position) {
+                // 已绑定状态 => 显示设备名
+                (Text("user.setup.phone.status.has_bind") + Text(": ") + Text("\(device.deviceName)"))
+                    .foregroundColor(.white)
+                
+                Text("user.setup.action.phone.unbind")
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 15)
+                    .foregroundColor(.red.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color.red.opacity(0.5), lineWidth: 2)
+                    )
+                    .exclusiveTouchTapGesture {
+                        deviceManager.unbindDevice(at: position)
+                        ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
+                    }
+            } else {
+                // 未绑定状态
+                if isLoading == position {
+                    ProgressView()
+                } else {
+                    Text("user.setup.action.phone.bind")
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 15)
+                        .foregroundColor(.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(deviceManager.isBound(at: position) ? Color.green.opacity(0.8) : Color.gray, lineWidth: 2)
+                        )
+                        .exclusiveTouchTapGesture {
+                            selectedPosition = position
+                        }
+                }
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(deviceManager.isBound(at: position) ? Color.green : Color.gray, lineWidth: 2)
+        )
     }
 }
 

@@ -161,24 +161,23 @@ class AssetManager: ObservableObject {
         }
     }
     
-    func queryCCAssets() {
+    func queryCCAssets() async {
         let request = APIRequest(path: "/asset/query_user_ccassets", method: .get, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: CCAssetResponse.self) { result in
-            switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        self.coin = unwrappedData.coin_amount
-                        self.coupon = unwrappedData.coupon_amount
-                        self.voucher = unwrappedData.voucher_amount
-                        self.stone1 = unwrappedData.stone1_amount
-                        self.stone2 = unwrappedData.stone2_amount
-                        self.stone3 = unwrappedData.stone3_amount
-                    }
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: CCAssetResponse.self)
+        switch result {
+        case .success(let data):
+            if let unwrappedData = data {
+                await MainActor.run {
+                    self.coin = unwrappedData.coin_amount
+                    self.coupon = unwrappedData.coupon_amount
+                    self.voucher = unwrappedData.voucher_amount
+                    self.stone1 = unwrappedData.stone1_amount
+                    self.stone2 = unwrappedData.stone2_amount
+                    self.stone3 = unwrappedData.stone3_amount
                 }
-            default: break
             }
+        default: break
         }
     }
     
@@ -259,17 +258,17 @@ enum CCAssetType: String, Codable, CaseIterable {
     var iconName: String {
         switch self {
         case .coin:
-            return "bitcoinsign.circle"
+            return "coin"
         case .coupon:
-            return "creditcard"
+            return "coupon"
         case .voucher:
-            return "giftcard"
+            return "voucher"
         case .stone1:
-            return "suit.diamond"
+            return "green_stone"
         case .stone2:
-            return "suit.diamond.fill"
+            return "blue_stone"
         case .stone3:
-            return "questionmark.diamond.fill"
+            return "red_stone"
         }
     }
 }
@@ -379,6 +378,13 @@ struct CCUpdateResponse: Codable, Identifiable {
     var id: String { ccasset_type.rawValue }
     let ccasset_type: CCAssetType
     let new_ccamount: Int
+}
+
+struct CCRewardResponse: Codable, Identifiable {
+    var id: String { ccasset_type.rawValue }
+    let ccasset_type: CCAssetType
+    let new_ccamount: Int
+    let reward_amount: Int
 }
 
 // 外设的传感器类型

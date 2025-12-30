@@ -279,6 +279,10 @@ struct PersonInfoDTO: Codable {
     let nickname: String
 }
 
+struct PersonInfoResponse: Codable {
+    let users: [PersonInfoDTO]
+}
+
 struct FollowingResponse: Codable {
     let users: [PersonInfoDTO]
     let next_cursor_created_at: String?

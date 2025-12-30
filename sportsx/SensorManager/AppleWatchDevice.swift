@@ -79,7 +79,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     
     func startCollection(activityType: SportName, locationType: String) {
         guard session.activationState == .activated else {
-            let toast = Toast(message: "watch连接失败")
+            let toast = Toast(message: "competition.applewatch.error.connect")
             ToastManager.shared.show(toast: toast)
             Logger.competition.notice_public("[AppleWatchDevice] WCSession not activated, cannot update start context.")
             return
@@ -107,14 +107,14 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
                 }
                 catch {
                     await MainActor.run {
-                        let toast = Toast(message: "请在watch端点击同步开始比赛")
+                        let toast = Toast(message: "competition.applewatch.error.sync")
                         ToastManager.shared.show(toast: toast)
                         Logger.competition.notice_public("[AppleWatchDevice] start workout error: \(error.localizedDescription)")
                     }
                 }
             }
         } else {
-            let toast = Toast(message: "请在watch端点击同步开始比赛")
+            let toast = Toast(message: "competition.applewatch.error.sync")
             ToastManager.shared.show(toast: toast)
         }
         
@@ -136,7 +136,7 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     
     func stopCollection() {
         guard session.activationState == .activated else {
-            let toast = Toast(message: "watch连接失败,请手动结束watch上的运动")
+            let toast = Toast(message: "competition.applewatch.error.finish")
             ToastManager.shared.show(toast: toast)
             Logger.competition.notice_public("[AppleWatchDevice] WCSession not activated, cannot update stop context.")
             return
@@ -266,7 +266,7 @@ extension AppleWatchDevice: WCSessionDelegate {
                 }
             }
             //Logger.competition.notice_public("receive batch size : ", cnt)
-            if canReceiveData {
+            if canReceiveData && enableIMU {
                 //Logger.competition.notice_public("add batch data")
                 dataFusionManager.addSensorData(sensorPos, batchData)
             }

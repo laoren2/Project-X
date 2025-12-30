@@ -88,7 +88,7 @@ struct BikeUnVerifiedCardView: View {
         HStack {
             Image(systemName: "v.circle.fill")
                 .foregroundStyle(record.is_vip ? Color.red : Color.gray)
-            Text(DateDisplay.formattedDate(record.finished_at))
+            Text(LocalizedStringKey(DateDisplay.formattedDate(record.finished_at)))
             Spacer()
             Button("详情") {
                 viewModel.selectedRecord = record
@@ -540,7 +540,7 @@ struct BikeVerifiedDetailView: View {
                         VStack {
                             ZStack(alignment: .center) {
                                 HStack {
-                                    Text("测试步数")
+                                    Text("测试踏频")
                                     Spacer()
                                     Text(String(format: "%.0f - %.0f 次/分", overallPedalCountRange.min, overallPedalCountRange.max))
                                 }
@@ -587,7 +587,7 @@ struct BikeVerifiedDetailView: View {
                         }
                     } else {
                         HStack {
-                            Text("测试步数")
+                            Text("测试踏频")
                             Spacer()
                             Text(String(format: "平均 %.0f 次/分", pedalCountAvg))
                         }

@@ -108,7 +108,7 @@ class DataFusionManager: ObservableObject {
             
             // 发布预测信号
             // todo: 解决偶尔slotIndex重复映射导致的重复快照问题
-            if windowLen >= 0 && windowLen == self.lastNonNilIndex(in: self.sensorPhoneWindow) {
+            if windowLen >= 0 && windowLen == lastNonNilIndex {
                 let snapshot = self.makeSnapshot(upTo: windowLen, time: 1)
                 // 发布快照
                 self.predictionSubject.send(snapshot)
@@ -287,6 +287,7 @@ class DataFusionManager: ObservableObject {
     
     // predictWindowLen = 所有工作数组中“最后一个非nil下标”的最小值
     // 表示所有数组至少完整覆盖到此下标
+    // todo: 优化一下，当某工作设备出现问题时不要直接返回-1，返回其余有效数据的 windowlen 进行兜底
     private func getPredictWindowLen() -> Int {
         let isPhone = deviceNeedToWork & 0b000001 != 0
         let sensors = deviceNeedToWork >> 1

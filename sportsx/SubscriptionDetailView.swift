@@ -7,10 +7,12 @@
 
 import SwiftUI
 import StoreKit
+import PhotosUI
 
 
 struct SubscriptionDetailView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject var userManager = UserManager.shared
     @State private var selectedProduct: Product? = nil
     @State private var isSubscribed: Bool = false
     @State private var autoRenew: Bool?
@@ -18,61 +20,183 @@ struct SubscriptionDetailView: View {
     @State private var expireDate: Date?
     @State private var isLoading: Bool = true
     
+    @State private var webPage: WebPage?
+    @State private var agreed = false
+    
     @ObservedObject private var manager = IAPManager.shared
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack {
             HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(isSubscribed ? "订阅中" : "当前未订阅")
-                            .font(.title3.bold())
-                            .foregroundStyle(isSubscribed ? .green : .gray)
-                        
-                        Button("刷新") {
-                            updateSubscriptionStatus(enforce: true)
-                        }
-                    }
-                    if let start = startDate {
-                        Text("订阅开始日期：\(DateDisplay.formattedDate(start))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    if let end = expireDate {
-                        Text("订阅截止日期：\(DateDisplay.formattedDate(end))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    if let autoStatus = autoRenew {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
+                Text("iap.subscription.vip_center")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.clear)
+                }
+            }
+            .padding(.horizontal)
+            ZStack(alignment: .bottom) {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 20) {
                         HStack {
-                            Text("自动续费：")
-                            Text(autoStatus ? "已开启" : "未开启")
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 10) {
+                                    if let avatar = userManager.avatarImage {
+                                        Image(uiImage: avatar)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 30, height: 30)
+                                            .clipShape(Circle())
+                                    } else {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                            .clipShape(Circle())
+                                    }
+                                    Text(isSubscribed ? "iap.subscription.vip_status.on" : "iap.subscription.vip_status.off")
+                                        .font(.headline.bold())
+                                        .foregroundStyle(isSubscribed ? .green : .thirdText)
+                                    Spacer()
+                                    Button(action:{
+                                        updateSubscriptionStatus(enforce: true)
+                                    }) {
+                                        Image(systemName: "arrow.clockwise")
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(Color.thirdText)
+                                    }
+                                }
+                                if let start = startDate {
+                                    HStack(spacing: 0) {
+                                        Text("iap.subscription.vip_date.from")
+                                        Text(LocalizedStringKey(DateDisplay.formattedDate(start)))
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                }
+                                if let end = expireDate {
+                                    HStack(spacing: 0) {
+                                        Text("iap.subscription.vip_date.to")
+                                        Text(LocalizedStringKey(DateDisplay.formattedDate(end)))
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                }
+                                if let autoStatus = autoRenew {
+                                    HStack(spacing: 0) {
+                                        Text("iap.subscription.auto_renewable")
+                                        Text(autoStatus ? "iap.subscription.auto_renewable.on" : "iap.subscription.auto_renewable.off")
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                }
+                            }
+                            Spacer()
                         }
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(10)
+                        
+                        subscriptionCards
+                        
+                        VStack(alignment: .leading) {
+                            Text("iap.subscription.benefits")
+                                .font(.title3.bold())
+                                .foregroundStyle(Color.white)
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(spacing: 20) {
+                                    Image("single_app_icon")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20, height: 20)
+                                    Text("iap.subscription.benefits.1")
+                                }
+                                Divider()
+                                HStack(spacing: 20) {
+                                    Image("single_app_icon")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20, height: 20)
+                                    Text("iap.subscription.benefits.2")
+                                }
+                                Divider()
+                                HStack(spacing: 20) {
+                                    Image("single_app_icon")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20, height: 20)
+                                    Text("iap.subscription.benefits.3")
+                                }
+                            }
+                            .foregroundStyle(Color.secondText)
+                            .padding()
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(10)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+                    .padding(.bottom, 200)
+                }
+                
+                VStack(spacing: 10) {
+                    subscribeButton
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 5) {
+                            Image(systemName: agreed ? "checkmark.circle" : "circle")
+                                .frame(width: 15, height: 15)
+                                .foregroundStyle(agreed ? Color.orange : Color.secondText)
+                                .onTapGesture {
+                                    agreed.toggle()
+                                }
+                            Text("action.read_and_agree")
+                            Text("iap.subscription.action.vip_autorenewal_agreement")
+                                .underline()
+                                .foregroundStyle(Color.orange.opacity(0.6))
+                                .onTapGesture {
+                                    AgreementHelper.open("https://www.valbara.top/subscription_agreement", binding: $webPage)
+                                }
+                        }
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.thirdText)
+                        .sheet(item: $webPage) { item in
+                            SafariView(url: item.url)
+                                .ignoresSafeArea()
+                        }
+                        Spacer()
+                        Button(action:{
+                            navigationManager.append(.iapHelpView)
+                        }) {
+                            Text("iap.subscription.action.help")
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 15)
+                                .foregroundStyle(Color.white)
+                                .background(Color.gray.opacity(0.6))
+                                .cornerRadius(10)
+                        }
                     }
                 }
-                Spacer()
+                .padding(.bottom, 20)
+                .padding(.top, 10)
+                .padding(.horizontal)
+                .background(Color.defaultBackground)
             }
-            .padding()
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(10)
-            
-            subscriptionCards
-            HStack {
-                Spacer()
-                Button("帮助与反馈") {
-                    navigationManager.append(.iapHelpView)
-                }
-                .padding()
-                .foregroundStyle(Color.white)
-                .background(Color.gray)
-                .cornerRadius(10)
-            }
-            subscribeButton
-            Spacer()
         }
-        .padding()
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .onFirstAppear {
             Task {
                 await manager.loadSubscriptionProducts()
@@ -119,7 +243,7 @@ struct SubscriptionDetailView: View {
 extension SubscriptionDetailView {
     // 4 个订阅卡片区域
     private var subscriptionCards: some View {
-        ScrollView(.horizontal) {
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
                 ForEach(manager.subscriptionProducts, id: \.id) { product in
                     SubscriptionCardView(
@@ -138,6 +262,10 @@ extension SubscriptionDetailView {
     // 订阅按钮
     private var subscribeButton: some View {
         Button {
+            guard agreed else {
+                ToastManager.shared.show(toast: Toast(message: "iap.subscription.toast.vip_autorenewal_agreement"))
+                return
+            }
             Task {
                 guard let product = selectedProduct else { return }
                 if isSubscribed {
@@ -150,7 +278,7 @@ extension SubscriptionDetailView {
                 } else {
                     guard !(await manager.checkAllPurchasedSubscriptions()) else {
                         DispatchQueue.main.async {
-                            ToastManager.shared.show(toast: Toast(message: "此AppleID关联的其他账号已订阅，无法重复订阅", duration: 3))
+                            ToastManager.shared.show(toast: Toast(message: "iap.subscription.toast.purchase.failed.sub_off", duration: 3))
                         }
                         return
                     }
@@ -178,7 +306,7 @@ extension SubscriptionDetailView {
                 }
             }
         } label: {
-            Text(isSubscribed ? "更新订阅" : "立即订阅")
+            Text(isSubscribed ? "iap.subscription.action.update_purchase" : "iap.subscription.action.purchase")
                 .font(.headline)
                 .foregroundColor(.white)
                 .padding(.vertical)
@@ -195,44 +323,112 @@ struct SubscriptionCardView: View {
     let isSelected: Bool
     
     var body: some View {
-        VStack {
-            VStack(spacing: 20) {
-                Text(product.displayName)
-                    .font(.headline)
-                
-                Text(product.description)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            
-            Spacer()
-            
-            Text(product.displayPrice)
+        VStack(spacing: 20) {
+            Text(product.displayName)
                 .font(.headline)
+                .foregroundStyle(isSelected ? Color.white : Color.thirdText)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(product.description)
+                .font(.subheadline)
+                .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+            // 显示平均到每天的价格
+            if let dailyPriceText = dailyPriceText {
+                Text(dailyPriceText)
+                    .font(.subheadline)
+                    .foregroundStyle(isSelected ? Color.white : Color.thirdText)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .background(isSelected ? Color.orange.opacity(0.8) : Color.orange.opacity(0.2))
+                    .cornerRadius(8)
+            }
+            Text(product.displayPrice)
+                .font(isSelected ? .headline: .subheadline)
+                .foregroundStyle(isSelected ? Color.white : Color.thirdText)
         }
+        .frame(width: 160, height: 240)
         .padding()
-        .frame(width: 200, height: 300)
-        .background(isSelected ? Color.orange.opacity(0.2) : Color(.secondarySystemBackground))
+        .background(isSelected ? Color.orange.opacity(0.2) : Color.gray.opacity(0.2))
         .cornerRadius(14)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(isSelected ? Color.orange : Color.clear, lineWidth: 2)
         )
     }
+
+    // 计算每天的价格文本，例如："¥1.23 / 天"
+    private var dailyPriceText: LocalizedStringKey? {
+        guard let period = product.subscription?.subscriptionPeriod else {
+            return nil
+        }
+        
+        let totalDays = periodTotalDays(period)
+        guard totalDays > 0 else { return nil }
+        
+        let dailyPrice = product.price / Decimal(totalDays)
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = product.priceFormatStyle.currencyCode
+        formatter.maximumFractionDigits = 2
+
+        let number = dailyPrice as NSDecimalNumber
+        guard let formatted = formatter.string(from: number) else { return nil }
+
+        return "time.per_day \(formatted)"
+    }
+
+    // 将订阅周期统一转换为“天”
+    private func periodTotalDays(_ period: Product.SubscriptionPeriod) -> Int {
+        switch period.unit {
+        case .day:
+            return period.value
+        case .week:
+            return period.value * 7
+        case .month:
+            return period.value * 30
+        case .year:
+            return period.value * 365
+        @unknown default:
+            return 0
+        }
+    }
 }
 
 struct IAPHelpView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    
     var body: some View {
         VStack(spacing: 40) {
-            JustifiedText("    在iOS系统中进行订阅时，如果出现付款后权益未到账的情况，可能是您登陆App Store的appleID下有多个Sporreer账号，可先切换各账号查看是否购买在其他账号，或点击下方按钮查询当前appleID关联的已订阅账号，也可以稍等片刻尝试手动刷新一下订阅状态，如果仍有问题，可提交反馈并附上Apple支付账单截图，我们会尽快解决并给予回复，感谢您的支持！")
-                .border(.red)
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
+                Text("iap.subscription.action.help")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.clear)
+                Spacer()
+                Button(action: {
+                    navigationManager.append(.feedbackView(mailType: .iap))
+                }) {
+                    Text("action.feedback")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                }
+            }
+            JustifiedText("iap.subscription.help_prompts", textColor: UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1))
+                //.border(.red)
                 
             Button(action:{
                 Task {
                     await IAPManager.shared.queryEntitlementAccount()
                 }
             }) {
-                Text("点击查询")
+                Text("action.click_and_query")
                     .padding(.vertical)
                     .foregroundStyle(Color.white)
                     .frame(maxWidth: .infinity)
@@ -242,6 +438,13 @@ struct IAPHelpView: View {
             
             Spacer()
         }
-        .padding()
+        .padding(.horizontal)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
     }
+}
+
+#Preview {
+    return IAPHelpView()
 }

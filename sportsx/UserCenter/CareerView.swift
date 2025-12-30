@@ -20,13 +20,15 @@ struct CareerView: View {
                 // todo: 替换为更稳定的自定义menu
                 Menu {
                     ForEach(viewModel.seasons) { season in
-                        Button(season.seasonName) {
+                        Button(action: {
                             viewModel.selectedSeason = season
+                        }) {
+                            Text(LocalizedStringKey(season.seasonName))
                         }
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.selectedSeason?.seasonName ?? "未知")
+                        Text(LocalizedStringKey(viewModel.selectedSeason?.seasonName ?? "error.unknown"))
                             .font(.subheadline)
                             .foregroundColor(.white)
                         
@@ -107,34 +109,98 @@ struct CareerView: View {
             // 参与数据区域
             VStack(spacing: 15) {
                 HStack {
-                    Text("赛季数据")
+                    Text("competition.season.data")
                     Spacer()
                 }
                 .font(.headline)
                 .foregroundStyle(.white)
                 
-                statsCard(title: "赛季积分", value: viewModel.totalScore, iconName: "star.fill", color: .green)
-                statsCard(title: "赛季排名", value: viewModel.totalRank, iconName: "trophy.fill", color: .red)
-                
-                HStack(spacing: 15) {
-                    dataCard(title: "参与时间", value: formatTime(seconds: viewModel.totalTime), iconName: "clock.fill", color: .green)
-                    
-                    dataCard(title: "参与路程", value: String(format: "%.2fkm", viewModel.totalDistance), iconName: "figure.run", color: .blue)
-                    
-                    dataCard(title: "获得奖金", value: "¥\(viewModel.totalBonus)", iconName: "dollarsign.circle.fill", color: .yellow)
+                VStack {
+                    HStack {
+                        Text("competition.season.score")
+                        Spacer()
+                        Text("\(viewModel.totalScore)")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.white)
+                    Divider()
+                    HStack {
+                        Text("competition.season.ranking")
+                        Spacer()
+                        if let rank = viewModel.totalRank {
+                            Text("\(rank)")
+                        } else {
+                            Text("error.no_data")
+                        }
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.white)
+                    Divider()
+                    HStack(spacing: 15) {
+                        VStack(spacing: 5) {
+                            Image(systemName: "clock.fill")
+                                .font(.title2)
+                                .foregroundStyle(Color.green)
+                            (Text(String(format: "%.2f", viewModel.totalTime / 3600)) + Text("time.hour"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.white)
+                            Text("competition.season.total_time")
+                                .font(.caption)
+                                .foregroundStyle(Color.secondText)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        
+                        VStack(spacing: 5) {
+                            Image(systemName: "figure.run")
+                                .font(.title2)
+                                .foregroundStyle(Color.blue)
+                            (Text(String(format: "%.2f", viewModel.totalDistance)) + Text("distance.km"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.white)
+                            Text("competition.season.total_distance")
+                                .font(.caption)
+                                .foregroundStyle(Color.secondText)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        
+                        VStack(spacing: 5) {
+                            Image("voucher")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 25)
+                            Text("\(viewModel.totalBonus)")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.white)
+                            Text("competition.season.total_rewards")
+                                .font(.caption)
+                                .foregroundStyle(Color.secondText)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                    }
                 }
+                .padding()
+                .background(.white.opacity(0.3))
+                .cornerRadius(12)
             }
             .padding(.horizontal)
             
             // 赛事积分记录
             VStack(alignment: .leading, spacing: 10) {
-                Text("赛事积分记录")
+                Text("competition.season.event_records")
                     .font(.headline)
                     .foregroundStyle(.white)
                 if viewModel.competitionScoreRecords.isEmpty {
                     HStack {
                         Spacer()
-                        Text("无数据")
+                        Text("error.no_data")
                             .foregroundStyle(Color.secondText)
                         Spacer()
                     }
@@ -148,56 +214,6 @@ struct CareerView: View {
             }
             .padding(.horizontal)
         }
-    }
-    
-    // 统计卡片
-    private func statsCard(title: String, value: Int?, iconName: String, color: Color) -> some View {
-        HStack {
-            Image(systemName: iconName)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.subheadline)
-                .foregroundColor(.secondText)
-            Spacer()
-            if let value = value {
-                Text("\(value)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            } else {
-                Text("无数据")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            }
-        }
-        .padding()
-        .background(.white.opacity(0.3))
-        .cornerRadius(12)
-    }
-    
-    // 数据卡片
-    private func dataCard(title: String, value: String, iconName: String, color: Color) -> some View {
-        VStack(spacing: 5) {
-            Image(systemName: iconName)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondText)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(.white.opacity(0.3))
-        .cornerRadius(10)
     }
     
     // 能力条
@@ -230,18 +246,6 @@ struct CareerView: View {
                 //.border(.red)
         }
     }
-    
-    // 格式化时间
-    private func formatTime(seconds: Double) -> String {
-        let hours = seconds / 3600
-        return String(format: "%.2fh", hours)
-    }
-    
-    // 格式化距离
-    //private func formatDistance(meters: Double) -> String {
-    //    let kilometers = meters / 1000
-    //    return String(format: "%.2fkm", kilometers)
-    //}
 }
 
 
@@ -254,7 +258,7 @@ struct LocalCareerView: View {
     var body: some View {
         VStack(spacing: 20) {
             if !userManager.isLoggedIn {
-                Text("登录后查看")
+                Text("toast.no_login.2")
                     .foregroundStyle(Color.secondText)
                     .padding(.top, 100)
             } else {
@@ -262,13 +266,15 @@ struct LocalCareerView: View {
                     // todo: 替换为更稳定的自定义menu
                     Menu {
                         ForEach(viewModel.seasons) { season in
-                            Button(season.seasonName) {
+                            Button(action: {
                                 viewModel.selectedSeason = season
+                            }) {
+                                Text(LocalizedStringKey(season.seasonName))
                             }
                         }
                     } label: {
                         HStack {
-                            Text(viewModel.selectedSeason?.seasonName ?? "未知")
+                            Text(LocalizedStringKey(viewModel.selectedSeason?.seasonName ?? "error.unknown"))
                                 .font(.subheadline)
                                 .foregroundColor(.white)
                             
@@ -289,12 +295,12 @@ struct LocalCareerView: View {
                 // 参与数据区域
                 VStack(spacing: 15) {
                     HStack {
-                        Text("赛季数据")
+                        Text("competition.season.data")
                             .font(.headline)
                             .foregroundStyle(.white)
                         Spacer()
                         HStack {
-                            Text("积分榜")
+                            Text("competition.season.score.leaderboard")
                             Image(systemName: "chevron.right")
                         }
                         .font(.subheadline)
@@ -310,28 +316,92 @@ struct LocalCareerView: View {
                         }
                     }
                     
-                    statsCard(title: "赛季积分", value: viewModel.totalScore, iconName: "star.fill", color: .green)
-                    statsCard(title: "赛季排名", value: viewModel.totalRank, iconName: "trophy.fill", color: .red)
-                    
-                    HStack(spacing: 15) {
-                        dataCard(title: "参与时间", value: formatTime(seconds: viewModel.totalTime), iconName: "clock.fill", color: .green)
-                        
-                        dataCard(title: "参与路程", value: String(format: "%.2fkm", viewModel.totalDistance), iconName: "figure.run", color: .blue)
-                        
-                        dataCard(title: "获得奖金", value: "¥\(viewModel.totalBonus)", iconName: "dollarsign.circle.fill", color: .yellow)
+                    VStack {
+                        HStack {
+                            Text("competition.season.score")
+                            Spacer()
+                            Text("\(viewModel.totalScore)")
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.white)
+                        Divider()
+                        HStack {
+                            Text("competition.season.ranking")
+                            Spacer()
+                            if let rank = viewModel.totalRank {
+                                Text("\(rank)")
+                            } else {
+                                Text("error.no_data")
+                            }
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.white)
+                        Divider()
+                        HStack(spacing: 15) {
+                            VStack(spacing: 5) {
+                                Image(systemName: "clock.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.green)
+                                (Text(String(format: "%.2f", viewModel.totalTime / 3600)) + Text("time.hour"))
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.white)
+                                Text("competition.season.total_time")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.secondText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            
+                            VStack(spacing: 5) {
+                                Image(systemName: "figure.run")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.blue)
+                                (Text(String(format: "%.2f", viewModel.totalDistance)) + Text("distance.km"))
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.white)
+                                Text("competition.season.total_distance")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.secondText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            
+                            VStack(spacing: 5) {
+                                Image("voucher")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 25)
+                                Text("\(viewModel.totalBonus)")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.white)
+                                Text("competition.season.total_rewards")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.secondText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                        }
                     }
+                    .padding()
+                    .background(.white.opacity(0.3))
+                    .cornerRadius(12)
                 }
                 .padding(.horizontal)
                 
                 // 赛事积分记录
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("赛事积分记录")
+                    Text("competition.season.event_records")
                         .font(.headline)
                         .foregroundStyle(.white)
                     if viewModel.competitionScoreRecords.isEmpty {
                         HStack {
                             Spacer()
-                            Text("无数据")
+                            Text("error.no_data")
                                 .foregroundStyle(Color.secondText)
                             Spacer()
                         }
@@ -346,56 +416,6 @@ struct LocalCareerView: View {
                 .padding(.horizontal)
             }
         }
-    }
-    
-    // 统计卡片
-    private func statsCard(title: String, value: Int?, iconName: String, color: Color) -> some View {
-        HStack {
-            Image(systemName: iconName)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.subheadline)
-                .foregroundColor(.secondText)
-            Spacer()
-            if let value = value {
-                Text("\(value)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            } else {
-                Text("无数据")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            }
-        }
-        .padding()
-        .background(.white.opacity(0.3))
-        .cornerRadius(12)
-    }
-    
-    // 数据卡片
-    private func dataCard(title: String, value: String, iconName: String, color: Color) -> some View {
-        VStack(spacing: 5) {
-            Image(systemName: iconName)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondText)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(.white.opacity(0.3))
-        .cornerRadius(10)
     }
     
     // 能力条
@@ -427,12 +447,6 @@ struct LocalCareerView: View {
                 .foregroundColor(.white)
                 //.border(.red)
         }
-    }
-    
-    // 格式化时间
-    private func formatTime(seconds: Double) -> String {
-        let hours = seconds / 3600
-        return String(format: "%.2fh", hours)
     }
 }
 
@@ -502,89 +516,60 @@ struct CompetitionScoreCard: View {
     let trackRecord: CareerRecord
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 10) {
             HStack {
                 Text(trackRecord.eventName)
-                    .font(.headline)
                     .foregroundColor(.white)
-                
                 Spacer()
-                
                 Text(trackRecord.region)
-                    .font(.subheadline)
                     .foregroundColor(.secondText)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
-            .background(Color.orange.opacity(0.8))
+            .fontWeight(.bold)
+            .foregroundStyle(Color.white)
+            
+            Divider()
             
             // 赛道和积分信息
             HStack(alignment: .center) {
                 Text(trackRecord.trackName)
-                    .font(.headline)
                     .foregroundColor(.white)
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "rosette")
-                        .foregroundColor(.pink)
-                    
-                    Text("\(trackRecord.trackScore)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondText)
-                }
                 
                 Spacer()
                 
                 HStack(alignment: .center) {
-                    Text("+")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                    Text("\(trackRecord.score)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                    Text("积分")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    Text("+ \(trackRecord.score)/\(trackRecord.trackScore)")
+                    Text("competition.track.leaderboard.score")
                 }
-                .padding(.vertical, 5)
-                .padding(.horizontal)
-                .background(Color.secondText)
-                .cornerRadius(10)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal)
-            .background(.white.opacity(0.3))
+            .foregroundColor(.secondText)
+            
+            Divider()
             
             HStack(alignment: .center) {
-                Text("日期")
+                Text("time.date")
                 Spacer()
-                Text("\(DateDisplay.formattedDate(trackRecord.recordDate))")
+                Text(LocalizedStringKey(DateDisplay.formattedDate(trackRecord.recordDate)))
             }
-            .font(.caption)
             .foregroundColor(.secondText)
-            .padding(.vertical, 8)
-            .padding(.horizontal)
-            .background(.white.opacity(0.3))
+            
+            Divider()
             
             HStack {
-                Text("记录详情")
-                    .padding(.vertical, 4)
-                    .padding(.horizontal)
-                    .background(Color.orange)
-                    .cornerRadius(10)
-                    .exclusiveTouchTapGesture {
-                        if sport == .Bike {
-                            appState.navigationManager.append(.bikeRecordDetailView(recordID: trackRecord.recordID))
-                        } else if sport == .Running {
-                            appState.navigationManager.append(.runningRecordDetailView(recordID: trackRecord.recordID))
-                        }
+                HStack(spacing: 4) {
+                    Text("competition.record.detail")
+                    Image(systemName: "chevron.right")
+                }
+                .exclusiveTouchTapGesture {
+                    if sport == .Bike {
+                        appState.navigationManager.append(.bikeRecordDetailView(recordID: trackRecord.recordID))
+                    } else if sport == .Running {
+                        appState.navigationManager.append(.runningRecordDetailView(recordID: trackRecord.recordID))
                     }
+                }
                 Spacer()
                 
-                HStack {
-                    Text("完整排行")
+                HStack(spacing: 4) {
+                    Text("competition.track.leaderboard.ranking.2")
                     Image(systemName: "chevron.right")
                 }
                 .exclusiveTouchTapGesture {
@@ -595,11 +580,11 @@ struct CompetitionScoreCard: View {
                     }
                 }
             }
-            .padding(.vertical, 5)
-            .padding(.horizontal)
             .foregroundStyle(Color.secondText)
-            .background(.white.opacity(0.3))
         }
+        .font(.subheadline)
+        .padding()
+        .background(.white.opacity(0.3))
         .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
     }

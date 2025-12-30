@@ -9,18 +9,40 @@ import SwiftUI
 import Combine
 
 struct AdsCard: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    
     let width: CGFloat
     let height: CGFloat
-    let image: String
+    let image: String?
+    let imageLocal: String?
+    let route: AppRoute?
     var body: some View {
-        CachedAsyncImage(
-            urlString: image,
-            placeholder: Image("Ads"),
-            errorImage: Image(systemName: "photo.badge.exclamationmark")
-        )
-        .scaledToFill()
-        .frame(width: width, height: height)
-        .clipped()
+        if let url = image {
+            CachedAsyncImage(
+                urlString: url,
+                placeholder: Image("Ads"),
+                errorImage: Image(systemName: "photo.badge.exclamationmark")
+            )
+            .scaledToFill()
+            .frame(width: width, height: height)
+            .clipped()
+        } else if let localURL = imageLocal {
+            Image(localURL)
+                .resizable()
+                .scaledToFill()
+                .frame(width: width, height: height)
+                .clipped()
+                .exclusiveTouchTapGesture {
+                    if let desRoute = route {
+                        navigationManager.append(desRoute)
+                    }
+                }
+        } else {
+            Image("Ads")
+                .resizable()
+                .scaledToFill()
+                .frame(width: width, height: height)
+        }
     }
 }
 
@@ -30,7 +52,7 @@ struct AdsBannerView: View {
     var width: CGFloat
     var height: CGFloat
     
-    @State var ads: [Ad]
+    @State var ads: [AdInfo]
     @State var currentIndex = 1
     @State private var cancellable: AnyCancellable? = nil
 
@@ -52,16 +74,16 @@ struct AdsBannerView: View {
                 }
             ) {
                 // 添加一个重复的最后一页用于无限循环
-                AdsCard(width: width, height: height, image: ads.last?.imageURL ?? "")
-                    .frame(width: width, height: height)
+                AdsCard(width: width, height: height, image: ads.last?.imageURL, imageLocal: ads.last?.imageLocalURL, route: ads.last?.appRoute)
+                    //.frame(width: width, height: height)
                 
                 ForEach(ads.indices, id: \.self) { index in
-                    AdsCard(width: width, height: height, image: ads[index].imageURL)
-                        .frame(width: width, height: height)
+                    AdsCard(width: width, height: height, image: ads[index].imageURL, imageLocal: ads[index].imageLocalURL, route: ads[index].appRoute)
+                        //.frame(width: width, height: height)
                 }
                 // 添加一个重复的第一页用于无限循环
-                AdsCard(width: width, height: height, image: ads.first?.imageURL ?? "")
-                    .frame(width: width, height: height)
+                AdsCard(width: width, height: height, image: ads.first?.imageURL, imageLocal: ads.first?.imageLocalURL, route: ads.first?.appRoute)
+                    //.frame(width: width, height: height)
             }
             .frame(width: width, height: height)
             
@@ -158,7 +180,10 @@ struct HorizontalScrollView<Content: View>: UIViewRepresentable {
         ])
 
         // 初始滚动到 currentIndex
-        scrollView.contentOffset.x = CGFloat(currentIndex) * width
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            scrollView.contentOffset.x = CGFloat(currentIndex) * width
+            context.coordinator.islayoutFinished = true
+        }
 
         return scrollView
     }
@@ -176,6 +201,7 @@ struct HorizontalScrollView<Content: View>: UIViewRepresentable {
 
     class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: HorizontalScrollView
+        var islayoutFinished = false
 
         init(_ parent: HorizontalScrollView) {
             self.parent = parent
@@ -186,6 +212,7 @@ struct HorizontalScrollView<Content: View>: UIViewRepresentable {
         }
 
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            guard islayoutFinished else { return }
             let offsetX = scrollView.contentOffset.x
             let pageWidth = parent.width
             let totalPages = parent.adsCount + 2 // 多加首尾
@@ -240,16 +267,229 @@ struct HorizontalScrollView<Content: View>: UIViewRepresentable {
     }
 }
 
+struct TextCard: View {
+    //let width: CGFloat
+    let height: CGFloat
+    let text: String
 
-
-
-#Preview {
-    let appState = AppState.shared
-    let ads: [Ad] = [
-        Ad(imageURL: "qwe"),
-        Ad(imageURL: "qwe"),
-        Ad(imageURL: "qwe")
-    ]
-    return AdsBannerView(width: 300, height: 200, ads: ads)
-        .environmentObject(appState)
+    var body: some View {
+        Text(text)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(.white)
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+            .frame(/*width: width, */height: height, alignment: .leading)
+            .padding(.horizontal, 12)
+            //.background(Color.black.opacity(0.4))
+    }
 }
+
+struct TextBannerView: View {
+    //let width: CGFloat
+    let height: CGFloat
+    let texts: [String]
+
+    @State private var currentIndex: Int = 1
+    @State private var cancellable: AnyCancellable?
+
+    var body: some View {
+        ZStack {
+            VerticalScrollView(
+                currentIndex: $currentIndex,
+                itemCount: texts.count,
+                height: height,
+                onScrollWillBegin: {
+                    stopAutoScroll()
+                },
+                onScrollDidEnd: {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        startAutoScroll()
+                    }
+                }
+            ) {
+                // 尾部复制页
+                HStack {
+                    TextCard(
+                        //width: width,
+                        height: height,
+                        text: texts.last ?? ""
+                    )
+                    Spacer()
+                }
+
+                ForEach(texts.indices, id: \.self) { index in
+                    HStack {
+                        TextCard(
+                            //width: width,
+                            height: height,
+                            text: texts[index]
+                        )
+                        Spacer()
+                    }
+                }
+
+                // 头部复制页
+                HStack {
+                    TextCard(
+                        //width: width,
+                        height: height,
+                        text: texts.first ?? ""
+                    )
+                    Spacer()
+                }
+            }
+            .frame(/*width: width, */height: height)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .onAppear {
+            startAutoScroll()
+        }
+        .onDisappear {
+            stopAutoScroll()
+        }
+    }
+
+    // MARK: - Auto Scroll
+
+    func startAutoScroll() {
+        guard texts.count > 0 else { return }
+        if cancellable != nil { return }
+
+        cancellable = Timer.publish(every: 3, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                currentIndex += 1
+            }
+    }
+
+    func stopAutoScroll() {
+        cancellable?.cancel()
+        cancellable = nil
+    }
+}
+
+struct VerticalScrollView<Content: View>: UIViewRepresentable {
+    @Binding var currentIndex: Int
+    let itemCount: Int
+    let height: CGFloat
+    let onScrollWillBegin: (() -> Void)?
+    let onScrollDidEnd: (() -> Void)?
+    let content: () -> Content
+    
+
+    init(
+        currentIndex: Binding<Int>,
+        itemCount: Int,
+        height: CGFloat,
+        onScrollWillBegin: (() -> Void)? = nil,
+        onScrollDidEnd: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self._currentIndex = currentIndex
+        self.itemCount = itemCount
+        self.height = height
+        self.onScrollWillBegin = onScrollWillBegin
+        self.onScrollDidEnd = onScrollDidEnd
+        self.content = content
+    }
+
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.isPagingEnabled = true
+        scrollView.alwaysBounceVertical = true
+        scrollView.delegate = context.coordinator
+
+        let hosting = UIHostingController(
+            rootView: VStack(spacing: 0, content: content)
+        )
+        hosting.view.translatesAutoresizingMaskIntoConstraints = false
+        hosting.view.backgroundColor = .clear
+
+        scrollView.addSubview(hosting.view)
+
+        NSLayoutConstraint.activate([
+            hosting.view.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            hosting.view.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            hosting.view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            hosting.view.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            hosting.view.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
+        ])
+        // todo: 优化这里的 hack
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            scrollView.setContentOffset(
+                CGPoint(x: 0, y: CGFloat(self.currentIndex) * self.height),
+                animated: false
+            )
+            context.coordinator.islayoutFinished = true
+        }
+        return scrollView
+    }
+
+    func updateUIView(_ uiView: UIScrollView, context: Context) {
+        let expectedOffset = CGFloat(currentIndex) * height
+        if abs(uiView.contentOffset.y - expectedOffset) > 1 {
+            //print(uiView.contentOffset.y, expectedOffset)
+            uiView.setContentOffset(
+                CGPoint(x: 0, y: expectedOffset),
+                animated: true
+            )
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIScrollViewDelegate {
+        let parent: VerticalScrollView
+        var islayoutFinished = false
+        
+        init(_ parent: VerticalScrollView) {
+            self.parent = parent
+        }
+
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            parent.onScrollWillBegin?()
+        }
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            guard islayoutFinished else { return }
+            let offsetY = scrollView.contentOffset.y
+            let pageHeight = parent.height
+            let totalPages = parent.itemCount + 2
+            if offsetY <= 0 {
+                scrollView.setContentOffset(
+                    CGPoint(x: 0, y: CGFloat(parent.itemCount) * pageHeight),
+                    animated: false
+                )
+                DispatchQueue.main.async {
+                    self.parent.currentIndex = self.parent.itemCount
+                }
+            } else if offsetY >= CGFloat(totalPages - 1) * pageHeight {
+                scrollView.setContentOffset(
+                    CGPoint(x: 0, y: pageHeight),
+                    animated: false
+                )
+                DispatchQueue.main.async {
+                    self.parent.currentIndex = 1
+                }
+            }
+        }
+
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            let page = Int((scrollView.contentOffset.y / parent.height).rounded())
+            DispatchQueue.main.async {
+                if page == 0 {
+                    self.parent.currentIndex = self.parent.itemCount
+                } else if page == self.parent.itemCount + 1 {
+                    self.parent.currentIndex = 1
+                } else {
+                    self.parent.currentIndex = page
+                }
+                self.parent.onScrollDidEnd?()
+            }
+        }
+    }
+}
+

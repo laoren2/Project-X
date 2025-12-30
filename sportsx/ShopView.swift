@@ -45,7 +45,9 @@ struct ShopView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(Color.secondText)
                             .onTapGesture {
-                                assetManager.queryCCAssets()
+                                Task {
+                                    await assetManager.queryCCAssets()
+                                }
                             }
                         AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
                         AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
@@ -69,7 +71,7 @@ struct ShopView: View {
                     HStack {
                         Spacer()
                         VStack(spacing: 10) {
-                            Text("道具")
+                            Text("shop.tab.props")
                                 .font(.system(size: 16, weight: selectedTab == 0 ? .semibold : .regular))
                                 .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
                             Rectangle()
@@ -86,7 +88,7 @@ struct ShopView: View {
                     HStack {
                         Spacer()
                         VStack(spacing: 10) {
-                            Text("装备卡")
+                            Text("shop.tab.equip_card")
                                 .font(.system(size: 16, weight: selectedTab == 1 ? .semibold : .regular))
                                 .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
                             Rectangle()
@@ -143,7 +145,10 @@ struct ShopView: View {
                                             Text(selected.name)
                                                 .bold()
                                             Spacer()
-                                            Image(systemName: selected.ccassetType.iconName)
+                                            Image(selected.ccassetType.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
                                             Text("\(selected.price)")
                                         }
                                         .font(.system(size: 15))
@@ -162,14 +167,32 @@ struct ShopView: View {
                                         .background(Color.gray.opacity(0.8))
                                         .cornerRadius(10)
                                     }
-                                    Text("购买")
+                                    Text("shop.action.buy")
                                         .foregroundColor(.white)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
                                         .background(Color.orange)
                                         .cornerRadius(8)
                                         .onTapGesture {
-                                            assetManager.purchaseCPWithCC(assetID: selected.asset_id, amount: 1)
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "shop.action.buy",
+                                                bottomButtons: [
+                                                    .cancel(),
+                                                    .confirm {
+                                                        assetManager.purchaseCPWithCC(assetID: selected.asset_id, amount: 1)
+                                                    }
+                                                ]
+                                            ) {
+                                                RichTextLabel(
+                                                    templateKey: "shop.popup",
+                                                    items:
+                                                        [
+                                                            ("MONEY", .image(selected.ccassetType.iconName, width: 20)),
+                                                            ("MONEY", .text(" * \(selected.price)")),
+                                                            ("ASSET", .text(selected.name))
+                                                        ]
+                                                )
+                                            }
                                         }
                                 }
                                 .padding()
@@ -178,7 +201,6 @@ struct ShopView: View {
                         }
                     }
                     .frame(maxHeight: .infinity)
-                    .background(Color.gray.opacity(0.2))
                     .tag(0)
                     
                     GeometryReader { geo in
@@ -198,18 +220,18 @@ struct ShopView: View {
                                                     RoundedRectangle(cornerRadius: 12)
                                                         .stroke(selectedCard?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
                                                 )
-                                            if !AppVersionManager.shared.checkMinimumVersion(card.version) {
+                                            /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
                                                 GeometryReader { geometry in
-                                                    Text("不可用")
+                                                    Text("warehouse.equipcard.unavailable")
                                                         .font(.system(size: geometry.size.width * 0.2, weight: .bold))
                                                         .foregroundColor(.white)
                                                         .padding(geometry.size.width * 0.04)
                                                         .background(Color.red.opacity(0.5))
                                                         .cornerRadius(geometry.size.width * 0.04)
                                                 }
-                                            }
+                                            }*/
                                         }
-                                        .contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
+                                        //.contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
                                         .onTapGesture {
                                             if selectedCard?.id == card.id {
                                                 selectedCard = nil
@@ -232,12 +254,15 @@ struct ShopView: View {
                                             Text(card.name)
                                                 .bold()
                                             if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                Text("客户端版本过低，卡牌暂时无法使用")
+                                                Text("warehouse.equipcard.unavailable.detail")
                                                     .font(.system(size: 13))
                                                     .foregroundColor(.red)
                                             }
                                             Spacer()
-                                            Image(systemName: card.ccasset_type.iconName)
+                                            Image(card.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
                                             Text("\(card.price)")
                                         }
                                         .font(.system(size: 15))
@@ -256,14 +281,32 @@ struct ShopView: View {
                                         .background(Color.gray.opacity(0.8))
                                         .cornerRadius(10)
                                     }
-                                    Text("购买")
+                                    Text("shop.action.buy")
                                         .foregroundColor(.white)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
                                         .background(Color.orange)
                                         .cornerRadius(8)
                                         .onTapGesture {
-                                            assetManager.purchaseMCWithCC(cardID: card.def_id)
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "shop.action.buy",
+                                                bottomButtons: [
+                                                    .cancel(),
+                                                    .confirm {
+                                                        assetManager.purchaseMCWithCC(cardID: card.def_id)
+                                                    }
+                                                ]
+                                            ) {
+                                                RichTextLabel(
+                                                    templateKey: "shop.popup",
+                                                    items:
+                                                        [
+                                                            ("MONEY", .image(card.ccasset_type.iconName, width: 20)),
+                                                            ("MONEY", .text(" * \(card.price)")),
+                                                            ("ASSET", .text(card.name))
+                                                        ]
+                                                )
+                                            }
                                         }
                                 }
                                 .padding()
@@ -272,10 +315,10 @@ struct ShopView: View {
                         }
                     }
                     .frame(maxHeight: .infinity)
-                    .background(Color.gray.opacity(0.2))
                     .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .background(Color.gray.opacity(0.2))
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -344,8 +387,10 @@ struct AssetCounterView: View {
     
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 15))
+            Image(icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20)
             Text("\(amount)")
                 .font(.headline)
         }
@@ -368,7 +413,10 @@ struct CPAssetShopCardView: View {
             .clipped()
             
             HStack(spacing: 2) {
-                Image(systemName: asset.ccassetType.iconName)
+                Image(asset.ccassetType.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15)
                 Text("\(asset.price)")
             }
             .font(.caption2)
@@ -395,7 +443,10 @@ struct MagicCardShopCardView: View {
                 //.frame(height: 120)
             
             HStack(spacing: 2) {
-                Image(systemName: card.ccasset_type.iconName)
+                Image(card.ccasset_type.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 15)
                 Text("\(card.price)")
             }
             .font(.caption2)
@@ -414,47 +465,67 @@ struct MagicCardShopCardView: View {
 }
 
 struct IAPCouponView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject private var iapManager = IAPManager.shared
     
     var body: some View {
-        VStack {
-            HStack(alignment: .bottom) {
-                Text("点券商城")
-                    .font(.title)
-                Spacer()
-                HStack {
-                    Text("点券：\(assetManager.coupon)")
+        VStack(spacing: 30) {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
                 }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
             }
-            .padding()
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(), spacing: 20),
-                    GridItem(.flexible(), spacing: 20),
-                    GridItem(.flexible(), spacing: 20)
-                ],
-                spacing: 20
-            ) {
-                ForEach(iapManager.couponProducts, id: \.id) { info in
-                    CouponCardView(productInfo: info)
-                        .frame(height: 200)
-                        .exclusiveTouchTapGesture {
-                            Task {
-                                let progressToast = LoadingToast()
-                                DispatchQueue.main.async {
-                                    ToastManager.shared.start(toast: progressToast)
-                                }
-                                await iapManager.purchaseCoupon(product: info.product)
-                                DispatchQueue.main.async {
-                                    ToastManager.shared.finish()
+            .padding(.horizontal)
+            VStack {
+                HStack(alignment: .bottom) {
+                    Text("iap.coupon.title")
+                        .font(.title)
+                    Spacer()
+                    HStack(spacing: 0) {
+                        Image("coupon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("：\(assetManager.coupon)")
+                    }
+                }
+                .foregroundStyle(Color.white)
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 20),
+                        GridItem(.flexible(), spacing: 20),
+                        GridItem(.flexible(), spacing: 20)
+                    ],
+                    spacing: 20
+                ) {
+                    ForEach(iapManager.couponProducts, id: \.id) { info in
+                        CouponCardView(productInfo: info)
+                        //.frame(height: 200)
+                            .exclusiveTouchTapGesture {
+                                Task {
+                                    let progressToast = LoadingToast()
+                                    DispatchQueue.main.async {
+                                        ToastManager.shared.start(toast: progressToast)
+                                    }
+                                    await iapManager.purchaseCoupon(product: info.product)
+                                    DispatchQueue.main.async {
+                                        ToastManager.shared.finish()
+                                    }
                                 }
                             }
-                        }
-                        .border(.blue)
+                    }
                 }
+                Spacer()
             }
+            .padding()
         }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .onFirstAppear {
             Task {
                 await iapManager.loadCouponProducts()
@@ -464,36 +535,38 @@ struct IAPCouponView: View {
 }
 
 struct CouponCardView: View {
+    let iapManager = IAPManager.shared
     let productInfo: CouponProductInfo
     
     var body: some View {
-        ZStack {
-            Image("Ads")
+        ZStack(alignment: .top) {
+            let bg = iapManager.couponImages[productInfo.product.id] ?? "coupon"
+            Image("coupon_background")
                 .resizable()
                 .scaledToFit()
                 .clipped()
-                //.aspectRatio(5/7, contentMode: .fit)
-                .border(.red)
             VStack(spacing: 0) {
-                Image("single_app_icon")
-                    //.renderingMode(.template)
+                Image(bg)
                     .resizable()
                     .scaledToFit()
                     .clipped()
-                    .border(.yellow)
-                HStack(spacing: 0) {
+                HStack(spacing: 2) {
                     Text("\(productInfo.count)")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.green)
                     if let gift = productInfo.count_gift {
                         Text("+\(gift)")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(Color.pink)
                     }
                 }
                 .padding(.vertical, 5)
                 Text(productInfo.product.displayPrice)
-                    .padding(.vertical, 5)
+                    .padding(.vertical, 8)
                     .font(.headline)
+                    .frame(maxWidth: .infinity)
                     .foregroundStyle(Color.white)
                     .background(Color.orange)
-                    .border(.green)
             }
         }
     }

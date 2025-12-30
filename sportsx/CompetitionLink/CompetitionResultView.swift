@@ -89,6 +89,20 @@ struct BikeRecordDetailView: View {
     
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
     
+    var total_distance: Double {
+        guard viewModel.basePath.count > 1 else { return 0 }
+        var dist: Double = 0
+        for i in 0..<(viewModel.basePath.count - 1) {
+            let p1 = viewModel.basePath[i]
+            let p2 = viewModel.basePath[i + 1]
+            dist += GeographyTool.haversineDistance(
+                lat1: p1.lat, lon1: p1.lon,
+                lat2: p2.lat, lon2: p2.lon
+            )
+        }
+        return dist
+    }
+    
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID))
     }
@@ -96,19 +110,28 @@ struct BikeRecordDetailView: View {
     var body: some View {
         VStack {
             HStack {
-                CommonIconButton(icon: "chevron.left") {
-                    adjustNavigationPath()
-                }
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
-                Spacer()
-                Text("bike比赛结算")
-                    .font(.system(size: 18, weight: .bold))
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
+                    .padding(.vertical, 5)
+                    .padding(.trailing, 20)
+                    .contentShape(Rectangle())
+                    .exclusiveTouchTapGesture {
+                        adjustNavigationPath()
+                    }
+                Spacer()
+                HStack {
+                    Text(LocalizedStringKey(SportName.Bike.name))
+                    Text("competition.record.result")
+                }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
                 Spacer()
                 Button(action: {}) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
+                        .padding(.vertical, 5)
+                        .padding(.trailing, 20)
                         .foregroundColor(.clear)
                 }
             }
@@ -139,7 +162,7 @@ struct BikeRecordDetailView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
                             HStack {
-                                Text("成绩与数据")
+                                Text("competition.record.time_and_data")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
@@ -149,7 +172,14 @@ struct BikeRecordDetailView: View {
                             // 成绩总览
                             VStack(spacing: 8) {
                                 HStack {
-                                    Text("原始时间:")
+                                    (Text("competition.track.distance") + Text(":"))
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    (Text("competition.record.original_time") + Text(":"))
                                         .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
@@ -159,7 +189,7 @@ struct BikeRecordDetailView: View {
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    Text("有效时间:")
+                                    (Text("competition.record.valid_time") + Text(":"))
                                         .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
@@ -169,31 +199,23 @@ struct BikeRecordDetailView: View {
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    Text("状态:")
+                                    (Text("common.status") + Text(":"))
                                         .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     if detailInfo.status == .completed {
                                         if detailInfo.isFinishComputed == false {
-                                            Text("计算中...")
+                                            Text("competition.record.status.computing")
                                                 .foregroundColor(.orange)
                                                 .bold()
                                         } else {
-                                            Text("已完成")
+                                            Text("competition.record.status.completed")
                                                 .foregroundColor(.green)
                                                 .bold()
                                         }
-                                    } else if detailInfo.status == .expired {
-                                        Text("数据异常")
-                                            .foregroundColor(.red)
-                                            .bold()
-                                    } else if detailInfo.status == .toBeVerified {
-                                        Text("数据校验中...")
-                                            .foregroundColor(.orange)
-                                            .bold()
-                                    } else if detailInfo.status == .invalid {
-                                        Text("数据校验失败")
-                                            .foregroundColor(.red)
+                                    } else {
+                                        Text(LocalizedStringKey(detailInfo.status.displayName))
+                                            .foregroundStyle(detailInfo.status.backgroundColor)
                                             .bold()
                                     }
                                 }
@@ -208,9 +230,9 @@ struct BikeRecordDetailView: View {
                                             VStack {
                                                 ZStack(alignment: .center) {
                                                     HStack {
-                                                        Text("心率")
+                                                        Text("competition.realtime.heartrate")
                                                         Spacer()
-                                                        Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                        Text(String(format: "%.0f - %.0f ", rangeMin, rangeMax)) + Text("heartrate.unit")
                                                     }
                                                     .foregroundStyle(Color.red)
                                                     .contentShape(Rectangle())
@@ -219,7 +241,7 @@ struct BikeRecordDetailView: View {
                                                     }
                                                     if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
                                                        let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
-                                                        Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
+                                                        (Text(String(format: "%.0f - %.0f ", indexMin, indexMax)) + Text("heartrate.unit"))
                                                             .padding(.horizontal)
                                                             .padding(.vertical, 10)
                                                             .font(.caption2)
@@ -227,7 +249,7 @@ struct BikeRecordDetailView: View {
                                                             .background(Color.red.opacity(0.8))
                                                             .clipShape(RoundedRectangle(cornerRadius: 10))
                                                     } else {
-                                                        Text("无数据")
+                                                        Text("error.no_data")
                                                             .padding(.horizontal)
                                                             .padding(.vertical, 10)
                                                             .font(.caption2)
@@ -278,10 +300,10 @@ struct BikeRecordDetailView: View {
                                             }
                                         } else {
                                             HStack {
-                                                Text("心率")
+                                                Text("competition.realtime.heartrate")
                                                 Spacer()
                                                 if let bpmAvg = heartRateAvg {
-                                                    Text(String(format: "平均 %.0f 次/分", bpmAvg))
+                                                    Text("common.average") + Text(String(format: " %.0f ", bpmAvg)) + Text("heartrate.unit")
                                                 }
                                             }
                                             .padding()
@@ -297,16 +319,16 @@ struct BikeRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("海拔")
+                                                    Text("competition.track.altitude.2")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
+                                                    Text(String(format: "%.0f - %.0f ", overallAltitudeRange.min, overallAltitudeRange.max)) + Text("distance.m")
                                                 }
                                                 .foregroundStyle(Color.green)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     isAltitudeDetail.toggle()
                                                 }
-                                                Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
+                                                (Text(String(format: "%.0f ", viewModel.samplePath[progressIndex].altitude_avg)) + Text("distance.m"))
                                                     .padding(.horizontal)
                                                     .padding(.vertical, 10)
                                                     .font(.caption2)
@@ -344,9 +366,9 @@ struct BikeRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("海拔")
+                                            Text("competition.track.altitude.2")
                                             Spacer()
-                                            Text(String(format: "平均 %.0f 米", altitudeAvg))
+                                            Text("common.average") + Text(String(format: " %.0f ", altitudeAvg)) + Text("distance.m")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -360,16 +382,16 @@ struct BikeRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("速度")
+                                                    Text("common.speed")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
+                                                    Text(String(format: "%.0f - %.0f ", overallSpeedRange.min, overallSpeedRange.max)) + Text("speed.km/h")
                                                 }
                                                 .foregroundStyle(Color.orange)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     isSpeedDetail.toggle()
                                                 }
-                                                Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
+                                                (Text(String(format: "%.0f ", viewModel.samplePath[progressIndex].speed_avg)) + Text("speed.km/h"))
                                                     .padding(.horizontal)
                                                     .padding(.vertical, 10)
                                                     .font(.caption2)
@@ -407,9 +429,9 @@ struct BikeRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("速度")
+                                            Text("common.speed")
                                             Spacer()
-                                            Text(String(format: "平均 %.0f 公里/小时", speedAvg))
+                                            Text("common.average") + Text(String(format: " %.0f ", speedAvg)) + Text("speed.km/h")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -490,7 +512,7 @@ struct BikeRecordDetailView: View {
                             // 我的卡牌收益
                             if !detailInfo.cardBonus.isEmpty {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    Text("卡牌收益（我的）")
+                                    Text("competition.realtime.card.benefit.my")
                                         .font(.title2)
                                         .bold()
                                         .foregroundStyle(Color.secondText)
@@ -506,7 +528,7 @@ struct BikeRecordDetailView: View {
                                                         .bold()
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
-                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                    (Text("competition.realtime.card.time") + Text(": \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))"))
                                                         .font(.subheadline)
                                                         .foregroundColor(.white)
                                                     Spacer()
@@ -524,7 +546,7 @@ struct BikeRecordDetailView: View {
                             // 其他卡牌收益
                             if !detailInfo.extraCardBonus.isEmpty {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    Text("卡牌收益（其他）")
+                                    Text("competition.realtime.card.benefit.other")
                                         .font(.title2)
                                         .bold()
                                         .foregroundStyle(Color.secondText)
@@ -540,7 +562,7 @@ struct BikeRecordDetailView: View {
                                                         .bold()
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
-                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                    (Text("competition.realtime.card.time") + Text(": \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))"))
                                                         .font(.subheadline)
                                                         .foregroundColor(.white)
                                                     Spacer()
@@ -558,7 +580,7 @@ struct BikeRecordDetailView: View {
                             // team mode 下的队友状态和成绩
                             if !detailInfo.teamMemberScores.isEmpty {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    Text("队伍状态")
+                                    Text("competition.team.status")
                                         .font(.title2)
                                         .bold()
                                         .foregroundStyle(Color.secondText)
@@ -579,14 +601,14 @@ struct BikeRecordDetailView: View {
                                                     }
                                                     
                                                     VStack(alignment: .leading, spacing: 3) {
-                                                        Text(score.userInfo.userID == UserManager.shared.user.userID ? "我" : score.userInfo.name)
+                                                        (score.userInfo.userID == UserManager.shared.user.userID ? Text(LocalizedStringKey("common.me")) : Text(score.userInfo.name))
                                                             .font(.subheadline)
                                                             .foregroundColor(Color.secondText)
                                                     }
                                                 }
                                                 Spacer()
                                                 HStack {
-                                                    Text(score.status.displayName)
+                                                    Text(LocalizedStringKey(score.status.displayName))
                                                         .font(.caption)
                                                         .padding(.vertical, 5)
                                                         .padding(.horizontal, 8)
@@ -594,7 +616,7 @@ struct BikeRecordDetailView: View {
                                                         .background(score.status.backgroundColor.opacity(0.8))
                                                         .cornerRadius(6)
                                                     if score.status == .completed {
-                                                        Text("成绩: \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))")
+                                                        (Text("competition.record.time") + Text(": \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))"))
                                                             .font(.caption)
                                                             .foregroundColor(.white)
                                                     }
@@ -616,7 +638,7 @@ struct BikeRecordDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("找不到数据")
+                    Text("error.no_data")
                         .foregroundStyle(.white)
                     Spacer()
                 }
@@ -654,6 +676,7 @@ struct RunningRecordDetailView: View {
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
     @State var isStepCadenceDetail: Bool = false
+    @State var isPowerDetail: Bool = false
     
     let formHeight: CGFloat = 80
     
@@ -692,6 +715,16 @@ struct RunningRecordDetailView: View {
         return (minVal, maxVal)
     }
     
+    var overallPowerRange: (min: Double?, max: Double?) {
+        let powers = viewModel.samplePath.compactMap { $0.power_avg }
+        if powers.isEmpty {
+            return (nil, nil)
+        }
+        let minVal = powers.min() ?? 0
+        let maxVal = powers.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
     var heartRateAvg: Double? {
         let validHeartRates = viewModel.basePath.compactMap { $0.heart_rate }
         guard !validHeartRates.isEmpty else { return nil }
@@ -726,10 +759,16 @@ struct RunningRecordDetailView: View {
         return steps.reduce(0, +) / Double(steps.count)
     }
     
+    var powerAvg: Double? {
+        let powers = viewModel.pathData.compactMap { $0.power }
+        guard !powers.isEmpty else { return nil }
+        return powers.reduce(0, +) / Double(powers.count)
+    }
+    
 #if DEBUG
     @State var isStepCountDetail: Bool = false
     var overallStepCountRange: (min: Double, max: Double) {
-        let steps = viewModel.samplePath.compactMap { $0.step_count_avg }
+        let steps = viewModel.samplePath.compactMap { $0.estimate_step_count_avg }
         let minVal = steps.min() ?? 0
         let maxVal = steps.max() ?? 0
         return (minVal, maxVal)
@@ -742,6 +781,20 @@ struct RunningRecordDetailView: View {
     
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
     
+    var total_distance: Double {
+        guard viewModel.basePath.count > 1 else { return 0 }
+        var dist: Double = 0
+        for i in 0..<(viewModel.basePath.count - 1) {
+            let p1 = viewModel.basePath[i]
+            let p2 = viewModel.basePath[i + 1]
+            dist += GeographyTool.haversineDistance(
+                lat1: p1.lat, lon1: p1.lon,
+                lat2: p2.lat, lon2: p2.lon
+            )
+        }
+        return dist
+    }
+    
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID))
     }
@@ -749,19 +802,28 @@ struct RunningRecordDetailView: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack {
-                CommonIconButton(icon: "chevron.left") {
-                    adjustNavigationPath()
-                }
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
-                Spacer()
-                Text("running比赛结算")
-                    .font(.system(size: 18, weight: .bold))
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
+                    .padding(.vertical, 5)
+                    .padding(.trailing, 20)
+                    .contentShape(Rectangle())
+                    .exclusiveTouchTapGesture {
+                        adjustNavigationPath()
+                    }
+                Spacer()
+                HStack {
+                    Text(LocalizedStringKey(SportName.Running.name))
+                    Text("competition.record.result")
+                }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
                 Spacer()
                 Button(action: {}) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
+                        .padding(.vertical, 5)
+                        .padding(.trailing, 20)
                         .foregroundColor(.clear)
                 }
             }
@@ -792,7 +854,7 @@ struct RunningRecordDetailView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
                             HStack {
-                                Text("成绩与数据")
+                                Text("competition.record.time_and_data")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
@@ -802,55 +864,48 @@ struct RunningRecordDetailView: View {
                             // 成绩总览
                             VStack(spacing: 8) {
                                 HStack {
-                                    Text("原始时间:")
-                                        .bold()
+                                    (Text("competition.track.distance") + Text(":"))
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .font(.system(.body, design: .rounded))
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    (Text("competition.record.original_time") + Text(":"))
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.originalTime, showFraction: true))")
                                         .font(.system(.body, design: .rounded))
-                                        .bold()
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    Text("有效时间:")
-                                        .bold()
+                                    (Text("competition.record.valid_time") + Text(":"))
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
                                         .font(.system(.body, design: .rounded))
-                                        .bold()
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    Text("状态:")
-                                        .bold()
+                                    (Text("common.status") + Text(":"))
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     if detailInfo.status == .completed {
                                         if detailInfo.isFinishComputed == false {
-                                            Text("计算中...")
+                                            Text("competition.record.status.computing")
                                                 .foregroundColor(.orange)
-                                                .bold()
                                         } else {
-                                            Text("已完成")
+                                            Text("competition.record.status.completed")
                                                 .foregroundColor(.green)
-                                                .bold()
                                         }
-                                    } else if detailInfo.status == .expired {
-                                        Text("数据异常")
-                                            .foregroundColor(.red)
-                                            .bold()
-                                    } else if detailInfo.status == .toBeVerified {
-                                        Text("数据校验中...")
-                                            .foregroundColor(.orange)
-                                            .bold()
-                                    } else if detailInfo.status == .invalid {
-                                        Text("数据校验失败")
-                                            .foregroundColor(.red)
-                                            .bold()
+                                    } else {
+                                        Text(LocalizedStringKey(detailInfo.status.displayName))
+                                            .foregroundStyle(detailInfo.status.backgroundColor)
                                     }
                                 }
                             }
+                            .bold()
                             Divider()
                                 .environment(\.colorScheme, .dark)
                             // 数据统计
@@ -861,9 +916,9 @@ struct RunningRecordDetailView: View {
                                             VStack {
                                                 ZStack(alignment: .center) {
                                                     HStack {
-                                                        Text("心率")
+                                                        Text("competition.realtime.heartrate")
                                                         Spacer()
-                                                        Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                        Text(String(format: "%.0f - %.0f ", rangeMin, rangeMax)) + Text("heartrate.unit")
                                                     }
                                                     .foregroundStyle(Color.red)
                                                     .contentShape(Rectangle())
@@ -872,7 +927,7 @@ struct RunningRecordDetailView: View {
                                                     }
                                                     if let indexMin = viewModel.samplePath[progressIndex].heart_rate_min,
                                                        let indexMax = viewModel.samplePath[progressIndex].heart_rate_max {
-                                                        Text(String(format: "%.0f - %.0f 次/分", indexMin, indexMax))
+                                                        (Text(String(format: "%.0f - %.0f ", indexMin, indexMax)) + Text("heartrate.unit"))
                                                             .padding(.horizontal)
                                                             .padding(.vertical, 10)
                                                             .font(.caption2)
@@ -880,7 +935,7 @@ struct RunningRecordDetailView: View {
                                                             .background(Color.red.opacity(0.8))
                                                             .clipShape(RoundedRectangle(cornerRadius: 10))
                                                     } else {
-                                                        Text("无数据")
+                                                        Text("error.no_data")
                                                             .padding(.horizontal)
                                                             .padding(.vertical, 10)
                                                             .font(.caption2)
@@ -931,10 +986,10 @@ struct RunningRecordDetailView: View {
                                             }
                                         } else {
                                             HStack {
-                                                Text("心率")
+                                                Text("competition.realtime.heartrate")
                                                 Spacer()
                                                 if let bpmAvg = heartRateAvg {
-                                                    Text(String(format: "平均 %.0f 次/分", bpmAvg))
+                                                    Text("common.average") + Text(String(format: " %.0f ", bpmAvg)) + Text("heartrate.unit")
                                                 }
                                             }
                                             .padding()
@@ -950,16 +1005,16 @@ struct RunningRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("海拔")
+                                                    Text("competition.track.altitude.2")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 米", overallAltitudeRange.min, overallAltitudeRange.max))
+                                                    Text(String(format: "%.0f - %.0f ", overallAltitudeRange.min, overallAltitudeRange.max)) + Text("distance.m")
                                                 }
                                                 .foregroundStyle(Color.green)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     isAltitudeDetail.toggle()
                                                 }
-                                                Text(String(format: "%.0f 米", viewModel.samplePath[progressIndex].altitude_avg))
+                                                (Text(String(format: "%.0f ", viewModel.samplePath[progressIndex].altitude_avg)) + Text("distance.m"))
                                                     .padding(.horizontal)
                                                     .padding(.vertical, 10)
                                                     .font(.caption2)
@@ -997,9 +1052,9 @@ struct RunningRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("海拔")
+                                            Text("competition.track.altitude.2")
                                             Spacer()
-                                            Text(String(format: "平均 %.0f 米", altitudeAvg))
+                                            Text("common.average") + Text(String(format: " %.0f ", altitudeAvg)) + Text("distance.m")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -1013,16 +1068,16 @@ struct RunningRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("速度")
+                                                    Text("common.speed")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 公里/小时", overallSpeedRange.min, overallSpeedRange.max))
+                                                    Text(String(format: "%.0f - %.0f ", overallSpeedRange.min, overallSpeedRange.max)) + Text("speed.km/h")
                                                 }
                                                 .foregroundStyle(Color.orange)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     isSpeedDetail.toggle()
                                                 }
-                                                Text(String(format: "%.0f 公里/小时", viewModel.samplePath[progressIndex].speed_avg))
+                                                (Text(String(format: "%.0f ", viewModel.samplePath[progressIndex].speed_avg)) + Text("speed.km/h"))
                                                     .padding(.horizontal)
                                                     .padding(.vertical, 10)
                                                     .font(.caption2)
@@ -1060,9 +1115,9 @@ struct RunningRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("速度")
+                                            Text("common.speed")
                                             Spacer()
-                                            Text(String(format: "平均 %.0f 公里/小时", speedAvg))
+                                            Text("common.average") + Text(String(format: " %.0f ", speedAvg)) + Text("speed.km/h")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -1078,25 +1133,25 @@ struct RunningRecordDetailView: View {
                                             VStack {
                                                 ZStack(alignment: .center) {
                                                     HStack {
-                                                        Text("步频")
+                                                        Text("competition.result.stepcadence")
                                                         Spacer()
-                                                        Text(String(format: "%.0f - %.0f 次/分", rangeMin, rangeMax))
+                                                        (Text(String(format: "%.0f - %.0f ", rangeMin, rangeMax)) + Text("stepCadence.unit"))
                                                     }
-                                                    .foregroundStyle(Color.blue)
+                                                    .foregroundStyle(Color.pink)
                                                     .contentShape(Rectangle())
                                                     .onTapGesture {
                                                         isStepCadenceDetail.toggle()
                                                     }
                                                     if let avg = viewModel.samplePath[progressIndex].step_cadence_avg {
-                                                        Text(String(format: "%.0f 次/分", avg))
+                                                        (Text(String(format: "%.0f ", avg)) + Text("stepCadence.unit"))
                                                             .padding(.horizontal)
                                                             .padding(.vertical, 10)
                                                             .font(.caption2)
                                                             .foregroundColor(.white)
-                                                            .background(Color.blue.opacity(0.8))
+                                                            .background(Color.pink.opacity(0.8))
                                                             .clipShape(RoundedRectangle(cornerRadius: 10))
                                                     } else {
-                                                        Text("无数据")
+                                                        Text("error.no_data")
                                                             .padding(.horizontal)
                                                             .padding(.vertical, 10)
                                                             .font(.caption2)
@@ -1111,6 +1166,89 @@ struct RunningRecordDetailView: View {
                                                             if let step_avg = viewModel.samplePath[i].step_cadence_avg {
                                                                 let overall = rangeMax - rangeMin
                                                                 let ratio = overall > 0 ? (step_avg - rangeMin) / overall : 1/2
+                                                                let height = max(formHeight * ratio, 0) + 4
+                                                                
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                                    .frame(width: 2, height: height)
+                                                            } else {
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .frame(width: 2, height: 2)
+                                                                    .hidden()
+                                                            }
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
+                                                HStack {
+                                                    Text("00:00")
+                                                    Spacer()
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                    }
+                                                }
+                                                .font(.caption)
+                                                .foregroundStyle(Color.gray)
+                                            }
+                                        } else {
+                                            HStack {
+                                                Text("competition.result.stepcadence")
+                                                Spacer()
+                                                if let stepAvg = stepCadenceAvg {
+                                                    Text("common.average") + Text(String(format: " %.0f ", stepAvg)) + Text("stepCadence.unit")
+                                                }
+                                            }
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.pink.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isStepCadenceDetail.toggle()
+                                            }
+                                        }
+                                    }
+                                    if let rangeMin = overallPowerRange.min, let rangeMax = overallPowerRange.max {
+                                        if isPowerDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("competition.realtime.power")
+                                                        Spacer()
+                                                        (Text(String(format: "%.0f - %.0f ", rangeMin, rangeMax)) + Text("power.unit"))
+                                                    }
+                                                    .foregroundStyle(Color.blue)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isPowerDetail.toggle()
+                                                    }
+                                                    if let avg = viewModel.samplePath[progressIndex].power_avg {
+                                                        (Text(String(format: "%.0f ", avg)) + Text("power.unit"))
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.blue.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    } else {
+                                                        Text("error.no_data")
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.gray.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    }
+                                                }
+                                                ZStack {
+                                                    HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            if let power_avg = viewModel.samplePath[i].power_avg {
+                                                                let overall = rangeMax - rangeMin
+                                                                let ratio = overall > 0 ? (power_avg - rangeMin) / overall : 1/2
                                                                 let height = max(formHeight * ratio, 0) + 4
                                                                 
                                                                 RoundedRectangle(cornerRadius: 1)
@@ -1141,10 +1279,10 @@ struct RunningRecordDetailView: View {
                                             }
                                         } else {
                                             HStack {
-                                                Text("步频")
+                                                Text("competition.realtime.power")
                                                 Spacer()
-                                                if let stepAvg = stepCadenceAvg {
-                                                    Text(String(format: "平均 %.0f 次/分", stepAvg))
+                                                if let powerAvg = powerAvg {
+                                                    Text("common.average") + Text(String(format: " %.0f ", powerAvg)) + Text("power.unit")
                                                 }
                                             }
                                             .padding()
@@ -1152,7 +1290,7 @@ struct RunningRecordDetailView: View {
                                             .background(Color.blue.opacity(0.8))
                                             .clipShape(RoundedRectangle(cornerRadius: 10))
                                             .onTapGesture {
-                                                isStepCadenceDetail.toggle()
+                                                isPowerDetail.toggle()
                                             }
                                         }
                                     }
@@ -1161,16 +1299,16 @@ struct RunningRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("测试步数")
+                                                    Text("测试步频")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 次/分", overallStepCountRange.min, overallStepCountRange.max))
+                                                    Text(String(format: "%.0f - %.0f 步/分", overallStepCountRange.min, overallStepCountRange.max))
                                                 }
                                                 .foregroundStyle(Color.pink)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     isStepCountDetail.toggle()
                                                 }
-                                                Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].step_count_avg))
+                                                Text(String(format: "%.0f 步/分", viewModel.samplePath[progressIndex].estimate_step_count_avg))
                                                     .padding(.horizontal)
                                                     .padding(.vertical, 10)
                                                     .font(.caption2)
@@ -1182,7 +1320,7 @@ struct RunningRecordDetailView: View {
                                                 HStack(alignment: .bottom, spacing: spacingWidth) {
                                                     ForEach(viewModel.samplePath.indices, id: \.self) { i in
                                                         let overall = (overallStepCountRange.max - overallStepCountRange.min)
-                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].step_count_avg - overallStepCountRange.min) / overall : 1/2
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].estimate_step_count_avg - overallStepCountRange.min) / overall : 1/2
                                                         let height = max(formHeight * ratio, 0) + 4
                                                         
                                                         RoundedRectangle(cornerRadius: 1)
@@ -1208,9 +1346,9 @@ struct RunningRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("测试步数")
+                                            Text("测试步频")
                                             Spacer()
-                                            Text(String(format: "平均 %.0f 次/分", stepCountAvg))
+                                            Text(String(format: "平均 %.0f 步/分", stepCountAvg))
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -1227,7 +1365,7 @@ struct RunningRecordDetailView: View {
                             // 我的卡牌收益
                             if !detailInfo.cardBonus.isEmpty {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    Text("卡牌收益")
+                                    Text("competition.realtime.card.benefit.my")
                                         .font(.title2)
                                         .bold()
                                         .foregroundStyle(Color.secondText)
@@ -1243,7 +1381,7 @@ struct RunningRecordDetailView: View {
                                                         .bold()
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
-                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                    (Text("competition.realtime.card.time") + Text(": \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))"))
                                                         .font(.subheadline)
                                                         .foregroundColor(.white)
                                                     Spacer()
@@ -1261,7 +1399,7 @@ struct RunningRecordDetailView: View {
                             // 其他卡牌收益
                             if !detailInfo.extraCardBonus.isEmpty {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    Text("卡牌收益（其他）")
+                                    Text("competition.realtime.card.benefit.other")
                                         .font(.title2)
                                         .bold()
                                         .foregroundStyle(Color.secondText)
@@ -1277,7 +1415,7 @@ struct RunningRecordDetailView: View {
                                                         .bold()
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
-                                                    Text("奖励时间: \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))")
+                                                    (Text("competition.realtime.card.time") + Text(": \(TimeDisplay.formattedTime(bonus.bonusTime, showFraction: true))"))
                                                         .font(.subheadline)
                                                         .foregroundColor(.white)
                                                     Spacer()
@@ -1295,7 +1433,7 @@ struct RunningRecordDetailView: View {
                             // team mode 下的队友状态和成绩
                             if !detailInfo.teamMemberScores.isEmpty {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    Text("队伍状态")
+                                    Text("competition.team.status")
                                         .font(.title2)
                                         .bold()
                                         .foregroundStyle(Color.secondText)
@@ -1316,21 +1454,21 @@ struct RunningRecordDetailView: View {
                                                     }
                                                     
                                                     VStack(alignment: .leading, spacing: 3) {
-                                                        Text(score.userInfo.userID == UserManager.shared.user.userID ? "我" : score.userInfo.name)
+                                                        (score.userInfo.userID == UserManager.shared.user.userID ? Text(LocalizedStringKey("common.me")) : Text(score.userInfo.name))
                                                             .font(.subheadline)
                                                             .foregroundColor(Color.secondText)
                                                     }
                                                 }
                                                 Spacer()
                                                 HStack {
-                                                    Text(score.status.displayName)
+                                                    Text(LocalizedStringKey(score.status.displayName))
                                                         .font(.caption)
                                                         .padding(.vertical, 5)
                                                         .padding(.horizontal, 8)
                                                         .foregroundStyle(Color.secondText)
                                                         .background(score.status.backgroundColor.opacity(0.8))
                                                         .cornerRadius(6)
-                                                    Text("成绩: \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))")
+                                                    (Text("competition.record.time") + Text(": \(TimeDisplay.formattedTime(score.finalTime, showFraction: true))"))
                                                         .font(.caption)
                                                         .foregroundColor(.white)
                                                 }
@@ -1351,7 +1489,7 @@ struct RunningRecordDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("找不到数据")
+                    Text("error.no_data")
                         .foregroundStyle(.white)
                     Spacer()
                 }

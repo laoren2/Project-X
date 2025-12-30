@@ -30,7 +30,7 @@ struct InstituteView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.secondText)
                 Spacer()
-                Text("研究所")
+                Text("user.page.features.institute")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Color.secondText)
                 Spacer()
@@ -49,7 +49,9 @@ struct InstituteView: View {
                     .font(.system(size: 15))
                     .foregroundStyle(Color.secondText)
                     .onTapGesture {
-                        assetManager.queryCCAssets()
+                        Task {
+                           await assetManager.queryCCAssets()
+                        }
                     }
                 AssetCounterView(icon: CCAssetType.stone1.iconName, amount: assetManager.stone1)
                 AssetCounterView(icon: CCAssetType.stone2.iconName, amount: assetManager.stone2)
@@ -59,71 +61,148 @@ struct InstituteView: View {
             
             VStack(spacing: 20) {
                 // 升级方式切换
-                Picker("升级方式", selection: $upgradeMethod) {
-                    Text("材料升级").tag(0)
-                    Text("卡牌融合").tag(1)
+                Picker("institute.upgrade.upgradeway", selection: $upgradeMethod) {
+                    Text("institute.upgrade.upgradeway.mat").tag(0)
+                    Text("institute.upgrade.upgradeway.fusion").tag(1)
                 }
                 .pickerStyle(.segmented)
-                .padding()
+                .padding(.horizontal)
+                
+                // 提示文本
+                Text(upgradeMethod == 0 ? "institute.upgrade.upgradeway.mat.content" : "institute.upgrade.upgradeway.fusion.content")
+                    .foregroundStyle(Color.secondText)
+                    .padding(.horizontal)
                 
                 // 当前选择的卡牌展示
-                if let card = selectedCard {
-                    HStack {
-                        Spacer()
-                        ZStack(alignment: .topTrailing) {
-                            MagicCardView(card: card)
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        if let card = selectedCard {
+                            HStack(spacing: 30) {
+                                ZStack(alignment: .topTrailing) {
+                                    MagicCardView(card: card)
+                                        .frame(height: 200)
+                                    Button(action: {
+                                        selectedCard = nil
+                                        selectedFusionCard = nil
+                                        showFusionSelectedView = false
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.red)
+                                            .background(Circle().fill(Color.white))
+                                            .shadow(radius: 1)
+                                    }
+                                    .offset(x: 8, y: -8)
+                                }
+                                if let level1 = card.levelSkill1 {
+                                    VStack {
+                                        SkillUpgradeView(skillLevel: 1, unlockLevel: 3, currentLevel: level1, cardLevel: card.level, price: skill1Price)
+                                            .exclusiveTouchTapGesture {
+                                                guard card.level >= 3 else {
+                                                    ToastManager.shared.show(toast: Toast(message: "institute.upgrade.lock"))
+                                                    return
+                                                }
+                                                guard level1 < 5 else {
+                                                    ToastManager.shared.show(toast: Toast(message: "institute.upgrade.max_level"))
+                                                    return
+                                                }
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "institute.upgrade.skill.popup",
+                                                    bottomButtons: [
+                                                        .cancel(),
+                                                        .confirm {
+                                                            UpgradeSkill1()
+                                                        }
+                                                    ]
+                                                ) {
+                                                    RichTextLabel(
+                                                        templateKey: "institute.upgrade.upgradeway.mat.popup",
+                                                        items: [
+                                                            ("ITEMS", .image(skill1Price.ccasset_type.iconName, width: 20)),
+                                                            ("ITEMS", .text(" * \(skill1Price.new_ccamount) "))
+                                                        ]
+                                                    )
+                                                }
+                                            }
+                                        if let level2 = card.levelSkill2 {
+                                            SkillUpgradeView(skillLevel: 2, unlockLevel: 6, currentLevel: level2, cardLevel: card.level, price: skill2Price)
+                                                .exclusiveTouchTapGesture {
+                                                    guard card.level >= 6 else {
+                                                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.lock"))
+                                                        return
+                                                    }
+                                                    guard level2 < 5 else {
+                                                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.max_level"))
+                                                        return
+                                                    }
+                                                    PopupWindowManager.shared.presentPopup(
+                                                        title: "institute.upgrade.skill.popup",
+                                                        bottomButtons: [
+                                                            .cancel(),
+                                                            .confirm {
+                                                                UpgradeSkill2()
+                                                            }
+                                                        ]
+                                                    ) {
+                                                        RichTextLabel(
+                                                            templateKey: "institute.upgrade.upgradeway.mat.popup",
+                                                            items: [
+                                                                ("ITEMS", .image(skill2Price.ccasset_type.iconName, width: 20)),
+                                                                ("ITEMS", .text(" * \(skill2Price.new_ccamount) "))
+                                                            ]
+                                                        )
+                                                    }
+                                                }
+                                        }
+                                        if let level3 = card.levelSkill3 {
+                                            SkillUpgradeView(skillLevel: 3, unlockLevel: 10, currentLevel: level3, cardLevel: card.level, price: skill3Price)
+                                                .exclusiveTouchTapGesture {
+                                                    guard card.level == 10 else {
+                                                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.lock"))
+                                                        return
+                                                    }
+                                                    guard level3 < 5 else {
+                                                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.max_level"))
+                                                        return
+                                                    }
+                                                    PopupWindowManager.shared.presentPopup(
+                                                        title: "institute.upgrade.skill.popup",
+                                                        bottomButtons: [
+                                                            .cancel(),
+                                                            .confirm {
+                                                                UpgradeSkill3()
+                                                            }
+                                                        ]
+                                                    ) {
+                                                        RichTextLabel(
+                                                            templateKey: "institute.upgrade.upgradeway.mat.popup",
+                                                            items: [
+                                                                ("ITEMS", .image(skill3Price.ccasset_type.iconName, width: 20)),
+                                                                ("ITEMS", .text(" * \(skill3Price.new_ccamount) "))
+                                                            ]
+                                                        )
+                                                    }
+                                                }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            EmptyCardSlot(text: "institute.upgrade.card")
                                 .frame(height: 200)
-                            Button(action: {
-                                selectedCard = nil
-                                selectedFusionCard = nil
-                                showFusionSelectedView = false
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
-                                    .background(Circle().fill(Color.white))
-                                    .shadow(radius: 1)
-                            }
-                            .offset(x: 8, y: -8)
+                                .exclusiveTouchTapGesture {
+                                    showSelectedView = true
+                                }
                         }
-                        Spacer()
-                        VStack {
-                            if let level1 = card.levelSkill1 {
-                                SkillUpgradeView(title: "技能1", unlockLevel: 3, currentLevel: level1, cardLevel: card.level, price: skill1Price)
-                                    .exclusiveTouchTapGesture {
-                                        UpgradeSkill1()
-                                    }
-                            }
-                            if let level2 = card.levelSkill2 {
-                                SkillUpgradeView(title: "技能2", unlockLevel: 6, currentLevel: level2, cardLevel: card.level, price: skill2Price)
-                                    .exclusiveTouchTapGesture {
-                                        UpgradeSkill2()
-                                    }
-                            }
-                            if let level3 = card.levelSkill3 {
-                                SkillUpgradeView(title: "技能3", unlockLevel: 10, currentLevel: level3, cardLevel: card.level, price: skill3Price)
-                                    .exclusiveTouchTapGesture {
-                                        UpgradeSkill3()
-                                    }
-                            }
+                        if upgradeMethod == 0 {
+                            materialUpgradeView
+                        } else {
+                            fusionUpgradeView
                         }
-                        Spacer()
                     }
-                } else {
-                    EmptyCardSlot(text: "选择卡牌升级")
-                        .frame(height: 200)
-                        .exclusiveTouchTapGesture {
-                            showSelectedView = true
-                        }
+                    .frame(maxWidth: .infinity)
+                    .padding()
                 }
-                
-                if upgradeMethod == 0 {
-                    materialUpgradeView
-                } else {
-                    fusionUpgradeView
-                }
-                Spacer()
             }
-            .padding(.horizontal)
         }
         .environment(\.colorScheme, .dark)
         .background(Color.defaultBackground)
@@ -155,14 +234,17 @@ struct InstituteView: View {
                         HStack {
                             ForEach(cardPrices) { price in
                                 HStack(spacing: 4) {
-                                    Image(systemName: price.ccasset_type.iconName)
+                                    Image(price.ccasset_type.iconName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20)
                                     Text("\(price.new_ccamount)")
                                 }
                                 .font(.system(size: 12))
                             }
                         }
                     }
-                    Text(card.level == 10 ? "已满级" : "材料升级")
+                    Text(card.level == 10 ? "institute.upgrade.max_level" : "institute.upgrade.upgradeway.mat")
                         .font(.system(size: 16))
                 }
                 .padding()
@@ -170,18 +252,37 @@ struct InstituteView: View {
                 .background(card.level == 10 ? Color.green : Color.orange)
                 .cornerRadius(10)
                 .exclusiveTouchTapGesture {
-                    performMatUpgrade()
+                    guard card.level < 10 else {
+                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.max_level"))
+                        return
+                    }
+                    PopupWindowManager.shared.presentPopup(
+                        title: "institute.upgrade.upgradeway.mat",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                performMatUpgrade()
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "institute.upgrade.upgradeway.mat.popup",
+                            items: cardPrices.flatMap { price -> [(String, RichTextItem)] in
+                                [
+                                    ("ITEMS", .image(price.ccasset_type.iconName, width: 20)),
+                                    ("ITEMS", .text(" * \(price.new_ccamount) "))
+                                ]
+                            }
+                        )
+                    }
                 }
             } else {
-                Text("材料升级")
+                Text("institute.upgrade.upgradeway.mat")
                     .font(.system(size: 16))
                     .padding()
                     .foregroundStyle(Color.secondText)
-                    .background(Color.orange)
+                    .background(Color.gray)
                     .cornerRadius(10)
-                    .exclusiveTouchTapGesture {
-                        ToastManager.shared.show(toast: Toast(message: "请选择卡牌"))
-                    }
             }
         }
     }
@@ -208,7 +309,7 @@ struct InstituteView: View {
                     .offset(x: 8, y: -8)
                 }
             } else {
-                EmptyCardSlot(text: "选择卡牌融合")
+                EmptyCardSlot(text: "institute.upgrade.fusion_card")
                     .frame(height: 120)
                     .exclusiveTouchTapGesture {
                         showFusionSelectedView.toggle()
@@ -225,7 +326,7 @@ struct InstituteView: View {
                         HStack {
                             ForEach(filteredCards) { card in
                                 MagicCardView(card: card)
-                                    .frame(width: 50)
+                                    .frame(height: 100)
                                     .onTapGesture {
                                         // 选择要消耗的卡牌
                                         selectedFusionCard = card
@@ -233,31 +334,46 @@ struct InstituteView: View {
                                     }
                             }
                         }
+                        .padding(5)
                     }
                 } else {
-                    Text("暂无可融合的卡牌")
+                    Text("institute.upgrade.fusion_card.none")
                         .font(.system(size: 15))
                         .foregroundStyle(Color.thirdText)
                 }
             }
-            if let card = selectedCard {
-                Text(card.level == 10 ? "已满级" : "融合升级")
+            if let card = selectedCard, let fusion = selectedFusionCard {
+                Text(card.level == 10 ? "institute.upgrade.max_level" : "institute.upgrade.action")
                     .padding()
                     .foregroundStyle(Color.secondText)
                     .background(card.level == 10 ? Color.green : Color.orange)
                     .cornerRadius(10)
                     .exclusiveTouchTapGesture {
-                        performFusionUpgrade()
+                        guard card.level < 10 else {
+                            ToastManager.shared.show(toast: Toast(message: "institute.upgrade.max_level"))
+                            return
+                        }
+                        PopupWindowManager.shared.presentPopup(
+                            title: "institute.upgrade.upgradeway.fusion",
+                            bottomButtons: [
+                                .cancel(),
+                                .confirm {
+                                    performFusionUpgrade()
+                                }
+                            ]
+                        ) {
+                            RichTextLabel(
+                                templateKey: "institute.upgrade.upgradeway.fusion.popup",
+                                items: [("ITEMS", .text(fusion.name))]
+                            )
+                        }
                     }
             } else {
-                Text("融合升级")
+                Text("institute.upgrade.action")
                     .padding()
                     .foregroundStyle(Color.secondText)
-                    .background(Color.orange)
+                    .background(Color.gray)
                     .cornerRadius(10)
-                    .exclusiveTouchTapGesture {
-                        performFusionUpgrade()
-                    }
             }
         }
     }
@@ -357,11 +473,7 @@ struct InstituteView: View {
     }
     
     private func performMatUpgrade() {
-        guard let card = selectedCard else {
-            ToastManager.shared.show(toast: Toast(message: "请选择卡牌"))
-            return
-        }
-        guard card.level >= 0 && card.level < 10 else { return }
+        guard let card = selectedCard, card.level >= 0 else { return }
         
         guard var components = URLComponents(string: "/asset/upgrade_equip_card_mat") else { return }
         components.queryItems = [
@@ -390,8 +502,7 @@ struct InstituteView: View {
     }
     
     private func performFusionUpgrade() {
-        guard let card = selectedCard, let fusionCard = selectedFusionCard else { return }
-        guard card.level >= 0 && card.level < 10 else { return }
+        guard let card = selectedCard, let fusionCard = selectedFusionCard, card.level >= 0 else { return }
         
         guard var components = URLComponents(string: "/asset/upgrade_equip_card_fusion") else { return }
         components.queryItems = [
@@ -422,12 +533,7 @@ struct InstituteView: View {
     }
     
     func UpgradeSkill1() {
-        guard let card = selectedCard, let skillLevel = card.levelSkill1 else { return }
-        guard card.level >= 3 else {
-            ToastManager.shared.show(toast: Toast(message: "未解锁"))
-            return
-        }
-        guard skillLevel >= 0 && skillLevel < 5 else { return }
+        guard let card = selectedCard, let skillLevel = card.levelSkill1, skillLevel >= 0 else { return }
         
         guard var components = URLComponents(string: "/asset/upgrade_equip_card_skill1") else { return }
         components.queryItems = [
@@ -454,12 +560,7 @@ struct InstituteView: View {
     }
     
     func UpgradeSkill2() {
-        guard let card = selectedCard, let skillLevel = card.levelSkill2 else { return }
-        guard card.level >= 6 else {
-            ToastManager.shared.show(toast: Toast(message: "未解锁"))
-            return
-        }
-        guard skillLevel >= 0 && skillLevel < 5 else { return }
+        guard let card = selectedCard, let skillLevel = card.levelSkill2, skillLevel >= 0 else { return }
         
         guard var components = URLComponents(string: "/asset/upgrade_equip_card_skill2") else { return }
         components.queryItems = [
@@ -486,12 +587,7 @@ struct InstituteView: View {
     }
     
     func UpgradeSkill3() {
-        guard let card = selectedCard, let skillLevel = card.levelSkill3 else { return }
-        guard card.level == 10 else {
-            ToastManager.shared.show(toast: Toast(message: "未解锁"))
-            return
-        }
-        guard skillLevel >= 0 && skillLevel < 5 else { return }
+        guard let card = selectedCard, let skillLevel = card.levelSkill3, skillLevel >= 0 else { return }
         
         guard var components = URLComponents(string: "/asset/upgrade_equip_card_skill3") else { return }
         components.queryItems = [
@@ -543,20 +639,20 @@ struct CardSelectedSheetView: View {
                 Button(action: {
                     showCardSheet = false
                 }) {
-                    Text("取消")
+                    Text("action.cancel")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.thirdText)
                 }
                 
                 Spacer()
                 
-                Text("选择技能卡")
+                Text("institute.upgrade.card.select")
                     .font(.system(size: 16))
                     .foregroundStyle(Color.secondText)
                 
                 Spacer()
                 
-                Text("完成")
+                Text("action.cancel")
                     .font(.system(size: 16))
                     .foregroundStyle(.clear)
             }
@@ -564,7 +660,7 @@ struct CardSelectedSheetView: View {
             
             // 卡牌列表
             if assetManager.magicCards.isEmpty {
-                Text("无可用卡牌")
+                Text("institute.upgrade.card.none")
                     .padding()
                     .foregroundStyle(Color.secondText)
                 Spacer()
@@ -595,7 +691,7 @@ struct CardSelectedSheetView: View {
 }
 
 struct SkillUpgradeView: View {
-    let title: String
+    let skillLevel: Int
     let unlockLevel: Int
     let currentLevel: Int
     let cardLevel: Int
@@ -605,19 +701,22 @@ struct SkillUpgradeView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 20) {
-                Text("\(title)")
+                Text("institute.upgrade.skill \(skillLevel)")
                 if isUnlocked {
                     if currentLevel == 5 {
-                        Text("已满级")
+                        Text("institute.upgrade.max_level")
                     } else {
                         HStack(spacing: 4) {
-                            Image(systemName: price.ccasset_type.iconName)
+                            Image(price.ccasset_type.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20)
                             Text("\(price.new_ccamount)")
                             Image(systemName: "arrowshape.up")
                         }
                     }
                 } else {
-                    Text("（未解锁）")
+                    Text("institute.upgrade.lock")
                 }
             }
             .font(.system(size: 15))
@@ -633,7 +732,7 @@ struct SkillUpgradeView: View {
         }
         .padding()
         .foregroundColor(isUnlocked ? .secondText : .gray)
-        .background(isUnlocked ? Color.orange.opacity(0.5) : Color.gray.opacity(0.5))
+        .background(isUnlocked ? (currentLevel == 5 ? Color.green.opacity(0.5) : Color.orange.opacity(0.5)) : Color.gray.opacity(0.5))
         .cornerRadius(10)
     }
 }
@@ -652,8 +751,57 @@ struct UpgradePriceResponse: Codable {
     let prices: [CCUpdateResponse]
 }
 
-#Preview() {
-    let state = AppState.shared
-    return InstituteView()
-        .environmentObject(state)
+struct RichTextLabel: UIViewRepresentable {
+    let attributedText: NSAttributedString
+    let font: UIFont
+    let textColor: UIColor
+    
+    init(
+        templateKey: String,
+        items: [(String, RichTextItem)],
+        font: UIFont = .systemFont(ofSize: 18),
+        textColor: UIColor = .white
+    ) {
+        self.font = font
+        self.textColor = textColor
+        self.attributedText = RichTextGenerator.attributedText(
+            templateKey: templateKey,
+            items: items,
+            font: font,
+            textColor: textColor
+        )
+    }
+    
+    func makeUIView(context: Context) -> UITextView {
+        let tv = UITextView()
+        tv.isScrollEnabled = false            // 不滚动
+        tv.isEditable = false                 // 不编辑
+        tv.isSelectable = false               // 不选中
+        tv.backgroundColor = .clear
+        tv.textContainerInset = .zero         // 去掉内边距
+        tv.textContainer.lineFragmentPadding = 0
+        tv.textContainer.widthTracksTextView = true
+        tv.font = font
+        tv.textColor = textColor
+        tv.textAlignment = .justified
+        tv.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return tv
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        uiView.attributedText = attributedText
+    }
+    
+    func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        uiView: UITextView,
+        context: Context
+    ) -> CGSize? {
+        if let width = proposal.width {
+            let targetSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+            let size = uiView.sizeThatFits(targetSize)
+            return CGSize(width: width, height: size.height)
+        }
+        return nil
+    }
 }

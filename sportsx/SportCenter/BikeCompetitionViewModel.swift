@@ -33,12 +33,6 @@ class BikeCompetitionViewModel: ObservableObject {
     // 显示选中的team详情页
     @Published var selectedTeamDetail: BikeTeamAppliedCard?
     
-    // alert信息
-    @Published var showAlert = false    // 控制各子页面、弹窗内的alert
-    @Published var showSingleRegisterAlert = false  // 控制主页面的alert
-    var alertMessage = ""
-    var teamRegisterSuccessAlert: Bool = false  // 组队报名失败和成功的alert格式不一致
-    
     // 当前最近报名的record
     var currentRecord: BikeRaceRecord?
     
@@ -55,18 +49,18 @@ class BikeCompetitionViewModel: ObservableObject {
         selectedTrack = nil
     }
     
-    func fetchEvents(with city: String) {
+    func fetchEvents(with regionID: String) {
         DispatchQueue.main.async {
             self.events.removeAll()
             self.selectedEvent = nil
         }
-        if city == "未知" { return }
+        if regionID == "未知" { return }
         DispatchQueue.main.async {
             self.isEventsLoading = true
         }
         guard var components = URLComponents(string: "/competition/bike/query_events") else { return }
         components.queryItems = [
-            URLQueryItem(name: "region_name", value: city)
+            URLQueryItem(name: "region_id", value: regionID)
         ]
         guard let urlPath = components.string else { return }
         
@@ -138,6 +132,7 @@ class BikeCompetitionViewModel: ObservableObject {
     }
     
     func queryRankInfo(trackID: String) {
+        guard userManager.isLoggedIn else { return }
         guard var components = URLComponents(string: "/competition/bike/query_me_rank") else { return }
         components.queryItems = [
             URLQueryItem(name: "track_id", value: trackID)

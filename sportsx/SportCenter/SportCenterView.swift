@@ -82,7 +82,7 @@ struct CompetitionCenterView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
-                            Text(locationManager.region ?? "未知")
+                            Text(locationManager.regionName ?? "error.unknown")
                                 .foregroundColor(.white)
                         }
                         .exclusiveTouchTapGesture {
@@ -92,10 +92,34 @@ struct CompetitionCenterView: View {
                     .padding(.horizontal, 10)
                     
                     // 居中图案
-                    HStack {
-                        Text(viewModel.seasonName)
-                            .font(.headline)
-                            .foregroundStyle(Color.white)
+                    HStack(spacing: 4) {
+                        if let season = viewModel.seasonInfo {
+                            Text(season.name)
+                                .font(.headline)
+                                .foregroundStyle(Color.white)
+                            Image(systemName: "info.circle")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.secondText)
+                                .exclusiveTouchTapGesture {
+                                    PopupWindowManager.shared.presentPopup(
+                                        title: "competition.season.info",
+                                        bottomButtons: [
+                                            .confirm()
+                                        ]
+                                    ) {
+                                        VStack {
+                                            Text("competition.begin_date") + Text(LocalizedStringKey(DateDisplay.formattedDate(season.startDate)))
+                                            Text("competition.end_date") + Text(LocalizedStringKey(DateDisplay.formattedDate(season.endDate)))
+                                        }
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.secondText)
+                                    }
+                                }
+                        } else {
+                            Text("error.unknown")
+                                .font(.headline)
+                                .foregroundStyle(Color.thirdText)
+                        }
                     }
                 }
                 .padding(.bottom, 5)
@@ -110,7 +134,7 @@ struct CompetitionCenterView: View {
         .onFirstAppear {
             viewModel.fetchCurrentSeason()
             // 解决第一次安装打开app时定位权限申请早于网络权限申请导致的更新问题
-            if let location = LocationManager.shared.getLocation() {
+            if let location = locationManager.getLocation(), locationManager.regionID == nil {
                 viewModel.updateCity(from: location)
             }
         }
@@ -141,13 +165,13 @@ struct TeamDescriptionView: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack {
-                Text("取消")
+                Text("action.cancel")
                     .font(.system(size: 16))
                     .foregroundStyle(.clear)
                 
                 Spacer()
                 
-                Text("队伍描述")
+                Text("competition.team.intro")
                     .font(.system(size: 16))
                     .foregroundStyle(.white)
                 
@@ -156,17 +180,25 @@ struct TeamDescriptionView: View {
                 Button(action:{
                     showDetailSheet = false
                 }) {
-                    Text("完成")
+                    Text("action.complete")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.secondText)
                 }
             }
             ScrollView {
-                Text(selectedDescription.isEmpty ? "暂无内容" : selectedDescription)
-                    .font(.system(size: 15))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(5)
+                if selectedDescription.isEmpty {
+                    Text("competition.team.description.no_content")
+                        .font(.system(size: 15))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(5)
+                } else {
+                    Text(selectedDescription)
+                        .font(.system(size: 15))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(5)
+                }
             }
             .frame(height: 100)
             .padding(10)
@@ -185,6 +217,7 @@ struct InfoItemView: View {
     let iconName: String
     let iconColor: Color
     let text: String
+    let param: String
     
     var body: some View {
         HStack(spacing: 5) {
@@ -193,7 +226,7 @@ struct InfoItemView: View {
                 .foregroundColor(iconColor)
                 .frame(width: 24, height: 24, alignment: .center)
             
-            Text(text)
+            (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)))
                 .font(.subheadline)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineLimit(nil)
@@ -209,71 +242,42 @@ struct TeamRegisterView: View {
     @ObservedObject var assetManager = AssetManager.shared
     
     @State var teamCode: String = ""
-    @Binding var showSheet: Bool
     
     var body: some View {
         VStack(spacing: 20) {
+            Text("competition.register.team.content")
+                .font(.subheadline)
+                .foregroundColor(.secondText)
+                .multilineTextAlignment(.center)
+            TextField(text: $teamCode) {
+                Text("competition.register.team.placeholder")
+                    .foregroundStyle(Color.thirdText)
+            }
+            .padding()
+            .foregroundColor(.white)
+            .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+            //Spacer()
             HStack {
-                Button(action: {
-                    showSheet = false
-                }) {
-                    Text("取消")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.thirdText)
-                }
-                
-                Spacer()
-                
-                Text("组队报名")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.secondText)
-                
-                Spacer()
-                
-                Button(action: {
+                Button {
                     registerWithTeamCode()
-                }) {
-                    Text("报名")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.orange)
+                } label: {
+                    Text("competition.register.team.2")
+                        .foregroundStyle(teamCode.count == 8 ? Color.white : Color.thirdText)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .background(teamCode.count == 8 ? Color.orange : Color.gray)
+                        .cornerRadius(10)
                 }
-            }
-            
-            VStack(alignment: .leading, spacing: 10) {
-                Text("使用队伍码报名队伍所在比赛")
-                    .font(.subheadline)
-                    .foregroundColor(.secondText)
-                TextField(text: $teamCode) {
-                    Text("请输入8位队伍码")
-                        .foregroundStyle(Color.thirdText)
-                }
-                .padding()
-                .foregroundColor(.white)
-                .scrollContentBackground(.hidden) // 隐藏系统默认的背景
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
-            }
-            Spacer()
-        }
-        .padding()
-        .background(Color.defaultBackground)
-        //.hideKeyboardOnScroll()
-        .onValueChange(of: showSheet) {
-            if showSheet {
-                teamCode = ""
-            } else {
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                .disabled(teamCode.count != 8)
             }
         }
     }
     
     // 使用队伍码报名
     func registerWithTeamCode() {
-        guard teamCode.count == 8 else {
-            let toast = Toast(message: "请输入合法的8位队伍码")
-            ToastManager.shared.show(toast: toast)
-            return
-        }
+        guard teamCode.count == 8 else { return }
         guard var components = URLComponents(string: "/competition/\(appState.sport.rawValue)/team_register") else { return }
         components.queryItems = [
             URLQueryItem(name: "team_code", value: teamCode)
@@ -286,7 +290,7 @@ struct TeamRegisterView: View {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        showSheet = false
+                        teamCode = ""
                         assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
                     }
                 }

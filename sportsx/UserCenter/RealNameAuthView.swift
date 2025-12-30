@@ -11,7 +11,7 @@ import PhotosUI
 
 struct RealNameAuthView: View {
     @EnvironmentObject var appState: AppState
-    @State var trackImage: UIImage? = nil
+    @State var cardImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
     let userManager = UserManager.shared
@@ -27,7 +27,7 @@ struct RealNameAuthView: View {
                 
                 Spacer()
                 
-                Text("实名认证")
+                Text("user.setup.realname_auth")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.secondText)
                 
@@ -40,17 +40,36 @@ struct RealNameAuthView: View {
                         .foregroundColor(.clear)
                 }
             }
-            .padding(.horizontal)
             
-            Spacer()
-            if userManager.user.isRealnameAuth {
-                Text("已进行实名认证")
+            HStack {
+                if userManager.user.isRealnameAuth {
+                    Text("user.setup.realname_auth.done")
+                        .font(.title3)
+                        .foregroundStyle(Color.green)
+                } else {
+                    Text("user.setup.realname_auth.undone")
+                        .font(.title3)
+                        .foregroundStyle(Color.gray)
+                }
+                Image(systemName: "info.circle")
                     .foregroundStyle(Color.secondText)
-                Text("重新验证后会清除当前赛季所有运动生涯的积分，30天内不可重新认证")
-                    .font(.caption)
-                    .foregroundStyle(Color.thirdText)
+                    .exclusiveTouchTapGesture {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "user.setup.realname_auth",
+                            bottomButtons: [
+                                .confirm("action.confirm")
+                            ]
+                        ) {
+                            JustifiedText("user.setup.realname_auth.popup", font: .systemFont(ofSize: 15), textColor: UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1))
+                        }
+                    }
+                Spacer()
             }
-            if let image = trackImage {
+            Text("user.setup.realname_auth.content")
+                .font(.caption)
+                .foregroundStyle(Color.thirdText)
+                .padding(.bottom, 100)
+            if let image = cardImage {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
@@ -59,23 +78,28 @@ struct RealNameAuthView: View {
                         showImagePicker = true
                     }
             } else {
-                EmptyCardSlot(text: "上传身份证件正面照片", ratio: 7/5)
+                EmptyCardSlot(text: "user.setup.realname_auth.upload", ratio: 7/5)
                     .frame(height: 150)
                     .onTapGesture {
                         showImagePicker = true
                     }
             }
-            Text(userManager.user.isRealnameAuth ? "重新认证" : "认证")
-                .padding(.vertical, 8)
-                .padding(.horizontal, 15)
+            Text("user.setup.realname_auth.content.2")
+                .font(.caption)
+                .foregroundStyle(Color.thirdText)
+            Text(userManager.user.isRealnameAuth ? "user.setup.realname_auth.action.reauth" : "user.setup.realname_auth.action.auth")
+                .padding(.vertical, 10)
+                .padding(.horizontal, 25)
                 .foregroundStyle(Color.secondText)
-                .background(Color.orange)
+                .background(cardImage == nil ? Color.gray : Color.orange)
                 .cornerRadius(10)
                 .onTapGesture {
                     appliedOCR()
                 }
+                .disabled(cardImage == nil)
             Spacer()
         }
+        .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
@@ -84,19 +108,16 @@ struct RealNameAuthView: View {
             Task {
                 if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
-                    trackImage = uiImage
+                    cardImage = uiImage
                 } else {
-                    trackImage = nil
+                    cardImage = nil
                 }
             }
         }
     }
     
     func appliedOCR() {
-        guard trackImage != nil else {
-            ToastManager.shared.show(toast: Toast(message: "请选择证件图片"))
-            return
-        }
+        guard cardImage != nil else { return }
         
         let boundary = "Boundary-\(UUID().uuidString)"
         var headers: [String: String] = [:]
@@ -104,7 +125,7 @@ struct RealNameAuthView: View {
         var body = Data()
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("front_image", trackImage, "hk_id_card.jpg")
+            ("front_image", cardImage, "hk_id_card.jpg")
         ]
         for (name, image, filename) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {

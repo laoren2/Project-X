@@ -24,6 +24,15 @@ class WatchDataManager: NSObject, ObservableObject {
     private var avgPower: Double = 0
     private var latestHeartRate: Double = 0
     private var latestPower: Double = 0
+    
+    private var lastStepDate: Date? = nil
+    private var lastStepSnapshot: Double? = nil
+    private var stepCadence: Double? = nil
+    let stepThreshold: Double = 10.0
+    
+    private var cycleCadence: Double? = nil
+    
+    
     var enableIMU: Bool = false
     
     @Published var showingAuthToast: Bool = false
@@ -105,11 +114,16 @@ class WatchDataManager: NSObject, ObservableObject {
         ]
 
         let typesToRead: Set<HKObjectType> = [
-            HKQuantityType.quantityType(forIdentifier: .heartRate)!,
-            HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!,
-            HKQuantityType.quantityType(forIdentifier: .cyclingPower)!
+            HKQuantityType(.heartRate),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.runningPower),
+            HKQuantityType(.cyclingPower),
+            HKQuantityType(.cyclingCadence),
+            HKQuantityType(.stepCount),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling)
         ]
-
+        
         // 合并需要检查的类型
         let allTypes: [HKObjectType] = Array(typesToShare) + Array(typesToRead)
 
@@ -190,10 +204,24 @@ class WatchDataManager: NSObject, ObservableObject {
         WKsession?.delegate = self
         builder?.delegate = self
         
-        builder?.dataSource = HKLiveWorkoutDataSource(
+        let dataSource = HKLiveWorkoutDataSource(
             healthStore: healthStore,
             workoutConfiguration: config
         )
+        
+        if config.activityType == .running {
+            dataSource.enableCollection(for: HKQuantityType(.stepCount), predicate: nil)
+            dataSource.enableCollection(for: HKQuantityType(.distanceWalkingRunning), predicate: nil)
+            dataSource.enableCollection(for: HKQuantityType(.runningPower), predicate: nil)
+        }
+        
+        if config.activityType == .cycling {
+            //dataSource.enableCollection(for: HKQuantityType(.cyclingCadence), predicate: nil)
+            dataSource.enableCollection(for: HKQuantityType(.distanceCycling), predicate: nil)
+            dataSource.enableCollection(for: HKQuantityType(.cyclingPower), predicate: nil)
+        }
+        
+        builder?.dataSource = dataSource
         
         // Start the workout session and begin data collection.
         let startDate = Date()
@@ -253,12 +281,20 @@ class WatchDataManager: NSObject, ObservableObject {
             // 每3秒发送一次 SummaryData
             if timerTickCount >= 60 {
                 timerTickCount = 0
+                
+                // 长时间未更新则置零
+                if let lastUpdate = self.lastStepDate, Date().timeIntervalSince(lastUpdate) > self.stepThreshold {
+                    self.stepCadence = 0
+                }
+                
                 let currentSummary = SummaryData(
                     avgHeartRate: self.avgHeartRate,
                     totalEnergy: self.totalEnergy,
                     avgPower: self.avgPower,
                     latestHeartRate: self.latestHeartRate,
-                    latestPower: self.latestPower
+                    latestPower: self.latestPower,
+                    stepCadence: self.stepCadence,
+                    cycleCadence: self.cycleCadence
                 )
                 
                 // incremental detection: only send if values changed significantly
@@ -307,13 +343,21 @@ class WatchDataManager: NSObject, ObservableObject {
             return
         }
         
-        let summaryDict: [String: Any] = [
+        var summaryDict: [String: Any] = [
             "avgHeartRate": summary.avgHeartRate,
             "totalEnergy": summary.totalEnergy,
             "avgPower": summary.avgPower,
             "latestHeartRate": summary.latestHeartRate,
             "latestPower": summary.latestPower
         ]
+        
+        if let stepCadence = summary.stepCadence {
+            summaryDict["stepCadence"] = stepCadence
+        }
+        
+        if let cycleCadence = summary.cycleCadence {
+            summaryDict["cycleCadence"] = cycleCadence
+        }
         
         session.sendMessage(["statsData": summaryDict], replyHandler: nil) { error in
             print("Error sending summaryData: \(error.localizedDescription)")
@@ -377,25 +421,37 @@ class WatchDataManager: NSObject, ObservableObject {
 
         DispatchQueue.main.async {
             switch statistics.quantityType {
-            case HKQuantityType.quantityType(forIdentifier: .heartRate):
+            case HKQuantityType(.heartRate):
                 let heartRateUnit = HKUnit.count().unitDivided(by: HKUnit.minute())
                 self.latestHeartRate = statistics.mostRecentQuantity()?.doubleValue(for: heartRateUnit) ?? 0
                 self.heartRate = self.latestHeartRate
                 self.avgHeartRate = statistics.averageQuantity()?.doubleValue(for: heartRateUnit) ?? 0
-            case HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned):
+            case HKQuantityType(.activeEnergyBurned):
                 let unit = HKUnit.kilocalorie()
                 self.totalEnergy = statistics.sumQuantity()?.doubleValue(for: unit) ?? 0
-                
-            case HKQuantityType.quantityType(forIdentifier: .cyclingPower):
+            case HKQuantityType(.runningPower):
                 let unit = HKUnit.watt()
                 self.latestPower = statistics.mostRecentQuantity()?.doubleValue(for: unit) ?? 0
                 self.avgPower = statistics.averageQuantity()?.doubleValue(for: unit) ?? 0
-                /*case HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned):
-                 let energyUnit = HKUnit.kilocalorie()
-                 self.activeEnergy = statistics.sumQuantity()?.doubleValue(for: energyUnit) ?? 0
-                 case HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning), HKQuantityType.quantityType(forIdentifier: .distanceCycling):
-                 let meterUnit = HKUnit.meter()
-                 self.distance = statistics.sumQuantity()?.doubleValue(for: meterUnit) ?? 0*/
+            case HKQuantityType(.cyclingPower):
+                let unit = HKUnit.watt()
+                self.latestPower = statistics.mostRecentQuantity()?.doubleValue(for: unit) ?? 0
+                self.avgPower = statistics.averageQuantity()?.doubleValue(for: unit) ?? 0
+            case HKQuantityType(.stepCount):
+                if let step = statistics.sumQuantity()?.doubleValue(for: .count()) {
+                    if let last = self.lastStepSnapshot, let lastDate = self.lastStepDate {
+                        let delta = step - last
+                        self.stepCadence = 60 * delta / statistics.endDate.timeIntervalSince(lastDate)
+                        //print("delta: \(delta) lastDate: \(lastDate) newDate: \(statistics.endDate)")
+                        //print(self.stepCadence)
+                    }
+                    self.lastStepSnapshot = step
+                    self.lastStepDate = statistics.endDate
+                } else {
+                    self.stepCadence = nil
+                }
+            case HKQuantityType(.cyclingCadence):
+                self.cycleCadence = statistics.averageQuantity()?.doubleValue(for: .count())
             default:
                 return
             }
@@ -413,6 +469,11 @@ class WatchDataManager: NSObject, ObservableObject {
         latestHeartRate = 0
         latestPower = 0
         enableIMU = false
+        stepCadence = nil
+        cycleCadence = nil
+        lastStepDate = nil
+        lastStepSnapshot = nil
+        lastSummarySent = nil
         //summaryViewData = nil
     }
 }
@@ -503,24 +564,53 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                     }
                     DispatchQueue.main.async {
                         // 从 workout 中获取系统统计
-                        let energyStats = workout.statistics(for: HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!)
+                        let stepStats = workout.statistics(for: HKQuantityType(.stepCount))
+                        let stepCount = stepStats?.sumQuantity()?.doubleValue(for: .count())
+                        let cycleStats = workout.statistics(for: HKQuantityType(.cyclingCadence))
+                        let cycleCount = cycleStats?.averageQuantity()?.doubleValue(for: .count())
+                        let energyStats = workout.statistics(for: HKQuantityType(.activeEnergyBurned))
                         let energy = energyStats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
-                        let distance = workout.totalDistance?.doubleValue(for: .meter()) ?? 0
+                        let distanceStats = workout.statistics(for: HKQuantityType(.distanceWalkingRunning))
                         let duration = workout.duration
                         
                         self.summaryViewData = SummaryViewData(
                             avgHeartRate: self.avgHeartRate,
                             totalEnergy: energy > 0 ? energy : self.totalEnergy,
                             avgPower: self.avgPower,
-                            distance: distance,
-                            totalTime: duration
+                            distance: 0,
+                            totalTime: duration,
+                            stepCadence: nil,
+                            cycleCadence: cycleCount
                         )
+                        if let step = stepCount {
+                            self.summaryViewData?.stepCadence = duration > 0 ? 60 * (step / duration) : nil
+                        }
                         
-                        //self.workout = workout
-                        //self.showingSummaryView = true
-                        
-                        // 清理资源
-                        self.resetWorkout()
+                        if let distance = distanceStats?.sumQuantity()?.doubleValue(for: .meter()) {
+                            self.summaryViewData?.distance = distance
+                            // 清理资源
+                            self.resetWorkout()
+                        } else {
+                            let predicate = HKQuery.predicateForSamples(
+                                withStart: workout.startDate,
+                                end: workout.endDate,
+                                options: .strictStartDate
+                            )
+                            let distanceType = HKQuantityType(.distanceWalkingRunning)
+                            let distanceQuery = HKStatisticsQuery(
+                                quantityType: distanceType,
+                                quantitySamplePredicate: predicate,
+                                options: .cumulativeSum
+                            ) { _, result, _ in
+                                let totalMeters = result?.sumQuantity()?.doubleValue(for: .meter()) ?? 0
+                                DispatchQueue.main.async {
+                                    self.summaryViewData?.distance = totalMeters
+                                    // 清理资源
+                                    self.resetWorkout()
+                                }
+                            }
+                            self.healthStore.execute(distanceQuery)
+                        }
                     }
                 }
             }
@@ -564,8 +654,10 @@ struct SummaryViewData {
     let avgHeartRate: Double
     let totalEnergy: Double
     let avgPower: Double
-    let distance: Double
+    var distance: Double
     let totalTime: TimeInterval
+    var stepCadence: Double?
+    let cycleCadence: Double?
 }
 
 struct SummaryData {
@@ -574,4 +666,6 @@ struct SummaryData {
     let avgPower: Double
     let latestHeartRate: Double
     let latestPower: Double
+    let stepCadence: Double?
+    let cycleCadence: Double?
 }

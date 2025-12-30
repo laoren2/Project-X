@@ -51,7 +51,7 @@ struct HomeView: View {
                                 .padding(.leading, 12)
                             
                             TextField(text: $searchText) {
-                                Text("搜索用户")
+                                Text("home.search_text")
                                     .foregroundColor(.gray)
                                     .font(.system(size: 15))
                             }
@@ -81,11 +81,11 @@ struct HomeView: View {
                     )
                     .padding(.trailing, 8)
                     
-                    CommonTextButton(text: "搜索") {
-                        filteredPersonInfos.removeAll()
-                        searchAnyPersonInfoCard()
+                    Button("action.search") {
+                        searchAnyPersonInfoCard(reset: true)
                     }
                     .foregroundStyle(.white)
+                    .disabled(searchText.isEmpty)
                 }
                 .padding(.bottom, 10)
                 .padding(.horizontal, 16)
@@ -98,6 +98,11 @@ struct HomeView: View {
                             LazyVStack(spacing: 15) {
                                 ForEach(filteredPersonInfos) { person in
                                     PersonInfoCardView(person: person)
+                                        .onAppear {
+                                            if person == filteredPersonInfos.last && viewModel.hasMoreUsers {
+                                                searchAnyPersonInfoCard(reset: false)
+                                            }
+                                        }
                                 }
                             }
                             .padding(.horizontal)
@@ -125,24 +130,43 @@ struct HomeView: View {
         }
     }
     
-    func searchAnyPersonInfoCard() {
-        guard var components = URLComponents(string: "/user/user_card/phone") else { return }
+    func searchAnyPersonInfoCard(reset: Bool) {
+        if reset {
+            filteredPersonInfos.removeAll()
+            viewModel.page = 1
+        }
+        guard var components = URLComponents(string: "/user/user_card/nick_name") else { return }
         components.queryItems = [
-            URLQueryItem(name: "phone_number", value: searchText)
+            URLQueryItem(name: "nick_name", value: searchText),
+            URLQueryItem(name: "page", value: "\(viewModel.page)"),
+            URLQueryItem(name: "size", value: "\(viewModel.size)")
         ]
         guard let urlPath = components.url?.absoluteString else { return }
         
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: PersonInfoDTO.self, showErrorToast: true) { result in
+        let request = APIRequest(path: urlPath, method: .get)
+        NetworkService.sendRequest(with: request, decodingType: PersonInfoResponse.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
-                if let unwrappedData = data {
-                    filteredPersonInfos.append(
-                        PersonInfoCard(
-                            userID: unwrappedData.user_id,
-                            avatarUrl: unwrappedData.avatar_image_url,
-                            name: unwrappedData.nickname)
-                    )
+                DispatchQueue.main.async {
+                    if let unwrappedData = data {
+                        for user in unwrappedData.users {
+                            filteredPersonInfos.append(
+                                PersonInfoCard(
+                                    userID: user.user_id,
+                                    avatarUrl: user.avatar_image_url,
+                                    name: user.nickname)
+                            )
+                        }
+                        if unwrappedData.users.count < viewModel.size {
+                            viewModel.hasMoreUsers = false
+                        } else {
+                            viewModel.hasMoreUsers = true
+                            viewModel.page += 1
+                        }
+                        if reset && unwrappedData.users.isEmpty {
+                            ToastManager.shared.show(toast: Toast(message: "home.search.toast"))
+                        }
+                    }
                 }
             default: break
             }
@@ -239,17 +263,24 @@ struct SquareView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 // 广告活动推荐区域
-                AdsBannerView(width: UIScreen.main.bounds.width - 32, height: adHeight, ads: viewModel.ads)
+                if !viewModel.ads.isEmpty {
+                    AdsBannerView(width: UIScreen.main.bounds.width - 32, height: adHeight, ads: viewModel.ads)
+                } else {
+                    Rectangle()
+                        .frame(width: UIScreen.main.bounds.width - 32, height: adHeight)
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                        .cornerRadius(20)
+                }
                 
                 // 功能组件区域
                 HStack(spacing: 0) {
+                    let spacings = 5 - viewModel.features.count
                     ForEach(viewModel.features) { feature in
-                        VStack {
+                        VStack(spacing: 5) {
                             Image(systemName: feature.iconName)
-                                .resizable()
-                                .frame(width: 40, height: 40)
+                                .font(.system(size: 32))
                             Text(feature.title)
-                                .font(.caption)
+                                .font(.system(size: 13))
                         }
                         .frame(maxWidth: .infinity)
                         .foregroundColor(.white)
@@ -257,12 +288,41 @@ struct SquareView: View {
                             appState.navigationManager.append(feature.destination)
                         }
                     }
-                    ForEach(0..<3) { _ in
+                    ForEach(Array(0..<spacings), id: \.self) { _ in
                         Spacer()
                             .frame(maxWidth: .infinity)
                     }
                 }
                 .padding(.top, 20)
+                
+                // 公告区域
+                HStack(alignment: .center, spacing: 10) {
+                    Image(systemName: "speaker.wave.2")
+                        .frame(width: 20)
+                        .foregroundStyle(Color.yellow)
+                    Divider()
+                    if !viewModel.announcements.isEmpty {
+                        TextBannerView(
+                            height: 40,
+                            texts: viewModel.announcements
+                        )
+                    } else {
+                        Spacer()
+                        Text("home.announcament.no_contents")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                }
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .background(Color.white.opacity(0.2))
+                .cornerRadius(10)
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+                .exclusiveTouchTapGesture {
+                    appState.navigationManager.append(.announcementView)
+                }
                 
                 // todo: 签到区域
                 SignInSectionView(vm: viewModel)
@@ -284,6 +344,7 @@ struct SquareView: View {
 }
 
 struct SignInSectionView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var vm: HomeViewModel
     @State var showSheet: Bool = false
@@ -297,9 +358,9 @@ struct SignInSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("每日签到")
+                Text("home.sign_in.tile")
                     .font(.headline)
-                    .foregroundColor(.orange)
+                    .foregroundColor(.white)
                 Image(systemName: "gift")
                     .foregroundColor(.orange)
                     .font(.system(size: 15))
@@ -319,18 +380,37 @@ struct SignInSectionView: View {
                 //Text("已连续签到 \(vm.continuousDays) 天")
                 //    .font(.caption)
                 //    .foregroundColor(.secondText)
-                Image(systemName: "v.circle.fill")
-                    .font(.system(size: 12))
+                if !userManager.user.isVip {
+                    Text("home.sign_in.vip_tile")
+                        .font(.caption)
+                        .foregroundColor(.secondText)
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "v.circle.fill")
+                            .foregroundStyle(Color.orange)
+                            .font(.system(size: 15))
+                        Image(systemName: "capslock.fill")
+                            .foregroundStyle(Color.white)
+                            .font(.system(size: 12))
+                    }
                     .fontWeight(.semibold)
-                    .foregroundStyle(Color.red)
-                Text("订阅领取更多签到奖励")
-                    .font(.caption)
-                    .foregroundColor(.secondText)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 5)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(4)
+                    .exclusiveTouchTapGesture {
+                        guard userManager.isLoggedIn else {
+                            UserManager.shared.showingLogin = true
+                            return
+                        }
+                        navigationManager.append(.subscriptionDetailView)
+                    }
+                }
                 Spacer()
                 if vm.reminderEnabled {
                     HStack {
-                        Text("提醒时间: \(vm.reminderTimeString)")
-                        Button("修改") {
+                        Text("home.sign_in.reminder_time \(vm.reminderTimeString)")
+                        Button("action.change") {
                             showSheet = true
                         }
                     }
@@ -339,18 +419,32 @@ struct SignInSectionView: View {
                 }
             }
             if userManager.isLoggedIn {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(vm.items) { day in
-                            SignInDayView(vm: vm, day: day)
+                if !vm.items.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(vm.items) { day in
+                                SignInDayView(vm: vm, day: day)
+                            }
                         }
+                        .padding(.vertical, 6)
                     }
-                    .padding(.vertical, 6)
+                } else {
+                    HStack {
+                        Spacer()
+                        Text("toast.network_error")
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                    }
+                    .padding(.vertical)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white.opacity(0.6), lineWidth: 1)
+                    )
                 }
             } else {
                 HStack {
                     Spacer()
-                    Text("请先登录")
+                    Text("toast.no_login")
                         .foregroundStyle(Color.secondText)
                     Spacer()
                 }
@@ -365,18 +459,18 @@ struct SignInSectionView: View {
         .sheet(isPresented: $showSheet) {
             VStack(spacing: 20) {
                 HStack {
-                    Button("取消") {
+                    Button("action.cancel") {
                         showSheet = false
                     }
                     .foregroundStyle(Color.thirdText)
                     Spacer()
-                    Button("保存") {
+                    Button("action.save") {
                         vm.updateReminderTime(tempDate)
                         showSheet = false
                     }
                     .foregroundStyle(Color.white)
                 }
-                DatePicker("提醒时间", selection: $tempDate, displayedComponents: .hourAndMinute)
+                DatePicker("home.sign_in.reminder_time", selection: $tempDate, displayedComponents: .hourAndMinute)
                     .tint(Color.orange)
                 Spacer()
             }
@@ -396,13 +490,13 @@ struct SignInDayView: View {
     @ObservedObject var vm: HomeViewModel
     let day: SignInDay
 
-    private var dayLabel: String {
+    private var dayLabel: LocalizedStringKey {
         if Calendar.current.isDateInToday(day.date) {
-            return "今天"
+            return "time.today"
         } else {
             let df = DateFormatter()
             df.dateFormat = "MM/dd"
-            return df.string(from: day.date)
+            return LocalizedStringKey(df.string(from: day.date))
         }
     }
 
@@ -419,7 +513,10 @@ struct SignInDayView: View {
                         .foregroundStyle(Color.white)
                 } else {
                     HStack(spacing: 2) {
-                        Image(systemName: day.ccassetType.iconName)
+                        Image(day.ccassetType.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 15)
                         Text("+\(day.ccassetReward)")
                     }
                     .font(.system(size: 12))
@@ -432,7 +529,7 @@ struct SignInDayView: View {
             }
             .onTapGesture {
                 if (!vm.isLoading) && day.state == .available && Calendar.current.isDateInToday(day.date) {
-                    vm.signInToday()
+                    vm.signInToday(day: day)
                 }
             }
             ZStack {
@@ -443,7 +540,7 @@ struct SignInDayView: View {
                     Image(systemName: "v.circle.fill")
                         .font(.system(size: 15))
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.red)
+                        .foregroundStyle(Color.orange)
                         .offset(x: -5, y: -5)
                 }
                 if day.state_vip == .claimed {
@@ -452,7 +549,10 @@ struct SignInDayView: View {
                         .foregroundStyle(Color.white)
                 } else {
                     HStack(spacing: 2) {
-                        Image(systemName: day.ccassetTypeVip.iconName)
+                        Image(day.ccassetTypeVip.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 15)
                         Text("+\(day.ccassetRewardVip)")
                     }
                     .font(.system(size: 12))
@@ -465,7 +565,7 @@ struct SignInDayView: View {
             }
             .onTapGesture {
                 if day.state_vip == .available && Calendar.current.isDateInToday(day.date) {
-                    vm.signInTodayVip()
+                    vm.signInTodayVip(day: day)
                 }
             }
             Text(dayLabel)
@@ -475,7 +575,7 @@ struct SignInDayView: View {
         .padding(10)
         .background(backgroundView)
         .cornerRadius(10)
-        .opacity(day.state == .future ? 0.8 : 1.0)
+        //.opacity(day.state == .future ? 0.8 : 1.0)
     }
     
     private var BackgroundColor: Color {
@@ -494,7 +594,7 @@ struct SignInDayView: View {
         case .claimed:
             return Color.green.opacity(0.4)
         case .available:
-            return Color.red.opacity(0.4)
+            return Color.orange.opacity(0.4)
         case .future:
             return Color.gray.opacity(0.2)
         }
@@ -515,8 +615,81 @@ struct SignInDayView: View {
         case .future:
             return AnyView(
                 RoundedRectangle(cornerRadius: 10)
-                    .foregroundStyle(Color.gray.opacity(0.1))
+                    .foregroundStyle(Color.white.opacity(0.1))
             )
+        }
+    }
+}
+
+struct AnnouncementView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @State var announcements: [AnnouncementInfo] = []
+    
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
+                Text("home.announcament.title")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.clear)
+                }
+            }
+            .padding(.horizontal)
+            ScrollView {
+                VStack(spacing: 40) {
+                    ForEach(announcements) { info in
+                        VStack {
+                            Text(LocalizedStringKey(DateDisplay.formattedDate(info.date)))
+                                .foregroundStyle(Color.secondText)
+                            Divider()
+                            HStack {
+                                Text(info.content)
+                                    .foregroundStyle(Color.white)
+                                    .font(.headline)
+                                    .multilineTextAlignment(.leading)
+                                Spacer()
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(10)
+                    }
+                }
+                .padding()
+            }
+        }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+        .onFirstAppear {
+            fetchAnnouncements()
+        }
+    }
+    
+    func fetchAnnouncements() {
+        let request = APIRequest(path: "/homepage/query_announcements", method: .get)
+        NetworkService.sendRequest(with: request, decodingType: AnnouncementResponse.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    for announcement in unwrappedData.announcements {
+                        self.announcements.append(AnnouncementInfo(from: announcement))
+                    }
+                default:
+                    break
+                }
+            }
         }
     }
 }

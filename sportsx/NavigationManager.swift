@@ -52,6 +52,11 @@ enum AppRoute: Hashable {
     case subscriptionDetailView
     case iapHelpView
     case iapCouponView
+    case feedbackView(mailType: FeedbackMailType, reportUserID: String? = nil)
+    case aboutUsView
+    case announcementView
+    case usageTipView
+    case emailBindView
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -64,10 +69,13 @@ enum AppRoute: Hashable {
     case regionSelectedView
     case cpAssetBackendView
     case cpAssetPriceBackendView
-    case userAssetManageBackendView
+    case mailboxBackendView
     case magicCardBackendView
     case magicCardPriceBackendView
     case bikeMatchDebugView
+    case feedbackMailBackendView
+    case homepageBackendView
+    case smsLoginView
 #endif
     
     var string: String {
@@ -150,6 +158,18 @@ enum AppRoute: Hashable {
             return "iapHelpView"
         case .iapCouponView:
             return "iapCouponView"
+        case .feedbackView:
+            return "feedbackView"
+        case .aboutUsView:
+            return "aboutUsView"
+        case .announcementView:
+            return "announcementView"
+        case .usageTipView:
+            return "usageTipView"
+        case .smsLoginView:
+            return "smsLoginView"
+        case .emailBindView:
+            return "emailBindView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"
@@ -173,14 +193,18 @@ enum AppRoute: Hashable {
             return "cpAssetBackendView"
         case .cpAssetPriceBackendView:
             return "cpAssetPriceBackendView"
-        case .userAssetManageBackendView:
-            return "userAssetManageBackendView"
+        case .mailboxBackendView:
+            return "mailboxBackendView"
         case .magicCardBackendView:
             return "magicCardBackendView"
         case .magicCardPriceBackendView:
             return "magicCardPriceBackendView"
         case .bikeMatchDebugView:
             return "bikeMatchDebugView"
+        case .feedbackMailBackendView:
+            return "feedbackMailBackendView"
+        case .homepageBackendView:
+            return "homepageBackendView"
 #endif
         }
     }
@@ -198,9 +222,6 @@ class NavigationManager: ObservableObject {
     
     // 运动选择侧边栏
     @Published var showSideBar: Bool = false
-    
-    // 组队底部sheet
-    @Published var showTeamRegisterSheet: Bool = false
     
     // 运动中心状态
     @Published var isTrainingView: Bool = false

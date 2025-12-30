@@ -12,17 +12,25 @@ struct ControlView: View {
     
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("点击结束并不会结束比赛，只会停止watch端的数据收集，想要结束比赛请在手机端操作")
+            Text("competition.applewatch.control.info")
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+            //Spacer()
             Button(action:{
                 workoutManager.stopCollecting()
             }) {
-                Text("结束")
+                Text("competition.realtime.action.finish.2")
                     .foregroundStyle(Color.red)
             }
+            .padding(.top, 20)
         }
         .padding()
+        //.border(.red)
     }
+}
+
+#Preview {
+    let workout = WatchDataManager.shared
+    return ControlView()
+        .environmentObject(workout)
 }

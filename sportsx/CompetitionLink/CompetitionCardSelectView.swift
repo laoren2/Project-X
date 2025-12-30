@@ -22,21 +22,25 @@ struct CompetitionCardSelectView: View {
     var body: some View {
         VStack {
             HStack(spacing: 4) {
-                CommonIconButton(icon: "chevron.left") {
-                    // 销毁计时器a和b
-                    appState.competitionManager.stopAllTeamJoinTimers()
-                    appState.navigationManager.removeLast()
-                    if !appState.competitionManager.isRecording {
-                        appState.competitionManager.resetCompetitionProperties()
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 5)
+                    .padding(.trailing, 20)
+                    .contentShape(Rectangle())
+                    .exclusiveTouchTapGesture {
+                        // 销毁计时器a和b
+                        appState.competitionManager.stopAllTeamJoinTimers()
+                        appState.navigationManager.removeLast()
+                        if !appState.competitionManager.isRecording {
+                            appState.competitionManager.resetCompetitionProperties()
+                        }
                     }
-                }
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
                 Spacer()
                 Image(systemName: appState.competitionManager.sport.iconName)
                     .font(.system(size: 18))
                     .foregroundStyle(Color.white)
-                Text(appState.competitionManager.isTeam ? "组队" : "单人")
+                Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.secondText)
                     .padding(.vertical, 2)
@@ -51,6 +55,8 @@ struct CompetitionCardSelectView: View {
                     Image(systemName: "applewatch.side.right")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
+                        .padding(.vertical, 5)
+                        .padding(.leading, 20)
                 }
             }
             .padding(.horizontal)
@@ -59,11 +65,11 @@ struct CompetitionCardSelectView: View {
             if appState.competitionManager.isTeam {
                 VStack {
                     if appState.competitionManager.isTeamJoinWindowExpired {
-                        Text("队伍有效窗口时间已过，无法加入比赛")
+                        Text("competition.realtime.out_window")
                             .foregroundColor(.red)
                             .padding()
                     } else {
-                        Text("剩余加入时间: \(appState.competitionManager.teamJoinRemainingTime)秒")
+                        Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
                             .font(.headline)
                             .foregroundStyle(.white)
                             .padding()
@@ -81,7 +87,7 @@ struct CompetitionCardSelectView: View {
                 if userManager.user.isVip {
                     Spacer()
                 }
-                Text("请选择你的装备卡")
+                Text("competition.cardselect.choose")
                     .font(.headline)
                     .foregroundStyle(.white)
                 Spacer()
@@ -91,7 +97,7 @@ struct CompetitionCardSelectView: View {
                             .font(.system(size: 15))
                             .fontWeight(.semibold)
                             .foregroundStyle(Color.red)
-                        Text("订阅获得额外卡牌槽")
+                        Text("competition.cardselect.subscription")
                             .font(.subheadline)
                             .foregroundStyle(Color.secondText)
                     }
@@ -127,8 +133,15 @@ struct CompetitionCardSelectView: View {
                     }
                     .padding(.bottom)
                 } else {
-                    HStack {
-                        let selected = appState.competitionManager.selectedCards
+                    HStack(spacing: 20) {
+                        ForEach(appState.competitionManager.selectedCards) { card in
+                            MagicCardView(card: card)
+                                //.frame(width: cardWidth)
+                        }
+                        ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
+                            EmptyCardSlot()
+                        }
+                        /*let selected = appState.competitionManager.selectedCards
                         let placeholders = Array(selected.count..<maxCards)
                         let allViews: [AnyView] = selected.map { card in
                             AnyView(
@@ -147,12 +160,12 @@ struct CompetitionCardSelectView: View {
                             if i < allViews.count - 1 {
                                 Spacer()
                             }
-                        }
+                        }*/
                     }
                     .padding(.bottom)
                 }
                 
-                Text("选择卡片")
+                Text("competition.cardselect.action.choose")
                     .padding(.horizontal, 30)
                     .padding(.vertical, 12)
                     .foregroundColor(.white)
@@ -169,7 +182,7 @@ struct CompetitionCardSelectView: View {
             .padding(.horizontal)
             Spacer()
             HStack {
-                Text("下一步")
+                Text("competition.cardselect.action.next_step")
                 Image(systemName: "arrowshape.right")
             }
             .foregroundColor(.white)
@@ -178,12 +191,12 @@ struct CompetitionCardSelectView: View {
             .background(Color.green)
             .cornerRadius(12)
             .exclusiveTouchTapGesture {
-                appState.navigationManager.append(.competitionRealtimeView)
-                appState.competitionManager.activateCards()
+                appState.competitionManager.loadMatchEnv()
             }
             .disabled(appState.competitionManager.isRecording)
             .padding(.bottom, 120)
         }
+        .ignoresSafeArea(.keyboard)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
@@ -195,19 +208,6 @@ struct CompetitionCardSelectView: View {
         }
         .bottomSheet(isPresented: $showCardSelection, size: .large, destroyOnDismiss: true) {
             CardSelectionView(showCardSelection: $showCardSelection)
-        }
-    }
-    
-    @ViewBuilder
-    func interleavedHStack<Views: View>(@ViewBuilder _ views: () -> [Views]) -> some View {
-        let list = views()
-        HStack {
-            ForEach(0..<list.count, id: \.self) { i in
-                list[i]
-                if i < list.count - 1 {
-                    Spacer()
-                }
-            }
         }
     }
 }

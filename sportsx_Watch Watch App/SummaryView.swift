@@ -9,12 +9,19 @@ import SwiftUI
 import HealthKit
 
 struct SummaryMetricView: View {
-    var title: String
-    var value: String
+    let title: String
+    let value: String
+    let unit: String
+    
+    init(title: String, value: String, unit: String = "") {
+        self.title = title
+        self.value = value
+        self.unit = unit
+    }
 
     var body: some View {
-        Text(title)
-        Text(value)
+        Text(LocalizedStringKey(title))
+        (Text(value) + Text(LocalizedStringKey(unit)))
             .font(.system(.title2, design: .rounded)
                     .lowercaseSmallCaps()
             )
@@ -39,17 +46,47 @@ struct SummaryView: View {
             ScrollView(.vertical) {
                 VStack(alignment: .leading) {
                     SummaryMetricView(
-                        title: "Total Time",
+                        title: "competition.applewatch.total_time",
                         value: durationFormatter
                             .string(from: data.totalTime) ?? ""
-                    ).accentColor(Color.yellow)
-                    SummaryMetricView(title: "Avg HeartRate", value: "\(data.avgHeartRate)")
-                    SummaryMetricView(title: "Total Energy", value: "\(data.totalEnergy)")
-                    SummaryMetricView(title: "Avg Power", value: "\(data.avgPower)")
+                    )
+                    .accentColor(Color.yellow)
+                    SummaryMetricView(
+                        title: "competition.applewatch.total_distance",
+                        value: String(format: "%.5f", data.distance / 1000.0),
+                        unit: "distance.km"
+                    )
+                    .accentColor(Color.green)
+                    SummaryMetricView(
+                        title: "competition.applewatch.avg_heartrate",
+                        value: String(format: "%.1f", data.avgHeartRate),
+                        unit: "heartrate.unit"
+                    )
+                    .accentColor(Color.pink)
+                    SummaryMetricView(
+                        title: "competition.applewatch.total_energy",
+                        value: String(format: "%.1f", data.totalEnergy),
+                        unit: "energy.unit"
+                    )
+                    .accentColor(Color.orange)
+                    SummaryMetricView(
+                        title: "competition.applewatch.avg_power",
+                        value: String(format: "%.1f", data.avgPower),
+                        unit: "power.unit"
+                    )
+                    .accentColor(Color.blue)
+                    if let stepCadence = data.stepCadence {
+                        SummaryMetricView(
+                            title: "competition.applewatch.stepCadance",
+                            value: String(format: "%.1f", stepCadence),
+                            unit: "stepCadence.unit"
+                        )
+                        .accentColor(Color.red)
+                    }
                     //Text("Activity Rings")
                     //ActivityRingsView(healthStore: workoutManager.healthStore)
                     //                .frame(width: 50, height: 50)
-                    Button("Done") {
+                    Button("action.close") {
                         dismiss()
                     }
                 }
@@ -59,8 +96,8 @@ struct SummaryView: View {
             .navigationBarTitleDisplayMode(.inline)
         } else {
             VStack {
-                ProgressView("数据整理中...")
-                Button("Done") {
+                ProgressView("competition.applewatch.data_processing")
+                Button("action.close") {
                     dismiss()
                 }
                 //.navigationBarHidden(true)
@@ -76,13 +113,28 @@ struct AuthToastView: View {
     var body: some View {
         VStack {
             if workoutManager.isNeedWaitingAuth {
-                ProgressView("准备中")
+                ProgressView("competition.applewatch.auth.preparing")
             } else {
-                Text("请先在健康-共享-App里打开健康权限")
-                Button("确认") {
+                Text("competition.applewatch.auth.toast")
+                Button("action.confirm") {
                     dismiss()
                 }
             }
         }
     }
+}
+
+#Preview {
+    let workout = WatchDataManager.shared
+    workout.summaryViewData = SummaryViewData(
+        avgHeartRate: 0,
+        totalEnergy: 0,
+        avgPower: 0,
+        distance: 0,
+        totalTime: 0,
+        stepCadence: nil,
+        cycleCadence: nil
+    )
+    return SummaryView()
+        .environmentObject(workout)
 }

@@ -16,6 +16,21 @@ enum BikeTrackTerrainType: String, Codable {
     case enduro = "enduro"
     case downHill = "downHill"
     case other = "other"
+    
+    var displayName: String {
+        switch self {
+        case .road:
+            return "competition.terrain.road"
+        case .crossCountry:
+            return "competition.terrain.crossCountry"
+        case .enduro:
+            return "competition.terrain.enduro"
+        case .downHill:
+            return "competition.terrain.downHill"
+        case .other:
+            return "competition.terrain.other"
+        }
+    }
 }
 
 // 赛道数据结构
@@ -31,6 +46,8 @@ struct BikeTrack: Identifiable, Equatable {
     let toRadius: Int
     let image_url: String
     let terrainType: BikeTrackTerrainType
+    let singleRegisterCardUrl: String
+    let teamRegisterCardUrl: String
     
     // 添加新的属性
     let elevationDifference: Int        // 海拔差(米)
@@ -53,6 +70,8 @@ struct BikeTrack: Identifiable, Equatable {
         self.toRadius = track.to_radius
         self.image_url = track.image_url
         self.terrainType = track.terrain_type
+        self.singleRegisterCardUrl = track.single_register_card_url
+        self.teamRegisterCardUrl = track.team_register_card_url
         self.elevationDifference = track.elevation_difference
         self.regionName = track.sub_region_name
         self.prizePool = track.prize_pool
@@ -107,6 +126,8 @@ struct BikeTrackInfoDTO: Codable {
     let end_date: String
     let image_url: String
     let terrain_type: BikeTrackTerrainType
+    let single_register_card_url: String
+    let team_register_card_url: String
     
     let from_latitude: Double
     let from_longitude: Double

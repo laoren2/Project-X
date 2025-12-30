@@ -18,6 +18,15 @@ class UserIntroEditViewModel: ObservableObject {
     
     @Published var backgroundColor: Color = .defaultBackground  // 背景色
     
+    var regionName: String? {
+        for (_, cities) in regionTable {
+            if let index = cities.firstIndex(where: { $0.regionID == currentUser.location }) {
+                return cities[index].regionName
+            }
+        }
+        return nil
+    }
+    
     init() {
         currentUser = userManager.user
         avatarImage = userManager.avatarImage

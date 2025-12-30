@@ -8,6 +8,7 @@
 import SwiftUI
 
 // 本地调试比赛链路和IMU数据
+// todo: 改为统一复用 realtimeView & resultView 实现
 struct BikeMatchDebugView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel = BikeMatchDebugViewModel()
@@ -25,7 +26,7 @@ struct BikeMatchDebugView: View {
                 Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
                     .font(.largeTitle)
                 Button("stop"){
-                    appState.competitionManager.stopCompetition()
+                    appState.competitionManager.stopCompetition_debug()
                     viewModel.samplePath = BikePathPointTool.computeSamplePoints(pathData: appState.competitionManager.bikePathData_debug)
                     isRecording = false
                 }

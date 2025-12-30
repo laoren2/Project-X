@@ -13,7 +13,7 @@ struct Toast: Identifiable, Equatable {
     var duration: TimeInterval
     
     init(
-        message: String = "提示",
+        message: String = "toast.placehold",
         duration: TimeInterval = 2
     ) {
         self.message = message
@@ -69,7 +69,7 @@ struct ToastView: View {
     let toast: Toast
 
     var body: some View {
-        Text(toast.message)
+        Text(LocalizedStringKey(toast.message))
             .padding()
             .background(Color.black.opacity(0.6))
             .foregroundColor(.white)
@@ -83,9 +83,10 @@ struct LoadingToastView: View {
     var body: some View {
         ProgressView()
             .padding()
-            .background(Color.black.opacity(0.5))
+            .background(Color.black.opacity(0.8))
             .foregroundColor(.white)
             .cornerRadius(8)
+            .environment(\.colorScheme, .dark)
     }
 }
 

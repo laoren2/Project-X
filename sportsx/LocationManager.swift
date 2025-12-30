@@ -41,6 +41,67 @@ enum GPSStrength: String {
     }
 }
 
+struct Region: Identifiable, Equatable {
+    var id: String { return regionID }
+    let regionID: String
+    let regionName: String
+    
+    static func == (lhs: Region, rhs: Region) -> Bool {
+        return lhs.regionID == rhs.regionID
+    }
+}
+
+let regionTable: [String: [Region]] = [
+    "region.cn.shanghai": [Region(regionID: "CN-SH-SH", regionName: "region.cn.shanghai")],
+    "region.cn.beijing": [Region(regionID: "CN-BJ-BJ", regionName: "region.cn.beijing")],
+    "region.cn.guangdong": [
+        Region(regionID: "CN-GD-GZ", regionName: "region.cn.guangzhou"),
+        Region(regionID: "CN-GD-SZ", regionName: "region.cn.shenzhen"),
+        Region(regionID: "CN-GD-FS", regionName: "region.cn.foshan")
+    ],
+    "region.cn.zhejiang": [
+        Region(regionID: "CN-ZJ-HZ", regionName: "region.cn.hangzhou"),
+        Region(regionID: "CN-ZJ-WZ", regionName: "region.cn.wenzhou"),
+        Region(regionID: "CN-ZJ-NB", regionName: "region.cn.ningbo")
+    ],
+    "region.cn.jiangsu": [
+        Region(regionID: "CN-JS-NJ", regionName: "region.cn.nanjing"),
+        Region(regionID: "CN-JS-SZ", regionName: "region.cn.suzhou"),
+        Region(regionID: "CN-JS-WX", regionName: "region.cn.wuxi")
+    ],
+    "region.cn.anhui": [
+        Region(regionID: "CN-AH-HF", regionName: "region.cn.hefei"),
+        Region(regionID: "CN-AH-HS", regionName: "region.cn.huangshan")
+    ]
+]
+
+let regionTable_HK: [String: [Region]] = [
+    "region.hk.xianggangdao": [
+        Region(regionID: "HK-SOUTHERN", regionName: "region.hk.nanqu"),
+        Region(regionID: "HK-CENTRAL-AND-WESTERN", regionName: "region.hk.zhongxiqu"),
+        Region(regionID: "HK-WAN-CHAI", regionName: "region.hk.wanzaiqu"),
+        Region(regionID: "HK-EASTERN", regionName: "region.hk.dongqu")
+    ],
+    "region.hk.jiulong": [
+        Region(regionID: "HK-KWUN-TONG", regionName: "region.hk.guantangqu"),
+        Region(regionID: "HK-KOWLOON-CITY", regionName: "region.hk.jiulongchengqu"),
+        Region(regionID: "HK-YAU-TSIM-MONG", regionName: "region.hk.youjianwangqu"),
+        Region(regionID: "HK-SHAM-SHUI-PO", regionName: "region.hk.shenshuipo"),
+        Region(regionID: "HK-WONG-TAI-SIN", regionName: "region.hk.huangdaxianqu")
+    ],
+    "region.hk.xinjie": [
+        Region(regionID: "HK-NORTH", regionName: "region.hk.beiqu"),
+        Region(regionID: "HK-ISLANDS", regionName: "region.hk.lidaoqu"),
+        Region(regionID: "HK-TSUEN-WAN", regionName: "region.hk.quanwan"),
+        Region(regionID: "HK-TAI-PO", regionName: "region.hk.dapuqu"),
+        Region(regionID: "HK-SHA-TIN", regionName: "region.hk.shatianqu"),
+        Region(regionID: "HK-SAI-KUNG", regionName: "region.hk.xigongqu"),
+        Region(regionID: "HK-KWAI-TSING", regionName: "region.hk.kuiqingqu"),
+        Region(regionID: "HK-TUEN-MUN", regionName: "region.hk.tunmenqu"),
+        Region(regionID: "HK-YUEN-LONG", regionName: "region.hk.yuanlangqu")
+    ]
+]
+
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = LocationManager()
     
@@ -55,7 +116,20 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     // 设备国家定位
     @Published var countryCode: String? = nil
     // 运动中心已选择的地区
-    @Published var region: String? = nil
+    @Published var regionID: String? = nil
+    var regionName: LocalizedStringKey? {
+        for (_, cities) in regionTable_HK {
+            if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        for (_, cities) in regionTable {
+            if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        return nil
+    }
     
     // 使用 @Published 来发布授权状态变化
     @Published var authorizationStatus: CLAuthorizationStatus

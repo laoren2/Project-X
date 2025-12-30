@@ -37,9 +37,9 @@ struct MagicCardView: View {
                     placeholder: Image("Ads"),
                     errorImage: Image(systemName: "photo.badge.exclamationmark")
                 )
+                .id(card.imageURL)
                 .scaledToFill()
                 .frame(width: width, height: height)
-                .clipped()
                 
                 VStack(spacing: 0) {
                     HStack {
@@ -104,6 +104,7 @@ struct MagicCardView: View {
                         lineWidth: strokeWidth
                     )
             )
+            .contentShape(Rectangle())
         }
         .aspectRatio(5/7, contentMode: .fit) // 保持卡牌比例
         .fullScreenCover(isPresented: $showDetail) {
@@ -158,9 +159,10 @@ struct EmptyCardSlot: View {
                         .font(.system(size: iconSize))
                         .foregroundColor(.white.opacity(0.5))
                     
-                    Text(text)
+                    Text(LocalizedStringKey(text))
                         .font(.system(size: fontSize))
                         .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
                 }
             }
         }

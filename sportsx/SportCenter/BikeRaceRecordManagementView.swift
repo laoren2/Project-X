@@ -23,12 +23,13 @@ struct BikeRaceRecordManagementView: View {
                     appState.navigationManager.removeLast()
                 }
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.blue)
+                .foregroundStyle(Color.white)
                 
                 Spacer()
                 
-                Text("bike参赛记录")
+                (Text(LocalizedStringKey(SportName.Bike.name)) + Text("competition.record.title"))
                     .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.white)
                 
                 Spacer()
                 
@@ -36,24 +37,23 @@ struct BikeRaceRecordManagementView: View {
                 Button(action: {}) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.clear)
+                        .foregroundStyle(Color.clear)
                 }
             }
             .padding(.horizontal)
             .padding(.bottom, 10)
-            .background(Color(.systemBackground))
             
             // 选项卡
             HStack(spacing: 0) {
-                ForEach(["未完成", "已完成"].indices, id: \.self) { index in
+                ForEach(["tab.incompleted", "competition.record.status.completed"].indices, id: \.self) { index in
                     VStack(spacing: 8) {
-                        Text(["未完成", "已完成"][index])
+                        Text(["tab.incompleted", "competition.record.status.completed"][index])
                             .font(.system(size: 16, weight: viewModel.selectedTab == index ? .semibold : .regular))
-                            .foregroundColor(viewModel.selectedTab == index ? .blue : .gray)
+                            .foregroundStyle(viewModel.selectedTab == index ? Color.white : Color.gray)
                         
                         // 选中指示器
                         Rectangle()
-                            .fill(viewModel.selectedTab == index ? Color.blue : Color.clear)
+                            .fill(viewModel.selectedTab == index ? Color.white : Color.clear)
                             .frame(width: 80, height: 3)
                     }
                     .onTapGesture {
@@ -157,6 +157,8 @@ struct BikeRaceRecordManagementView: View {
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .ignoresSafeArea()
         }
+        .environment(\.colorScheme, .dark)
+        .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .onStableAppear {
@@ -187,29 +189,17 @@ struct BikeCompetitionRecordCard: View {
                 // 赛道名称
                 Text(record.trackName)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(Color.white)
                     .lineLimit(1)
-                if record.status == .expired {
-                    Text("(已过期)")
+                if record.status != .completed && record.status != .notStarted {
+                    (Text(" [") + Text(LocalizedStringKey(record.status.displayName)) + Text("]"))
                         .font(.subheadline)
-                        .foregroundColor(.red)
+                        .foregroundStyle(record.status.backgroundColor)
                 }
-                if record.status == .toBeVerified {
-                    Text("(校验中...)")
-                        .font(.subheadline)
-                        .foregroundColor(.orange)
-                }
-                if record.status == .invalid {
-                    Text("(校验失败)")
-                        .font(.subheadline)
-                        .foregroundColor(.red)
-                }
-                
                 Spacer()
-                
                 // 比赛类型标签
                 HStack(spacing: 4) {
-                    Text("\(record.competitionTypeText)")
+                    Text(LocalizedStringKey(record.competitionTypeText))
                     if let teamTitle = record.teamTitle {
                         Text(":  \(teamTitle)")
                     }
@@ -232,7 +222,6 @@ struct BikeCompetitionRecordCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "calendar")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
                         
                         let competitionEnd: Date? = {
                             guard let start = record.teamCompetitionDate,
@@ -242,20 +231,18 @@ struct BikeCompetitionRecordCard: View {
                             return min(start.addingTimeInterval(7200), end)
                         }()
                         
-                        Text("有效开始时间: \(DateDisplay.formattedDate(record.teamCompetitionDate)) - \(DateDisplay.formattedDate(competitionEnd))")
+                        (Text("competition.begin_date.valid") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(record.teamCompetitionDate))) + Text("-") + Text((DateDisplay.formattedDate(competitionEnd))))
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
                     }
+                    .foregroundStyle(Color.secondText)
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "calendar")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                        
-                        Text("比赛截止时间: \(DateDisplay.formattedDate(record.trackEndDate))")
+                        (Text("competition.deadline") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(record.trackEndDate))))
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
                     }
+                    .foregroundStyle(Color.secondText)
                 }
             }
             
@@ -264,35 +251,29 @@ struct BikeCompetitionRecordCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
                         .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                    
-                    Text("开始时间: \(DateDisplay.formattedDate(record.startDate))")
+                    (Text("competition.begin_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(record.startDate))))
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
                 }
+                .foregroundStyle(Color.secondText)
                 
                 // 如果已完成，显示完成时间
                 HStack(spacing: 4) {
                     Image(systemName: "flag.checkered")
                         .font(.system(size: 14))
-                        .foregroundColor(.green)
-                    
-                    Text("完成时间: \(DateDisplay.formattedDate(record.endDate))")
+                    (Text("competition.complete_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(record.endDate))))
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
                 }
+                .foregroundStyle(Color.secondText)
                 
                 // 持续时间
                 if let _ = record.duration {
                     HStack(spacing: 4) {
                         Image(systemName: "stopwatch")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                        
                         Text("用时: \(TimeDisplay.formattedTime(record.duration, showFraction: true))")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
                     }
+                    .foregroundStyle(Color.secondText)
                 }
             }
             
@@ -300,12 +281,10 @@ struct BikeCompetitionRecordCard: View {
             HStack(spacing: 4) {
                 Image(systemName: "calendar")
                     .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                
-                Text("报名时间: \(DateDisplay.formattedDate(record.createdDate))")
+                (Text("competition.register_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(record.createdDate))))
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
             }
+            .foregroundStyle(Color.secondText)
             
             Divider()
             
@@ -314,33 +293,56 @@ struct BikeCompetitionRecordCard: View {
                 HStack(spacing: 0) {
                     Text("\(record.regionName)-\(record.eventName)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(Color.secondText)
                         .padding(.leading, 2)
                     
                     Spacer()
                     
                     // 开始按钮
-                    CommonTextButton(text: "开始比赛") {
+                    CommonTextButton(text: "competition.start") {
                         viewModel.startCompetition(record: record)
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(appState.competitionManager.isRecording ? .gray.opacity(0.2) : .green.opacity(0.2))
-                    .foregroundColor(appState.competitionManager.isRecording ? .gray : .green)
-                    .cornerRadius(4)
+                    .foregroundStyle(Color.secondText)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(appState.competitionManager.isRecording ? Color.gray.opacity(0.5) : Color.green.opacity(0.5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(appState.competitionManager.isRecording ? Color.gray.opacity(0.8) : Color.green.opacity(0.8), lineWidth: 1)
+                            )
+                            .shadow(color: appState.competitionManager.isRecording ? Color.gray.opacity(0.1) : Color.green.opacity(0.1), radius: 3, x: 0, y: 2)
+                    )
                     .disabled(appState.competitionManager.isRecording)
                     
                     // 取消按钮
-                    CommonTextButton(text: "取消报名") {
-                        viewModel.cancelCompetition(record: record)
+                    CommonTextButton(text: "action.cancel_register") {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "action.cancel_register",
+                            message: "competition.record.popup.cancel_register",
+                            bottomButtons: [
+                                .cancel(),
+                                .confirm() {
+                                    viewModel.cancelCompetition(record: record)
+                                }
+                            ]
+                        )
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.red.opacity(0.2))
-                    .foregroundColor(.red)
-                    .cornerRadius(4)
+                    .foregroundStyle(Color.secondText)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color.red.opacity(0.5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.red.opacity(0.8), lineWidth: 1)
+                            )
+                            .shadow(color: Color.red.opacity(0.1), radius: 3, x: 0, y: 2)
+                    )
                     .padding(.leading, 10)
                 }
             }
@@ -350,7 +352,7 @@ struct BikeCompetitionRecordCard: View {
                 HStack {
                     Text("\(record.regionName)-\(record.eventName)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(Color.secondText)
                         .padding(.leading, 2)
                     
                     Spacer()
@@ -362,10 +364,16 @@ struct BikeCompetitionRecordCard: View {
                     .font(.subheadline)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.blue.opacity(0.2))
-                    .foregroundColor(.blue)
-                    .cornerRadius(4)
-                    
+                    .foregroundStyle(Color.secondText)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(.blue.opacity(0.5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.blue.opacity(0.8), lineWidth: 1)
+                            )
+                            .shadow(color: Color.blue.opacity(0.1), radius: 3, x: 0, y: 2)
+                    )
                     // 反馈按钮
                     /*CommonTextButton(text: "对成绩有疑问?") {
                         viewModel.feedback(record: record)
@@ -382,7 +390,7 @@ struct BikeCompetitionRecordCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(Color.white.opacity(0.4))
                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         )
     }

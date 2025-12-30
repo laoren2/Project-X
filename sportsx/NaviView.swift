@@ -25,11 +25,11 @@ enum SportName: String, Identifiable, CaseIterable, Codable {
     var name: String {
         switch self {
         case .Bike:
-            return "自行车"
+            return "sport.bike"
         case .Badminton:
-            return "羽毛球"
+            return "badminton"
         case .Default, .Running:
-            return "跑步"
+            return "sport.running"
         }
     }
     
@@ -65,15 +65,15 @@ enum SportName: String, Identifiable, CaseIterable, Codable {
 }
 
 enum Tab: Int, CaseIterable {
-    case home, shop, sportCenter, storeHouse, user
+    case home, shop, sportCenter, wareHouse, user
 
-    var title: String {
+    var title: LocalizedStringKey {
         switch self {
-        case .home: return "首页"
-        case .shop: return "商店"
-        case .sportCenter: return "运动中心"
-        case .storeHouse: return "仓库"
-        case .user: return "我的"
+        case .home: return "tab.home"
+        case .shop: return "tab.shop"
+        case .sportCenter: return "tab.sportCenter"
+        case .wareHouse: return "tab.wareHouse"
+        case .user: return "tab.my"
         }
     }
 
@@ -82,7 +82,7 @@ enum Tab: Int, CaseIterable {
         case .home: return "single_app_icon"
         case .shop: return "storefront"
         case .sportCenter: return "sportscourt"
-        case .storeHouse: return "store_house"
+        case .wareHouse: return "wareHouse"
         case .user: return "person"
         }
     }
@@ -100,6 +100,7 @@ struct NaviView: View {
                     )
                 
                 // 自定义弹窗
+                PopupContainerView()
                 
                 // 登录页
                 LoginView()
@@ -133,7 +134,7 @@ struct RealNaviView: View {
                             .tag(Tab.sportCenter)
                         
                         StoreHouseView()
-                            .tag(Tab.storeHouse)
+                            .tag(Tab.wareHouse)
                         
                         LocalUserView()
                             .tag(Tab.user)
@@ -174,9 +175,6 @@ struct RealNaviView: View {
                 // 当应用进入后台时，保存当前选中的 Tab
                 UserDefaults.standard.set(appState.navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
                 print("set key: SelectedTab value: ",appState.navigationManager.selectedTab)
-            }
-            .bottomSheet(isPresented: $appState.navigationManager.showTeamRegisterSheet, customizeHeight: 0.4) {
-                TeamRegisterView(showSheet: $appState.navigationManager.showTeamRegisterSheet)
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -260,6 +258,18 @@ struct RealNaviView: View {
                     IAPHelpView()
                 case .iapCouponView:
                     IAPCouponView()
+                case .feedbackView(let type, let reportUserID):
+                    FeedbackView(mailType: type, reportUserID: reportUserID)
+                case .aboutUsView:
+                    AboutUsView()
+                case .announcementView:
+                    AnnouncementView()
+                case .usageTipView:
+                    UsageTipView()
+                case .smsLoginView:
+                    SmsLoginView()
+                case .emailBindView:
+                    EmailBindView()
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
@@ -281,14 +291,18 @@ struct RealNaviView: View {
                     CPAssetBackendView()
                 case .cpAssetPriceBackendView:
                     CPAssetPriceBackendView()
-                case .userAssetManageBackendView:
-                    UserAssetManageBackendView()
+                case .mailboxBackendView:
+                    MailboxBackendView()
                 case .magicCardBackendView:
                     MagicCardBackendView()
                 case .magicCardPriceBackendView:
                     MagicCardPriceBackendView()
                 case .bikeMatchDebugView:
                     BikeMatchDebugView()
+                case .feedbackMailBackendView:
+                    FeedbackMailBackendView()
+                case .homepageBackendView:
+                    HomepageBackendView()
 #endif
                 }
             }
@@ -305,43 +319,44 @@ struct CustomTabBar: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
             ForEach(Tab.allCases, id: \.self) { tab in
-                HStack {
-                    Spacer()
-                    
-                    VStack(spacing: 4) {
-                        if tab == .home || tab == .storeHouse {
-                            Image(tab.icon)
-                                .renderingMode(.template)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 22, height: 22)
-                                //.border(.red)
-                        } else {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 22, weight: .regular))
-                                .frame(height: 20)
-                                //.border(.red)
-                        }
-                        
-                        Text(/*(tab == navigationManager.selectedTab && tab == .sportCenter) ? (navigationManager.isTrainingView ? "训练中心" : "竞技中心") : */tab.title)
-                            .font(.system(size: 15))
-                    }
+                //HStack {
+                //Spacer()
+                
+                /*VStack(spacing: 4) {
+                 if tab == .home || tab == .storeHouse {
+                 Image(tab.icon)
+                 .renderingMode(.template)
+                 .resizable()
+                 .scaledToFit()
+                 .frame(width: 22, height: 22)
+                 //.border(.red)
+                 } else {
+                 Image(systemName: tab.icon)
+                 .font(.system(size: 22, weight: .regular))
+                 .frame(height: 20)
+                 //.border(.red)
+                 }*/
+                /*(tab == navigationManager.selectedTab && tab == .sportCenter) ? (navigationManager.isTrainingView ? "训练中心" : "竞技中心") : */
+                Text(tab.title)
+                    .font(.system(size: 18, weight: .semibold))
+                //}
                     .foregroundColor(navigationManager.selectedTab == tab ? .white : .thirdText)
                     .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                    
-                    Spacer()
-                }
-                .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                //Spacer()
+                //}
+                    .contentShape(Rectangle())
                 //.border(.red)
-                .exclusiveTouchTapGesture {
-                    //if tab == navigationManager.selectedTab && tab == .sportCenter {
-                    //    navigationManager.isTrainingView.toggle()
-                    //}
-                    if shouldAllowSwitch(to: tab) {
-                        navigationManager.selectedTab = tab
+                    .exclusiveTouchTapGesture {
+                        //if tab == navigationManager.selectedTab && tab == .sportCenter {
+                        //    navigationManager.isTrainingView.toggle()
+                        //}
+                        if shouldAllowSwitch(to: tab) {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            navigationManager.selectedTab = tab
+                        }
                     }
-                }
             }
         }
         .padding(.bottom, 25)
@@ -364,6 +379,7 @@ struct CustomTabBar: View {
 
 struct SportSelectionSidebar: View {
     @EnvironmentObject var appState: AppState
+    @State var selectedSport: SportName = .Default
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -392,30 +408,30 @@ struct SportSelectionSidebar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            PressableButton(icon: sport.iconName, title: sport.name,isEditMode: false, action: {
-                                withAnimation(.easeIn(duration: 0.25)) {
-                                    appState.navigationManager.showSideBar = false
-                                    appState.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
-                                }
-                            })
-                            
-                            Spacer()
-                            
-                            if sport.name == appState.sport.name {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.white)
+                            Image(systemName: sport.iconName)
+                            Text(LocalizedStringKey(sport.name))
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(sport == selectedSport ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                        .foregroundStyle(sport == selectedSport ? Color.white : Color.secondText)
+                        .cornerRadius(10)
+                        .exclusiveTouchTapGesture {
+                            selectedSport = sport
+                            withAnimation(.easeIn(duration: 0.25)) {
+                                appState.navigationManager.showSideBar = false
+                                appState.sport = sport
                             }
                         }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 20)
-                        .background(sport == appState.sport ? Color.gray.opacity(0.1) : Color.clear)
-                        .cornerRadius(8)
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(20)
             }
         }
         .background(Color.defaultBackground)
+        .onFirstAppear {
+            selectedSport = appState.sport
+        }
     }
 }
 

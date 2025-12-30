@@ -828,4 +828,153 @@ struct MagicCardPriceDTO: Codable {
 struct MagicCardPriceInternalResponse: Codable {
     let cards: [MagicCardPriceDTO]
 }
+
+class FeedbackMailBackendViewModel: ObservableObject {
+    @Published var mails: [FeedbackMailInfo] = []
+    @Published var isLoading: Bool = false
+    @Published var selectedMail: FeedbackMailInfo?
+    @Published var showMailDetail: Bool = false
+    var hasMoreMails: Bool = true
+    var currentPage: Int = 1
+    var pageSize: Int = 10
+    
+    func queryMails() {
+        isLoading = true
+        guard var components = URLComponents(string: "/mailbox/query_feedback_mails") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "page", value: "\(currentPage)"),
+            URLQueryItem(name: "size", value: "\(pageSize)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: FeedbackMailResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        for mail in unwrappedData.mails {
+                            self.mails.append(FeedbackMailInfo(from: mail))
+                        }
+                    }
+                    if unwrappedData.mails.count < self.pageSize {
+                        self.hasMoreMails = false
+                    } else {
+                        self.hasMoreMails = true
+                        self.currentPage += 1
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func handleFeedback() {
+        guard let mailID = selectedMail?.mailID else { return }
+        guard var components = URLComponents(string: "/mailbox/handle_feedback_mail") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "mail_id", value: mailID)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .post, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if let index = self.mails.firstIndex(where: { $0.mailID == mailID }) {
+                        self.mails.remove(at: index)
+                    }
+                default: break
+                }
+                self.selectedMail = nil
+            }
+        }
+    }
+}
+
+struct FeedbackMailInfo: Identifiable, Equatable {
+    var id: String { return mailID }
+    let mailID: String
+    let mailType: FeedbackMailType
+    let userContactInfo: String?
+    let content: String
+    let images: [String]
+    let isHandled: Bool
+    let createdDate: Date?
+    
+    init(from mail: FeedbackMailDTO) {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        mailID = mail.mail_id
+        mailType = mail.mail_type
+        userContactInfo = mail.user_contact_info
+        content = mail.content
+        images = mail.images
+        isHandled = mail.is_handled
+        createdDate = formatter.date(from: mail.created_at)
+    }
+    
+    static func == (lhs: FeedbackMailInfo, rhs: FeedbackMailInfo) -> Bool {
+        return lhs.mailID == rhs.mailID
+    }
+}
+
+struct FeedbackMailDTO: Codable {
+    let mail_id: String
+    let mail_type: FeedbackMailType
+    let user_contact_info: String?
+    let content: String
+    let images: [String]
+    let is_handled: Bool
+    let created_at: String
+}
+
+struct FeedbackMailResponse: Codable {
+    let mails: [FeedbackMailDTO]
+}
+
+class HomepageBackendViewModel: ObservableObject {
+    @Published var ads: [AdCardInternalEntry] = []
+    
+    var hasMoreAds: Bool = true
+    var currentPage: Int = 1
+    var selectedAdID: String = ""
+    var image_url: String = ""
+}
+
+struct AdCardInternalEntry: Identifiable, Equatable {
+    var id: String {ad_id}
+    let ad_id: String
+    let image_url: String
+    let web_url: String?
+    let is_displayed: Bool
+    
+    init(from ad: AdCardInternalDTO) {
+        self.ad_id = ad.ad_id
+        self.image_url = ad.image_url
+        self.web_url = ad.web_url
+        self.is_displayed = ad.is_displayed
+    }
+    
+    static func == (lhs: AdCardInternalEntry, rhs: AdCardInternalEntry) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+struct AdCardInternalDTO: Codable {
+    let ad_id: String
+    let image_url: String
+    let web_url: String?
+    let is_displayed: Bool
+}
+
+struct AdInfoInternalResponse: Codable {
+    let ads: [AdCardInternalDTO]
+}
+
 #endif

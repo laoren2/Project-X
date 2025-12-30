@@ -348,7 +348,10 @@ struct CPAssetPriceView: View {
     var body: some View {
         HStack {
             Text(asset.name)
-            Image(systemName: asset.ccasset_type.iconName)
+            Image(asset.ccasset_type.iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 15)
             Text("\(asset.price)")
             Text("上架状态:\(asset.is_on_shelves)")
             Spacer()

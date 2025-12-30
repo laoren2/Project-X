@@ -7,6 +7,7 @@
 
 import Foundation
 import StoreKit
+import SwiftUI
 
 
 class IAPManager: ObservableObject {
@@ -33,6 +34,15 @@ class IAPManager: ObservableObject {
         "com.valbara.sporreer.subscription.3m.auto",
         "com.valbara.sporreer.subscription.6m.auto",
         "com.valbara.sporreer.subscription.1y.auto"
+    ]
+    
+    let couponImages: [String: String] = [
+        "com.valbara.sporreer.coupon.10": "10_coupons",
+        "com.valbara.sporreer.coupon.80": "80_coupons",
+        "com.valbara.sporreer.coupon.180": "180_coupons",
+        "com.valbara.sporreer.coupon.380": "380_coupons",
+        "com.valbara.sporreer.coupon.680": "680_coupons",
+        "com.valbara.sporreer.coupon.1280": "1280_coupons"
     ]
     
     var updates: Task<Void, Never>? = nil
@@ -117,7 +127,7 @@ class IAPManager: ObservableObject {
         do {
             guard let token = UUID(uuidString: userManager.user.appleIAPToken) else {
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.coupon.failed"))
                 }
                 return
             }
@@ -131,31 +141,31 @@ class IAPManager: ObservableObject {
                     if let coupon = await verifyCouponPurchase(payload: String(verificationResult.jwsRepresentation)) {
                         DispatchQueue.main.async {
                             AssetManager.shared.coupon = coupon
-                            ToastManager.shared.show(toast: Toast(message: "购买成功"))
+                            ToastManager.shared.show(toast: Toast(message: "iap.coupon.success"))
                         }
                     }
                     await transaction.finish()
                 case .unverified:
                     DispatchQueue.main.async {
-                        ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                        ToastManager.shared.show(toast: Toast(message: "iap.coupon.failed"))
                     }
                 }
             case .userCancelled:
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买已取消"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.coupon.cancel"))
                 }
             case .pending:
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买已挂起"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.coupon.pendding"))
                 }
             @unknown default:
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.coupon.failed"))
                 }
             }
         } catch {
             DispatchQueue.main.async {
-                ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                ToastManager.shared.show(toast: Toast(message: "iap.coupon.failed"))
             }
         }
     }
@@ -203,32 +213,32 @@ class IAPManager: ObservableObject {
                     let verifyResult = await verifySubscriptionPurchase(payload: String(transaction.originalID))
                     if verifyResult.isActive {
                         DispatchQueue.main.async {
-                            ToastManager.shared.show(toast: Toast(message: "购买成功"))
+                            ToastManager.shared.show(toast: Toast(message: "iap.subscription.success"))
                         }
                     }
                     await transaction.finish()
                     return verifyResult
                 case .unverified:
                     DispatchQueue.main.async {
-                        ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                        ToastManager.shared.show(toast: Toast(message: "iap.subscription.failed"))
                     }
                 }
             case .userCancelled:
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买已取消"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.subscription.cancel"))
                 }
             case .pending:
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买已挂起"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.subscription.pendding"))
                 }
             @unknown default:
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                    ToastManager.shared.show(toast: Toast(message: "iap.subscription.failed"))
                 }
             }
         } catch {
             DispatchQueue.main.async {
-                ToastManager.shared.show(toast: Toast(message: "购买失败"))
+                ToastManager.shared.show(toast: Toast(message: "iap.subscription.failed"))
             }
         }
         return nil
@@ -272,10 +282,10 @@ class IAPManager: ObservableObject {
                 if let subInfo = await transaction.subscriptionStatus {
                     entitlementsCnt += 1
                     if String(transaction.originalID) != userManager.originTransactionID {
-                        return "当前订阅状态不属于此appleID，请切换Apple账户重试"
+                        return "iap.subscription.toast.purchase.failed.sub_on"
                     }
                     if transaction.productID == product.id, subInfo.state == .subscribed || subInfo.state == .inGracePeriod {
-                        return "您已订阅此项目，无法重复订阅"
+                        return "iap.subscription.toast.purchase.failed.reapeat_sub"
                     }
                 }
             case .unverified:
@@ -283,7 +293,7 @@ class IAPManager: ObservableObject {
             }
         }
         if entitlementsCnt == 0 {
-            return "当前订阅状态不属于此appleID，请切换Apple账户重试"
+            return "iap.subscription.toast.purchase.failed.sub_on"
         }
         return nil
     }
@@ -326,7 +336,7 @@ class IAPManager: ObservableObject {
     }
     
     // 这里只简单 finish 交易，所有权益交给服务端验证和查询
-    private func handle(updatedTransaction verificationResult: VerificationResult<Transaction>) async {
+    private func handle(updatedTransaction verificationResult: VerificationResult<StoreKit.Transaction>) async {
         if case .verified(let transaction) = verificationResult {
             //print("new transaction update...")
             await transaction.finish()
@@ -341,11 +351,22 @@ class IAPManager: ObservableObject {
                     let nickName = await fetchAccountNicName(transactionID: String(transaction.originalID))
                     if let name = nickName {
                         DispatchQueue.main.async {
-                            ToastManager.shared.show(toast: Toast(message: "订阅权益生效账号：\(name)", duration: 3))
+                            PopupWindowManager.shared.presentPopup(
+                                title: "iap.subscription.toast.help.query.success.title",
+                                bottomButtons: [
+                                    .confirm("action.confirm")
+                                ]
+                            ) {
+                                VStack {
+                                    Text("iap.subscription.toast.help.query.success.content")
+                                    Text(name)
+                                }
+                                .foregroundStyle(Color.white)
+                            }
                         }
                     } else {
                         DispatchQueue.main.async {
-                            ToastManager.shared.show(toast: Toast(message: "未查询到相关订阅信息", duration: 3))
+                            ToastManager.shared.show(toast: Toast(message: "iap.subscription.toast.help.query.failed", duration: 3))
                         }
                     }
                     return
@@ -354,7 +375,7 @@ class IAPManager: ObservableObject {
             }
         }
         DispatchQueue.main.async {
-            ToastManager.shared.show(toast: Toast(message: "未查询到相关订阅信息", duration: 3))
+            ToastManager.shared.show(toast: Toast(message: "iap.subscription.toast.help.query.failed", duration: 3))
         }
     }
     
