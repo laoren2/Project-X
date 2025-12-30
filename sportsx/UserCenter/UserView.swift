@@ -36,25 +36,59 @@ struct UserView: View {
         // 返回场景支持左划弹出运动选择页,右划返回上一视图层级
         // 拖动手势暂不实现，因存在与ScrollView的手势冲突bug会引入空白区域填充
         GeometryReader { geometry in
-            // 主内容
-            ZStack {
-                MainUserView(viewModel: viewModel/*, dragOffset: $dragOffset*/, isUserSelf: isUserSelf)
-                    .offset(x: (viewModel.showSidebar ? -viewModel.sidebarWidth : 0)/* + dragOffset*/)
-                // 放在MainUserView中偶现动画失效问题
-                Color.gray
-                    .opacity(viewModel.showSidebar ? 0.5 : 0)
-                    .ignoresSafeArea()
-                    .exclusiveTouchTapGesture {
-                        withAnimation(.easeIn(duration: 0.25)) {
-                            viewModel.showSidebar = false
+            if let user = viewModel.currentUser {
+                // 主内容
+                ZStack {
+                    MainUserView(viewModel: viewModel/*, dragOffset: $dragOffset*/, user: user, isUserSelf: isUserSelf)
+                        .offset(x: (viewModel.showSidebar ? -viewModel.sidebarWidth : 0)/* + dragOffset*/)
+                    // 放在MainUserView中偶现动画失效问题
+                    Color.gray
+                        .opacity(viewModel.showSidebar ? 0.5 : 0)
+                        .ignoresSafeArea()
+                        .exclusiveTouchTapGesture {
+                            withAnimation(.easeIn(duration: 0.25)) {
+                                viewModel.showSidebar = false
+                            }
                         }
+                }
+                
+                // 侧边栏
+                UserSportSelectedBar(viewModel: viewModel, isUserSelf: isUserSelf)
+                    .frame(width: viewModel.sidebarWidth)
+                    .offset(x: (viewModel.showSidebar ? (UIScreen.main.bounds.width - viewModel.sidebarWidth) : UIScreen.main.bounds.width)/* + dragOffset*/)
+            } else {
+                VStack(spacing: 50) {
+                    VStack(spacing: 20) {
+                        HStack(spacing: 20) {
+                            Image(systemName: "chevron.left")
+                                .fontWeight(.semibold)
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(.thirdText)
+                                .padding(6)
+                                .background(Color.gray.opacity(0.5))
+                                .clipShape(Circle())
+                                .exclusiveTouchTapGesture {
+                                    appState.navigationManager.removeLast()
+                                }
+                            Rectangle()
+                                .frame(height: 32)
+                                .foregroundStyle(Color.gray.opacity(0.5))
+                                .cornerRadius(16)
+                        }
+                        Rectangle()
+                            .frame(height: 200)
+                            .foregroundStyle(Color.gray.opacity(0.5))
+                            .cornerRadius(20)
                     }
+                    .padding(.horizontal)
+                    Rectangle()
+                        .foregroundStyle(Color.gray.opacity(0.3))
+                }
+                .toolbar(.hidden, for: .navigationBar)
+                .enableSwipeBackGesture()
+                .ignoresSafeArea(edges: .bottom)
+                .background(Color.defaultBackground)
             }
-            
-            // 侧边栏
-            UserSportSelectedBar(viewModel: viewModel, isUserSelf: isUserSelf)
-                .frame(width: viewModel.sidebarWidth)
-                .offset(x: (viewModel.showSidebar ? (UIScreen.main.bounds.width - viewModel.sidebarWidth) : UIScreen.main.bounds.width)/* + dragOffset*/)
         }
         .onValueChange(of: viewModel.sport) {
             viewModel.queryHistoryCareers()
@@ -160,10 +194,24 @@ struct MainUserView: View {
     @State private var selectedTab = 0
     @State private var toolbarTop: CGFloat = 0
     @State private var isDragging: Bool = false     // 是否处于拖动中
-    
+    @State private var showMoreSheet: Bool = false
     //@Binding var dragOffset: CGFloat
-    
+    let user: User
     let isUserSelf: Bool
+    
+    var userRegion: LocalizedStringKey? {
+        for (_, cities) in regionTable_HK {
+            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        for (_, cities) in regionTable {
+            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        return nil
+    }
     
     var body: some View {
         // 主内容视图
@@ -206,13 +254,13 @@ struct MainUserView: View {
                                 // 资料展示区
                                 VStack(spacing: 16) {
                                     // 数据统计区域
-                                    HStack(spacing: 30) {
+                                    HStack(spacing: 0) {
                                         // 互关
                                         VStack(spacing: 2) {
-                                            Text("\(viewModel.friendCount)")
+                                            Text(isUserSelf ? "\(userManager.friendCount)" : "\(viewModel.friendCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
-                                            Text("好友")
+                                            Text("user.page.friend")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
@@ -222,26 +270,28 @@ struct MainUserView: View {
                                         
                                         // 关注
                                         VStack(spacing: 2) {
-                                            Text("\(viewModel.followedCount)")
+                                            Text(isUserSelf ? "\(userManager.followedCount)" : "\(viewModel.followedCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
-                                            Text("关注")
+                                            Text("user.page.following")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
+                                        .padding(.leading, 30)
                                         .exclusiveTouchTapGesture {
                                             appState.navigationManager.append(.friendListView(id: viewModel.userID, selectedTab: 1))
                                         }
                                         
                                         // 粉丝
                                         VStack(spacing: 2) {
-                                            Text("\(viewModel.followerCount)")
+                                            Text(isUserSelf ? "\(userManager.followerCount)" : "\(viewModel.followerCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
-                                            Text("粉丝")
+                                            Text("user.page.follower")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
+                                        .padding(.leading, 30)
                                         .exclusiveTouchTapGesture {
                                             appState.navigationManager.append(.friendListView(id: viewModel.userID, selectedTab: 2))
                                         }
@@ -249,7 +299,7 @@ struct MainUserView: View {
                                         Spacer()
                                         
                                         if isUserSelf {
-                                            Text("编辑资料")
+                                            Text("user.page.edit")
                                                 .font(.system(size: 14))
                                                 .foregroundColor(.white)
                                                 .padding(.vertical, 8)
@@ -261,24 +311,24 @@ struct MainUserView: View {
                                                 }
                                         } else {
                                             if viewModel.relationship == .follower || viewModel.relationship == .none {
-                                                Text("关注")
+                                                Text("user.page.follow")
                                                 .font(.system(size: 16))
                                                 .bold()
                                                 .foregroundColor(.white)
                                                 .padding(.vertical, 8)
-                                                .padding(.horizontal, 30)
+                                                .padding(.horizontal, 20)
                                                 .background(.pink.opacity(0.8))
                                                 .cornerRadius(8)
                                                 .exclusiveTouchTapGesture {
                                                     viewModel.follow()
                                                 }
                                             } else {
-                                                Text("取消关注")
+                                                Text("user.page.cancel_follow")
                                                     .font(.system(size: 16))
                                                     .bold()
                                                     .foregroundColor(.white)
                                                     .padding(.vertical, 8)
-                                                    .padding(.horizontal, 30)
+                                                    .padding(.horizontal, 20)
                                                     .background(.white.opacity(0.4))
                                                     .cornerRadius(8)
                                                     .exclusiveTouchTapGesture {
@@ -291,7 +341,6 @@ struct MainUserView: View {
                                     .padding(.bottom, 10)
                                     .padding(.leading, 20)
                                     .padding(.trailing, 15)
-                                    //.border(.purple)
                                     
                                     // 个人说明
                                     VStack(alignment: .leading, spacing: 12) {
@@ -302,7 +351,7 @@ struct MainUserView: View {
                                                     .foregroundColor(.white)
                                             } else {
                                                 HStack {
-                                                    Text("介绍一下自己吧")
+                                                    Text("user.page.introduce_placeholder")
                                                         .font(.system(size: 14))
                                                         .foregroundColor(Color.secondText)
                                                     Image(systemName: "pencil.line")
@@ -313,7 +362,7 @@ struct MainUserView: View {
                                                 }
                                             }
                                         } else {
-                                            if let intro = viewModel.currentUser.introduction {
+                                            if let intro = user.introduction {
                                                 Text(intro)
                                                     .font(.system(size: 14))
                                                     .foregroundColor(.white)
@@ -321,7 +370,7 @@ struct MainUserView: View {
                                         }
                                         
                                         HStack {
-                                            if viewModel.currentUser.isDisplayGender == true, let gender = viewModel.currentUser.gender {
+                                            if user.isDisplayGender == true, let gender = user.gender {
                                                 Text(gender.rawValue)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
@@ -329,23 +378,23 @@ struct MainUserView: View {
                                                     .cornerRadius(6)
                                             }
                                             
-                                            if viewModel.currentUser.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: viewModel.currentUser.birthday ?? "xxxx-xx-xx") {
-                                                Text("\(age)岁")
+                                            if user.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: user.birthday ?? "xxxx-xx-xx") {
+                                                Text("time.year_old \(age)")
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
                                                     .background(.ultraThinMaterial)
                                                     .cornerRadius(6)
                                             }
                                             
-                                            if viewModel.currentUser.isDisplayLocation == true, let location = viewModel.currentUser.location {
-                                                Text(location)
+                                            if user.isDisplayLocation == true, let region = userRegion {
+                                                Text(region)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
                                                     .background(.ultraThinMaterial)
                                                     .cornerRadius(6)
                                             }
                                             
-                                            if viewModel.currentUser.isDisplayIdentity == true, let identity = viewModel.currentUser.identityAuthName {
+                                            if user.isDisplayIdentity == true, let identity = user.identityAuthName {
                                                 Text(identity)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
@@ -387,23 +436,23 @@ struct MainUserView: View {
                                 }
                                 // 用户名
                                 HStack {
-                                    Text(isUserSelf ? userManager.user.nickname : viewModel.currentUser.nickname)
+                                    Text(isUserSelf ? userManager.user.nickname : user.nickname)
                                         .font(.title3)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
-                                    if isUserSelf ? userManager.user.isVip : viewModel.currentUser.isVip {
+                                    if isUserSelf ? userManager.user.isVip : user.isVip {
                                         Image(systemName: "v.circle.fill")
                                             .font(.system(size: 15))
                                             .fontWeight(.semibold)
-                                            .foregroundStyle(Color.red)
+                                            .foregroundStyle(Color.orange)
                                     }
                                     if (!isUserSelf) && viewModel.relationship != .none {
-                                        Text(viewModel.relationship.displayName)
+                                        Text(LocalizedStringKey(viewModel.relationship.displayName))
                                             .font(.system(size: 12))
                                             .foregroundColor(.white)
                                             .padding(.vertical, 4)
                                             .padding(.horizontal, 6)
-                                            .background(viewModel.relationship.backgroundColor.opacity(0.6))
+                                            .background(Color.orange.opacity(0.6))
                                             .cornerRadius(5)
                                     }
                                 }
@@ -422,7 +471,7 @@ struct MainUserView: View {
                                     Image(systemName: "waveform.circle.fill")
                                         .font(.system(size: 24))
                                         .foregroundColor(.white)
-                                    Text("设备绑定")
+                                    Text("user.page.features.bind_device")
                                         .font(.system(size: 12))
                                         .foregroundColor(.white)
                                 }
@@ -438,7 +487,7 @@ struct MainUserView: View {
                                     Image(systemName: "flask.fill")
                                         .font(.system(size: 24))
                                         .foregroundColor(.white)
-                                    Text("研究所")
+                                    Text("user.page.features.institute")
                                         .font(.system(size: 12))
                                         .foregroundColor(.white)
                                 }
@@ -462,7 +511,7 @@ struct MainUserView: View {
                                                 .offset(x: 5, y: -5)
                                         }
                                     }
-                                    Text("邮箱")
+                                    Text("user.page.features.email_box")
                                         .font(.system(size: 12))
                                         .foregroundColor(.white)
                                 }
@@ -492,30 +541,32 @@ struct MainUserView: View {
                         // 选项卡栏
                         ZStack(alignment: .top) {
                             HStack(spacing: 0) {
-                                Text("生涯")
+                                Text("user.page.tab.career")
                                     .font(.system(size: 16, weight: selectedTab == 0 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 0 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 0 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
                                         selectedTab = 0
                                     }
                                 
-                                Text("进行中")
+                                Text("user.page.tab.current_record")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 1 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 1 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
@@ -535,18 +586,18 @@ struct MainUserView: View {
                         
                         Divider()
                         
-                        if viewModel.currentUser.status == .normal {
+                        if user.status == .normal {
                             if selectedTab == 0 {
                                 CareerView(viewModel: viewModel)
                             } else {
                                 GameSummaryView(viewModel: viewModel)
                             }
-                        } else if viewModel.currentUser.status == .banned {
-                            Text("账号已封禁")
+                        } else if user.status == .banned {
+                            Text("user.page.account_status.banned")
                                 .foregroundStyle(Color.secondText)
                                 .padding(.top, 100)
                         } else {
-                            Text("账号已注销")
+                            Text("user.page.account_status.deleted")
                                 .foregroundStyle(Color.secondText)
                                 .padding(.top, 100)
                         }
@@ -563,11 +614,12 @@ struct MainUserView: View {
                             Spacer()
                             
                             ZStack {
-                                HStack(alignment: .center) {
+                                HStack(alignment: .center, spacing: 15) {
                                     Image(systemName: "chevron.left")
-                                        .font(.system(size: 20))
+                                        .fontWeight(.semibold)
+                                        .frame(width: 20, height: 20)
                                         .foregroundColor(.white)
-                                        .padding(10)
+                                        .padding(6)
                                         .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
                                         .clipShape(Circle())
                                         .exclusiveTouchTapGesture {
@@ -576,17 +628,30 @@ struct MainUserView: View {
                                     
                                     Spacer()
                                     
-                                    HStack(spacing: 0) {
+                                    if !isUserSelf {
+                                        Image(systemName: "ellipsis")
+                                            .fontWeight(.semibold)
+                                            .frame(width: 20, height: 20)
+                                            .foregroundColor(.white)
+                                            .padding(6)
+                                            .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
+                                            .clipShape(Circle())
+                                            .exclusiveTouchTapGesture {
+                                                showMoreSheet = true
+                                            }
+                                    }
+                                    
+                                    HStack(spacing: 4) {
                                         Image(systemName: viewModel.sport.iconName)
-                                            .font(.system(size: 16))
+                                            .font(.system(size: 18))
                                         Image("sport_selected_side_bar_button")
                                             .resizable()
                                             .scaledToFit()
                                             .scaleEffect(x: -1, y: 1)
-                                            .frame(width: 16, height: 16)
+                                            .frame(width: 20, height: 20)
                                     }
                                     .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
+                                    .padding(.vertical, 6)
                                     .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
                                     .cornerRadius(18)
                                     .foregroundColor(.white)
@@ -600,7 +665,7 @@ struct MainUserView: View {
                                 }
                                 //.border(.red)
                                 
-                                Text(isUserSelf ? (userManager.user.nickname) : viewModel.currentUser.nickname)
+                                Text(user.nickname)
                                     .bold()
                                     .foregroundStyle(.white)
                                     .opacity(1 - opacityFor(offset: toolbarTop))
@@ -615,30 +680,32 @@ struct MainUserView: View {
                         
                         if toolbarTop <= 45 + topSafeArea {
                             HStack(spacing: 0) {
-                                Text("生涯")
+                                Text("user.page.tab.career")
                                     .font(.system(size: 16, weight: selectedTab == 0 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 0 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 0 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
                                         selectedTab = 0
                                     }
                                 
-                                Text("进行中")
+                                Text("user.page.tab.current_record")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 1 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 1 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
@@ -658,6 +725,56 @@ struct MainUserView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
+        .sheet(isPresented: $showMoreSheet) {
+            VStack(spacing: 20) {
+                HStack {
+                    Spacer()
+                    Image(systemName: "xmark")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                        .padding(10)
+                        .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
+                        .clipShape(Circle())
+                        .exclusiveTouchTapGesture {
+                            showMoreSheet = false
+                        }
+                }
+                HStack(spacing: 5) {
+                    if let avatar = viewModel.avatarImage {
+                        Image(uiImage: avatar)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 40, height: 40)
+                            .foregroundStyle(.white)
+                            .clipShape(Circle())
+                    }
+                    Text(user.nickname)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                }
+                Text("action.report")
+                    .foregroundStyle(Color.white)
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray.opacity(0.6))
+                    .cornerRadius(10)
+                    .exclusiveTouchTapGesture {
+                        showMoreSheet = false
+                        appState.navigationManager.append(.feedbackView(mailType: .report, reportUserID: user.userID))
+                    }
+                Spacer()
+            }
+            .padding()
+            .background(Color.defaultBackground)
+            .presentationDetents([.fraction(0.3)])
+        }
     }
     
     func updateOffset(_ geo: GeometryProxy) {
@@ -780,13 +897,13 @@ struct LocalMainUserView: View {
                                 // 资料展示区
                                 VStack(spacing: 16) {
                                     // 数据统计区域
-                                    HStack(spacing: 30) {
+                                    HStack(spacing: 0) {
                                         // 互关
                                         VStack(spacing: 2) {
                                             Text("\(userManager.friendCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
-                                            Text("好友")
+                                            Text("user.page.friend")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
@@ -799,10 +916,11 @@ struct LocalMainUserView: View {
                                             Text("\(userManager.followedCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
-                                            Text("关注")
+                                            Text("user.page.following")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
+                                        .padding(.leading, 30)
                                         .exclusiveTouchTapGesture {
                                             appState.navigationManager.append(.friendListView(id: userManager.user.userID, selectedTab: 1))
                                         }
@@ -812,17 +930,18 @@ struct LocalMainUserView: View {
                                             Text("\(userManager.followerCount)")
                                                 .font(.system(size: 18, weight: .bold))
                                                 .foregroundColor(.white)
-                                            Text("粉丝")
+                                            Text("user.page.follower")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(.white.opacity(0.6))
                                         }
+                                        .padding(.leading, 30)
                                         .exclusiveTouchTapGesture {
                                             appState.navigationManager.append(.friendListView(id: userManager.user.userID, selectedTab: 2))
                                         }
                                         
                                         Spacer()
                                         
-                                        Text("编辑资料")
+                                        Text("user.page.edit")
                                             .font(.system(size: 14))
                                             .foregroundColor(.white)
                                             .padding(.vertical, 8)
@@ -846,7 +965,7 @@ struct LocalMainUserView: View {
                                                 .foregroundColor(.white)
                                         } else {
                                             HStack {
-                                                Text("介绍一下自己吧")
+                                                Text("user.page.introduce_placeholder")
                                                     .font(.system(size: 14))
                                                     .foregroundColor(Color.secondText)
                                                 Image(systemName: "pencil.line")
@@ -867,15 +986,15 @@ struct LocalMainUserView: View {
                                             }
                                             
                                             if userManager.user.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: userManager.user.birthday ?? "xxxx-xx-xx") {
-                                                Text("\(age)岁")
+                                                Text(LocalizedStringKey("time.year_old \(age)"))
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
                                                     .background(.ultraThinMaterial)
                                                     .cornerRadius(6)
                                             }
                                             
-                                            if userManager.user.isDisplayLocation == true, let location = userManager.user.location {
-                                                Text(location)
+                                            if userManager.user.isDisplayLocation == true, let region = userManager.userRegion {
+                                                Text(region)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
                                                     .background(.ultraThinMaterial)
@@ -928,7 +1047,7 @@ struct LocalMainUserView: View {
                                     Image(systemName: "v.circle.fill")
                                         .font(.system(size: 15))
                                         .fontWeight(.semibold)
-                                        .foregroundStyle(userManager.user.isVip ? Color.red : Color.thirdText)
+                                        .foregroundStyle(userManager.user.isVip ? Color.orange : Color.thirdText)
                                         .exclusiveTouchTapGesture {
                                             guard UserManager.shared.isLoggedIn else {
                                                 UserManager.shared.showingLogin = true
@@ -949,7 +1068,7 @@ struct LocalMainUserView: View {
                                 Image(systemName: "waveform.circle.fill")
                                     .font(.system(size: 24))
                                     .foregroundColor(.white)
-                                Text("设备绑定")
+                                Text("user.page.features.bind_device")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)
                             }
@@ -964,7 +1083,7 @@ struct LocalMainUserView: View {
                                 Image(systemName: "flask.fill")
                                     .font(.system(size: 24))
                                     .foregroundColor(.white)
-                                Text("研究所")
+                                Text("user.page.features.institute")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)
                             }
@@ -987,7 +1106,7 @@ struct LocalMainUserView: View {
                                             .offset(x: 5, y: -5)
                                     }
                                 }
-                                Text("邮箱")
+                                Text("user.page.features.email_box")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)
                             }
@@ -1017,44 +1136,25 @@ struct LocalMainUserView: View {
                                 VStack(spacing: 0) {
                                     HStack {
                                         Spacer()
-                                        Text("每日运动任务")
+                                        Text("user.page.dailytask")
                                         Spacer()
-                                        /*Text("去训练>")
-                                            .padding(.vertical, 4)
-                                            .padding(.horizontal, 6)
-                                            .font(.subheadline)
-                                            .background(Color.orange.opacity(0.6))
-                                            .cornerRadius(12)
-                                            .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.sportTrainingView(sport: viewModel.sport))
-                                            }*/
                                     }
                                     .padding(.horizontal, 10)
                                     
-                                    HStack {
+                                    HStack(spacing: 0) {
                                         if task.taskType == .distance {
-                                            Text(String(format: "在竞技中累计运动距离 %.1f/%.0f \(task.taskType.disPlayName)", task.progress, task.totalProgress))
-                                                .font(.subheadline)
+                                            Text("user.page.dailytask.distance")
                                         } else {
-                                            Text(String(format: "在竞技中累计运动时间 %.0f/%.0f \(task.taskType.disPlayName)", task.progress / 60, task.totalProgress / 60))
-                                                .font(.subheadline)
+                                            Text("user.page.dailytask.time")
                                         }
                                         Spacer()
-                                        
-                                        HStack {
-                                            Text("去竞技")
-                                            Image(systemName: "chevron.right")
-                                        }
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 8)
-                                        .font(.subheadline)
-                                        .background(Color.orange.opacity(0.8))
-                                        .cornerRadius(12)
-                                        .exclusiveTouchTapGesture {
-                                            appState.sport = viewModel.sport
-                                            appState.navigationManager.selectedTab = .sportCenter
+                                        if task.taskType == .distance {
+                                            Text("distance.km.a/b \(task.progress) \(task.totalProgress)") + Text(LocalizedStringKey(task.taskType.disPlayName))
+                                        } else {
+                                            Text("time.minute.a/b \(task.progress / 60) \(task.totalProgress / 60)") + Text(LocalizedStringKey(task.taskType.disPlayName))
                                         }
                                     }
+                                    .font(.subheadline)
                                     .padding(.top, 20)
                                     .padding(.horizontal, 10)
                                     
@@ -1068,7 +1168,7 @@ struct LocalMainUserView: View {
                                             // 前景
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing))
-                                                .frame(width: (task.progress / task.totalProgress) * 300, height: 10)
+                                                .frame(width: min(300, max(0, (task.progress / task.totalProgress)) * 300), height: 10)
                                         }
                                         
                                         // 3个可领取奖励的圆形节点
@@ -1082,7 +1182,10 @@ struct LocalMainUserView: View {
                                                 )
                                             ZStack {
                                                 HStack(alignment: .center, spacing: 2) {
-                                                    Image(systemName: task.reward_stage1_type.iconName)
+                                                    Image(task.reward_stage1_type.iconName)
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 20)
                                                     Text("+\(task.reward_stage1)")
                                                 }
                                                 .font(.subheadline)
@@ -1100,12 +1203,15 @@ struct LocalMainUserView: View {
                                             }
                                             .onTapGesture {
                                                 if (!dailyTaskManager.reward1Loading) && task.reward_stage1_status == .available {
-                                                    dailyTaskManager.claimReward(stage: 1, sport: viewModel.sport)
+                                                    dailyTaskManager.claimReward(stage: 1, sport: viewModel.sport, rewardImage: task.reward_stage1_type.iconName, rewardCount: task.reward_stage1)
                                                 }
                                             }
                                             ZStack {
                                                 HStack(alignment: .center, spacing: 2) {
-                                                    Image(systemName: task.reward_stage2_type.iconName)
+                                                    Image(task.reward_stage2_type.iconName)
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 20)
                                                     Text("+\(task.reward_stage2)")
                                                 }
                                                 .font(.subheadline)
@@ -1123,7 +1229,7 @@ struct LocalMainUserView: View {
                                             }
                                             .onTapGesture {
                                                 if (!dailyTaskManager.reward2Loading) && task.reward_stage2_status == .available {
-                                                    dailyTaskManager.claimReward(stage: 2, sport: viewModel.sport)
+                                                    dailyTaskManager.claimReward(stage: 2, sport: viewModel.sport, rewardImage: task.reward_stage2_type.iconName, rewardCount: task.reward_stage2)
                                                 }
                                             }
                                             ZStack {
@@ -1149,17 +1255,28 @@ struct LocalMainUserView: View {
                                             }
                                             .onTapGesture {
                                                 if (!dailyTaskManager.reward3Loading) && task.reward_stage3_status == .available {
-                                                    dailyTaskManager.claimReward(stage: 3, sport: viewModel.sport)
+                                                    dailyTaskManager.claimReward(stage: 3, sport: viewModel.sport, rewardCount: 1, rewardURL: task.reward_stage3_url)
                                                 }
                                             }
                                         }
                                         .frame(width: 300)
                                     }
                                     .padding(.top, 10)
+                                    
+                                    HStack(spacing: 4) {
+                                        Text("user.page.dailytask.go_complete")
+                                        Image(systemName: "chevron.right")
+                                    }
+                                    .font(.subheadline)
+                                    .offset(y: 40)
+                                    .exclusiveTouchTapGesture {
+                                        appState.sport = viewModel.sport
+                                        appState.navigationManager.selectedTab = .sportCenter
+                                    }
                                 }
                                 .foregroundStyle(Color.secondText)
                                 .padding(.top, 10)
-                                .padding(.bottom, 40)
+                                .padding(.bottom, 50)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
                                         .stroke(Color.orange.opacity(0.8), lineWidth: 3)
@@ -1168,35 +1285,38 @@ struct LocalMainUserView: View {
                                 .cornerRadius(10)
                             }
                             .padding(.horizontal)
+                            .padding(.bottom, 10)
                         }
                         
                         // 选项卡栏
                         ZStack(alignment: .top) {
                             HStack(spacing: 0) {
-                                Text("生涯")
+                                Text("user.page.tab.career")
                                     .font(.system(size: 16, weight: selectedTab == 0 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 0 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 0 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
                                         selectedTab = 0
                                     }
                                 
-                                Text("进行中")
+                                Text("user.page.tab.current_record")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 1 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 1 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
@@ -1233,18 +1353,18 @@ struct LocalMainUserView: View {
                         VStack {
                             Spacer()
                             
-                            ZStack {
-                                HStack(alignment: .center) {
-                                    HStack(spacing: 0) {
+                            //ZStack {
+                                HStack(alignment: .center, spacing: 15) {
+                                    HStack(spacing: 4) {
                                         Image("sport_selected_side_bar_button")
                                             .resizable()
                                             .scaledToFit()
-                                            .frame(width: 16, height: 16)
+                                            .frame(width: 20, height: 20)
                                         Image(systemName: viewModel.sport.iconName)
-                                            .font(.system(size: 16))
+                                            .font(.system(size: 18))
                                     }
                                     .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
+                                    .padding(.vertical, 6)
                                     .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
                                     .cornerRadius(18)
                                     .foregroundColor(.white)
@@ -1257,6 +1377,32 @@ struct LocalMainUserView: View {
                                     }
                                     
                                     Spacer()
+                                    
+                                    if !userManager.user.isRealnameAuth {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "exclamationmark.circle")
+                                                .foregroundStyle(Color.pink)
+                                                .frame(width: 20, height: 20)
+                                            Text("user.setup.realname_auth.undone.2")
+                                                .font(.system(size: 18))
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(.ultraThinMaterial.opacity(opacityFor(offset: toolbarTop)))
+                                        .cornerRadius(18)
+                                        .foregroundColor(.white)
+                                        .exclusiveTouchTapGesture {
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "user.setup.realname_auth.undone",
+                                                message: "user.setup.realname_auth.popup.no_auth",
+                                                bottomButtons: [
+                                                    .confirm("user.intro.go_auth") {
+                                                        appState.navigationManager.append(.realNameAuthView)
+                                                    }
+                                                ]
+                                            )
+                                        }
+                                    }
                                     
                                     Image(systemName: "gearshape.fill")
                                         .font(.system(size: 20))
@@ -1271,11 +1417,11 @@ struct LocalMainUserView: View {
                                         }
                                 }
                                 
-                                Text(userManager.user.nickname)
-                                    .bold()
-                                    .foregroundStyle(.white)
-                                    .opacity(1 - opacityFor(offset: toolbarTop))
-                            }
+                                //Text(userManager.user.nickname)
+                                //    .bold()
+                                //    .foregroundStyle(.white)
+                                //    .opacity(1 - opacityFor(offset: toolbarTop))
+                            //}
                         }
                         .padding(.horizontal, 16)
                         .padding(.bottom, 5)
@@ -1284,30 +1430,32 @@ struct LocalMainUserView: View {
                         
                         if toolbarTop <= 45 + topSafeArea {
                             HStack(spacing: 0) {
-                                Text("生涯")
+                                Text("user.page.tab.career")
                                     .font(.system(size: 16, weight: selectedTab == 0 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 0 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 0 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
                                         selectedTab = 0
                                     }
                                 
-                                Text("进行中")
+                                Text("user.page.tab.current_record")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .contentShape(Rectangle())
                                     .overlay(
                                         Rectangle()
                                             .frame(width: 60, height: 2)
-                                            .foregroundColor(selectedTab == 1 ? .white : .clear),
+                                            .foregroundStyle(selectedTab == 1 ? Color.white : Color.clear),
                                         alignment: .bottom
                                     )
                                     .exclusiveTouchTapGesture {
@@ -1342,6 +1490,7 @@ struct UserSportSelectedBar: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
     @State var isEditMode: Bool = false
+    @State var selectedSport: SportName = .Default
     
     let isUserSelf: Bool
     
@@ -1349,7 +1498,7 @@ struct UserSportSelectedBar: View {
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题区域
             VStack(alignment: .leading, spacing: 0) {
-                Text("选择运动")
+                Text("user.sidebar.select_sport")
                     .font(.title2)
                     .bold()
                     .foregroundStyle(.white)
@@ -1358,12 +1507,13 @@ struct UserSportSelectedBar: View {
                     .padding(.horizontal, 20)
                 
                 if isUserSelf {
-                    HStack {
+                    HStack(spacing: 0) {
                         if !isEditMode {
-                            Text("个人主页默认展示运动: \(userManager.user.defaultSport.name)")
+                            Text("user.sidebar.default_sport")
+                            Text(LocalizedStringKey(userManager.user.defaultSport.name))
                         }
                         Spacer()
-                        Text(isEditMode ? "取消编辑" : "编辑")
+                        Text(isEditMode ? "action.cencal_edit" : "action.edit")
                             .exclusiveTouchTapGesture {
                                 isEditMode.toggle()
                             }
@@ -1383,21 +1533,28 @@ struct UserSportSelectedBar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            PressableButton(icon: sport.iconName, title: sport.name, isEditMode: isEditMode, action: {
-                                if isEditMode {
-                                    updateUserDefaultSport(with: sport)
-                                } else {
-                                    withAnimation(.easeIn(duration: 0.25)) {
-                                        viewModel.showSidebar = false
-                                        viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
-                                    }
-                                }
-                            })
+                            Image(systemName: sport.iconName)
+                            Text(LocalizedStringKey(sport.name))
+                            if isEditMode {
+                                Image(systemName: "circle.dotted")
+                            }
                         }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 20)
-                        .background((sport == viewModel.sport && (!isEditMode)) ? Color.gray.opacity(0.2) : Color.clear)
-                        .cornerRadius(8)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background((sport == selectedSport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.secondText)
+                        .cornerRadius(10)
+                        .exclusiveTouchTapGesture {
+                            if isEditMode {
+                                updateUserDefaultSport(with: sport)
+                            } else {
+                                selectedSport = sport
+                                withAnimation(.easeIn(duration: 0.25)) {
+                                    viewModel.showSidebar = false
+                                    viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
+                                }
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -1408,6 +1565,9 @@ struct UserSportSelectedBar: View {
             if !viewModel.showSidebar {
                 isEditMode = false
             }
+        }
+        .onFirstAppear {
+            selectedSport = viewModel.sport
         }
     }
     
@@ -1442,12 +1602,13 @@ struct LocalUserSportSelectedBar: View {
     @ObservedObject var viewModel: LocalUserViewModel
     @State var isEditMode: Bool = false
     
+    @State var selectedSport: SportName = .Default      // 用来让 btn 的点击效果反应更快速
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题区域
             VStack(alignment: .leading, spacing: 0) {
-                Text("选择运动")
+                Text("user.sidebar.select_sport")
                     .font(.title2)
                     .bold()
                     .foregroundStyle(.white)
@@ -1457,10 +1618,11 @@ struct LocalUserSportSelectedBar: View {
                 
                 HStack {
                     if !isEditMode {
-                        Text("个人主页默认展示运动: \(userManager.user.defaultSport.name)")
+                        Text("user.sidebar.default_sport")
+                        Text(LocalizedStringKey(userManager.user.defaultSport.name))
                     }
                     Spacer()
-                    Text(isEditMode ? "取消编辑" : "编辑")
+                    Text(isEditMode ? "action.cancel_edit" : "action.edit")
                         .exclusiveTouchTapGesture {
                             isEditMode.toggle()
                         }
@@ -1479,24 +1641,31 @@ struct LocalUserSportSelectedBar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            PressableButton(icon: sport.iconName, title: sport.name, isEditMode: isEditMode, action: {
-                                if isEditMode {
-                                    updateUserDefaultSport(with: sport)
-                                } else {
-                                    withAnimation(.easeIn(duration: 0.25)) {
-                                        viewModel.showSidebar = false
-                                        viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
-                                    }
-                                }
-                            })
+                            Image(systemName: sport.iconName)
+                            Text(LocalizedStringKey(sport.name))
+                            if isEditMode {
+                                Image(systemName: "circle.dotted")
+                            }
                         }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 20)
-                        .background((sport == viewModel.sport && (!isEditMode)) ? Color.gray.opacity(0.2) : Color.clear)
-                        .cornerRadius(8)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background((sport == selectedSport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.secondText)
+                        .cornerRadius(10)
+                        .exclusiveTouchTapGesture {
+                            if isEditMode {
+                                updateUserDefaultSport(with: sport)
+                            } else {
+                                selectedSport = sport
+                                withAnimation(.easeIn(duration: 0.25)) {
+                                    viewModel.showSidebar = false
+                                    viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
+                                }
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(20)
             }
         }
         .background(userManager.backgroundColor)
@@ -1504,6 +1673,9 @@ struct LocalUserSportSelectedBar: View {
             if !viewModel.showSidebar {
                 isEditMode = false
             }
+        }
+        .onFirstAppear {
+            selectedSport = viewModel.sport
         }
     }
     
@@ -1531,32 +1703,6 @@ struct LocalUserSportSelectedBar: View {
         }
     }
 }
-
-struct PressableButton: View {
-    let icon: String
-    let title: String
-    let isEditMode: Bool
-    let action: () -> Void
-
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-            Text(title)
-            if isEditMode {
-                Image(systemName: "circle.dotted")
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color.orange)
-        .foregroundColor(.secondText)
-        .cornerRadius(10)
-        .exclusiveTouchTapGesture {
-            action()
-        }
-    }
-}
-
 
 #Preview {
     let appState = AppState.shared

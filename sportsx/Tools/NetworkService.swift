@@ -6,6 +6,7 @@
 //
 import Foundation
 import UIKit
+import SwiftUI
 
 enum HTTPMethod: String {
     case get = "GET"
@@ -31,6 +32,18 @@ struct APIRequest {
     var requiresAuth: Bool = false
     var isInternal: Bool = false
     var cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+    
+    static func pingLocal() -> APIRequest {
+        APIRequest(
+            path: "/common/ping",
+            method: .get,
+            headers: nil,
+            body: nil,
+            requiresAuth: false,
+            isInternal: false,
+            cachePolicy: .reloadIgnoringLocalCacheData
+        )
+    }
 }
 
 struct APIResponse<T: Decodable>: Decodable {
@@ -60,8 +73,9 @@ struct NetworkService {
         // request
         let urlString = (apiRequest.isInternal ? baseUrl_internal : baseUrl) + apiRequest.path
         guard let url = URL(string: urlString) else {
-            let toast = Toast(message: "URL无效", duration: 2)
+            let toast = Toast(message: "无效的服务", duration: 2)
             ToastManager.shared.show(toast: toast)
+            completion(.failure(.unknown))
             return
         }
         
@@ -70,8 +84,17 @@ struct NetworkService {
         
         // Headers
         var allHeaders = apiRequest.headers ?? [:]
-        if (apiRequest.requiresAuth || apiRequest.isInternal), let token = KeychainHelper.standard.read(forKey: "access_token") {
-            allHeaders["Authorization"] = "Bearer \(token)"
+        if apiRequest.requiresAuth || apiRequest.isInternal {
+            if let token = KeychainHelper.standard.token {
+                allHeaders["Authorization"] = "Bearer \(token)"
+            } else {
+                DispatchQueue.main.async {
+                    ToastManager.shared.show(toast: Toast(message: "toast.no_login"))
+                    UserManager.shared.showingLogin = true
+                }
+                completion(.failure(.businessError(code: 401, message: "toast.no_login")))
+                return
+            }
         }
         for (key, value) in allHeaders {
             request.setValue(value, forHTTPHeaderField: key)
@@ -100,12 +123,13 @@ struct NetworkService {
             }
             // 检查网络错误
             if error != nil {
-                let toast = customErrorToast?(.networkError) ?? Toast(message: "网络错误", duration: 2)
+                let toast = customErrorToast?(.networkError) ?? Toast(message: "toast.network_error", duration: 2)
                 if showErrorToast {
                     DispatchQueue.main.async {
                         ToastManager.shared.show(toast: toast)
                     }
                 }
+                //print(error)
                 completion(.failure(.networkError))
                 return
             }
@@ -125,7 +149,7 @@ struct NetworkService {
             guard httpResponse.statusCode == 200 else {
                 var toast = Toast(message: "服务错误:\(httpResponse.statusCode)", duration: 2)
                 if httpResponse.statusCode == 401 {
-                    toast.message = "请先登录"
+                    toast.message = "toast.no_login"
                     DispatchQueue.main.async {
                         UserManager.shared.showingLogin = true
                     }
@@ -166,7 +190,7 @@ struct NetworkService {
             }
             
             if let token = decoded.access_token {
-                KeychainHelper.standard.save(token, forKey: "access_token")
+                KeychainHelper.standard.saveToken(token)
                 print("save token: \(token) to Keychain")
             }
             
@@ -188,7 +212,7 @@ struct NetworkService {
                     }
                 }
                 switch decoded.code {
-                case 2006, 2007, 3002, 3003:
+                case 2005, 2006, 3002, 3003:
                     DispatchQueue.main.async {
                         UserManager.shared.showingLogin = true
                         UserManager.shared.logoutUser()
@@ -201,6 +225,7 @@ struct NetworkService {
         }.resume()
     }
     
+    // todo: 调整为更现代的 async 版 URLSession 方法
     static func sendAsyncRequest<T: Decodable>(
         with apiRequest: APIRequest,
         decodingType: T.Type,
@@ -255,9 +280,9 @@ struct NetworkService {
             completion(.failure(.unknown))
             return
         }
-
+        
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if error != nil {
                 completion(.failure(.networkError))
@@ -283,9 +308,9 @@ struct NetworkService {
         guard let url = URL(string: baseDomain + path) else {
             return .failure(.unknown)
         }
-
+        
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 10)
-
+        
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let decoded = try JSONDecoder().decode(T.self, from: data)
@@ -359,6 +384,21 @@ struct NetworkService {
                 }
             }
             return .failure(.networkError)
+        }
+    }
+    
+    // ping 本地服务器，确认网络权限和本地网络权限已准备好
+    static func pingLocalServer() async -> Bool {
+        let request = APIRequest.pingLocal()
+        let result = await sendAsyncRequest(
+            with: request,
+            decodingType: EmptyResponse.self
+        )
+        switch result {
+        case .success:
+            return true
+        case .failure:
+            return false
         }
     }
 }

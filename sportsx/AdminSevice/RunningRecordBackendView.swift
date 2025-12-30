@@ -88,7 +88,7 @@ struct RunningUnVerifiedCardView: View {
         HStack {
             Image(systemName: "v.circle.fill")
                 .foregroundStyle(record.is_vip ? Color.red : Color.gray)
-            Text(DateDisplay.formattedDate(record.finished_at))
+            Text(LocalizedStringKey(DateDisplay.formattedDate(record.finished_at)))
             Spacer()
             Button("详情") {
                 viewModel.selectedRecord = record
@@ -141,7 +141,7 @@ struct RunningVerifiedDetailView: View {
     }
     
     var overallStepCountRange: (min: Double, max: Double) {
-        let steps = record.samplePath.compactMap { $0.step_count_avg }
+        let steps = record.samplePath.compactMap { $0.estimate_step_count_avg }
         let minVal = steps.min() ?? 0
         let maxVal = steps.max() ?? 0
         return (minVal, maxVal)
@@ -539,16 +539,16 @@ struct RunningVerifiedDetailView: View {
                         VStack {
                             ZStack(alignment: .center) {
                                 HStack {
-                                    Text("测试步数")
+                                    Text("测试步频")
                                     Spacer()
-                                    Text(String(format: "%.0f - %.0f 次/分", overallStepCountRange.min, overallStepCountRange.max))
+                                    Text(String(format: "%.0f - %.0f 步/分", overallStepCountRange.min, overallStepCountRange.max))
                                 }
                                 .foregroundStyle(Color.pink)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     isStepCountDetail.toggle()
                                 }
-                                Text(String(format: "%.0f 次/分", record.samplePath[progressIndex].step_count_avg))
+                                Text(String(format: "%.0f 步/分", record.samplePath[progressIndex].estimate_step_count_avg))
                                     .padding(.horizontal)
                                     .padding(.vertical, 10)
                                     .font(.caption2)
@@ -560,7 +560,7 @@ struct RunningVerifiedDetailView: View {
                                 HStack(alignment: .bottom, spacing: spacingWidth) {
                                     ForEach(record.samplePath.indices, id: \.self) { i in
                                         let overall = (overallStepCountRange.max - overallStepCountRange.min)
-                                        let ratio = overall > 0 ? (record.samplePath[i].step_count_avg - overallStepCountRange.min) / overall : 1/2
+                                        let ratio = overall > 0 ? (record.samplePath[i].estimate_step_count_avg - overallStepCountRange.min) / overall : 1/2
                                         let height = max(formHeight * ratio, 0) + 4
                                         
                                         RoundedRectangle(cornerRadius: 1)
@@ -586,9 +586,9 @@ struct RunningVerifiedDetailView: View {
                         }
                     } else {
                         HStack {
-                            Text("测试步数")
+                            Text("测试步频")
                             Spacer()
-                            Text(String(format: "平均 %.0f 次/分", stepCountAvg))
+                            Text(String(format: "平均 %.0f 步/分", stepCountAvg))
                         }
                         .padding()
                         .foregroundStyle(Color.white)

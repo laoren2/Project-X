@@ -21,17 +21,17 @@ enum CompetitionStatus: String, Codable {
     var displayName: String {
         switch self {
         case .notStarted:
-            return "未开始"
+            return "competition.record.status.not_started"
         case .recording:
-            return "进行中"
+            return "user.page.tab.current_record"
         case .completed:
-            return "已完成"
+            return "competition.record.status.completed"
         case .expired:
-            return "已过期"
+            return "competition.record.status.expired"
         case .toBeVerified:
-            return "校验中"
+            return "competition.record.status.verifying"
         case .invalid:
-            return "校验失败"
+            return "competition.record.status.verify_failed"
         }
     }
     
@@ -44,7 +44,7 @@ enum CompetitionStatus: String, Codable {
         case .completed:
             return .green
         case .expired:
-            return .gray
+            return .red
         case .toBeVerified:
             return .orange
         case .invalid:
@@ -108,7 +108,7 @@ struct BikeRaceRecord: Identifiable, Equatable {
     
     // 格式化比赛类型
     var competitionTypeText: String {
-        return isTeam ? "队伍" : "单人"
+        return isTeam ? "competition.register.team.3" : "competition.register.single"
     }
     
     static func == (lhs: BikeRaceRecord, rhs: BikeRaceRecord) -> Bool {
@@ -193,7 +193,7 @@ struct RunningRaceRecord: Identifiable, Equatable {
     
     // 格式化比赛类型
     var competitionTypeText: String {
-        return isTeam ? "队伍" : "单人"
+        return isTeam ? "competition.register.team.3" : "competition.register.single"
     }
     
     static func == (lhs: RunningRaceRecord, rhs: RunningRaceRecord) -> Bool {

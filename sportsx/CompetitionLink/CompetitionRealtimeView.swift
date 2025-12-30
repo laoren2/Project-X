@@ -29,25 +29,29 @@ struct CompetitionRealtimeView: View {
     ]
     
     // 动态构建 items 数组
-    var items: [(String, String, Color)] {
-        var temp: [(String, String, Color)] = []
+    var items: [(String, String, String, Color)] {
+        var temp: [(String, String, String, Color)] = []
         let data = appState.competitionManager.realtimeStatisticData
         
         // 距离
-        temp.append(("距离", String(format: "%.2f km", data.distance / 1000), Color.orange))
+        temp.append(("competition.realtime.distance", String(format: "%.2f ", data.distance / 1000), "distance.km", Color.orange))
         // 均速
-        temp.append(("均速", String(format: "%.1f km/h", data.avgSpeed), Color.yellow))
+        temp.append(("competition.realtime.avgspeed", String(format: "%.1f ", data.avgSpeed), "speed.km/h", Color.yellow))
         // 心率
         if let heartRate = data.heartRate {
-            temp.append(("心率", "\(Int(heartRate)) bpm", Color.red))
+            temp.append(("competition.realtime.heartrate", "\(Int(heartRate)) ", "heartrate.unit", Color.red))
         }
         // 能耗
         if let energy = data.totalEnergy {
-            temp.append(("能耗", "\(Int(energy)) W", Color.blue))
+            temp.append(("competition.realtime.energy", "\(Int(energy)) ", "energy.unit", Color.blue))
         }
         // 功率
         if let power = data.power {
-            temp.append(("功率", "\(Int(power)) W", Color.green))
+            temp.append(("competition.realtime.power", "\(Int(power)) ", "power.unit", Color.green))
+        }
+        // 步频
+        if let stepCadence = data.stepCadence {
+            temp.append(("competition.result.stepcadence", "\(Int(stepCadence)) ", "stepCadence.unit", Color.pink))
         }
         return temp
     }
@@ -92,12 +96,12 @@ struct CompetitionRealtimeView: View {
                                     .bold()
                                     .foregroundColor(.white)
                                 if assertInfo {
-                                    Text("如遇到显示区域错误，请手动切换坐标系")
+                                    Text("competition.realtime.switch_info")
                                         .font(.system(size: 15))
                                         .foregroundStyle(Color.secondText)
                                         .multilineTextAlignment(.leading)
                                     Spacer()
-                                    Text("切换")
+                                    Text("competition.realtime.switch")
                                         .foregroundStyle(Color.white)
                                         .onTapGesture {
                                             isReverse.toggle()
@@ -145,7 +149,7 @@ struct CompetitionRealtimeView: View {
                 HStack {
                     HStack(spacing: 2) {
                         Image(systemName: appState.competitionManager.sport.iconName)
-                        Text(appState.competitionManager.isTeam ? "组队" : "单人")
+                        Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     }
                     .foregroundStyle(Color.white)
                     .padding(6)
@@ -169,7 +173,7 @@ struct CompetitionRealtimeView: View {
                     Spacer()
                     HStack(spacing: 2) {
                         Image(systemName: appState.competitionManager.sport.iconName)
-                        Text(appState.competitionManager.isTeam ? "组队" : "单人")
+                        Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     }
                     .padding(6)
                     .hidden()
@@ -198,25 +202,25 @@ struct CompetitionRealtimeView: View {
                             // 组队模式显示区域
                             if appState.competitionManager.isTeam && (!appState.competitionManager.isRecording) {
                                 if appState.competitionManager.isTeamJoinWindowExpired {
-                                    Text("队伍有效窗口时间已过，无法加入比赛")
+                                    Text("competition.realtime.out_window")
                                         .foregroundColor(.red)
                                 } else {
-                                    Text("剩余加入时间: \(appState.competitionManager.teamJoinRemainingTime)秒")
+                                    Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
                                         .foregroundColor(.white)
                                         .font(.headline)
                                 }
                             }
                             if !appState.competitionManager.isRecording && !appState.competitionManager.isInValidArea {
-                                Text("您不在出发点，无法开始比赛")
+                                Text("competition.realtime.start.out_of_area")
                                     .foregroundColor(Color.thirdText)
                             }
                             HStack {
                                 let isDisabledInTeamMode = appState.competitionManager.isTeam && appState.competitionManager.isTeamJoinWindowExpired
-                                let isGray = (!appState.competitionManager.isInValidArea) || isDisabledInTeamMode || (!appState.competitionManager.isEffectsFinishPrepare) || locationManager.signalStrength.bars < 2
+                                let isGray = (!appState.competitionManager.isInValidArea) || isDisabledInTeamMode || locationManager.signalStrength.bars < 2
                                 if appState.competitionManager.isRecording {
                                     Spacer()
                                     VStack {
-                                        Text("进行中:")
+                                        (Text("user.page.tab.current_record") + Text(":"))
                                             .font(.subheadline)
                                             .foregroundColor(.secondText)
                                         Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
@@ -225,27 +229,37 @@ struct CompetitionRealtimeView: View {
                                     }
                                     .frame(width: 120)
                                     Spacer()
-                                    ZStack {
-                                        // 背景按钮
-                                        Text("结束比赛")
-                                            .font(.headline)
-                                            .foregroundColor(.white)
-                                            .frame(width: 100, height: 50)
-                                            .background(Color.red)
-                                            .clipShape(Capsule())
-                                            .gesture(longPress)
-                                        
-                                        // 长按时的进度环
-                                        if isPressing {
-                                            CapsuleProgressShape(progress: pressProgress)
-                                                .stroke(Color.white, lineWidth: 4)
-                                                .frame(width: 100, height: 50)
-                                                .animation(.linear(duration: 2), value: pressProgress)
+                                    // 背景按钮
+                                    Text("competition.realtime.action.finish")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .frame(width: 100, height: 50)
+                                        .background(Color.red)
+                                        .clipShape(Capsule())
+                                        .exclusiveTouchTapGesture {
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "competition.realtime.action.finish",
+                                                message: "competition.realtime.popup.finish",
+                                                bottomButtons: [
+                                                    .cancel(),
+                                                    .confirm() {
+                                                        appState.competitionManager.stopCompetition()
+                                                    }
+                                                ]
+                                            )
                                         }
-                                    }
+                                        //.gesture(longPress)
+                                    
+                                    // 长按时的进度环
+                                    //if isPressing {
+                                        //CapsuleProgressShape(progress: pressProgress)
+                                        //.stroke(Color.white, lineWidth: 4)
+                                        //    .frame(width: 100, height: 50)
+                                        //.animation(.linear(duration: 2), value: pressProgress)
+                                    //}
                                     Spacer()
                                 } else {
-                                    Text("开始")
+                                    Text("competition.realtime.action.start")
                                         .font(.title)
                                         .foregroundColor(.white)
                                         .frame(width: 100, height: 100)
@@ -258,11 +272,11 @@ struct CompetitionRealtimeView: View {
                             }
                             if appState.competitionManager.isRecording {
                                 LazyVGrid(columns: columns, spacing: 16) {
-                                    ForEach(items, id: \.0) { title, value, color in
+                                    ForEach(items, id: \.0) { title, value, unit, color in
                                         VStack {
-                                            Text(title)
+                                            Text(LocalizedStringKey(title))
                                                 .font(.headline)
-                                            Text(value)
+                                            (Text(value) + Text(LocalizedStringKey(unit)))
                                                 .font(.title3)
                                                 .fontWeight(.semibold)
                                         }
@@ -276,7 +290,7 @@ struct CompetitionRealtimeView: View {
                                 
                                 VStack(spacing: 12) {
                                     HStack {
-                                        Text("卡牌收益")
+                                        Text("competition.realtime.card.benefit")
                                             .font(.title2)
                                             .bold()
                                             .foregroundStyle(Color.secondText)
@@ -296,9 +310,14 @@ struct CompetitionRealtimeView: View {
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
                                                     if let index = appState.competitionManager.matchContext.bonusEachCards.firstIndex(where: { $0.card_id == card.cardID }) {
-                                                        Text("奖励时间: \(TimeDisplay.formattedTime( appState.competitionManager.matchContext.bonusEachCards[index].bonus_time, showFraction: true))")
+                                                        (Text("competition.realtime.card.time") + Text(TimeDisplay.formattedTime( appState.competitionManager.matchContext.bonusEachCards[index].bonus_time, showFraction: true)))
                                                             .font(.subheadline)
-                                                            .foregroundColor(.white)
+                                                            .foregroundStyle(Color.white)
+                                                        Spacer()
+                                                    } else {
+                                                        (Text("competition.realtime.card.time") + Text(": 00.00"))
+                                                            .font(.subheadline)
+                                                            .foregroundStyle(Color.secondText)
                                                         Spacer()
                                                     }
                                                 }
@@ -309,7 +328,7 @@ struct CompetitionRealtimeView: View {
                                             .padding(.horizontal)
                                         }
                                     } else {
-                                        Text("未选择卡牌")
+                                        Text("competition.realtime.card.no_cards")
                                             .foregroundStyle(Color.secondText)
                                     }
                                 }
@@ -328,9 +347,9 @@ struct CompetitionRealtimeView: View {
         .enableSwipeBackGesture(false)
         .alert(isPresented: $appState.competitionManager.showAlert) {
             Alert(
-                title: Text(appState.competitionManager.alertTitle),
-                message: Text(appState.competitionManager.alertMessage),
-                dismissButton: .default(Text("确定"))
+                title: Text(LocalizedStringKey(appState.competitionManager.alertTitle)),
+                message: Text(LocalizedStringKey(appState.competitionManager.alertMessage)),
+                dismissButton: .default(Text("action.confirm"))
             )
         }
         .onStableAppear() {
@@ -370,53 +389,53 @@ struct CompetitionRealtimeView: View {
     private func startCompetition() {
         if appState.competitionManager.sport == .Bike {
             guard let record = appState.competitionManager.currentBikeRecord else {
-                let toast = Toast(message: "报名数据错误,请重试")
+                let toast = Toast(message: "competition.realtime.start.toast.record_error")
                 ToastManager.shared.show(toast: toast)
                 return
             }
             if record.isTeam, appState.competitionManager.isTeamJoinWindowExpired {
-                let toast = Toast(message: "您不在队伍比赛窗口期内")
+                let toast = Toast(message: "competition.realtime.start.toast.out_window")
                 ToastManager.shared.show(toast: toast)
                 return
             }
         } else if appState.competitionManager.sport == .Running {
             guard let record = appState.competitionManager.currentRunningRecord else {
-                let toast = Toast(message: "报名数据错误,请重试")
+                let toast = Toast(message: "competition.realtime.start.toast.record_error")
                 ToastManager.shared.show(toast: toast)
                 return
             }
             if record.isTeam, appState.competitionManager.isTeamJoinWindowExpired {
-                let toast = Toast(message: "您不在队伍比赛窗口期内")
+                let toast = Toast(message: "competition.realtime.start.toast.out_window")
                 ToastManager.shared.show(toast: toast)
                 return
             }
         } else {
-            let toast = Toast(message: "暂不支持当前运动")
+            let toast = Toast(message: "competition.realtime.start.toast.sport_not_support")
             ToastManager.shared.show(toast: toast)
             return
         }
         
         guard appState.competitionManager.isInValidArea else {
-            let toast = Toast(message: "您不在出发点范围内")
+            let toast = Toast(message: "competition.realtime.start.out_of_area")
             ToastManager.shared.show(toast: toast)
             return
         }
-        guard appState.competitionManager.isEffectsFinishPrepare else {
-            let toast = Toast(message: "装备卡牌加载中...")
-            ToastManager.shared.show(toast: toast)
-            return
-        }
+        //guard appState.competitionManager.isEffectsFinishPrepare else {
+        //    let toast = Toast(message: "competition.realtime.start.toast.card_loading")
+        //    ToastManager.shared.show(toast: toast)
+        //    return
+        //}
         for (pos, dev) in DeviceManager.shared.deviceMap {
             if let device = dev, (appState.competitionManager.sensorRequest & (1 << (pos.rawValue + 1))) != 0 {
                 if !device.connect() {
-                    let toast = Toast(message: "传感器设备已断开连接,请重试")
+                    let toast = Toast(message: "competition.realtime.start.toast.sensor_unbind")
                     ToastManager.shared.show(toast: toast)
                     return
                 }
             }
         }
         guard locationManager.signalStrength.bars > 1 else {
-            let toast = Toast(message: "GPS信号太弱")
+            let toast = Toast(message: "competition.realtime.start.toast.gps")
             ToastManager.shared.show(toast: toast)
             return
         }

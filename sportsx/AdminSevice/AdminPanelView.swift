@@ -40,6 +40,9 @@ struct AdminPanelView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
+                    SetUpItemView(icon: "pc", title: "首页管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.homepageBackendView)
+                    }
                     SetUpItemView(icon: "pc", title: "赛季&地理区域管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.seasonBackendView)
                     }
@@ -73,8 +76,11 @@ struct AdminPanelView: View {
                     SetUpItemView(icon: "pc", title: "卡牌商店管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.magicCardPriceBackendView)
                     }
-                    SetUpItemView(icon: "pc", title: "用户资产管理",showDivider: false, isDarkScheme: false) {
-                        NavigationManager.shared.append(.userAssetManageBackendView)
+                    SetUpItemView(icon: "pc", title: "邮件管理", isDarkScheme: false) {
+                        NavigationManager.shared.append(.mailboxBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "反馈邮件管理",showDivider: false, isDarkScheme: false) {
+                        NavigationManager.shared.append(.feedbackMailBackendView)
                     }
                 }
                 .cornerRadius(20)

@@ -11,14 +11,17 @@ struct StartView: View {
     @EnvironmentObject var workoutManager: WatchDataManager
     
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
+        VStack(spacing: 20) {
+            Image("single_app_icon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 50)
+                .foregroundStyle(Color.orange)
             Button(action:{
                 workoutManager.syncStatus()
             }){
-                Text("同步")
+                Text("competition.applewatch.sync")
                     .foregroundStyle(Color.green)
             }
         }

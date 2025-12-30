@@ -8,216 +8,168 @@
 import SwiftUI
 import UIKit
 import AuthenticationServices
-import SafariServices
 
 
-struct WebPage: Identifiable {
-    let id = UUID()
-    let url: URL
-}
-
-struct SafariView: UIViewControllerRepresentable {
-    let url: URL
-    func makeUIViewController(context: Context) -> SFSafariViewController {
-        return SFSafariViewController(url: url)
-    }
-    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
-}
-
-struct LoginView: View {
+struct SmsLoginView: View {
+    @ObservedObject private var navigationManager = NavigationManager.shared
     @ObservedObject private var userManager = UserManager.shared
+    
     @State private var phoneNumber: String = ""
-    @State private var verificationCode: String = ""
-    //@State private var enableRetryCodeSend: Bool = false
-    @State private var testCode: String = ""
-
+    @State private var smsCode: String = ""
     @State private var showingWebView = false
     @State private var webPage: WebPage?
     @State private var agreed = false
     @State private var countdown: Int = 60
-    @State private var alreadySendCode = false
+    @State private var alreadySendSMSCode = false
     
     @State private var timer: Timer?
     
-    let config = GlobalConfig.shared
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 20) {
-                HStack {
-                    Button(action: {
-                        userManager.showingLogin = false
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 20))
-                        //.padding()
-                            .foregroundStyle(.white)
-                    }
-                    Spacer()
+        VStack(spacing: 20) {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
                 }
-                .padding(.top, 10)
-                
-                HStack {
-                    Text("欢迎来到 Sporreer")
-                        .font(.title)
-                        .foregroundStyle(.white)
-                    Spacer()
-                }
-                .padding(.top, 40)
-                
-                HStack {
-                    Text("未注册的号码验证登录后将自动注册账号")
-                        .foregroundStyle(Color.thirdText)
-                    Spacer()
-                }
-                
-                VStack(spacing: 20) {
-                    Text("短信验证码登录")
-                        .foregroundStyle(Color.white)
-                    
-                    HStack {
-                        Text("+852")
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 10)
-                            .foregroundStyle(.white)
-                            .background(Color.gray)
-                            .cornerRadius(5)
-                        
-                        TextField("请输入手机号", text: $phoneNumber)
-                            .padding(.leading, 10)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.numberPad)
-                    }
-                    
-                    if alreadySendCode {
-                        Text(countdown == 0 ? "\(testCode) 没收到验证码？点击重新发送" : "验证码\(testCode)已发送，\(countdown)秒后可重新发送")
-                            .foregroundStyle(Color.secondText)
-                        HStack {
-                            TextField("请输入验证码", text: $verificationCode)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.numberPad)
-                            
-                            Button(action: {
-                                if countdown == 0 {
-                                    sendSmsCode()
-                                }
-                            }) {
-                                Text("重新发送")
-                                    .foregroundStyle(.white)
-                                    .font(.system(size: 15))
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(countdown == 0 ? Color.green : Color.gray)
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
-                            .disabled(countdown != 0)
-                        }
-                    }
-                    
-                    Button(action: {
-                        if alreadySendCode {
-                            loginWithSMS()
-                        } else {
-                            sendSmsCode()
-                        }
-                    }) {
-                        Text(alreadySendCode ? "登陆" : "验证并登陆")
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(agreed ? Color.orange : Color.orange.opacity(0.2))
-                            .foregroundStyle(agreed ? Color.white : Color.thirdText)
-                            .cornerRadius(10)
-                            .padding(.top, 10)
-                    }
-                }
-                .padding(.top, 50)
-                
-                HStack(spacing: 5) {
-                    Image(systemName: agreed ? "checkmark.circle" : "circle")
-                        .frame(width: 15, height: 15)
-                        .foregroundStyle(agreed ? Color.orange : Color.secondText)
-                        .onTapGesture {
-                            agreed.toggle()
-                        }
-                    Text("已阅读并同意")
-                    Text("用户协议")
-                        .underline()
-                        .foregroundStyle(Color.orange.opacity(0.6))
-                        .onTapGesture {
-                            webPage = WebPage(url: URL(string: "https://www.valbara.top/user-agreement")!)
-                        }
-                    Text("和")
-                    Text("隐私政策")
-                        .underline()
-                        .foregroundStyle(Color.orange.opacity(0.6))
-                        .onTapGesture {
-                            webPage = WebPage(url: URL(string: "https://www.valbara.top/privacy")!)
-                        }
-                }
-                .font(.system(size: 13))
-                .foregroundStyle(Color.thirdText)
-                .sheet(item: $webPage) { item in
-                    SafariView(url: item.url)
-                        .ignoresSafeArea()
-                }
-                
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
                 Spacer()
             }
             
-            // 使用ZStack布局可以暂时解决键盘弹出挤压问题
-            VStack {
-                Image("appleid_button")
-                Text("通过 Apple 登录")
-                    .font(.system(size: 15))
+            HStack {
+                Text("login.title")
+                    .font(.title)
                     .foregroundStyle(.white)
+                Spacer()
             }
-            .padding(.bottom, 50)
-            .onTapGesture {
-                loginWithAppleID()
+            .padding(.top, 40)
+            
+            HStack {
+                Text("login.subtitle")
+                    .foregroundStyle(Color.thirdText)
+                Spacer()
             }
+            VStack(spacing: 20) {
+                Text("login.sms.title")
+                    .foregroundStyle(Color.white)
+                
+                HStack {
+                    Text("+852")
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 10)
+                        .foregroundStyle(Color.white)
+                        .background(Color.gray)
+                        .cornerRadius(10)
+                    
+                    TextField(text: $phoneNumber) {
+                        Text("login.sms.phone.placeholder")
+                            .foregroundStyle(Color.thirdText)
+                    }
+                    .padding(10)
+                    .foregroundStyle(Color.white)
+                    .scrollContentBackground(.hidden)
+                    .keyboardType(.numberPad)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                }
+                
+                if alreadySendSMSCode {
+                    Text(countdown == 0 ? "login.sms.send_result.2" : "login.sms.send_result.1 \(countdown)")
+                        .foregroundStyle(Color.secondText)
+                    HStack {
+                        TextField("login.sms.code.placeholder", text: $smsCode)
+                            .textContentType(.oneTimeCode)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.numberPad)
+                        
+                        Button(action: {
+                            if countdown == 0 {
+                                sendSmsCode()
+                            }
+                        }) {
+                            Text("login.sms.action.send_again")
+                                .foregroundStyle(.white)
+                                .font(.system(size: 15))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(countdown == 0 ? Color.green : Color.gray)
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                        .disabled(countdown != 0)
+                    }
+                }
+                
+                Button(action: {
+                    if alreadySendSMSCode {
+                        loginWithSMS()
+                    } else {
+                        sendSmsCode()
+                    }
+                }) {
+                    Text(alreadySendSMSCode ? "action.login" : "login.sms.action.verify_and_login")
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(agreed ? Color.orange : Color.orange.opacity(0.2))
+                        .foregroundStyle(agreed ? Color.white : Color.thirdText)
+                        .cornerRadius(10)
+                        .padding(.top, 10)
+                }
+            }
+            .padding(.top, 50)
+            
+            HStack(spacing: 5) {
+                Image(systemName: agreed ? "checkmark.circle" : "circle")
+                    .frame(width: 15, height: 15)
+                    .foregroundStyle(agreed ? Color.orange : Color.secondText)
+                    .onTapGesture {
+                        agreed.toggle()
+                    }
+                Text("action.read_and_agree")
+                Text("user.setup.user_agreement")
+                    .underline()
+                    .foregroundStyle(Color.orange.opacity(0.6))
+                    .onTapGesture {
+                        AgreementHelper.open("https://www.valbara.top/user_agreement", binding: $webPage)
+                    }
+                Text("common.and")
+                Text("user.setup.privacy")
+                    .underline()
+                    .foregroundStyle(Color.orange.opacity(0.6))
+                    .onTapGesture {
+                        AgreementHelper.open("https://www.valbara.top/privacy", binding: $webPage)
+                    }
+            }
+            .font(.system(size: 13))
+            .foregroundStyle(Color.thirdText)
+            .sheet(item: $webPage) { item in
+                SafariView(url: item.url)
+                    .ignoresSafeArea()
+            }
+            Spacer()
         }
         .padding(.horizontal, 20)
         .background(Color.defaultBackground)
-        .onValueChange(of: userManager.showingLogin) {
-            if userManager.showingLogin {
-                clearAll()
-            } else {
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
         .ignoresSafeArea(.keyboard)
         .hideKeyboardOnTap()
     }
     
-    func loginWithAppleID() {
-        guard agreed else {
-            ToastManager.shared.show(toast: Toast(message: "请同意用户协议和隐私政策"))
-            return
-        }
-        let request = ASAuthorizationAppleIDProvider().createRequest()
-        request.requestedScopes = [.fullName, .email]
-        
-        let controller = ASAuthorizationController(authorizationRequests: [request])
-        controller.delegate = AppleSignInCoordinator.shared
-        controller.presentationContextProvider = AppleSignInCoordinator.shared
-        controller.performRequests()
-    }
-    
     func loginWithSMS() {
         guard agreed else {
-            ToastManager.shared.show(toast: Toast(message: "请同意用户协议和隐私政策"))
+            ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
             return
         }
-        guard phoneNumber.count == 11 else {
-            ToastManager.shared.show(toast: Toast(message: "请输入正确的号码"))
+        guard phoneNumber.count == 8 else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.error_number"))
             return
         }
-        guard verificationCode.count == 6 else {
-            ToastManager.shared.show(toast: Toast(message: "请输入正确的验证码"))
+        guard smsCode.count == 6 else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.error_code"))
             return
         }
         
-        let body = ["phone_number": phoneNumber, "code": verificationCode]
+        let body = ["phone_number": phoneNumber, "code": smsCode]
         guard let encodedBody = try? JSONEncoder().encode(body) else {
             return
         }
@@ -225,7 +177,7 @@ struct LoginView: View {
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
-        let request = APIRequest(path: "/user/login", method: .post, headers: headers, body: encodedBody, requiresAuth: false)
+        let request = APIRequest(path: "/user/login/sms", method: .post, headers: headers, body: encodedBody, requiresAuth: false)
         
         NetworkService.sendRequest(with: request, decodingType: LoginResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
@@ -242,18 +194,20 @@ struct LoginView: View {
                         userManager.saveUserInfoToCache()
                         //config.refreshAll()
                         userManager.isLoggedIn = true
-                        userManager.showingLogin = false
+                        //userManager.showingLogin = false
+                        navigationManager.removeLast()
                     }
                     
                     userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
-                    AssetManager.shared.queryCCAssets()
+                    
                     Task {
+                        await AssetManager.shared.queryCCAssets()
                         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
                         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
                     }
                     
                     if unwrappedData.isRegister {
-                        print("注册成功，进入编辑资料页")
+                        print("sms注册成功，进入编辑资料页")
                     } else {
                         print("登录成功")
                     }
@@ -266,11 +220,11 @@ struct LoginView: View {
     
     func sendSmsCode() {
         guard agreed else {
-            ToastManager.shared.show(toast: Toast(message: "请同意用户协议和隐私政策"))
+            ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
             return
         }
-        guard phoneNumber.count == 11 else {
-            ToastManager.shared.show(toast: Toast(message: "请输入正确的号码"))
+        guard phoneNumber.count == 8 else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.error_number"))
             return
         }
         var headers: [String: String] = [:]
@@ -281,15 +235,14 @@ struct LoginView: View {
             return
         }
         
-        let request = APIRequest(path: "/user/send_code", method: .post, headers: headers, body: encodedBody, requiresAuth: false)
+        let request = APIRequest(path: "/user/send_sms_code", method: .post, headers: headers, body: encodedBody, requiresAuth: false)
         
-        NetworkService.sendRequest(with: request, decodingType: SmsCodeResponse.self, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: SmsCodeResponse.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        testCode = unwrappedData.code
-                        alreadySendCode = true
+                        alreadySendSMSCode = true
                         // 开始倒计时60s，60s后可重新发送验证码
                         startCodeTimer()
                     }
@@ -313,12 +266,319 @@ struct LoginView: View {
             }
         }
     }
+}
+
+struct LoginView: View {
+    @ObservedObject private var navigationManager = NavigationManager.shared
+    @ObservedObject private var userManager = UserManager.shared
+
+    @State private var emailAddress: String = ""
+    @State private var emailCode: String = ""
+
+    @State private var showingWebView = false
+    @State private var webPage: WebPage?
+    @State private var agreed = false
+    @State private var countdown: Int = 60
+    @State private var alreadySendEmailCode = false
+    
+    @State private var timer: Timer?
+    
+    var body: some View {
+        ZStack {
+            VStack(spacing: 20) {
+                HStack {
+                    Button(action: {
+                        userManager.showingLogin = false
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 20))
+                        //.padding()
+                            .foregroundStyle(.white)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
+                HStack {
+                    Text("login.title")
+                        .font(.title)
+                        .foregroundStyle(.white)
+                    Spacer()
+                }
+                .padding(.top, 40)
+                
+                HStack {
+                    Text("login.subtitle")
+                        .foregroundStyle(Color.thirdText)
+                    Spacer()
+                }
+                    VStack(spacing: 20) {
+                        Text("login.email.title")
+                            .foregroundStyle(Color.white)
+                        
+                        TextField(text: $emailAddress) {
+                            Text("login.email.placeholder")
+                                .foregroundStyle(Color.thirdText)
+                        }
+                        .padding(10)
+                        .foregroundStyle(Color.white)
+                        .scrollContentBackground(.hidden)
+                        .keyboardType(.emailAddress)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(10)
+                        
+                        if alreadySendEmailCode {
+                            Text(countdown == 0 ? "login.email.send_result.2" : "login.email.send_result.1 \(countdown)")
+                                .foregroundStyle(Color.secondText)
+                            HStack {
+                                TextField("login.sms.code.placeholder", text: $emailCode)
+                                    .textContentType(.oneTimeCode)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .keyboardType(.numberPad)
+                                
+                                Button(action: {
+                                    if countdown == 0 {
+                                        sendEmailCode()
+                                    }
+                                }) {
+                                    Text("login.sms.action.send_again")
+                                        .foregroundStyle(.white)
+                                        .font(.system(size: 15))
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .background(countdown == 0 ? Color.green : Color.gray)
+                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                                .disabled(countdown != 0)
+                            }
+                        }
+                        
+                        Button(action: {
+                            if alreadySendEmailCode {
+                                loginWithEmail()
+                            } else {
+                                sendEmailCode()
+                            }
+                        }) {
+                            Text(alreadySendEmailCode ? "action.login" : "login.sms.action.verify_and_login")
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(agreed ? Color.orange : Color.orange.opacity(0.2))
+                                .foregroundStyle(agreed ? Color.white : Color.thirdText)
+                                .cornerRadius(10)
+                                .padding(.top, 10)
+                        }
+                    }
+                    .padding(.top, 50)
+                
+                HStack(spacing: 5) {
+                    Image(systemName: agreed ? "checkmark.circle" : "circle")
+                        .frame(width: 15, height: 15)
+                        .foregroundStyle(agreed ? Color.orange : Color.secondText)
+                        .onTapGesture {
+                            agreed.toggle()
+                        }
+                    Text("action.read_and_agree")
+                    Text("user.setup.user_agreement")
+                        .underline()
+                        .foregroundStyle(Color.orange.opacity(0.6))
+                        .onTapGesture {
+                            AgreementHelper.open("https://www.valbara.top/user_agreement", binding: $webPage)
+                        }
+                    Text("common.and")
+                    Text("user.setup.privacy")
+                        .underline()
+                        .foregroundStyle(Color.orange.opacity(0.6))
+                        .onTapGesture {
+                            AgreementHelper.open("https://www.valbara.top/privacy", binding: $webPage)
+                        }
+                }
+                .font(.system(size: 13))
+                .foregroundStyle(Color.thirdText)
+                .sheet(item: $webPage) { item in
+                    SafariView(url: item.url)
+                        .ignoresSafeArea()
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            
+            // 使用ZStack布局可以暂时解决键盘弹出挤压问题
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    VStack {
+                        Image("appleid_button")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 55)
+                        Text("login.apple.action")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.secondText)
+                    }
+                    .onTapGesture {
+                        loginWithAppleID()
+                    }
+                    Spacer()
+                    VStack {
+                        Image(systemName: "candybarphone")
+                            .padding()
+                            .font(.system(size: 28))
+                            .background(Color.secondText)
+                            .clipShape(.circle)
+                            .frame(width: 55, height: 55)
+                        Text("login.sms.action")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.secondText)
+                    }
+                    .onTapGesture {
+                        navigationManager.append(.smsLoginView)
+                        userManager.showingLogin = false
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 50)
+            }
+        }
+        .background(Color.defaultBackground)
+        .onValueChange(of: userManager.showingLogin) {
+            if userManager.showingLogin {
+                clearAll()
+            } else {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        }
+        .ignoresSafeArea(.keyboard)
+        .hideKeyboardOnTap()
+    }
+    
+    func sendEmailCode() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
+            return
+        }
+        guard emailAddress.contains("@") else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.error_email"))
+            return
+        }
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        let body = ["email_address": emailAddress]
+        guard let encodedBody = try? JSONEncoder().encode(body) else {
+            return
+        }
+        
+        let request = APIRequest(path: "/user/send_email_code", method: .post, headers: headers, body: encodedBody)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                DispatchQueue.main.async {
+                    alreadySendEmailCode = true
+                    // 开始倒计时60s，60s后可重新发送验证码
+                    startCodeTimer()
+                }
+            default:
+                break
+            }
+        }
+    }
+    
+    func loginWithEmail() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
+            return
+        }
+        guard emailAddress.contains("@") else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.error_email"))
+            return
+        }
+        guard emailCode.count == 6 else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.error_code"))
+            return
+        }
+        
+        let body = ["email_address": emailAddress, "code": emailCode]
+        guard let encodedBody = try? JSONEncoder().encode(body) else {
+            return
+        }
+        
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        let request = APIRequest(path: "/user/login/email", method: .post, headers: headers, body: encodedBody)
+        
+        NetworkService.sendRequest(with: request, decodingType: LoginResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    let user = unwrappedData.user
+                    let relation = unwrappedData.relation
+                    DispatchQueue.main.async {
+                        userManager.friendCount = relation.friends
+                        userManager.followerCount = relation.follower
+                        userManager.followedCount = relation.followed
+                        userManager.user = User(from: user)
+                        userManager.role = unwrappedData.role
+                        userManager.saveUserInfoToCache()
+                        //config.refreshAll()
+                        userManager.isLoggedIn = true
+                        userManager.showingLogin = false
+                    }
+                    
+                    userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
+                    
+                    Task {
+                        await AssetManager.shared.queryCCAssets()
+                        await AssetManager.shared.queryCPAssets(withLoadingToast: false)
+                        await AssetManager.shared.queryMagicCards(withLoadingToast: false)
+                    }
+                    
+                    if unwrappedData.isRegister {
+                        print("email注册成功，进入编辑资料页")
+                    } else {
+                        print("登录成功")
+                    }
+                }
+            default:
+                break
+            }
+        }
+    }
+    
+    func loginWithAppleID() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
+            return
+        }
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.fullName, .email]
+        
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = AppleSignInCoordinator.shared
+        controller.presentationContextProvider = AppleSignInCoordinator.shared
+        controller.performRequests()
+    }
+    
+    func startCodeTimer() {
+        timer?.invalidate()
+        countdown = 60
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if countdown > 0 {
+                countdown -= 1
+            } else {
+                timer?.invalidate()
+                timer = nil
+            }
+        }
+    }
     
     func clearAll() {
-        phoneNumber = ""
-        verificationCode = ""
-        testCode = ""
-        alreadySendCode = false
+        emailAddress = ""
+        emailCode = ""
+        alreadySendEmailCode = false
         countdown = 0
         agreed = false
         
@@ -359,12 +619,15 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
     }
     
     func login(with token: String) {
-        guard var components = URLComponents(string: "/user/login/apple") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "token", value: token)
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        let body: [String: String] = [
+            "jws": token
         ]
-        guard let urlPath = components.string else { return }
-        let request = APIRequest(path: urlPath, method: .post)
+        guard let encodedBody = try? JSONEncoder().encode(body) else { return }
+        
+        let request = APIRequest(path: "/user/login/apple", method: .post, headers: headers, body: encodedBody)
         
         NetworkService.sendRequest(with: request, decodingType: LoginResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
@@ -380,14 +643,15 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
                         userManager.user = User(from: user)
                         userManager.role = unwrappedData.role
                         userManager.saveUserInfoToCache()
-                        GlobalConfig.shared.refreshAll()
+                        //GlobalConfig.shared.refreshAll()
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
                     }
                     
                     userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
-                    AssetManager.shared.queryCCAssets()
+                    
                     Task {
+                        await AssetManager.shared.queryCCAssets()
                         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
                         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
                     }

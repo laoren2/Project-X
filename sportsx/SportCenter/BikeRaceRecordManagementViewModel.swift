@@ -16,9 +16,6 @@ class BikeRaceRecordManagementViewModel: ObservableObject {
     private let navigationManager = NavigationManager.shared
 
     @Published var selectedTab: Int = 0  // 0: 未完成, 1: 已完成
-    // 提示信息
-    @Published var showAlert = false
-    @Published var alertMessage = ""
     // 比赛记录
     @Published var records: [BikeRaceRecord] = []
     // 未完成的比赛
@@ -166,7 +163,7 @@ class BikeRaceRecordManagementViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {

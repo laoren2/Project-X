@@ -30,11 +30,6 @@ class RunningTeamManagementViewModel: ObservableObject {
     @Published var selectedDescription: String = ""
     //@Published var showDescription: Bool = false
     
-    // 提示信息
-    @Published var showAlert = false
-    @Published var showCardAlert = false    // 控制teamManageCard弹出的alert
-    var alertMessage = ""
-    
     // 当前选择的Tab
     @Published var selectedTab = 0
     
@@ -167,7 +162,7 @@ class RunningTeamManagementViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async {
@@ -283,7 +278,7 @@ class RunningTeamManageViewModel: ObservableObject {
         }
         let request = APIRequest(path: "/competition/running/update_team_info", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: RunningTeamUpdateResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningTeamUpdateResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 self.globalConfig.refreshTeamManageView = true
@@ -312,7 +307,7 @@ class RunningTeamManageViewModel: ObservableObject {
         }
         let request = APIRequest(path: "/competition/running/update_team_public_status", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 self.globalConfig.refreshTeamManageView = true
@@ -338,7 +333,7 @@ class RunningTeamManageViewModel: ObservableObject {
         }
         let request = APIRequest(path: "/competition/running/update_team_lock_status", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 self.globalConfig.refreshTeamManageView = true
@@ -361,7 +356,7 @@ class RunningTeamManageViewModel: ObservableObject {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 self.globalConfig.refreshTeamManageView = true
@@ -385,7 +380,7 @@ class RunningTeamManageViewModel: ObservableObject {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: RunningTeamMemberUpdateResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningTeamMemberUpdateResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 self.globalConfig.refreshTeamManageView = true
@@ -409,7 +404,7 @@ class RunningTeamManageViewModel: ObservableObject {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async {
@@ -433,7 +428,7 @@ class RunningTeamManageViewModel: ObservableObject {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: RunningTeamMemberUpdateResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningTeamMemberUpdateResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 self.globalConfig.refreshTeamManageView = true

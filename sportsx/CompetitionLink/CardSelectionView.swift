@@ -17,7 +17,6 @@ struct CardSelectionView: View {
     
     // 卡牌容器的常量
     private let cardWidth: CGFloat = 100
-    private let cardHeight: CGFloat = 140
     private var maxCards: Int { return userManager.user.isVip ? 4 : 3}
     
     // 定义4列网格
@@ -45,14 +44,14 @@ struct CardSelectionView: View {
                 Button(action: {
                     showCardSelection = false
                 }) {
-                    Text("取消")
+                    Text("action.cancel")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.thirdText)
                 }
                 
                 Spacer()
                 
-                Text("选择技能卡")
+                Text("competition.magiccard.select")
                     .font(.system(size: 16))
                     .foregroundStyle(.white)
                 
@@ -62,7 +61,7 @@ struct CardSelectionView: View {
                     showCardSelection = false
                     appState.competitionManager.selectedCards = tempSelectedCards
                 }) {
-                    Text("完成")
+                    Text("action.complete")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.white)
                 }
@@ -71,53 +70,17 @@ struct CardSelectionView: View {
             
             // 已选卡牌区域
             VStack {
-                Text("已选择")
+                Text("competition.magiccard.selected")
                     .font(.headline)
                     .foregroundStyle(Color.secondText)
                 
-                if userManager.user.isVip {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(tempSelectedCards) { card in
-                                // 显示已选择的卡牌
-                                ZStack(alignment: .topTrailing) {
-                                    MagicCardView(card: card)
-                                        .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
-                                    
-                                    // 卸载按钮
-                                    Button(action: {
-                                        tempSelectedCards.removeAll { $0.cardID == card.cardID }
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.red)
-                                            .background(Circle().fill(Color.white))
-                                            .shadow(radius: 1)
-                                    }
-                                    .offset(x: 8, y: -8)
-                                }
-                            }
-                            // 占位卡牌
-                            ForEach(tempSelectedCards.count..<maxCards, id: \.self) { index in
-                                if index == 3 {
-                                    EmptyCardVipSlot()
-                                        .frame(width: cardWidth * 0.8)
-                                } else {
-                                    EmptyCardSlot()
-                                        .frame(width: cardWidth * 0.8)
-                                }
-                            }
-                        }
-                        .padding(2)
-                        .padding(.top, 6)
-                    }
-                } else {
-                    HStack {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 20) {
                         ForEach(tempSelectedCards) { card in
                             // 显示已选择的卡牌
-                            Spacer()
                             ZStack(alignment: .topTrailing) {
                                 MagicCardView(card: card)
-                                    .frame(width: cardWidth * 0.8, height: cardHeight * 0.8)
+                                    .frame(width: cardWidth * 0.8)
                                 
                                 // 卸载按钮
                                 Button(action: {
@@ -130,16 +93,27 @@ struct CardSelectionView: View {
                                 }
                                 .offset(x: 8, y: -8)
                             }
-                            Spacer()
                         }
                         // 占位卡牌
-                        ForEach(tempSelectedCards.count..<maxCards, id: \.self) { _ in
-                            Spacer()
-                            EmptyCardSlot()
-                                .frame(width: cardWidth * 0.8)
-                            Spacer()
+                        ForEach(tempSelectedCards.count..<4, id: \.self) { index in
+                            if index == 3 {
+                                ZStack {
+                                    EmptyCardVipSlot()
+                                        .frame(width: cardWidth * 0.8)
+                                    if !userManager.user.isVip {
+                                        Image(systemName: "lock.fill")
+                                            .foregroundStyle(Color.gray.opacity(0.6))
+                                            .font(.system(size: 50))
+                                    }
+                                }
+                            } else {
+                                EmptyCardSlot()
+                                    .frame(width: cardWidth * 0.8)
+                            }
                         }
                     }
+                    .padding(2)
+                    .padding(.top, 6)
                 }
             }
             .padding()
@@ -151,7 +125,7 @@ struct CardSelectionView: View {
             HStack {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(.systemGray6))
+                        .fill(Color.gray.opacity(0.2))
                         .frame(height: 44)
                     
                     HStack(spacing: 8) {
@@ -160,9 +134,14 @@ struct CardSelectionView: View {
                             .foregroundColor(.gray)
                             .padding(.leading, 12)
                         
-                        TextField("搜索卡牌", text: $searchText)
-                            .padding(.vertical, 10)
-                            .foregroundColor(.primary)
+                        TextField(text: $searchText) {
+                            Text("competition.magiccard.search")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 15))
+                        }
+                        .foregroundStyle(Color.white)
+                        .font(.system(size: 15))
+                        .padding(.vertical, 8)
                         
                         if !searchText.isEmpty {
                             Button(action: {
@@ -184,15 +163,15 @@ struct CardSelectionView: View {
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
                 )
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 6)
             
             // 卡牌列表
             if assetManager.magicCards.isEmpty {
-                Text("无可用卡牌")
+                Text("institute.upgrade.card.none")
                     .padding()
                     .foregroundStyle(Color.secondText)
                 Spacer()
@@ -212,8 +191,11 @@ struct CardSelectionView: View {
                     .padding()
                 }
             }
+            Spacer()
         }
+        .ignoresSafeArea(.keyboard)
         .background(Color.defaultBackground)
+        .hideKeyboardOnScroll()
         .onStableAppear {
             tempSelectedCards = appState.competitionManager.selectedCards
             if assetManager.magicCards.isEmpty {
@@ -230,13 +212,17 @@ struct CardSelectionView: View {
         } else {
             // 检查运动类型
             guard card.sportType == CompetitionManager.shared.sport else {
-                ToastManager.shared.show(toast: Toast(message: "运动类型不匹配"))
+                ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.sporttype"))
                 return
             }
             // 检查组队模式
             if card.tags.first(where: { $0 == "team" }) != nil {
                 guard CompetitionManager.shared.isTeam else {
-                    ToastManager.shared.show(toast: Toast(message: "运动模式不匹配"))
+                    ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.sportmode"))
+                    return
+                }
+                if tempSelectedCards.contains(where: { $0.tags.contains("team") }) {
+                    ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.repeat"))
                     return
                 }
             }
@@ -244,23 +230,23 @@ struct CardSelectionView: View {
             if let location = card.sensorLocation {
                 if !DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) {
                     if card.sensorLocation2 == nil {
-                        ToastManager.shared.show(toast: Toast(message: "传感器未绑定"))
+                        ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.no_sensor"))
                         return
                     }
                     if let location2 = card.sensorLocation2, !DeviceManager.shared.checkSensorLocation(at: location2 >> 1, in: card.sensorType) {
-                        ToastManager.shared.show(toast: Toast(message: "传感器未绑定"))
+                        ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.no_sensor"))
                         return
                     }
                 }
             }
             // 检查版本
             guard AppVersionManager.shared.checkMinimumVersion(card.version) else {
-                ToastManager.shared.show(toast: Toast(message: "客户端版本过低"))
+                ToastManager.shared.show(toast: Toast(message: "warehouse.equipcard.unavailable.detail"))
                 return
             }
             // 检查是否重复装备
             guard tempSelectedCards.firstIndex(where: { $0.defID == card.defID }) == nil else {
-                ToastManager.shared.show(toast: Toast(message: "不可重复装备"))
+                ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.repeat"))
                 return
             }
             if tempSelectedCards.count < maxCards {

@@ -77,7 +77,7 @@ struct UserIntroEditView: View {
                                         .clipShape(Circle())
                                 }
                                 
-                                Text("更换头像")
+                                Text("user.intro.action.change_avatar")
                                     .font(.system(size: 14))
                                     .foregroundColor(.white)
                                     .padding(.vertical, 5)
@@ -100,39 +100,39 @@ struct UserIntroEditView: View {
                     // 资料编辑表单
                     VStack(spacing: 0) {
                         // 名字
-                        EditItemView(title: "名字", value: viewModel.currentUser.nickname) {
+                        EditItemView(title: "user.intro.title.name", value: viewModel.currentUser.nickname) {
                             showNameEditor = true
                         }
                         
                         // 简介
-                        EditItemView(title: "简介", value: viewModel.currentUser.introduction ?? "") {
+                        EditItemView(title: "user.intro.title.intro", value: viewModel.currentUser.introduction ?? "") {
                             showIntroEditor = true
                         }
                         
                         // 性别
-                        EditItemView(title: "性别", value: viewModel.currentUser.gender?.rawValue ?? "未设置") {
+                        EditItemView(title: "user.intro.title.gender", value: viewModel.currentUser.gender?.rawValue ?? "action.not_set") {
                             showGenderEditor = true
                         }
                         
                         // 生日
-                        EditItemView(title: "生日", value: viewModel.currentUser.birthday ?? "未设置") {
+                        EditItemView(title: "user.intro.title.birthday", value: viewModel.currentUser.birthday ?? "action.not_set") {
                             showAgeEditor = true
                         }
                         
                         // 所在地
-                        EditItemView(title: "所在地", value: viewModel.currentUser.location ?? "未设置") {
+                        EditItemView(title: "user.intro.title.location", value: viewModel.regionName ?? "action.not_set") {
                             showLocationEditor = true
                         }
                         
                         // 学校
-                        EditItemView(title: "身份认证", value: viewModel.currentUser.identityAuthName ?? "未认证") {
+                        EditItemView(title: "user.intro.title.identity_auth", value: viewModel.currentUser.identityAuthName ?? "未认证") {
                             showIdentityEditor = true
                         }
                     }
                     .cornerRadius(20)
                     .padding()
                     
-                    Text("保存")
+                    Text("action.save")
                         .padding(.vertical, 10)
                         .padding(.horizontal, 20)
                         .foregroundStyle(.white)
@@ -157,7 +157,7 @@ struct UserIntroEditView: View {
                         appState.navigationManager.removeLast()
                     }
                 Spacer()
-                Text("更换封面")
+                Text("user.intro.action.change_background")
                     .font(.system(size: 16))
                     .foregroundColor(.white)
                     .padding(.vertical, 8)
@@ -244,12 +244,12 @@ struct EditItemView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.system(size: 16))
                     .foregroundColor(.secondText)
                     .frame(width: 80, alignment: .leading)
                 
-                Text(value)
+                Text(LocalizedStringKey(value))
                     .font(.system(size: 16))
                     .foregroundColor(.white)
                     
@@ -288,7 +288,7 @@ struct IntroEditorView: View {
                         Button(action: {
                             showIntroEditor = false
                         }) {
-                            Text("取消")
+                            Text("action.cancel")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -299,14 +299,14 @@ struct IntroEditorView: View {
                             viewModel.currentUser.introduction = tempIntro
                             showIntroEditor = false
                         }) {
-                            Text("完成")
+                            Text("action.complete")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
                     }
                     .padding(.vertical)
                     
-                    Text("编辑简介")
+                    Text("user.intro.edit_intro")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                 }
@@ -327,13 +327,9 @@ struct IntroEditorView: View {
                     //.border(.green)
                 
                 HStack {
-                    Text("最多输入100个字符")
-                        .font(.footnote)
-                        .foregroundStyle(Color.secondText)
-                    
                     Spacer()
                     
-                    Text("已输入\(tempIntro.count)/100字符")
+                    Text("user.intro.words_entered \(tempIntro.count) \(100)")
                         .font(.footnote)
                         .foregroundStyle(Color.secondText)
                 }
@@ -365,7 +361,7 @@ struct NameEditorView: View {
                         Button(action: {
                             showNameEditor = false
                         }) {
-                            Text("取消")
+                            Text("action.cancel")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -376,14 +372,14 @@ struct NameEditorView: View {
                             viewModel.currentUser.nickname = tempName
                             showNameEditor = false
                         }) {
-                            Text("完成")
+                            Text("action.complete")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
                     }
                     .padding(.vertical)
                     
-                    Text("编辑名字")
+                    Text("user.intro.edit_name")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                 }
@@ -396,20 +392,16 @@ struct NameEditorView: View {
                     .cornerRadius(20)
                     .onValueChange(of: tempName) {
                         DispatchQueue.main.async {
-                            if tempName.count > 10 {
-                                tempName = String(tempName.prefix(10)) // 限制为最多10个字符
+                            if tempName.count > 15 {
+                                tempName = String(tempName.prefix(15)) // 限制为最多10个字符
                             }
                         }
                     }
                 
                 HStack {
-                    Text("最多输入10个字符")
-                        .font(.footnote)
-                        .foregroundStyle(Color.secondText)
-                    
                     Spacer()
                     
-                    Text("已输入\(tempName.count)/10字符")
+                    Text("user.intro.words_entered \(tempName.count) \(15)")
                         .font(.footnote)
                         .foregroundStyle(Color.secondText)
                 }
@@ -441,7 +433,7 @@ struct GenderEditorView: View {
                         Button(action: {
                             showGenderEditor = false
                         }) {
-                            Text("取消")
+                            Text("action.cancel")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -452,20 +444,20 @@ struct GenderEditorView: View {
                             viewModel.currentUser.isDisplayGender = tempDisplayStatus
                             showGenderEditor = false
                         }) {
-                            Text("完成")
+                            Text("action.complete")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
                     }
                     .padding(.vertical)
                     
-                    Text("编辑性别")
+                    Text("user.intro.edit_gender")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                 }
                 
                 VStack{
-                    Toggle("展示", isOn: $tempDisplayStatus)
+                    Toggle("action.display", isOn: $tempDisplayStatus)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
                         .disabled(viewModel.currentUser.gender == nil)
@@ -473,7 +465,7 @@ struct GenderEditorView: View {
                     Divider()
                     
                     HStack {
-                        Text("实名认证信息中的性别")
+                        Text("user.intro.gender_info")
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                         
@@ -484,7 +476,7 @@ struct GenderEditorView: View {
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white)
                         } else {
-                            Text("去认证")
+                            Text("user.intro.go_auth")
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -526,7 +518,7 @@ struct AgeEditorView: View {
                         Button(action: {
                             showAgeEditor = false
                         }) {
-                            Text("取消")
+                            Text("action.cancel")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -537,20 +529,20 @@ struct AgeEditorView: View {
                             viewModel.currentUser.isDisplayAge = tempDisplayStatus
                             showAgeEditor = false
                         }) {
-                            Text("完成")
+                            Text("action.complete")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
                     }
                     .padding(.vertical)
                     
-                    Text("编辑生日")
+                    Text("user.intro.edit_birthday")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                 }
                 
                 VStack{
-                    Toggle("展示年龄", isOn: $tempDisplayStatus)
+                    Toggle("action.display", isOn: $tempDisplayStatus)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
                         .disabled(!viewModel.currentUser.isRealnameAuth)
@@ -558,18 +550,18 @@ struct AgeEditorView: View {
                     Divider()
                     
                     HStack {
-                        Text("实名认证信息中的出生日期")
+                        Text("user.intro.birthday_info")
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                         
                         Spacer()
                         
                         if viewModel.currentUser.isRealnameAuth {
-                            Text("\(viewModel.currentUser.birthday ?? "未知")")
+                            Text("\(viewModel.currentUser.birthday ?? "error.unknown")")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white)
                         } else {
-                            Text("去认证")
+                            Text("user.intro.go_auth")
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -611,7 +603,7 @@ struct LocationEditorView: View {
                         Button(action: {
                             showLocationEditor = false
                         }) {
-                            Text("取消")
+                            Text("action.cancel")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -622,28 +614,28 @@ struct LocationEditorView: View {
                             viewModel.currentUser.isDisplayLocation = tempDisplayStatus
                             showLocationEditor = false
                         }) {
-                            Text("完成")
+                            Text("action.complete")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
                     }
                     .padding(.vertical)
                     
-                    Text("编辑位置")
+                    Text("user.intro.edit_location")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                 }
                 
                 
                 VStack(spacing: 5) {
-                    Toggle("展示", isOn: $tempDisplayStatus)
+                    Toggle("action.display", isOn: $tempDisplayStatus)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
                         .frame(height: 40)
                     
                     Divider()
                     
-                    Toggle("自动更新位置", isOn: $viewModel.currentUser.enableAutoLocation)
+                    Toggle("user.intro.auto_location", isOn: $viewModel.currentUser.enableAutoLocation)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
                         .frame(height: 40)
@@ -651,17 +643,17 @@ struct LocationEditorView: View {
                     Divider()
                     
                     HStack {
-                        Text("地理位置")
+                        Text("user.intro.title.location")
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                         
                         Spacer()
                         
-                        if config.location != viewModel.currentUser.location {
+                        if config.locationID != viewModel.currentUser.location {
                             HStack(spacing: 0) {
                                 Image(systemName: "location")
                                     .font(.system(size: 14))
-                                Text("当前位置")
+                                Text("user.intro.current_location")
                                     .font(.system(size: 14))
                             }
                             .padding(.vertical, 8)
@@ -670,17 +662,15 @@ struct LocationEditorView: View {
                             .background(.ultraThinMaterial)
                             .cornerRadius(10)
                             .onTapGesture {
-                                viewModel.currentUser.location = config.location
+                                viewModel.currentUser.location = config.locationID
                             }
-                            .border(.green)
                         }
                         
-                        Text("\(viewModel.currentUser.location ?? "未设置")")
+                        Text(LocalizedStringKey(viewModel.regionName ?? "action.not_set"))
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                     }
                     .frame(height: 40)
-                    .border(.red)
                 }
             }
             .padding(.horizontal)
@@ -710,7 +700,7 @@ struct IdentityEditorView: View {
                         Button(action: {
                             showIdentityEditor = false
                         }) {
-                            Text("取消")
+                            Text("action.cancel")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
@@ -721,20 +711,20 @@ struct IdentityEditorView: View {
                             viewModel.currentUser.isDisplayIdentity = tempDisplayStatus
                             showIdentityEditor = false
                         }) {
-                            Text("完成")
+                            Text("action.complete")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.secondText)
                         }
                     }
                     .padding(.vertical)
                     
-                    Text("编辑身份")
+                    Text("user.intro.edit_identity")
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                 }
                 
                 VStack{
-                    Toggle("展示", isOn: $tempDisplayStatus)
+                    Toggle("action.display", isOn: $tempDisplayStatus)
                         .foregroundStyle(.white)
                         .font(.system(size: 16))
                         .disabled(!viewModel.currentUser.isIdentityAuth)
@@ -742,18 +732,18 @@ struct IdentityEditorView: View {
                     Divider()
                     
                     HStack {
-                        Text("已认证的身份信息")
+                        Text("user.intro.identity")
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                         
                         Spacer()
                         
                         if viewModel.currentUser.isIdentityAuth {
-                            Text("\(viewModel.currentUser.identityAuthName ?? "未认证")")
+                            Text("\(viewModel.currentUser.identityAuthName ?? "user.intro.no_auth")")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white)
                         } else {
-                            Text("去认证")
+                            Text("user.intro.go_auth")
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -762,7 +752,8 @@ struct IdentityEditorView: View {
                                 .cornerRadius(10)
                                 .exclusiveTouchTapGesture {
                                     showIdentityEditor = false
-                                    appState.navigationManager.append(.identityAuthView)
+                                    ToastManager.shared.show(toast: Toast(message: "user.intro.identity.no_support"))
+                                    //appState.navigationManager.append(.identityAuthView)
                                 }
                         }
                     }

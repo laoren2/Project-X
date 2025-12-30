@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import SafariServices
 
 
 // MARK: 导航中右划返回手势
@@ -324,18 +325,19 @@ extension UIColor {
         let (r, g, b) = self.rgbComponents
         // 过于白的背景直接黑灰色兜底
         if (r + g + b) >= 2.4 {
-            return Color(red: 0.3, green: 0.3, blue: 0.3)
+            return Color(red: 0.25, green: 0.25, blue: 0.25)
         }
         
         let white = UIColor.white
         var color = self
+        //print(color)
         for _ in 0..<4 {
+            let (red, green, blue) = color.rgbComponents
+            color = UIColor(red: red * 0.5, green: green * 0.5, blue: blue * 0.5, alpha: 1)
+            //print("soft! \(color)")
             if color.contrastRatio(with: white) >= 4.0 {
                 return Color(uiColor: color)
             }
-            let (red, green, blue) = color.rgbComponents
-            color = UIColor(red: red * 0.8, green: green * 0.8, blue: blue * 0.8, alpha: 1)
-            //print("soft! \(color)")
         }
         
         let palette = UIColor.softDarkPalette()
@@ -449,26 +451,23 @@ struct BottomSheetView<Content: View>: View {
                     }
                 
                 // 内容区域
-                ZStack {
-                    Color.defaultBackground
-                    ZStack {    // 不加这个 ZStack 动画效果会异常
-                        if destroyOnDismiss {
-                            if isPresented {
-                                content
-                                    .transition(
-                                        .move(edge: .bottom)
-                                        .combined(with: .opacity)
-                                    )
-                            } else {
-                                Color.clear
-                                    .transition(
-                                        .move(edge: .bottom)
-                                        .combined(with: .opacity)
-                                    )
-                            }
-                        } else {
+                ZStack {    // 不加这个 ZStack 动画效果会异常
+                    if destroyOnDismiss {
+                        if isPresented {
                             content
+                                .transition(
+                                    .move(edge: .bottom)
+                                    .combined(with: .opacity)
+                                )
+                        } else {
+                            Color.clear
+                                .transition(
+                                    .move(edge: .bottom)
+                                    .combined(with: .opacity)
+                                )
                         }
+                    } else {
+                        content
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -477,7 +476,7 @@ struct BottomSheetView<Content: View>: View {
                 .offset(y: isPresented ? 0 : sheetHeight)
             }
             .ignoresSafeArea(.container, edges: .bottom)
-            .animation(.easeInOut(duration: 0.3), value: isPresented)
+            .animation(.easeInOut(duration: 0.28), value: isPresented)
         }
     }
 
@@ -630,6 +629,56 @@ extension String {
     }
 }
 
+extension String {
+    // 手机号脱敏（支持 8 位 / 11 位 / 不定长）
+    func maskedPhone() -> String {
+        let count = self.count
+        guard count >= 3 else {
+            return String(repeating: "*", count: count)
+        }
+        // 11 位手机号（大陆）
+        if count == 11 {
+            let prefix = self.prefix(3)
+            let suffix = self.suffix(4)
+            return "\(prefix)****\(suffix)"
+        }
+        // 8 位手机号（HK）
+        if count == 8 {
+            let prefix = self.prefix(2)
+            let suffix = self.suffix(2)
+            return "\(prefix)****\(suffix)"
+        }
+        // 其他长度：兜底策略
+        let prefix = self.prefix(1)
+        let suffix = self.suffix(1)
+        let stars = String(repeating: "*", count: max(0, count - 2))
+        return "\(prefix)\(stars)\(suffix)"
+    }
+    
+    // 邮箱脱敏
+    func maskedEmail() -> String {
+        let parts = self.split(separator: "@")
+        guard parts.count == 2 else {
+            return self
+        }
+        let name = String(parts[0])
+        let domain = parts[1]
+        
+        let maskedName: String
+        switch name.count {
+        case 0:
+            maskedName = "*"
+        case 1:
+            maskedName = "*"
+        case 2:
+            maskedName = "\(name.prefix(1))*"
+        default:
+            maskedName = "\(name.prefix(1))***\(name.suffix(1))"
+        }
+        return "\(maskedName)@\(domain)"
+    }
+}
+
 extension View {
     @ViewBuilder
     func onValueChange<V: Equatable>(of value: V, perform action: @escaping () -> Void) -> some View {
@@ -709,44 +758,17 @@ extension MKCoordinateRegion {
     }
 }
 
-// 两端对齐文本
-/*struct JustifiedText: UIViewRepresentable {
-    private let text: String
-    private let font: UIFont
-    
-    init(_ text: String, font: UIFont = .systemFont(ofSize: 18)) {
-        self.text = text
-        self.font = font
-    }
-    
-    func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
-        textView.font = font
-        textView.textAlignment = .justified
-        
-        textView.isScrollEnabled = false        // 关闭滚动
-        textView.isEditable = false             // 禁止编辑
-        textView.isSelectable = false           // 禁止选择
-        textView.backgroundColor = .clear
-        textView.textContainerInset = .zero     // 去掉默认内边距
-        textView.textContainer.lineFragmentPadding = 0
-        return textView
-    }
-    
-    func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = text
-    }
-}*/
-
 struct JustifiedText: UIViewRepresentable {
-    let text: String
+    let localizationKey: String.LocalizationValue
     let font: UIFont
     let textColor: UIColor
-    
-    init(_ text: String,
-         font: UIFont = .systemFont(ofSize: 18),
-         textColor: UIColor = .label) {
-        self.text = text
+
+    init(
+        _ key: String.LocalizationValue,
+        font: UIFont = .systemFont(ofSize: 18),
+        textColor: UIColor = .label
+    ) {
+        self.localizationKey = key
         self.font = font
         self.textColor = textColor
     }
@@ -759,7 +781,7 @@ struct JustifiedText: UIViewRepresentable {
         tv.backgroundColor = .clear
         tv.textContainerInset = .zero         // 去掉内边距
         tv.textContainer.lineFragmentPadding = 0
-        tv.textContainer.widthTracksTextView = true  // 宽度跟随 view
+        tv.textContainer.widthTracksTextView = true
         tv.font = font
         tv.textColor = textColor
         tv.textAlignment = .justified
@@ -768,12 +790,14 @@ struct JustifiedText: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = text
+        uiView.text = String(localized: localizationKey)
     }
 
-    // SwiftUI layout hints
-    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
-        // 如果父视图给了宽度，就根据内容计算高度
+    func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        uiView: UITextView,
+        context: Context
+    ) -> CGSize? {
         if let width = proposal.width {
             let targetSize = CGSize(width: width, height: .greatestFiniteMagnitude)
             let size = uiView.sizeThatFits(targetSize)
@@ -781,4 +805,78 @@ struct JustifiedText: UIViewRepresentable {
         }
         return nil
     }
+}
+
+enum RichTextItem {
+    case text(String)
+    case image(String, width: CGFloat? = nil, height: CGFloat? = nil)
+}
+
+struct RichTextGenerator {
+    static func attributedText(
+        templateKey: String,
+        items: [(key: String, item: RichTextItem)], // 使用数组允许同 key 多次出现
+        font: UIFont = .systemFont(ofSize: 18),
+        textColor: UIColor = .white
+    ) -> NSAttributedString {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: textColor
+        ]
+        
+        let template = NSLocalizedString(templateKey, comment: "")
+        let result = NSMutableAttributedString(string: template, attributes: attributes)
+        
+        // 1) 收集同 key 的所有内容并拼接
+        var combinedItems: [String: NSAttributedString] = [:]
+        for (key, item) in items {
+            let current = combinedItems[key] ?? NSAttributedString()
+            let appended = NSMutableAttributedString(attributedString: current)
+            
+            switch item {
+            case .text(let str):
+                appended.append(NSAttributedString(string: str, attributes: attributes))
+            case .image(let imgName, let width, let height):
+                let attachment = NSTextAttachment()
+                if let img = UIImage(named: imgName) {
+                    attachment.image = img
+                    let w = width ?? 20
+                    let h: CGFloat = height ?? img.size.height * (w / img.size.width)
+                    attachment.bounds = CGRect(x: 0, y: -3, width: w, height: h)
+                    appended.append(NSAttributedString(attachment: attachment))
+                }
+            }
+            
+            combinedItems[key] = appended
+        }
+        
+        // 2) 替换模板中所有占位符
+        for (key, combined) in combinedItems {
+            let placeholder = "{{\(key)}}"
+            var startIndex = 0
+
+            while startIndex < result.length {
+                let searchRange = NSRange(location: startIndex, length: result.length - startIndex)
+                let range = (result.string as NSString).range(of: placeholder, options: [], range: searchRange)
+                if range.location == NSNotFound { break }
+
+                result.replaceCharacters(in: range, with: combined)
+                startIndex = range.location + combined.length
+            }
+        }
+        return result
+    }
+}
+
+struct WebPage: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        return SFSafariViewController(url: url)
+    }
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }

@@ -14,6 +14,17 @@ enum RunningTrackTerrainType: String, Codable {
     case road = "road"
     case mountain = "mountain"
     case other = "other"
+    
+    var displayName: String {
+        switch self {
+        case .road:
+            return "competition.terrain.road"
+        case .mountain:
+            return "competition.terrain.mountain"
+        case .other:
+            return "competition.terrain.other"
+        }
+    }
 }
 
 // 赛道数据结构
@@ -29,6 +40,8 @@ struct RunningTrack: Identifiable, Equatable {
     let toRadius: Int
     let image_url: String
     let terrainType: RunningTrackTerrainType
+    let singleRegisterCardUrl: String
+    let teamRegisterCardUrl: String
     
     // 添加新的属性
     let elevationDifference: Int        // 海拔差(米)
@@ -52,6 +65,8 @@ struct RunningTrack: Identifiable, Equatable {
         self.toRadius = track.to_radius
         self.image_url = track.image_url
         self.terrainType = track.terrain_type
+        self.singleRegisterCardUrl = track.single_register_card_url
+        self.teamRegisterCardUrl = track.team_register_card_url
         self.elevationDifference = track.elevation_difference
         self.regionName = track.sub_region_name
         self.prizePool = track.prize_pool
@@ -107,6 +122,8 @@ struct RunningTrackInfoDTO: Codable {
     let end_date: String
     let image_url: String
     let terrain_type: RunningTrackTerrainType
+    let single_register_card_url: String
+    let team_register_card_url: String
     
     let from_latitude: Double
     let from_longitude: Double

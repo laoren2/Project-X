@@ -30,6 +30,8 @@
 		A9B919DF2E675A53001DB7A6 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = A9B919DE2E675A53001DB7A6 /* ZIPFoundation */; };
 		A9B9A54E2D2BFDE800B357C2 /* sportsx_Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A9BF94922E4CD85D000EC9D7 /* AppVersionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BF94912E4CD858000EC9D7 /* AppVersionManager.swift */; };
+		A9C0E4FD2EF1A68000D3099A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A9C0E4FB2EF1A68000D3099A /* Localizable.strings */; };
+		A9C0E4FE2EF1A68000D3099A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A9C0E4FB2EF1A68000D3099A /* Localizable.strings */; };
 		A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1232C6514C0006C47B1 /* LoginView.swift */; };
 /* End PBXBuildFile section */
 
@@ -115,6 +117,9 @@
 		A9B9A53A2D2BFDE800B357C2 /* sportsx_Watch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sportsx_Watch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9B9A5442D2BFDE800B357C2 /* sportsx_Watch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "sportsx_Watch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9BF94912E4CD858000EC9D7 /* AppVersionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionManager.swift; sourceTree = "<group>"; };
+		A9C0E4FC2EF1A68000D3099A /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A9C0E4FF2EF1A6E100D3099A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A9C0E5002EF1A6E600D3099A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A9DAC1232C6514C0006C47B1 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -186,6 +191,7 @@
 		A911DB962C47024D0033D809 = {
 			isa = PBXGroup;
 			children = (
+				A9C0E4FB2EF1A68000D3099A /* Localizable.strings */,
 				A911DBA12C47024D0033D809 /* sportsx */,
 				A911DBB22C47024E0033D809 /* sportsxTests */,
 				A911DBBC2C47024E0033D809 /* sportsxUITests */,
@@ -459,6 +465,8 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
 			);
 			mainGroup = A911DB962C47024D0033D809;
 			packageReferences = (
@@ -485,6 +493,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A90618992D6EFF1E0050B872 /* resources.bundle in Resources */,
+				A9C0E4FE2EF1A68000D3099A /* Localizable.strings in Resources */,
 				A911DBAA2C47024E0033D809 /* Preview Assets.xcassets in Resources */,
 				A911DBA72C47024E0033D809 /* Assets.xcassets in Resources */,
 			);
@@ -508,6 +517,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9C0E4FD2EF1A68000D3099A /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -616,6 +626,19 @@
 			targetProxy = A9B9A54C2D2BFDE800B357C2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		A9C0E4FB2EF1A68000D3099A /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A9C0E4FC2EF1A68000D3099A /* zh-Hant */,
+				A9C0E4FF2EF1A6E100D3099A /* zh-Hans */,
+				A9C0E5002EF1A6E600D3099A /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		A911DBC12C47024E0033D809 /* Debug */ = {

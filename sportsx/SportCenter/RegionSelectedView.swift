@@ -12,25 +12,25 @@ import CoreLocation
 struct RegionSelectedView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var locationManager = LocationManager.shared
-    @State var selectedProvince: String = "未知"
+    @State var selectedProvince: String = "error.unknown"
     @State private var onlyShowWithEvents: Bool = false
-    @State var regionsWithEvents: [String] = []
+    @State var regionIDsWithEvents: [String] = []
 
-    var regions: [String: [String]] {
-        let base: [String: [String]]
+    var regions: [String: [Region]] {
+        let base: [String: [Region]]
         if locationManager.countryCode == "CN" {
-            base = regions_CN
+            base = regionTable
         } else if locationManager.countryCode == "HK" {
-            base = regions_HK
+            base = regionTable_HK
         } else {
-            base = ["未知": ["未知"]]
+            base = [:]
         }
         
         if onlyShowWithEvents && (locationManager.countryCode != nil) {
             // 过滤只保留包含赛事城市的区域
-            var filtered: [String: [String]] = [:]
+            var filtered: [String: [Region]] = [:]
             for (province, cities) in base {
-                let matchingCities = cities.filter { regionsWithEvents.contains($0) }
+                let matchingCities = cities.filter { regionIDsWithEvents.contains($0.regionID) }
                 if !matchingCities.isEmpty {
                     filtered[province] = matchingCities
                 }
@@ -40,20 +40,6 @@ struct RegionSelectedView: View {
             return base
         }
     }
-    
-    private let regions_CN: [String: [String]] = [
-        "北京市": ["北京市"],
-        "上海市": ["上海市"],
-        "广东省": ["广州市", "深圳市", "佛山市"],
-        "浙江省": ["杭州市", "宁波市", "温州市"],
-        "江苏省": ["南京市", "苏州市", "无锡市"]
-    ]
-    
-    private let regions_HK: [String: [String]] = [
-        "香港岛": ["中西区", "东区", "南区", "湾仔区"],
-        "九龙": ["九龙城区", "油尖旺区"],
-        "新界": ["北区", "西贡区", "沙田区"]
-    ]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -83,7 +69,7 @@ struct RegionSelectedView: View {
                     .scaledToFit()
                     .frame(width: 20, height: 20)
                     .foregroundColor(.white)
-                Text(locationManager.region ?? "未知")
+                Text(locationManager.regionName ?? "error.unknown")
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
@@ -118,7 +104,7 @@ struct RegionSelectedView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         } else {
-                            Text("未知")
+                            Text("error.unknown")
                                 .foregroundColor(.thirdText)
                                 .padding(.vertical, 8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -135,17 +121,17 @@ struct RegionSelectedView: View {
                 ScrollView {
                     VStack(alignment: .leading) {
                         if let cities = regions[selectedProvince] {
-                            ForEach(cities, id: \.self) { city in
-                                CommonTextButton(text: city) {
-                                    locationManager.region = city
+                            ForEach(cities) { city in
+                                CommonTextButton(text: city.regionName) {
+                                    locationManager.regionID = city.regionID
                                     appState.navigationManager.removeLast()
                                 }
-                                .foregroundColor(city == locationManager.region ? .white : .thirdText)
+                                .foregroundColor(city.regionID == locationManager.regionID ? .white : .thirdText)
                                 .padding(.vertical, 8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         } else {
-                            Text("未知")
+                            Text("error.unknown")
                                 .foregroundColor(.thirdText)
                                 .padding(.vertical, 8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,21 +145,37 @@ struct RegionSelectedView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .onAppear {
-            selectedProvince = regions.keys.sorted().first ?? "未知"
-            fetchCities()
+        .onFirstAppear {
+            fetchRegionsWithEvents()
+            for (province, cities) in regions {
+                for city in cities {
+                    if city.regionID == locationManager.regionID {
+                        selectedProvince = province
+                        return
+                    }
+                }
+            }
+            selectedProvince = regions.keys.sorted().first ?? "error.unknown"
         }
         .onValueChange(of: regions) {
-            selectedProvince = regions.keys.sorted().first ?? "未知"
+            for (province, cities) in regions {
+                for city in cities {
+                    if city.regionID == locationManager.regionID {
+                        selectedProvince = province
+                        return
+                    }
+                }
+            }
+            selectedProvince = regions.keys.sorted().first ?? "error.unknown"
         }
         .onValueChange(of: locationManager.countryCode) {
-            fetchCities()
+            fetchRegionsWithEvents()
         }
     }
     
     func reposition() {
         guard let location = LocationManager.shared.getLocation() else {
-            locationManager.region = "未知"
+            locationManager.regionID = nil
             // todo?: 可以考虑添加location代理重新请求一次位置更新
             return
         }
@@ -182,30 +184,59 @@ struct RegionSelectedView: View {
     }
     
     func getCityName(from location: CLLocation) {
-        locationManager.region = GlobalConfig.shared.location
-        let geocoder = CLGeocoder()
+        locationManager.regionID = GlobalConfig.shared.locationID
+        
+        fetchRegionID(location: location)
+        
+        /*let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
             DispatchQueue.main.async {
                 if let placemark = placemarks?.first {
-                    if let city = placemark.locality, !city.isEmpty, city != locationManager.region {
-                        locationManager.region = city
-                        GlobalConfig.shared.location = city
-                        if UserManager.shared.user.enableAutoLocation && UserManager.shared.user.location != city {
-                            UserManager.shared.updateUserLocation(region: city)
-                        }
-                    }
                     if let country = placemark.isoCountryCode, country != locationManager.countryCode {
                         locationManager.countryCode = country
                     }
                 }
             }
+        }*/
+    }
+    
+    func fetchRegionID(location: CLLocation) {
+        guard var components = URLComponents(string: "/competition/query_region_id") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: "\(location.coordinate.latitude)"),
+            URLQueryItem(name: "lon", value: "\(location.coordinate.longitude)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get)
+        
+        NetworkService.sendRequest(with: request, decodingType: RegionResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        if let regionID = unwrappedData.region_id, let countryCode = unwrappedData.country_code {
+                            self.locationManager.regionID = regionID
+                            GlobalConfig.shared.locationID = regionID
+                            locationManager.countryCode = countryCode
+                            
+                            let userManager = UserManager.shared
+                            if userManager.isLoggedIn && userManager.user.enableAutoLocation && userManager.user.location != regionID {
+                                userManager.updateUserLocation(regionID: regionID)
+                            }
+                            UserDefaults.standard.set(regionID, forKey: "global.regionID")
+                        }
+                    }
+                }
+            default: break
+            }
         }
     }
     
-    func fetchCities() {
+    func fetchRegionsWithEvents() {
         if locationManager.countryCode == nil { return }
         
-        guard var components = URLComponents(string: "/competition/query_regions") else { return }
+        guard var components = URLComponents(string: "/competition/query_regions_with_events") else { return }
         components.queryItems = [
             URLQueryItem(name: "sport_type", value: appState.sport.rawValue),
             URLQueryItem(name: "country_code", value: locationManager.countryCode ?? "未知")
@@ -214,11 +245,11 @@ struct RegionSelectedView: View {
             
         let request = APIRequest(path: urlPath, method: .get)
         
-        NetworkService.sendRequest(with: request, decodingType: RegionResponse.self, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RegionIDResponse.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
-                    regionsWithEvents = unwrappedData.regions_with_events
+                    regionIDsWithEvents = unwrappedData.regions_with_events
                 }
             default: break
             }

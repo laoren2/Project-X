@@ -21,13 +21,13 @@ struct BikeTeamManagementView: View {
                     appState.navigationManager.removeLast()
                 }
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.blue)
+                .foregroundStyle(Color.white)
                 
                 Spacer()
                 
-                Text("bike队伍管理")
+                (Text(LocalizedStringKey(SportName.Bike.name)) + Text("competition.team.manage"))
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.primary)
+                    .foregroundStyle(Color.white)
                 
                 Spacer()
                 
@@ -40,19 +40,18 @@ struct BikeTeamManagementView: View {
             }
             .padding(.horizontal)
             .padding(.bottom, 10)
-            .background(Color(.systemBackground))
             
             // 选项卡
             HStack(spacing: 0) {
-                ForEach(["已创建", "已申请", "已加入"].indices, id: \.self) { index in
+                ForEach(["competition.team.tab.created", "competition.team.tab.applied", "competition.team.tab.joined"].indices, id: \.self) { index in
                     VStack(spacing: 8) {
-                        Text(["已创建", "已申请", "已加入"][index])
+                        Text(["competition.team.tab.created", "competition.team.tab.applied", "competition.team.tab.joined"][index])
                             .font(.system(size: 16, weight: viewModel.selectedTab == index ? .semibold : .regular))
-                            .foregroundColor(viewModel.selectedTab == index ? .blue : .gray)
+                            .foregroundStyle(viewModel.selectedTab == index ? Color.white : Color.gray)
                         
                         // 选中指示器
                         Rectangle()
-                            .fill(viewModel.selectedTab == index ? Color.blue : Color.clear)
+                            .fill(viewModel.selectedTab == index ? Color.white : Color.clear)
                             .frame(width: 80, height: 3)
                     }
                     .onTapGesture {
@@ -70,7 +69,7 @@ struct BikeTeamManagementView: View {
                 // 已创建队伍
                 ScrollView {
                     if viewModel.myCreatedTeams.isEmpty {
-                        emptyTeamView(title: "您还没有创建任何队伍", subtitle: "在赛事中心创建您的第一支队伍")
+                        emptyTeamView(title: "competition.team.create.no_team", subtitle: "competition.team.create.no_team.2")
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.myCreatedTeams) { team in
@@ -100,7 +99,7 @@ struct BikeTeamManagementView: View {
                 // 已申请队伍
                 ScrollView {
                     if viewModel.myAppliedTeams.isEmpty {
-                        emptyTeamView(title: "您还没有申请任何队伍", subtitle: "在赛事中心申请加入感兴趣的队伍")
+                        emptyTeamView(title: "competition.team.applied.no_team", subtitle: "competition.team.applied.no_team.2")
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.myAppliedTeams) { team in
@@ -130,7 +129,7 @@ struct BikeTeamManagementView: View {
                 // 已加入队伍
                 ScrollView {
                     if viewModel.myJoinedTeams.isEmpty {
-                        emptyTeamView(title: "您还没有加入任何队伍", subtitle: "在赛事中心申请加入感兴趣的队伍")
+                        emptyTeamView(title: "competition.team.joined.no_team", subtitle: "competition.team.joined.no_team.2")
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.myJoinedTeams) { team in
@@ -159,6 +158,7 @@ struct BikeTeamManagementView: View {
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
+        .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .bottomSheet(isPresented: $viewModel.showDetailSheet, size: .short) {
@@ -190,13 +190,13 @@ struct BikeTeamManagementView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.gray.opacity(0.7))
                 
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(Color.white)
                 
-                Text(subtitle)
+                Text(LocalizedStringKey(subtitle))
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.secondText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
@@ -213,34 +213,32 @@ struct BikeTeamAppliedCardView: View {
     
     let team: BikeTeamAppliedCard
     
-    
     var body: some View {
-        
         VStack(alignment: .leading, spacing: 12) {
             // 标题和人数
             HStack {
                 Text(team.title)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(Color.white)
                 
                 Spacer()
                 
                 Text("\(team.member_count)/\(team.max_member_size) 人")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 3)
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.blue.opacity(0.1))
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color.blue.opacity(0.5))
                     )
             }
             
             // 队长信息
             HStack(spacing: 8) {
-                Text("队长")
+                Text("competition.team.leader")
                     .font(.subheadline)
-                    .foregroundColor(Color.gray)
+                    .foregroundStyle(Color.secondText)
                 CachedAsyncImage(
                     urlString: team.leader_avatar_url,
                     placeholder: Image(systemName: "person"),
@@ -255,70 +253,78 @@ struct BikeTeamAppliedCardView: View {
                 
                 Text("\(team.leader_name)")
                     .font(.subheadline)
-                    .foregroundColor(Color.gray)
+                    .foregroundStyle(Color.secondText)
             }
             
             // 比赛时间
-            Text("比赛时间: \(DateDisplay.formattedDate(team.competition_date))")
+            (Text("competition.match_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(team.competition_date))))
                 .font(.caption)
-                .foregroundColor(Color.gray)
+                .foregroundStyle(Color.secondText)
             
             // 分隔线
             Divider()
             
             Text("\(team.region_name)-\(team.event_name)-\(team.track_name)")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundStyle(Color.secondText)
             
             Divider()
             
             // 底部信息
             HStack {
                 Spacer()
-                
                 // 详情按钮
-                CommonTextButton(text: "查看简介") {
+                CommonTextButton(text: "competition.team.action.view_intro") {
                     viewModel.selectedDescription = team.description
                     viewModel.showDetailSheet = true
                 }
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.white)
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(Color.green)
                 .cornerRadius(8)
                 
                 // 取消申请按钮
-                CommonTextButton(text: "取消申请") {
-                    viewModel.cancelApplied(teamID: team.team_id)
+                CommonTextButton(text: "competition.team.action.cancel_apply") {
+                    PopupWindowManager.shared.presentPopup(
+                        title: "competition.team.popup.cancel_applied.title",
+                        message: "competition.team.popup.cancel_applied.content",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm() {
+                                viewModel.cancelApplied(teamID: team.team_id)
+                            }
+                        ]
+                    )
                 }
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.white)
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(Color.red)
                 .cornerRadius(8)
                 
                 // 申请状态
-                Text("等待审核")
+                Text("competition.team.action.waiting_review")
                     .font(.caption)
-                    .foregroundColor(.orange)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.orange.opacity(0.1))
+                            .fill(Color.orange.opacity(0.4))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                            .stroke(Color.orange, lineWidth: 1)
                     )
             }
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(Color.white.opacity(0.4))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
@@ -341,33 +347,33 @@ struct BikeTeamCardView: View {
             HStack {
                 Text(team.title)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(Color.white)
                 
                 Spacer()
                 
                 Text("\(team.member_count)/\(team.max_member_size) 人")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 3)
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.blue.opacity(0.1))
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color.blue.opacity(0.5))
                     )
             }
             
             Divider()
             
             // 比赛时间
-            Text("比赛时间: \(DateDisplay.formattedDate(team.competition_date))")
+            (Text("competition.match_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(team.competition_date))))
                 .font(.caption)
-                .foregroundColor(Color.gray)
+                .foregroundStyle(Color.secondText)
             
             Divider()
             
             Text("\(team.region_name)-\(team.event_name)-\(team.track_name)")
                 .font(.caption)
-                .foregroundColor(Color.gray)
+                .foregroundStyle(Color.secondText)
             
             Divider()
             
@@ -377,18 +383,16 @@ struct BikeTeamCardView: View {
                 if type != .applied {
                     HStack(spacing: 4) {
                         // 显示队伍码
-                        Text("队伍码: \(team.team_code)")
+                        (Text("competition.team.code") + Text(team.team_code))
                             .font(.caption)
-                            .foregroundColor(.blue)
-                        
+                            .foregroundStyle(Color.thirdText)
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 8))
-                            .foregroundColor(.blue)
+                            .foregroundStyle(Color.thirdText)
                     }
                     .onTapGesture {
                         UIPasteboard.general.string = team.team_code
-                        
-                        let toast = Toast(message: "已复制: \(team.team_code)", duration: 2)
+                        let toast = Toast(message: "toast.copied", duration: 2)
                         ToastManager.shared.show(toast: toast)
                     }
                 }
@@ -398,48 +402,70 @@ struct BikeTeamCardView: View {
                 // 按钮区域
                 if type == .created {
                     // 管理按钮
-                    CommonTextButton(text: "管理") {
+                    CommonTextButton(text: "competition.team.action.manage") {
                         appState.navigationManager.append(.bikeTeamManageView(teamID: team.team_id))
                     }
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.blue)
                     .cornerRadius(8)
                     
                     // 解散按钮
-                    CommonTextButton(text: "解散") {
-                        disbandTeam()
+                    CommonTextButton(text: "competition.team.action.disband") {
+                        guard team.status == .prepared else {
+                            ToastManager.shared.show(toast: Toast(message: "competition.team.status.locked"))
+                            return
+                        }
+                        PopupWindowManager.shared.presentPopup(
+                            title: "competition.team.popup.disband.title",
+                            message: "competition.team.popup.disband.content",
+                            bottomButtons: [
+                                .cancel(),
+                                .confirm() {
+                                    disbandTeam()
+                                }
+                            ]
+                        )
                     }
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(team.status == .prepared ? Color.red : Color.gray)
                     .cornerRadius(8)
                 } else if type == .joined {
                     // 详情按钮
-                    CommonTextButton(text: "详情") {
+                    CommonTextButton(text: "action.detail") {
                         appState.navigationManager.append(.bikeTeamDetailView(teamID: team.team_id))
                     }
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.green)
                     .cornerRadius(8)
                     
                     // 退出按钮
-                    CommonTextButton(text: "退出") {
-                        exitTeam()
+                    CommonTextButton(text: "competition.team.action.quit") {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "competition.team.popup.quit.title",
+                            message: "competition.team.popup.quit.content",
+                            bottomButtons: [
+                                .cancel(),
+                                .confirm() {
+                                    exitTeam()
+                                }
+                            ]
+                        )
                     }
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.red)
@@ -448,7 +474,7 @@ struct BikeTeamCardView: View {
             }
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(Color.white.opacity(0.4))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
@@ -463,7 +489,7 @@ struct BikeTeamCardView: View {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
                 Task {
@@ -484,7 +510,7 @@ struct BikeTeamCardView: View {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 Task {
@@ -493,6 +519,7 @@ struct BikeTeamCardView: View {
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
+                        ToastManager.shared.show(toast: Toast(message: "competition.team.disband.success"))
                     }
                 }
             default: break
@@ -519,7 +546,7 @@ struct BikeTeamDetailView: View {
                 
                 Spacer()
                 
-                Text("bike队伍详情")
+                Text("competition.team.detail")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 
@@ -540,20 +567,20 @@ struct BikeTeamDetailView: View {
                     if let team = viewModel.teamInfo {
                         // 队伍基本信息
                         VStack(alignment: .leading, spacing: 10) {
-                                Text("队伍信息")
+                                Text("competition.team.info")
                                     .font(.headline)
                                     .foregroundColor(.white)
                             .padding(.bottom, 5)
                             
                             Group {
-                                infoRow(title: "队伍名称", value: team.title)
-                                infoRow(title: "队伍描述", value: team.description)
-                                infoRow(title: "队伍码", value: team.team_code, highlight: true)
-                                infoRow(title: "创建时间", value: DateDisplay.formattedDate(team.created_at))
-                                infoRow(title: "比赛时间", value: DateDisplay.formattedDate(team.competition_date))
-                                infoRow(title: "区域", value: team.region_name)
-                                infoRow(title: "赛事", value: team.event_name)
-                                infoRow(title: "赛道", value: team.track_name)
+                                infoRow(title: "competition.team.name", value: team.title)
+                                infoRow(title: "competition.team.intro", value: team.description)
+                                infoRow(title: "competition.team.code", value: team.team_code, highlight: true)
+                                infoRow(title: "competition.team.create_date", value: DateDisplay.formattedDate(team.created_at))
+                                infoRow(title: "competition.match_date", value: DateDisplay.formattedDate(team.competition_date))
+                                infoRow(title: "competition.team.region", value: team.region_name)
+                                infoRow(title: "competition.event", value: team.event_name)
+                                infoRow(title: "competition.track", value: team.track_name)
                             }
                         }
                         .padding()
@@ -562,7 +589,7 @@ struct BikeTeamDetailView: View {
                         
                         // 队伍成员列表
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("队伍成员 (\(team.members.count)/\(team.max_member_size))")
+                            Text("competition.team.member.a/b \(team.members.count) \(team.max_member_size)")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.bottom, 5)
@@ -586,7 +613,7 @@ struct BikeTeamDetailView: View {
                                             .font(.subheadline)
                                             .foregroundColor(Color.secondText)
                                         
-                                        Text(DateDisplay.formattedDate(member.join_date))
+                                        Text(LocalizedStringKey(DateDisplay.formattedDate(member.join_date)))
                                             .font(.caption)
                                             .foregroundColor(Color.thirdText)
                                     }
@@ -594,7 +621,7 @@ struct BikeTeamDetailView: View {
                                     Spacer()
                                     
                                     if member.is_leader {
-                                        Text("队长")
+                                        Text("competition.team.leader")
                                             .font(.caption)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 8)
@@ -612,7 +639,7 @@ struct BikeTeamDetailView: View {
                         
                         Spacer()
                     } else {
-                        Text("无team数据")
+                        Text("competition.team.error.no_data")
                             .foregroundStyle(Color.secondText)
                     }
                 }
@@ -630,14 +657,14 @@ struct BikeTeamDetailView: View {
     // 信息行
     private func infoRow(title: String, value: String, highlight: Bool = false) -> some View {
         HStack(alignment: .top) {
-            Text(title + ":")
+            (Text(LocalizedStringKey(title)) + Text(":"))
                 .font(.subheadline)
                 .foregroundColor(.secondText)
                 .frame(width: 80, alignment: .leading)
             
             Spacer()
             
-            Text(value)
+            Text(LocalizedStringKey(value))
                 .font(.subheadline)
                 .foregroundColor(.white)
                 .multilineTextAlignment(.leading)
@@ -667,7 +694,7 @@ struct BikeTeamManageView: View {
                 
                 Spacer()
                 
-                Text("管理bike队伍")
+                Text("competition.team.manage")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 
@@ -689,11 +716,11 @@ struct BikeTeamManageView: View {
                         // 队伍基本信息
                         VStack(alignment: .leading, spacing: 10) {
                             HStack{
-                                Text("队伍信息")
+                                Text("competition.team.info")
                                     .font(.headline)
                                     .foregroundColor(.white)
                                 Spacer()
-                                Text("编辑")
+                                Text("action.edit")
                                     .font(.system(size: 15))
                                     .foregroundColor(.secondText)
                                     .padding(.vertical, 5)
@@ -702,7 +729,7 @@ struct BikeTeamManageView: View {
                                     .cornerRadius(5)
                                     .exclusiveTouchTapGesture {
                                         guard !viewModel.is_locked else {
-                                            let toast = Toast(message: "队伍已锁定")
+                                            let toast = Toast(message: "competition.team.status.locked")
                                             ToastManager.shared.show(toast: toast)
                                             return
                                         }
@@ -712,14 +739,14 @@ struct BikeTeamManageView: View {
                             .padding(.bottom, 5)
                             
                             Group {
-                                infoRow(title: "队伍名称", value: team.title)
-                                infoRow(title: "队伍描述", value: team.description)
-                                infoRow(title: "队伍码", value: team.team_code)
-                                infoRow(title: "创建时间", value: DateDisplay.formattedDate(team.created_at))
-                                infoRow(title: "比赛时间", value: DateDisplay.formattedDate(team.competition_date))
-                                infoRow(title: "区域", value: team.region_name)
-                                infoRow(title: "赛事", value: team.event_name)
-                                infoRow(title: "赛道", value: team.track_name)
+                                infoRow(title: "competition.team.name", value: team.title)
+                                infoRow(title: "competition.team.info", value: team.description)
+                                infoRow(title: "competition.team.code", value: team.team_code)
+                                infoRow(title: "competition.team.create_date", value: DateDisplay.formattedDate(team.created_at))
+                                infoRow(title: "competition.match_date", value: DateDisplay.formattedDate(team.competition_date))
+                                infoRow(title: "competition.team.region", value: team.region_name)
+                                infoRow(title: "competition.event", value: team.event_name)
+                                infoRow(title: "competition.track", value: team.track_name)
                             }
                         }
                         .padding()
@@ -728,55 +755,107 @@ struct BikeTeamManageView: View {
                         
                         // 队伍设置区域
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("队伍设置")
+                            Text("competition.team.setup")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.bottom, 5)
                             
                             // 控制队伍的公开状态
-                            Toggle("公开队伍信息", isOn: Binding(
-                                get: { viewModel.is_public },
-                                set: { newValue in
-                                    guard !viewModel.is_locked else {
-                                        let toast = Toast(message: "队伍已锁定")
-                                        ToastManager.shared.show(toast: toast)
-                                        return
-                                    }
-                                    viewModel.updateTeamPublicStatus(isPublic: newValue)
+                            HStack {
+                                HStack(spacing: 4) {
+                                    Text("competition.team.public")
+                                    Image(systemName: "info.circle")
+                                        .font(.subheadline)
+                                        .exclusiveTouchTapGesture {
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "competition.team.manage.public.popup.title",
+                                                message: "competition.team.manage.public.popup.content",
+                                                bottomButtons: [
+                                                    .confirm()
+                                                ]
+                                            )
+                                        }
                                 }
-                            ))
-                            .foregroundStyle(Color.secondText)
-                            .tint(viewModel.is_locked ? .gray : .green)
+                                .foregroundStyle(Color.secondText)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { viewModel.is_public },
+                                    set: { newValue in
+                                        guard !viewModel.is_locked else {
+                                            let toast = Toast(message: "competition.team.status.locked")
+                                            ToastManager.shared.show(toast: toast)
+                                            return
+                                        }
+                                        viewModel.updateTeamPublicStatus(isPublic: newValue)
+                                    }
+                                ))
+                                .tint(viewModel.is_locked ? .gray : .green)
+                            }
                             
                             // 控制队伍的锁定状态
-                            Toggle("锁定队伍", isOn: Binding(
-                                get: { viewModel.is_locked },
-                                set: { newValue in
-                                    guard !viewModel.is_ready else {
-                                        let toast = Toast(message: "队伍处于比赛状态,无法修改")
-                                        ToastManager.shared.show(toast: toast)
-                                        return
-                                    }
-                                    viewModel.updateTeamLockStatus(isLocked: newValue)
+                            HStack {
+                                HStack(spacing: 4) {
+                                    Text("competition.team.action.lock")
+                                    Image(systemName: "info.circle")
+                                        .font(.subheadline)
+                                        .exclusiveTouchTapGesture {
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "competition.team.manage.lock.popup.title",
+                                                message: "competition.team.manage.lock.popup.content",
+                                                bottomButtons: [
+                                                    .confirm()
+                                                ]
+                                            )
+                                        }
                                 }
-                            ))
-                            .foregroundStyle(Color.secondText)
-                            .tint(viewModel.is_ready ? .gray : .green)
+                                .foregroundStyle(Color.secondText)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { viewModel.is_locked },
+                                    set: { newValue in
+                                        guard !viewModel.is_ready else {
+                                            let toast = Toast(message: "competition.team.status.recording")
+                                            ToastManager.shared.show(toast: toast)
+                                            return
+                                        }
+                                        viewModel.updateTeamLockStatus(isLocked: newValue)
+                                    }
+                                ))
+                                .tint(viewModel.is_ready ? .gray : .green)
+                            }
                             
                             // 控制队伍进入比赛状态(不可撤回)
-                            Toggle("进入比赛状态", isOn: Binding(
-                                get: { viewModel.is_ready },
-                                set: { newValue in
-                                    guard !viewModel.is_ready else {
-                                        let toast = Toast(message: "队伍处于比赛状态,无法修改")
-                                        ToastManager.shared.show(toast: toast)
-                                        return
-                                    }
-                                    viewModel.updateTeamToReadyStatus()
+                            HStack {
+                                HStack(spacing: 4) {
+                                    Text("competition.team.action.recording")
+                                    Image(systemName: "info.circle")
+                                        .foregroundStyle(Color.pink)
+                                        .font(.subheadline)
+                                        .exclusiveTouchTapGesture {
+                                            PopupWindowManager.shared.presentPopup(
+                                                title: "competition.team.manage.ready.popup.title",
+                                                message: "competition.team.manage.ready.popup.content",
+                                                bottomButtons: [
+                                                    .confirm()
+                                                ]
+                                            )
+                                        }
                                 }
-                            ))
-                            .foregroundStyle(Color.secondText)
-                            .tint(viewModel.is_ready ? .gray : .green)
+                                .foregroundStyle(Color.secondText)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { viewModel.is_ready },
+                                    set: { newValue in
+                                        guard !viewModel.is_ready else {
+                                            let toast = Toast(message: "competition.team.status.recording")
+                                            ToastManager.shared.show(toast: toast)
+                                            return
+                                        }
+                                        viewModel.updateTeamToReadyStatus()
+                                    }
+                                ))
+                                .tint(viewModel.is_ready ? .gray : .green)
+                            }
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -784,7 +863,7 @@ struct BikeTeamManageView: View {
                         
                         // 队伍成员列表
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("队伍成员 (\(viewModel.members.count)/\(team.max_member_size))")
+                            Text("competition.team.member.a/b \(viewModel.members.count) \(team.max_member_size)")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.bottom, 5)
@@ -808,7 +887,7 @@ struct BikeTeamManageView: View {
                                             .font(.subheadline)
                                             .foregroundColor(Color.secondText)
                                         
-                                        Text(DateDisplay.formattedDate(member.join_date))
+                                        Text(LocalizedStringKey(DateDisplay.formattedDate(member.join_date)))
                                             .font(.caption)
                                             .foregroundColor(Color.thirdText)
                                     }
@@ -816,7 +895,7 @@ struct BikeTeamManageView: View {
                                     Spacer()
                                     
                                     // 报名情况
-                                    Text(member.is_registered ? "已报名" : "未报名")
+                                    Text(member.is_registered ? "competition.team.status.registered" : "competition.team.status.unregistered")
                                         .font(.caption)
                                         .foregroundColor(.white)
                                         .padding(.horizontal, 8)
@@ -825,7 +904,7 @@ struct BikeTeamManageView: View {
                                         .cornerRadius(8)
                                     
                                     if member.is_leader {
-                                        Text("队长")
+                                        Text("competition.team.leader")
                                             .font(.caption)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 8)
@@ -833,7 +912,7 @@ struct BikeTeamManageView: View {
                                             .background(Color.orange)
                                             .cornerRadius(8)
                                     } else {
-                                        Text("移除")
+                                        Text("competition.team.action.remove")
                                             .font(.caption)
                                             .foregroundColor(.white)
                                             .padding(.horizontal, 8)
@@ -841,7 +920,16 @@ struct BikeTeamManageView: View {
                                             .background(!viewModel.is_locked ? Color.red : Color.gray)
                                             .cornerRadius(8)
                                             .exclusiveTouchTapGesture {
-                                                viewModel.removeMember(with: member.member_id)
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.team.popup.remove.title",
+                                                    message: "competition.team.popup.remove.content",
+                                                    bottomButtons: [
+                                                        .cancel(),
+                                                        .confirm() {
+                                                            viewModel.removeMember(with: member.member_id)
+                                                        }
+                                                    ]
+                                                )
                                             }
                                     }
                                 }
@@ -855,7 +943,7 @@ struct BikeTeamManageView: View {
                         // 入队申请
                         if !viewModel.request_members.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("入队申请 (\(viewModel.request_members.count))")
+                                Text("competition.team.applied.count \(viewModel.request_members.count)")
                                     .font(.headline)
                                     .foregroundColor(.white)
                                     .padding(.bottom, 5)
@@ -879,7 +967,7 @@ struct BikeTeamManageView: View {
                                                 .font(.subheadline)
                                                 .foregroundColor(Color.secondText)
                                             
-                                            Text(DateDisplay.formattedDate(request.join_date))
+                                            Text(LocalizedStringKey(DateDisplay.formattedDate(request.join_date)))
                                                 .font(.caption)
                                                 .foregroundColor(Color.thirdText)
                                         }
@@ -908,7 +996,7 @@ struct BikeTeamManageView: View {
                         
                         Spacer()
                     } else {
-                        Text("无team数据")
+                        Text("competition.team.error.no_data")
                             .foregroundStyle(Color.secondText)
                     }
                 }
@@ -939,14 +1027,14 @@ struct BikeTeamManageView: View {
     // 信息行
     private func infoRow(title: String, value: String, highlight: Bool = false) -> some View {
         HStack(alignment: .top) {
-            Text(title + ":")
+            (Text(LocalizedStringKey(title)) + Text(":"))
                 .font(.subheadline)
                 .foregroundStyle(Color.thirdText)
                 .frame(width: 80, alignment: .leading)
             
             Spacer()
             
-            Text(value)
+            Text(LocalizedStringKey(value))
                 .font(.subheadline)
                 .foregroundStyle(Color.white)
                 .multilineTextAlignment(.leading)
@@ -961,13 +1049,13 @@ struct BikeAppliedDetailView: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack {
-                Text("取消")
+                Text("action.cancel")
                     .font(.system(size: 16))
                     .foregroundStyle(.clear)
                 
                 Spacer()
                 
-                Text("bike队伍描述")
+                Text("competition.team.intro")
                     .font(.system(size: 16))
                     .foregroundStyle(.white)
                 
@@ -976,18 +1064,26 @@ struct BikeAppliedDetailView: View {
                 Button(action:{
                     viewModel.showAppliedDetail = false
                 }) {
-                    Text("取消")
+                    Text("action.cancel")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.secondText)
                 }
             }
             
             ScrollView {
-                Text(viewModel.selectedIntroduction ?? "暂无内容")
-                    .font(.system(size: 15))
-                    .foregroundColor((viewModel.selectedIntroduction != nil) ? .white : .gray)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(5)
+                if let intro = viewModel.selectedIntroduction {
+                    Text(intro)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(5)
+                } else {
+                    Text("competition.team.description.no_content")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.gray)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(5)
+                }
             }
             .frame(height: 100)
             .padding(10)
@@ -999,7 +1095,7 @@ struct BikeAppliedDetailView: View {
                 Button(action: {
                     viewModel.rejectApplied()
                 }) {
-                    Text("拒绝")
+                    Text("competition.team.action.reject")
                         .foregroundColor(.white)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 20)
@@ -1010,7 +1106,7 @@ struct BikeAppliedDetailView: View {
                 Button(action: {
                     viewModel.approveApplied()
                 }) {
-                    Text("同意")
+                    Text("competition.team.action.approve")
                         .foregroundColor(.white)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 20)
@@ -1036,14 +1132,14 @@ struct BikeTeamEditorView: View {
                 Button(action: {
                     viewModel.showTeamEditor = false
                 }) {
-                    Text("取消")
+                    Text("action.cancel")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.secondText)
                 }
                 
                 Spacer()
                 
-                Text("编辑bike队伍信息")
+                Text("competition.team.edit")
                     .font(.system(size: 16))
                     .foregroundStyle(.white)
                 
@@ -1053,7 +1149,7 @@ struct BikeTeamEditorView: View {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     viewModel.saveTeamInfo()
                 }) {
-                    Text("保存")
+                    Text("action.save")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.white)
                 }
@@ -1070,20 +1166,15 @@ struct BikeTeamEditorView: View {
                         .cornerRadius(20)
                         .onValueChange(of: viewModel.tempTitle) {
                             DispatchQueue.main.async {
-                                if viewModel.tempTitle.count > 10 {
-                                    viewModel.tempTitle = String(viewModel.tempTitle.prefix(10)) // 限制为最多10个字符
+                                if viewModel.tempTitle.count > 15 {
+                                    viewModel.tempTitle = String(viewModel.tempTitle.prefix(15)) // 限制为最多10个字符
                                 }
                             }
                         }
                     
                     HStack {
-                        Text("最多输入10个字符")
-                            .font(.footnote)
-                            .foregroundStyle(Color.secondText)
-                        
                         Spacer()
-                        
-                        Text("已输入\(viewModel.tempTitle.count)/10字符")
+                        Text("user.intro.words_entered \(viewModel.tempTitle.count) \(15)")
                             .font(.footnote)
                             .foregroundStyle(Color.secondText)
                     }
@@ -1091,8 +1182,7 @@ struct BikeTeamEditorView: View {
                     
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: $viewModel.tempDescription)
-                            .frame(maxHeight: 120)
-                            .padding(16)
+                            .padding()
                             .foregroundColor(.white)
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
@@ -1105,7 +1195,7 @@ struct BikeTeamEditorView: View {
                                 }
                             }
                         if viewModel.tempDescription.isEmpty {
-                            Text("队伍简介（50字以内）")
+                            Text("competition.team.intro")
                                 .foregroundColor(.thirdText)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 24)
@@ -1113,20 +1203,15 @@ struct BikeTeamEditorView: View {
                     }
                     
                     HStack {
-                        Text("最多输入50个字符")
-                            .font(.footnote)
-                            .foregroundStyle(Color.thirdText)
-                        
                         Spacer()
-                        
-                        Text("已输入\(viewModel.tempDescription.count)/50字符")
+                        Text("user.intro.words_entered \(viewModel.tempDescription.count) \(50)")
                             .font(.footnote)
                             .foregroundStyle(Color.thirdText)
                     }
                     .padding(.bottom, 10)
                     
                     if let team = viewModel.teamInfo, let _ = team.competition_date, let endDate = team.track_end_date, endDate > Date() {
-                        DatePicker("比赛时间", selection: $viewModel.tempDate, in: Date()...endDate)
+                        DatePicker("competition.match_date", selection: $viewModel.tempDate, in: Date()...endDate)
                             .foregroundStyle(Color.secondText)
                             .tint(Color.orange)
                     }
@@ -1137,7 +1222,19 @@ struct BikeTeamEditorView: View {
         }
         .environment(\.colorScheme, .dark)
         .background(Color.defaultBackground)
+        .ignoresSafeArea(.keyboard)
         .hideKeyboardOnScroll()
+        .onValueChange(of: viewModel.showTeamEditor) {
+            if viewModel.showTeamEditor {
+                viewModel.tempTitle = viewModel.teamInfo?.title ?? ""
+                viewModel.tempDescription = viewModel.teamInfo?.description ?? ""
+                if let date = viewModel.teamInfo?.competition_date, date > Date() {
+                    viewModel.tempDate = date
+                } else {
+                    viewModel.tempDate = Date()
+                }
+            }
+        }
     }
 }
 

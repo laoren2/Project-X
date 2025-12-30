@@ -14,7 +14,7 @@ class UserViewModel: ObservableObject {
     
     @Published var sport: SportName = .Default // 默认运动
     
-    @Published var currentUser = User()         // todo: 改为可选值
+    @Published var currentUser: User?
     @Published var avatarImage: UIImage?        // 用户头像
     @Published var backgroundImage: UIImage?    // 用户封面
     @Published var backgroundColor: Color = .defaultBackground      // 用户的封面背景色
@@ -79,7 +79,7 @@ class UserViewModel: ObservableObject {
                         self.followerCount = unwrappedData.relation.follower
                         self.currentUser = User(from: unwrappedData.user)
                         self.sport = unwrappedData.user.default_sport
-                        self.downloadImages(avatar_url: self.currentUser.avatarImageURL, background_url: self.currentUser.backgroundImageURL)
+                        self.downloadImages(avatar_url: unwrappedData.user.avatar_image_url, background_url: unwrappedData.user.background_image_url)
                     }
                 }
             default: break
@@ -88,7 +88,7 @@ class UserViewModel: ObservableObject {
     }
     
     func queryHistoryCareers() {
-        seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "未知")]
+        seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "error.unknown")]
         selectedSeason = nil
         guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
         guard let urlPath = components.string else { return }
@@ -208,7 +208,7 @@ class UserViewModel: ObservableObject {
                     self.avatarImage = image
                 }
             } else {
-                print("下载头像失败")
+                //print("下载头像失败")
             }
         }
         NetworkService.downloadImage(from: background_url) { image in
@@ -222,7 +222,7 @@ class UserViewModel: ObservableObject {
                     }
                 }
             } else {
-                print("下载封面失败")
+                //print("下载封面失败")
             }
         }
     }
@@ -239,8 +239,9 @@ class UserViewModel: ObservableObject {
         NetworkService.sendRequest(with: request, decodingType: UserRelationshipStatus.self, showErrorToast: true) {result in
             switch result {
             case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
+                DispatchQueue.main.async {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    if let unwrappedData = data {
                         self.relationship = unwrappedData
                     }
                 }
@@ -330,19 +331,17 @@ class LocalUserViewModel: ObservableObject {
     
     
     init() {
-        userManager.fetchMeRole()
-        Task {
-            await userManager.fetchMeInfo()
-            await MainActor.run {
-                sport = userManager.user.defaultSport
-            }
-        }
+        self.sport = userManager.user.defaultSport
+        
+        queryHistoryCareers()
+        queryCurrentRecords()
+        DailyTaskManager.shared.queryDailyTask(sport: self.sport)
     }
     
     func queryHistoryCareers() {
-        seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "未知")]
+        seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "error.unknown")]
         selectedSeason = nil
-        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
+        guard let components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
@@ -550,7 +549,7 @@ struct SetUpItemView<Content: View>: View {
                     .foregroundColor(isDarkScheme ? .secondText : .black)
                     .frame(width: 22, height: 22)
                 
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.system(size: 16))
                     .foregroundColor(isDarkScheme ? .secondText : .black)
                     

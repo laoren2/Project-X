@@ -14,6 +14,30 @@ final class KeychainHelper {
     static let standard = KeychainHelper()
     private init() {}
 
+    // DID
+    var deviceID: String? = nil
+    
+    // 身份 token
+    var token: String? = nil
+    
+    func saveToken(_ value: String) {
+        save(value, forKey: "access_token")
+        token = value
+    }
+    
+    func deleteToken() {
+        delete(forKey: "access_token")
+        token = nil
+    }
+    
+    func loadToken() -> Bool {
+        if let value = read(forKey: "access_token") {
+            token = value
+            return true
+        }
+        return false
+    }
+    
     /// 保存字符串到 Keychain
     func save(_ value: String, forKey key: String) {
         if let data = value.data(using: .utf8) {
@@ -74,6 +98,35 @@ final class KeychainHelper {
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecSuccess {
             return result as? Data
+        }
+        return nil
+    }
+    
+    func loadDeviceID() async {
+        if let DID = KeychainHelper.standard.read(forKey: "device_id") {
+            // save to local
+            deviceID = DID
+        } else {
+            // 服务端生成
+            if let newDID = await generate_15bits_did() {
+                deviceID = newDID
+                KeychainHelper.standard.save(newDID, forKey: "device_id")
+            } else {
+                print("DID generate failed")
+            }
+        }
+    }
+    
+    func generate_15bits_did() async -> String? {
+        guard var components = URLComponents(string: "/common/generate_did") else { return nil }
+        guard let urlPath = components.url?.absoluteString else { return nil }
+        
+        let request = APIRequest(path: urlPath, method: .post)
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: String.self, showErrorToast: true)
+        switch result {
+        case .success(let data):
+            return data
+        default: break
         }
         return nil
     }

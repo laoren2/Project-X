@@ -25,7 +25,7 @@ struct RunningPathPointTool {
                     vertical_amplitude_avg: p.vertical_amplitude,
                     touchdown_time_avg: p.touchdown_time,
                     step_size_avg: p.step_size,
-                    step_count_avg: 20.0 * p.estimate_step_count,
+                    estimate_step_count_avg: 20.0 * p.estimate_step_count,
                     timestamp_min: p.base.timestamp,
                     timestamp_max: p.base.timestamp
                 )
@@ -55,7 +55,7 @@ struct RunningPathPointTool {
                     vertical_amplitude_avg: nil,
                     touchdown_time_avg: nil,
                     step_size_avg: nil,
-                    step_count_avg: 0,
+                    estimate_step_count_avg: 0,
                     timestamp_min: 0,
                     timestamp_max: 0
                 ))
@@ -82,7 +82,7 @@ struct RunningPathPointTool {
                 let heartRates = segment.compactMap { $0.base.heart_rate }
                 let timestamps = segment.map { $0.base.timestamp }
                 
-                // 5. 功率和踏频
+                // 5. 功率和步频
                 let powers = segment.compactMap { $0.power }
                 var powerAvg: Double? = 0.0
                 if !powers.isEmpty {
@@ -135,7 +135,7 @@ struct RunningPathPointTool {
                     vertical_amplitude_avg: verticalAmplitudeAvg,
                     touchdown_time_avg: touchdownTimeAvg,
                     step_size_avg: stepSizeAvg,
-                    step_count_avg: 20.0 * stepCounts.reduce(0, +) / Double(stepCounts.count),
+                    estimate_step_count_avg: 20.0 * stepCounts.reduce(0, +) / Double(stepCounts.count),
                     timestamp_min: timestamps.min() ?? 0,
                     timestamp_max: timestamps.max() ?? 0
                 ))

@@ -13,13 +13,19 @@ struct GameSummaryView: View {
     @ObservedObject var viewModel: UserViewModel
     
     var body: some View {
-        LazyVStack(spacing: 15) {
-            ForEach(viewModel.gameSummaryCards) { card in
-                GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+        if !viewModel.gameSummaryCards.isEmpty {
+            LazyVStack(spacing: 15) {
+                ForEach(viewModel.gameSummaryCards) { card in
+                    GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+                }
             }
+            .padding(.horizontal)
+            .padding(.top)
+        } else {
+            Text("competition.season.no_current_matches")
+                .foregroundStyle(Color.secondText)
+                .padding(.top, 100)
         }
-        .padding(.horizontal)
-        .padding(.top)
     }
 }
 
@@ -30,17 +36,23 @@ struct LocalGameSummaryView: View {
     
     var body: some View {
         if !userManager.isLoggedIn {
-            Text("登录后查看")
+            Text("toast.no_login.2")
                 .foregroundStyle(Color.secondText)
                 .padding(.top, 100)
         } else {
-            LazyVStack(spacing: 15) {
-                ForEach(viewModel.gameSummaryCards) { card in
-                    GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+            if !viewModel.gameSummaryCards.isEmpty {
+                LazyVStack(spacing: 15) {
+                    ForEach(viewModel.gameSummaryCards) { card in
+                        GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+                    }
                 }
+                .padding(.horizontal)
+                .padding(.top)
+            } else {
+                Text("competition.season.no_current_matches")
+                    .foregroundStyle(Color.secondText)
+                    .padding(.top, 100)
             }
-            .padding(.horizontal)
-            .padding(.top)
         }
     }
 }
@@ -52,13 +64,15 @@ struct GameSummaryCardView: View {
     
     var body: some View {
         VStack {
-            HStack {
+            HStack(spacing: 5) {
                 Text(gameSummaryCard.eventname)
                 Spacer()
                 Text(gameSummaryCard.trackName)
                 Spacer()
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundStyle(.blue)
+                Image("location")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text(gameSummaryCard.cityName)
             }
             Divider()
@@ -71,14 +85,7 @@ struct GameSummaryCardView: View {
                     .cornerRadius(5)
                 Text(TimeDisplay.formattedTime(gameSummaryCard.best_time))
                 Spacer()
-                Text("No.\(gameSummaryCard.rank)")
-                    .bold()
-            }
-            Divider()
-            HStack {
-                Image(systemName: CCAssetType.voucher.iconName)
-                    .foregroundStyle(.yellow)
-                Text("\(gameSummaryCard.voucher)")
+                (Text("competition.track.leaderboard.ranking") + Text(": \(gameSummaryCard.rank)"))
                     .bold()
                 Spacer()
                 Image(systemName: "staroflife.fill")
@@ -87,9 +94,15 @@ struct GameSummaryCardView: View {
                     .bold()
             }
             Divider()
-            HStack {
+            HStack(spacing: 5) {
+                Image(CCAssetType.voucher.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Text("\(gameSummaryCard.voucher)")
+                    .bold()
                 Spacer()
-                Text("详情")
+                Text("action.detail")
                     .padding(.vertical, 5)
                     .padding(.horizontal)
                     .background(Color.orange)
@@ -106,7 +119,7 @@ struct GameSummaryCardView: View {
         .padding(.vertical, 10)
         .padding(.horizontal, 10)
         .foregroundStyle(Color.secondText)
-        .background(.gray.opacity(0.5))
+        .background(.white.opacity(0.3))
         .cornerRadius(10)
     }
 }

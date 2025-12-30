@@ -25,7 +25,7 @@ struct MailBoxView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.secondText)
                 Spacer()
-                Text("邮箱")
+                Text("user.page.features.email_box")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Color.secondText)
                 Spacer()
@@ -40,7 +40,7 @@ struct MailBoxView: View {
             ScrollView {
                 if mails.isEmpty {
                     VStack {
-                        Text("暂无邮件")
+                        Text("mail.no_emails")
                             .foregroundStyle(Color.secondText)
                     }
                     .frame(maxWidth: .infinity, minHeight: 300)
@@ -123,9 +123,9 @@ struct MailCardView: View {
     var body: some View {
         HStack(spacing: 10) {
             ZStack(alignment: .topLeading) {
-                Image(systemName: mail.mailType == .REWARD ? "gift.fill" : "envelope.fill")
+                Image(systemName: mail.mailType == .REWARD ? "gift.fill" : "bell.badge")
                     .frame(width: 20)
-                    .foregroundStyle(mail.mailType == .REWARD ? .yellow : .blue)
+                    .foregroundStyle(mail.mailType == .REWARD ? Color.yellow : Color.green)
                 if !hasRead {
                     Image(systemName: "circle.fill")
                         .font(.system(size: 6))
@@ -137,7 +137,7 @@ struct MailCardView: View {
                 .font(.system(size: 16, weight: .semibold))
             Spacer()
             if let created = mail.created_at {
-                Text("\(DateDisplay.formattedDate(created))")
+                Text(LocalizedStringKey(DateDisplay.formattedDate(created)))
                     .font(.caption)
             }
         }
@@ -173,7 +173,7 @@ struct MailBoxDetailView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.secondText)
                 Spacer()
-                Text("邮件详情")
+                Text("mail.detail")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Color.secondText)
                 Spacer()
@@ -192,7 +192,7 @@ struct MailBoxDetailView: View {
                             .font(.system(size: 30, weight: .bold))
                             .foregroundStyle(.white)
                         if let created = mail.created_at {
-                            Text("发送时间: \(DateDisplay.formattedDate(created))")
+                            (Text("mail.send_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(created))))
                                 .font(.caption)
                         }
                         
@@ -203,23 +203,31 @@ struct MailBoxDetailView: View {
                         
                         if !mail.ccassets.isEmpty {
                             Divider()
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("附件奖励")
-                                    .font(.headline)
+                            VStack(spacing: 10) {
+                                HStack {
+                                    Text("mail.attach_reward")
+                                        .font(.headline)
+                                    Spacer()
+                                }
                                 ForEach(mail.ccassets, id: \.ccasset_type) { asset in
-                                    HStack {
-                                        Image(systemName: asset.ccasset_type.iconName)
-                                        Spacer()
+                                    HStack(spacing: 10) {
+                                        Image(asset.ccasset_type.iconName)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20)
                                         Text("\(asset.new_ccamount)")
                                             .bold()
                                     }
                                 }
-                                if let expired = mail.expired_at {
-                                    Text("邮件有效期至: \(DateDisplay.formattedDate(expired))")
-                                        .font(.caption)
+                                HStack {
+                                    if let expired = mail.expired_at {
+                                        (Text("mail.expired_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(expired))))
+                                            .font(.caption)
+                                    }
+                                    Spacer()
                                 }
                                 if mail.is_received != nil {
-                                    Text(isRewardsReceived ? "已领取" : "领取")
+                                    Text(isRewardsReceived ? "action.received" : "action.receive")
                                         .frame(maxWidth: .infinity)
                                         .padding()
                                         .background(isRewardsReceived ? .gray : .green)
@@ -238,7 +246,7 @@ struct MailBoxDetailView: View {
                 }
             } else {
                 VStack {
-                    Text("无数据")
+                    Text("error.no_data")
                         .foregroundStyle(Color.secondText)
                 }
             }

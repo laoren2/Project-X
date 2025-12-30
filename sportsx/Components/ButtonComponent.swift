@@ -14,7 +14,7 @@ struct CommonTextButton: View {
     let action: () -> Void
     
     var body: some View {
-        Text(text)
+        Text(LocalizedStringKey(text))
             .exclusiveTouchTapGesture {
                 action()
             }
@@ -32,6 +32,8 @@ struct CommonIconButton: View {
             }
     }
 }
+
+
 
 // 沿着 Capsule 外边框绘制的进度环
 struct CapsuleProgressShape: Shape {

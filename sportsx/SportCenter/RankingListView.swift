@@ -28,7 +28,7 @@ struct BikeScoreRankingView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                Text("\(viewModel.seasonName)赛季积分")
+                (Text(viewModel.seasonName) + Text("competition.season.score.leaderboard"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -42,13 +42,13 @@ struct BikeScoreRankingView: View {
             HStack {
                 Menu {
                     ForEach(genders, id: \.self) { gender in
-                        Button(gender.rawValue) {
+                        Button(LocalizedStringKey(gender.displayName)) {
                             viewModel.gender = gender
                         }
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.gender.rawValue)
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
@@ -61,12 +61,22 @@ struct BikeScoreRankingView: View {
                 Spacer()
             }
             
+            HStack(spacing: 30) {
+                Text("competition.track.leaderboard.ranking")
+                Text("common.user")
+                Spacer()
+                Text("competition.track.leaderboard.score")
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.secondText)
+            .padding(.horizontal)
+            
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("暂无排行榜数据")
+                            Text("competition.track.leaderboard.no_data")
                                 .foregroundColor(.secondText)
                                 .padding()
                             Spacer()
@@ -125,7 +135,7 @@ struct BikeRankingListView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                Text("bike排行榜")
+                Text("competition.track.leaderboard")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -139,13 +149,13 @@ struct BikeRankingListView: View {
             HStack {
                 Menu {
                     ForEach(genders, id: \.self) { gender in
-                        Button(gender.rawValue) {
+                        Button(LocalizedStringKey(gender.displayName)) {
                             viewModel.gender = gender
                         }
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.gender.rawValue)
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
@@ -166,14 +176,26 @@ struct BikeRankingListView: View {
                 }
             }
             
+            HStack(spacing: 30) {
+                Text("competition.track.leaderboard.ranking")
+                Text("competition.track.leaderboard.user_and_time")
+                Spacer()
+                Text("competition.track.leaderboard.reward")
+                Text("competition.track.leaderboard.score")
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.secondText)
+            .padding(.horizontal)
+            
             if (!viewModel.isHistory) && userManager.isLoggedIn {
                 HStack {
                     if let rank = viewModel.rank {
-                        Text("No. \(rank)")
+                        Text("\(rank)")
                             .foregroundStyle(.white)
-                            .font(.subheadline)
+                            .font(.headline)
+                            .padding(.horizontal, 10)
                     } else {
-                        Text("无数据")
+                        Text("error.no_data")
                             .foregroundStyle(.white)
                             .font(.subheadline)
                     }
@@ -190,8 +212,8 @@ struct BikeRankingListView: View {
                         appState.navigationManager.append(.userView(id: userManager.user.userID))
                     }
                     VStack(alignment: .leading) {
-                        Text("我")
-                            .font(.headline)
+                        Text("common.me")
+                            .font(.subheadline)
                             .foregroundStyle(Color.secondText)
                         Text(TimeDisplay.formattedTime(viewModel.duration, showFraction: true))
                             .font(.subheadline)
@@ -199,8 +221,14 @@ struct BikeRankingListView: View {
                     }
                     Spacer()
                     if let voucher = viewModel.voucherAmount {
-                        Text("\(voucher)")
-                            .foregroundStyle(Color.secondText)
+                        HStack(spacing: 2) {
+                            Image("voucher")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20)
+                            Text("\(voucher)")
+                                .foregroundStyle(Color.secondText)
+                        }
                     }
                     if let score = viewModel.score {
                         Text("\(score)")
@@ -217,7 +245,7 @@ struct BikeRankingListView: View {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("暂无排行榜数据")
+                            Text("competition.track.leaderboard.no_data")
                                 .foregroundColor(.secondText)
                                 .padding()
                             Spacer()
@@ -266,9 +294,10 @@ struct BikeScoreRankEntryView: View {
     
     var body: some View {
         HStack {
-            Text("No. \(entry.rank)")
+            Text("\(entry.rank)")
                 .foregroundStyle(.white)
-                .font(.subheadline)
+                .font(.headline)
+                .padding(.horizontal, 10)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL,
                 placeholder: Image(systemName: "person"),
@@ -282,7 +311,7 @@ struct BikeScoreRankEntryView: View {
                 appState.navigationManager.append(.userView(id: entry.userID))
             }
             Text(entry.nickname)
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundStyle(.white)
             Spacer()
             Text("\(entry.score)")
@@ -300,9 +329,10 @@ struct BikeRankingListEntryView: View {
 
     var body: some View {
         HStack {
-            Text("No. \(entry.rank)")
+            Text("\(entry.rank)")
                 .foregroundStyle(.white)
-                .font(.subheadline)
+                .font(.headline)
+                .padding(.horizontal, 10)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL,
                 placeholder: Image(systemName: "person"),
@@ -317,15 +347,21 @@ struct BikeRankingListEntryView: View {
             }
             VStack(alignment: .leading) {
                 Text(entry.nickname)
-                    .font(.headline)
+                    .font(.subheadline)
                     .foregroundStyle(.white)
                 Text(TimeDisplay.formattedTime(entry.duration, showFraction: true))
                     .font(.subheadline)
                     .foregroundStyle(.white)
             }
             Spacer()
-            Text("\(entry.voucher)")
-                .foregroundStyle(Color.secondText)
+            HStack(spacing: 2) {
+                Image("voucher")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Text("\(entry.voucher)")
+                    .foregroundStyle(Color.secondText)
+            }
             Text("\(entry.score)")
                 .foregroundStyle(Color.secondText)
         }
@@ -356,7 +392,7 @@ struct RunningScoreRankingView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                Text("\(viewModel.seasonName)赛季积分")
+                (Text(viewModel.seasonName) + Text("competition.season.score.leaderboard"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -370,13 +406,13 @@ struct RunningScoreRankingView: View {
             HStack {
                 Menu {
                     ForEach(genders, id: \.self) { gender in
-                        Button(gender.rawValue) {
+                        Button(LocalizedStringKey(gender.displayName)) {
                             viewModel.gender = gender
                         }
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.gender.rawValue)
+                        Text(viewModel.gender.displayName)
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
@@ -389,12 +425,22 @@ struct RunningScoreRankingView: View {
                 Spacer()
             }
             
+            HStack(spacing: 30) {
+                Text("competition.track.leaderboard.ranking")
+                Text("common.user")
+                Spacer()
+                Text("competition.track.leaderboard.score")
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.secondText)
+            .padding(.horizontal)
+            
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("暂无排行榜数据")
+                            Text("competition.track.leaderboard.no_data")
                                 .foregroundColor(.secondText)
                                 .padding()
                             Spacer()
@@ -453,7 +499,7 @@ struct RunningRankingListView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                Text("running排行榜")
+                Text("competition.track.leaderboard")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -467,13 +513,13 @@ struct RunningRankingListView: View {
             HStack {
                 Menu {
                     ForEach(genders, id: \.self) { gender in
-                        Button(gender.rawValue) {
+                        Button(LocalizedStringKey(gender.displayName)) {
                             viewModel.gender = gender
                         }
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.gender.rawValue)
+                        Text(viewModel.gender.displayName)
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
@@ -494,14 +540,26 @@ struct RunningRankingListView: View {
                 }
             }
             
+            HStack(spacing: 30) {
+                Text("competition.track.leaderboard.ranking")
+                Text("competition.track.leaderboard.user_and_time")
+                Spacer()
+                Text("competition.track.leaderboard.reward")
+                Text("competition.track.leaderboard.score")
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.secondText)
+            .padding(.horizontal)
+            
             if (!viewModel.isHistory) && userManager.isLoggedIn {
                 HStack {
                     if let rank = viewModel.rank {
-                        Text("No. \(rank)")
+                        Text("\(rank)")
                             .foregroundStyle(.white)
-                            .font(.subheadline)
+                            .font(.headline)
+                            .padding(.horizontal, 10)
                     } else {
-                        Text("无数据")
+                        Text("error.no_data")
                             .foregroundStyle(.white)
                             .font(.subheadline)
                     }
@@ -518,8 +576,8 @@ struct RunningRankingListView: View {
                         appState.navigationManager.append(.userView(id: userManager.user.userID))
                     }
                     VStack(alignment: .leading) {
-                        Text("我")
-                            .font(.headline)
+                        Text("common.me")
+                            .font(.subheadline)
                             .foregroundStyle(Color.secondText)
                         Text(TimeDisplay.formattedTime(viewModel.duration, showFraction: true))
                             .font(.subheadline)
@@ -527,8 +585,14 @@ struct RunningRankingListView: View {
                     }
                     Spacer()
                     if let voucher = viewModel.voucherAmount {
-                        Text("\(voucher)")
-                            .foregroundStyle(Color.secondText)
+                        HStack(spacing: 2) {
+                            Image("voucher")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20)
+                            Text("\(voucher)")
+                                .foregroundStyle(Color.secondText)
+                        }
                     }
                     if let score = viewModel.score {
                         Text("\(score)")
@@ -545,7 +609,7 @@ struct RunningRankingListView: View {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("暂无排行榜数据")
+                            Text("competition.track.leaderboard.no_data")
                                 .foregroundColor(.secondText)
                                 .padding()
                             Spacer()
@@ -594,9 +658,10 @@ struct RunningScoreRankEntryView: View {
     
     var body: some View {
         HStack {
-            Text("No. \(entry.rank)")
+            Text("\(entry.rank)")
                 .foregroundStyle(.white)
-                .font(.subheadline)
+                .font(.headline)
+                .padding(.horizontal, 10)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL,
                 placeholder: Image(systemName: "person"),
@@ -610,7 +675,7 @@ struct RunningScoreRankEntryView: View {
                 appState.navigationManager.append(.userView(id: entry.userID))
             }
             Text(entry.nickname)
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundStyle(.white)
             Spacer()
             Text("\(entry.score)")
@@ -628,9 +693,10 @@ struct RunningRankingListEntryView: View {
 
     var body: some View {
         HStack {
-            Text("No. \(entry.rank)")
+            Text("\(entry.rank)")
                 .foregroundStyle(.white)
-                .font(.subheadline)
+                .font(.headline)
+                .padding(.horizontal, 10)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL,
                 placeholder: Image(systemName: "person"),
@@ -645,15 +711,21 @@ struct RunningRankingListEntryView: View {
             }
             VStack(alignment: .leading) {
                 Text(entry.nickname)
-                    .font(.headline)
+                    .font(.subheadline)
                     .foregroundStyle(.white)
                 Text(TimeDisplay.formattedTime(entry.duration, showFraction: true))
                     .font(.subheadline)
                     .foregroundStyle(.white)
             }
             Spacer()
-            Text("\(entry.voucher)")
-                .foregroundStyle(Color.secondText)
+            HStack(spacing: 2) {
+                Image("voucher")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Text("\(entry.voucher)")
+                    .foregroundStyle(Color.secondText)
+            }
             Text("\(entry.score)")
                 .foregroundStyle(Color.secondText)
         }

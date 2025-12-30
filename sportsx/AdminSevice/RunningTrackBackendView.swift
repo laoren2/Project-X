@@ -518,6 +518,17 @@ struct RunningTrackCardView: View {
         return "未知状态"
     }
     
+    var statusColor: Color {
+        if let startDate = ISO8601DateFormatter().date(from: track.start_date),
+           let endDate = ISO8601DateFormatter().date(from: track.end_date) {
+            if startDate > Date() { return Color.black }
+            if startDate < Date() && endDate > Date() { return Color.orange }
+            if endDate < Date() && (!track.is_settled) { return Color.green }
+            if endDate < Date() && track.is_settled { return Color.gray }
+        }
+        return Color.red
+    }
+    
     var body: some View {
         HStack {
             Text(track.season_name)
@@ -534,6 +545,7 @@ struct RunningTrackCardView: View {
                     settledTrackLeaderboard()
                 }
             }
+            .foregroundStyle(statusColor)
         }
     }
     

@@ -39,14 +39,17 @@ struct MetricsView: View {
                 ElapsedTimeView(
                     elapsedTime: workoutManager.builder?.elapsedTime ?? 0,
                     showSubseconds: !isLuminanceReduced
-                ).foregroundColor(Color.yellow)
-                Text(
+                )
+                .foregroundColor(Color.yellow)
+                Spacer()
+                Text("competition.realtime.heartrate")
+                (Text(
                     workoutManager.heartRate
                         .formatted(
                             .number.precision(.fractionLength(0))
                         )
-                    + " BPM"
-                )
+                ) + Text("heartrate.unit"))
+                .foregroundStyle(Color.pink)
             }
             .font(.system(.title, design: .rounded)
                 .monospacedDigit()
@@ -60,5 +63,17 @@ struct MetricsView: View {
 }
 
 #Preview {
-    MetricsView()
+    let workout = WatchDataManager.shared
+    workout.heartRate = 180
+    workout.summaryViewData = SummaryViewData(
+        avgHeartRate: 0,
+        totalEnergy: 0,
+        avgPower: 0,
+        distance: 0,
+        totalTime: 0,
+        stepCadence: nil,
+        cycleCadence: nil
+    )
+    return MetricsView()
+        .environmentObject(workout)
 }

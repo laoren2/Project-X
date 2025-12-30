@@ -106,7 +106,7 @@ struct CoordinateConverter {
 struct DateDisplay {
     static func formattedDate(_ date: Date?) -> String {
         guard let date = date else {
-            return "未知"
+            return "error.unknown"
         }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
@@ -330,6 +330,27 @@ extension JSONValue {
         } catch {
             print("JSONValue 转字符串失败: \(error)")
             return nil
+        }
+    }
+}
+
+struct AgreementHelper {
+    static func makeAgreementURL(baseUrl: String) -> URL? {
+        let raw = Locale.current.identifier.lowercased()
+        let lang: String
+        if raw.hasPrefix("zh_hk") || raw.contains("hant") {
+            lang = "zh-hk"
+        } else if raw.hasPrefix("zh") {
+            lang = "zh-cn"
+        } else {
+            lang = "en"
+        }
+        return URL(string: baseUrl + "/\(lang)")
+    }
+
+    static func open(_ baseUrl: String, binding: Binding<WebPage?>) {
+        if let url = makeAgreementURL(baseUrl: baseUrl) {
+            binding.wrappedValue = WebPage(url: url)
         }
     }
 }

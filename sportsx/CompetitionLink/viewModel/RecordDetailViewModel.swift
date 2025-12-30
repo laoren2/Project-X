@@ -239,7 +239,7 @@ struct RunningSamplePathPoint {
     let vertical_amplitude_avg: Double?
     let touchdown_time_avg: Double?
     let step_size_avg: Double?
-    let step_count_avg: Double
+    let estimate_step_count_avg: Double
     let timestamp_min: TimeInterval
     let timestamp_max: TimeInterval
 }

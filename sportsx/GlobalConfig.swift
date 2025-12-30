@@ -11,7 +11,9 @@ import Foundation
 class GlobalConfig: ObservableObject {
     static let shared = GlobalConfig()
     
-    private init () {}
+    private init () {
+        self.locationID = UserDefaults.standard.string(forKey: "global.regionID")
+    }
     
     // 用来做全局的按钮防抖
     @Published var isButtonLocked = false
@@ -20,7 +22,7 @@ class GlobalConfig: ObservableObject {
     var swipeBackEnabled: Bool = true
     
     // 设备当前定位
-    var location: String? = nil
+    var locationID: String?
     //var ipCountryCode: String = "未知"
     
     // record管理页刷新时机
