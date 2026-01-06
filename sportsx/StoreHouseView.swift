@@ -139,7 +139,6 @@ struct StoreHouseView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: .infinity)
                     .tag(0)
                     
                     GeometryReader { geo in
@@ -245,12 +244,12 @@ struct StoreHouseView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: .infinity)
                     .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .background(Color.gray.opacity(0.2))
             }
+            .padding(.bottom, 50)   // todo: 不用估计值
         }
         .toolbar(.hidden, for: .navigationBar)
         .onValueChange(of: userManager.isLoggedIn) {

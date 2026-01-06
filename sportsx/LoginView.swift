@@ -143,7 +143,6 @@ struct SmsLoginView: View {
             .foregroundStyle(Color.thirdText)
             .sheet(item: $webPage) { item in
                 SafariView(url: item.url)
-                    .ignoresSafeArea()
             }
             Spacer()
         }
@@ -397,7 +396,6 @@ struct LoginView: View {
                 .foregroundStyle(Color.thirdText)
                 .sheet(item: $webPage) { item in
                     SafariView(url: item.url)
-                        .ignoresSafeArea()
                 }
                 Spacer()
             }

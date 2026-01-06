@@ -45,6 +45,7 @@ struct UserView: View {
                     Color.gray
                         .opacity(viewModel.showSidebar ? 0.5 : 0)
                         .ignoresSafeArea()
+                        .allowsHitTesting(viewModel.showSidebar)
                         .exclusiveTouchTapGesture {
                             withAnimation(.easeIn(duration: 0.25)) {
                                 viewModel.showSidebar = false
@@ -804,6 +805,7 @@ struct LocalUserView: View {
                 Color.gray
                     .opacity(viewModel.showSidebar ? 0.5 : 0)
                     .ignoresSafeArea()
+                    .allowsHitTesting(viewModel.showSidebar)
                     .exclusiveTouchTapGesture {
                         withAnimation(.easeIn(duration: 0.25)) {
                             viewModel.showSidebar = false
