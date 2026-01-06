@@ -90,11 +90,11 @@ struct UserSetUpView: View {
                         }
                         
                         SetUpItemView(icon: "lock", title: "user.setup.user_agreement", showChevron: false) {
-                            webPage = WebPage(url: URL(string: "https://www.valbara.top/privacy")!)
+                            AgreementHelper.open("https://www.valbara.top/user_agreement", binding: $webPage)
                         }
                         
                         SetUpItemView(icon: "lock", title: "user.setup.privacy", showChevron: false, showDivider: false) {
-                            webPage = WebPage(url: URL(string: "https://www.valbara.top/privacy")!)
+                            AgreementHelper.open("https://www.valbara.top/privacy", binding: $webPage)
                         }
                     }
                     .cornerRadius(20)
@@ -180,7 +180,6 @@ struct UserSetUpView: View {
         }
         .sheet(item: $webPage) { item in
             SafariView(url: item.url)
-                .ignoresSafeArea()
         }
     }
     

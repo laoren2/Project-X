@@ -140,17 +140,13 @@ struct RealNaviView: View {
                             .tag(Tab.user)
                     }
                     
-                    // 防止穿透到TabView原生bar的暂时hack
-                    Color.clear
-                        .frame(height: 100) // 估算系统tabbar高度
-                        .contentShape(Rectangle())
-                    
                     CustomTabBar()
                 }
                 
                 Color.gray
                     .opacity((navigationManager.showSideBar ? sidebarWidth : 0) / (2 * sidebarWidth))
                     .ignoresSafeArea()
+                    .allowsHitTesting(navigationManager.showSideBar)
                     .exclusiveTouchTapGesture {
                         withAnimation(.easeIn(duration: 0.25)) {
                             navigationManager.showSideBar = false
@@ -319,35 +315,12 @@ struct CustomTabBar: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
             ForEach(Tab.allCases, id: \.self) { tab in
-                //HStack {
-                //Spacer()
-                
-                /*VStack(spacing: 4) {
-                 if tab == .home || tab == .storeHouse {
-                 Image(tab.icon)
-                 .renderingMode(.template)
-                 .resizable()
-                 .scaledToFit()
-                 .frame(width: 22, height: 22)
-                 //.border(.red)
-                 } else {
-                 Image(systemName: tab.icon)
-                 .font(.system(size: 22, weight: .regular))
-                 .frame(height: 20)
-                 //.border(.red)
-                 }*/
                 /*(tab == navigationManager.selectedTab && tab == .sportCenter) ? (navigationManager.isTrainingView ? "训练中心" : "竞技中心") : */
                 Text(tab.title)
                     .font(.system(size: 18, weight: .semibold))
-                //}
                     .foregroundColor(navigationManager.selectedTab == tab ? .white : .thirdText)
-                    .padding(.vertical, 8)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                //Spacer()
-                //}
                     .contentShape(Rectangle())
-                //.border(.red)
                     .exclusiveTouchTapGesture {
                         //if tab == navigationManager.selectedTab && tab == .sportCenter {
                         //    navigationManager.isTrainingView.toggle()

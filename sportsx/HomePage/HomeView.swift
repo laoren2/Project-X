@@ -361,7 +361,7 @@ struct SignInSectionView: View {
                 Text("home.sign_in.tile")
                     .font(.headline)
                     .foregroundColor(.white)
-                Image(systemName: "gift")
+                Image(systemName: "gift.fill")
                     .foregroundColor(.orange)
                     .font(.system(size: 15))
                 

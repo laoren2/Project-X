@@ -358,7 +358,9 @@ struct sportsxApp: App {
     @StateObject private var appState = AppState.shared
     //@StateObject var appStateTest = AppStateTest()
     
-    init() {}
+    init() {
+        UITabBar.appearance().isHidden = true
+    }
     
     var body: some Scene {
         WindowGroup {

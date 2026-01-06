@@ -173,7 +173,6 @@ struct SubscriptionDetailView: View {
                         .foregroundStyle(Color.thirdText)
                         .sheet(item: $webPage) { item in
                             SafariView(url: item.url)
-                                .ignoresSafeArea()
                         }
                         Spacer()
                         Button(action:{

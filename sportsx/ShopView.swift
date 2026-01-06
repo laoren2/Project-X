@@ -200,7 +200,6 @@ struct ShopView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: .infinity)
                     .tag(0)
                     
                     GeometryReader { geo in
@@ -221,17 +220,16 @@ struct ShopView: View {
                                                         .stroke(selectedCard?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
                                                 )
                                             /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                GeometryReader { geometry in
-                                                    Text("warehouse.equipcard.unavailable")
-                                                        .font(.system(size: geometry.size.width * 0.2, weight: .bold))
-                                                        .foregroundColor(.white)
-                                                        .padding(geometry.size.width * 0.04)
-                                                        .background(Color.red.opacity(0.5))
-                                                        .cornerRadius(geometry.size.width * 0.04)
-                                                }
-                                            }*/
+                                             GeometryReader { geometry in
+                                             Text("warehouse.equipcard.unavailable")
+                                             .font(.system(size: geometry.size.width * 0.2, weight: .bold))
+                                             .foregroundColor(.white)
+                                             .padding(geometry.size.width * 0.04)
+                                             .background(Color.red.opacity(0.5))
+                                             .cornerRadius(geometry.size.width * 0.04)
+                                             }
+                                             }*/
                                         }
-                                        //.contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
                                         .onTapGesture {
                                             if selectedCard?.id == card.id {
                                                 selectedCard = nil
@@ -247,6 +245,7 @@ struct ShopView: View {
                                 selectedCard = nil
                                 await queryMagicCards(withLoadingToast: false)
                             }
+                            // 介绍栏
                             if let card = selectedCard {
                                 HStack(alignment: .bottom, spacing: 20) {
                                     VStack(alignment: .leading) {
@@ -314,12 +313,12 @@ struct ShopView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: .infinity)
                     .tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .background(Color.gray.opacity(0.2))
             }
+            .padding(.bottom, 50)   // todo: 不用估计值
         }
         .toolbar(.hidden, for: .navigationBar)
         .onStableAppear {
@@ -573,7 +572,7 @@ struct CouponCardView: View {
 }
 
 #Preview {
-    //let appState = AppState.shared
-    return IAPCouponView()
-        //.environmentObject(appState)
+    let appState = AppState.shared
+    return ShopView()
+        .environmentObject(appState)
 }
