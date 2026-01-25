@@ -144,9 +144,13 @@ struct CPAssetCreateView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: CPAssetBackendViewModel
     
-    @State var name: String = ""
+    @State var name_en: String = ""
+    @State var name_hans: String = ""
+    @State var name_hant: String = ""
     @State var type: String = ""
-    @State var description: String = ""
+    @State var description_en: String = ""
+    @State var description_hans: String = ""
+    @State var description_hant: String = ""
     @State var key1: String = ""
     @State var value1: String = ""
     @State var key2: String = ""
@@ -161,9 +165,13 @@ struct CPAssetCreateView: View {
         VStack {
             Form {
                 Section(header: Text("基本信息")) {
-                    TextField("道具名称", text: $name)
+                    TextField("道具名称hans", text: $name_hans)
+                    TextField("道具名称hant", text: $name_hant)
+                    TextField("道具名称en", text: $name_en)
                     TextField("道具类型", text: $type)
-                    TextField("道具描述", text: $description)
+                    TextField("道具描述hans", text: $description_hans)
+                    TextField("道具描述hant", text: $description_hant)
+                    TextField("道具描述en", text: $description_en)
                 }
                 Section(header: Text("道具特有属性字段")) {
                     TextField("字段1", text: $key1)
@@ -191,7 +199,7 @@ struct CPAssetCreateView: View {
                         viewModel.showCreateSheet = false
                         createCPAsset()
                     }
-                    .disabled(name.isEmpty || type.isEmpty || description.isEmpty)
+                    .disabled(name_hant.isEmpty || type.isEmpty || description_hant.isEmpty)
                 }
             }
         }
@@ -222,13 +230,30 @@ struct CPAssetCreateView: View {
           "\(key2)": "\(value2)"
         }
         """
+        
+        var name_i18n: [String: String] = [:]
+        if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
+        if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
+        if !name_en.isEmpty { name_i18n["en"] = name_en }
+
+        var des_i18n: [String: String] = [:]
+        if !description_hans.isEmpty { des_i18n["zh-Hans"] = description_hans }
+        if !description_hant.isEmpty { des_i18n["zh-Hant"] = description_hant }
+        if !description_en.isEmpty { des_i18n["en"] = description_en }
+        
         // 文字字段
-        let textFields: [String : String] = [
+        var textFields: [String : String] = [
             "prop_type": type,
-            "name": name,
-            "description": description,
             "extra_fields": extraFields
         ]
+        
+        if let nameJSON = JSONHelper.toJSONString(name_i18n) {
+            textFields["name"] = nameJSON
+        }
+        if let desJSON = JSONHelper.toJSONString(des_i18n) {
+            textFields["description"] = desJSON
+        }
+        
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
@@ -237,13 +262,13 @@ struct CPAssetCreateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("image", coverImage, "cover.jpg")
+            ("image", coverImage, "cover.png")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 100) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressPNGImage(unwrappedImage) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/jpeg\r\n\r\n")
+                body.append("Content-Type: image/png\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -261,7 +286,7 @@ struct CPAssetUpdateView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: CPAssetBackendViewModel
     
-    @State var eventImage: UIImage? = nil
+    @State var assetImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
     
@@ -269,16 +294,34 @@ struct CPAssetUpdateView: View {
     var body: some View {
         VStack {
             Form {
-                Section(header: Text("基本信息")) {
-                    TextField("赛事名称", text: $viewModel.name)
-                    TextField("描述", text: $viewModel.description)
-                }
-                Section(header: Text("时间")) {
-                    DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date])
-                    DatePicker("结束时间", selection: $viewModel.endDate, displayedComponents: [.date])
+                Section(header: Text("道具基本信息")) {
+                    HStack {
+                        Text("道具名称hans")
+                        TextField("赛事名称hans", text: $viewModel.name_hans)
+                    }
+                    HStack {
+                        Text("道具名称hant")
+                        TextField("赛事名称hant", text: $viewModel.name_hant)
+                    }
+                    HStack {
+                        Text("道具名称en")
+                        TextField("赛事名称en", text: $viewModel.name_en)
+                    }
+                    HStack {
+                        Text("道具描述hans")
+                        TextField("描述hans", text: $viewModel.description_hans)
+                    }
+                    HStack {
+                        Text("道具描述hant")
+                        TextField("描述hant", text: $viewModel.description_hant)
+                    }
+                    HStack {
+                        Text("道具描述en")
+                        TextField("描述en", text: $viewModel.description_en)
+                    }
                 }
                 Section(header: Text("封面图片")) {
-                    if let image = eventImage {
+                    if let image = assetImage {
                         Image(uiImage: image)
                             .resizable()
                             .scaledToFit()
@@ -291,9 +334,9 @@ struct CPAssetUpdateView: View {
                     }
                 }
                 Section {
-                    Button("修改赛事") {
+                    Button("修改道具") {
                         viewModel.showUpdateSheet = false
-                        updateEvent()
+                        updateCPAsset()
                     }
                 }
             }
@@ -303,9 +346,9 @@ struct CPAssetUpdateView: View {
             Task {
                 if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
-                    eventImage = uiImage
+                    assetImage = uiImage
                 } else {
-                    eventImage = nil
+                    assetImage = nil
                 }
             }
         }
@@ -313,16 +356,16 @@ struct CPAssetUpdateView: View {
             NetworkService.downloadImage(from: viewModel.image_url) { image in
                 DispatchQueue.main.async {
                     if let image = image {
-                        eventImage = image
+                        assetImage = image
                     } else {
-                        eventImage = UIImage(systemName: "photo.badge.exclamationmark")
+                        assetImage = UIImage(systemName: "photo.badge.exclamationmark")
                     }
                 }
             }
         }
     }
     
-    func updateEvent() {
+    func updateCPAsset() {
         let boundary = "Boundary-\(UUID().uuidString)"
         
         var headers: [String: String] = [:]
@@ -330,14 +373,28 @@ struct CPAssetUpdateView: View {
         
         var body = Data()
         
+        var name_i18n: [String: String] = [:]
+        if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
+        if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
+        if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+
+        var des_i18n: [String: String] = [:]
+        if !viewModel.description_hans.isEmpty { des_i18n["zh-Hans"] = viewModel.description_hans }
+        if !viewModel.description_hant.isEmpty { des_i18n["zh-Hant"] = viewModel.description_hant }
+        if !viewModel.description_en.isEmpty { des_i18n["en"] = viewModel.description_en }
+        
         // 文字字段
-        let textFields: [String : String] = [
-            "event_id": viewModel.selectedAssetID,
-            "name": viewModel.name,
-            "description": viewModel.description,
-            "start_date": ISO8601DateFormatter().string(from: viewModel.startDate),
-            "end_date": ISO8601DateFormatter().string(from: viewModel.endDate)
+        var textFields: [String : String] = [
+            "asset_id": viewModel.selectedAssetID
         ]
+        
+        if let nameJSON = JSONHelper.toJSONString(name_i18n) {
+            textFields["name"] = nameJSON
+        }
+        if let desJSON = JSONHelper.toJSONString(des_i18n) {
+            textFields["description"] = desJSON
+        }
+        
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
@@ -346,13 +403,13 @@ struct CPAssetUpdateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("event_image", eventImage, "background.jpg")
+            ("image", assetImage, "cover.png")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 100) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressPNGImage(unwrappedImage) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/jpeg\r\n\r\n")
+                body.append("Content-Type: image/png\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -360,7 +417,7 @@ struct CPAssetUpdateView: View {
         
         body.append("--\(boundary)--\r\n")
         
-        let request = APIRequest(path: "/competition/bike/update_event", method: .post, headers: headers, body: body, isInternal: true)
+        let request = APIRequest(path: "/asset/update_cpasset_def", method: .post, headers: headers, body: body, isInternal: true)
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
     }
@@ -373,7 +430,7 @@ struct CPAssetDefView: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            Text(asset.name)
+            Text(asset.name_hans)
             Spacer()
             Text(asset.cpasset_type)
             Spacer()
@@ -388,18 +445,20 @@ struct CPAssetDefView: View {
                 }
             Spacer()
             Button("修改") {
-                //loadSelectedEventInfo()
-                //viewModel.showUpdateSheet = true
+                loadSelectedEventInfo()
+                viewModel.showUpdateSheet = true
             }
         }
     }
     
-    /*func loadSelectedEventInfo() {
-        viewModel.selectedEventID = event.event_id
-        viewModel.name = event.name
-        viewModel.description = event.description
-        viewModel.startDate = ISO8601DateFormatter().date(from: event.start_date) ?? Date()
-        viewModel.endDate = ISO8601DateFormatter().date(from: event.end_date) ?? Date()
-        viewModel.image_url = event.image_url
-    }*/
+    func loadSelectedEventInfo() {
+        viewModel.selectedAssetID = asset.asset_id
+        viewModel.name_en = asset.name_en
+        viewModel.name_hans = asset.name_hans
+        viewModel.name_hant = asset.name_hant
+        viewModel.description_en = asset.description_en
+        viewModel.description_hans = asset.description_hans
+        viewModel.description_hant = asset.description_hant
+        viewModel.image_url = asset.image_url
+    }
 }

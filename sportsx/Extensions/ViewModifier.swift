@@ -144,8 +144,10 @@ struct FirstAppearModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.onAppear {
             guard !hasAppeared else { return }
-            hasAppeared = true
-            perform()
+            DispatchQueue.main.async {
+                hasAppeared = true
+                perform()
+            }
         }
     }
 }
@@ -358,6 +360,64 @@ extension Color {
     static let secondText: Color = .white.opacity(0.8)
     
     static let thirdText: Color = .white.opacity(0.5)
+    
+    // 橘色
+    static let specialCard = LinearGradient(
+        gradient: Gradient(colors: [
+            Color.black,
+            Color.pink
+        ]),
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    // 金色
+    static let gold = LinearGradient(
+        gradient: Gradient(colors: [
+            Color(hex: "#FFD700"),
+            Color(hex: "#FFB14E"),
+            Color(hex: "#C77F1A"),
+            Color(hex: "#FFD95A")
+        ]),
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    // 银色
+    static let silver = LinearGradient(
+        gradient: Gradient(colors: [
+            Color(hex: "#E8E8E8"),
+            Color(hex: "#C0C0C0"),
+            Color(hex: "#A8A8A8"),
+            Color(hex: "#F5F5F5")
+        ]),
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    // 铜色
+    static let bronze = LinearGradient(
+        gradient: Gradient(colors: [
+            Color(hex: "#CD7F32"),
+            Color(hex: "#B87333"),
+            Color(hex: "#8C4A2F"),
+            Color(hex: "#D88A55")
+        ]),
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    init(hex: String) {
+        let h = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hex = h.hasPrefix("#") ? String(h.dropFirst()) : h
+        let scanner = Scanner(string: hex)
+        var rgb: UInt64 = 0
+        scanner.scanHexInt64(&rgb)
+        let r = Double((rgb >> 16) & 0xFF) / 255
+        let g = Double((rgb >> 8) & 0xFF) / 255
+        let b = Double(rgb & 0xFF) / 255
+        self.init(red: r, green: g, blue: b)
+    }
     
     func softenColor(blendWithWhiteRatio ratio: CGFloat) -> Color {
         // Clamp ratio to 0...1
@@ -611,20 +671,19 @@ extension String {
         return result
     }
     
-    // 提取描述中的 {{xx}} 或 {{xx.yy.zz}} 占位符，返回路径数组
-    func extractKeys() -> [[String]] {
-        let pattern = #"\{\{\s*([\w\.]+)\s*\}\}"#//#"\{\{([a-zA-Z0-9_.]+)\}\}"#
+    // 提取以 compute_values 开头的占位符，例如 {{compute_values.xx.yy}}
+    func extractComputeKeys() -> [[String]] {
+        let pattern = #"\{\{\s*(compute_values(?:\.[\w]+)+)\s*\}\}"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         
         let nsrange = NSRange(startIndex..<endIndex, in: self)
         let matches = regex.matches(in: self, options: [], range: nsrange)
         
         return matches.compactMap { match in
-            if let range = Range(match.range(at: 1), in: self) {
-                let path = String(self[range])
-                return path.split(separator: ".").map { String($0) }
-            }
-            return nil
+            guard let range = Range(match.range(at: 1), in: self) else { return nil }
+            let path = String(self[range])
+            // 按 . 拆分成路径数组，例如 ["compute_values", "xx", "yy"]
+            return path.split(separator: ".").map { String($0) }
         }
     }
 }
@@ -759,20 +818,58 @@ extension MKCoordinateRegion {
 }
 
 struct JustifiedText: UIViewRepresentable {
-    let localizationKey: String.LocalizationValue
+    //let localizationKey: String.LocalizationValue
+    private let textProvider: () -> String
     let font: UIFont
     let textColor: UIColor
-
+    
+    /*init(
+     _ key: String.LocalizationValue,
+     font: UIFont = .systemFont(ofSize: 18),
+     textColor: UIColor = .label
+     ) {
+     self.localizationKey = key
+     self.font = font
+     self.textColor = textColor
+     }*/
+    
+    // 编译期本地化 key（Swift 原生）
     init(
         _ key: String.LocalizationValue,
         font: UIFont = .systemFont(ofSize: 18),
         textColor: UIColor = .label
     ) {
-        self.localizationKey = key
+        self.textProvider = {
+            String(localized: key)
+        }
         self.font = font
         self.textColor = textColor
     }
-
+    
+    // 运行时本地化 key（String）
+    init(
+        localizedKey key: String,
+        font: UIFont = .systemFont(ofSize: 18),
+        textColor: UIColor = .label
+    ) {
+        self.textProvider = {
+            NSLocalizedString(key, comment: "")
+        }
+        self.font = font
+        self.textColor = textColor
+    }
+    
+    // 纯文本
+    init(
+        text: String,
+        font: UIFont = .systemFont(ofSize: 18),
+        textColor: UIColor = .label
+    ) {
+        self.textProvider = { text }
+        self.font = font
+        self.textColor = textColor
+    }
+    
     func makeUIView(context: Context) -> UITextView {
         let tv = UITextView()
         tv.isScrollEnabled = false            // 不滚动
@@ -788,11 +885,11 @@ struct JustifiedText: UIViewRepresentable {
         tv.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return tv
     }
-
+    
     func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = String(localized: localizationKey)
+        uiView.text = textProvider()
     }
-
+    
     func sizeThatFits(
         _ proposal: ProposedViewSize,
         uiView: UITextView,
@@ -879,4 +976,22 @@ struct SafariView: UIViewControllerRepresentable {
         return SFSafariViewController(url: url)
     }
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+}
+
+extension Int {
+    var roman: String {
+        switch self {
+        case 1: return "I"
+        case 2: return "II"
+        case 3: return "III"
+        case 4: return "IV"
+        case 5: return "V"
+        case 6: return "VI"
+        case 7: return "VII"
+        case 8: return "VIII"
+        case 9: return "IX"
+        case 10: return "X"
+        default: return "\(self)"
+        }
+    }
 }

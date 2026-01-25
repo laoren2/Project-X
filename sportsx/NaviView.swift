@@ -45,11 +45,11 @@ enum SportName: String, Identifiable, CaseIterable, Codable {
     var iconName: String {
         switch self {
         case .Bike:
-            return "figure.outdoor.cycle"
+            return "bike"
         case .Badminton:
-            return "figure.badminton"
+            return "badminton"
         case .Default, .Running:
-            return "figure.run"
+            return "running"
         }
     }
     
@@ -114,29 +114,36 @@ struct NaviView: View {
 
 struct RealNaviView: View {
     @EnvironmentObject var appState: AppState
-    @ObservedObject var navigationManager = NavigationManager.shared
+    @Environment(\.scenePhase) private var scenePhase
+    
+    // iOS16 可能会重复构建 @StateObject，所以暂时提出来统一放到 TabView 外层
+    @StateObject var homeVM = HomeViewModel()
+    @StateObject var sportCenterVM = CompetitionCenterViewModel()
+    @StateObject var LocalUserVM = LocalUserViewModel()
+    
+    @ObservedObject var navigationManager = NavigationManager.shared    // 直接观察 NavigationManager 避免 appState 中转偶现的不更新问题
     @ObservedObject var user = UserManager.shared
-    @State private var isAppLaunching = true // 用于区分冷启动和后台恢复
+    @State private var isAppLaunching = true    // 用于区分冷启动和后台恢复
     let sidebarWidth: CGFloat = 300
     
     var body: some View {
-        NavigationStack(path: appState.navigationManager.binding) {
+        NavigationStack(path: navigationManager.binding) {
             ZStack(alignment: .topLeading) {
                 ZStack(alignment: .bottom) {
-                    TabView(selection: $appState.navigationManager.selectedTab) {
-                        HomeView()
+                    TabView(selection: $navigationManager.selectedTab) {
+                        HomeView(viewModel: homeVM)
                             .tag(Tab.home)
                         
                         ShopView()
                             .tag(Tab.shop)
                         
-                        SportCenterView()
+                        SportCenterView(viewModel: sportCenterVM)
                             .tag(Tab.sportCenter)
                         
                         StoreHouseView()
                             .tag(Tab.wareHouse)
                         
-                        LocalUserView()
+                        LocalUserView(viewModel: LocalUserVM)
                             .tag(Tab.user)
                     }
                     
@@ -159,18 +166,26 @@ struct RealNaviView: View {
                     .offset(x: (navigationManager.showSideBar ? 0 : -sidebarWidth))
             }
             .ignoresSafeArea(edges: .bottom)
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            .onValueChange(of: scenePhase) {
                 // 应用从后台恢复时，加载之前的 Tab 状态
+                guard scenePhase == .active else { return }
+                if isAppLaunching {
+                    isAppLaunching = false
+                    UserDefaults.standard.set(Tab.home.rawValue, forKey: "SelectedTab")
+                    return
+                }
                 let rawValue = UserDefaults.standard.integer(forKey: "SelectedTab")
                 if let restoredTab = Tab(rawValue: rawValue) {
-                    appState.navigationManager.selectedTab = restoredTab
-                    print("后台恢复 Tab: ", restoredTab)
+                    navigationManager.selectedTab = restoredTab
+                    //print("后台恢复 Tab: ", restoredTab)
                 }
+                appState.competitionManager.syncWidgetVisibility()
             }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+            .onValueChange(of: scenePhase) {
                 // 当应用进入后台时，保存当前选中的 Tab
-                UserDefaults.standard.set(appState.navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
-                print("set key: SelectedTab value: ",appState.navigationManager.selectedTab)
+                guard scenePhase == .background || scenePhase == .inactive else { return }
+                UserDefaults.standard.set(navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
+                //print("set key: SelectedTab value: ", navigationManager.selectedTab)
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -266,6 +281,10 @@ struct RealNaviView: View {
                     SmsLoginView()
                 case .emailBindView:
                     EmailBindView()
+                case .userCardDetailView(let cardID):
+                    UserCardDetailView(cardID: cardID)
+                case .shopCardDetailView(let defID):
+                    ShopCardDetailView(defID: defID)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
@@ -307,13 +326,11 @@ struct RealNaviView: View {
 }
 
 struct CustomTabBar: View {
-    @EnvironmentObject var appState: AppState
     @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject private var userManager = UserManager.shared
-    
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 0) {
+        HStack(alignment: .center, spacing: 0) {
             ForEach(Tab.allCases, id: \.self) { tab in
                 /*(tab == navigationManager.selectedTab && tab == .sportCenter) ? (navigationManager.isTrainingView ? "训练中心" : "竞技中心") : */
                 Text(tab.title)
@@ -335,6 +352,7 @@ struct CustomTabBar: View {
         .padding(.bottom, 25)
         .frame(height: 85)
         .background(navigationManager.selectedTab == .user ? userManager.backgroundColor : .defaultBackground)
+        //.border(.green)
     }
 
     func shouldAllowSwitch(to tab: Tab) -> Bool {
@@ -358,7 +376,7 @@ struct SportSelectionSidebar: View {
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题区域
             VStack(alignment: .leading, spacing: 0) {
-                Text("选择运动")
+                Text("user.sidebar.select_sport")
                     .font(.title2)
                     .bold()
                     .foregroundStyle(.white)
@@ -366,7 +384,7 @@ struct SportSelectionSidebar: View {
                     .padding(.bottom, 10)
                     .padding(.horizontal, 20)
                 
-                Text("查看最新的运动赛事")
+                Text("competition.slidebar.subtitle")
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.8))
                     .padding(.horizontal, 20)
@@ -381,7 +399,10 @@ struct SportSelectionSidebar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            Image(systemName: sport.iconName)
+                            Image(sport.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 30)
                             Text(LocalizedStringKey(sport.name))
                         }
                         .padding()
@@ -403,6 +424,9 @@ struct SportSelectionSidebar: View {
         }
         .background(Color.defaultBackground)
         .onFirstAppear {
+            selectedSport = appState.sport
+        }
+        .onValueChange(of: appState.sport) {
             selectedSport = appState.sport
         }
     }

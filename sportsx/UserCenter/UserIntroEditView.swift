@@ -143,6 +143,7 @@ struct UserIntroEditView: View {
                         }
                 }
                 .padding(.top, 56)
+                .padding(.bottom, 20)
             }
             
             // 顶部导航栏
@@ -312,6 +313,7 @@ struct IntroEditorView: View {
                 }
                 
                 TextEditor(text: $tempIntro)
+                    .frame(minHeight: 120)
                     .padding()
                     .foregroundColor(.white)
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
@@ -659,7 +661,7 @@ struct LocationEditorView: View {
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
                             .foregroundStyle(.white)
-                            .background(.ultraThinMaterial)
+                            .background(Color.white.opacity(0.4))
                             .cornerRadius(10)
                             .onTapGesture {
                                 viewModel.currentUser.location = config.locationID

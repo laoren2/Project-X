@@ -37,9 +37,9 @@ struct FriendListView: View {
                 
                 // 选项卡
                 HStack(spacing: 20) {
-                    ForEach(["好友", "关注", "粉丝"].indices, id: \.self) { index in
+                    ForEach(["user.page.friend", "user.page.following", "user.page.follower"].indices, id: \.self) { index in
                         VStack(spacing: 10) {
-                            Text(["好友", "关注", "粉丝"][index])
+                            Text(["user.page.friend", "user.page.following", "user.page.follower"][index])
                                 .font(.system(size: 16, weight: selectedTab == index ? .semibold : .regular))
                                 .foregroundColor(selectedTab == index ? Color.white : Color.thirdText)
                             
@@ -84,7 +84,7 @@ struct FriendListView: View {
                                     .padding(.leading, 12)
                                 
                                 TextField(text: $searchFriendText) {
-                                    Text("搜索好友")
+                                    Text("user.page.friendlist.friend.search")
                                         .foregroundColor(.gray)
                                         .font(.system(size: 15))
                                 }
@@ -112,7 +112,7 @@ struct FriendListView: View {
                         .padding(.vertical, 16)
                         .padding(.trailing, 8)
                         
-                        CommonTextButton(text: "搜索") {
+                        CommonTextButton(text: "action.search") {
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             viewModel.myFilteredFriends.removeAll()
                             if !searchFriendText.isEmpty {
@@ -131,14 +131,14 @@ struct FriendListView: View {
                                 Spacer()
                                 HStack {
                                     Spacer()
-                                    Text("您当前还没有好友")
+                                    Text("user.page.friendlist.no_friends")
                                         .font(.headline)
                                         .foregroundColor(.white)
                                     Spacer()
                                 }
                                 HStack {
                                     Spacer()
-                                    Text("去组队运动，寻找一名好友吧")
+                                    Text("user.page.friendlist.no_friends.2")
                                         .font(.subheadline)
                                         .foregroundColor(Color.secondText)
                                         .multilineTextAlignment(.center)
@@ -211,7 +211,7 @@ struct FriendListView: View {
                                     .padding(.leading, 12)
                                 
                                 TextField(text: $searchIdolText) {
-                                    Text("搜索关注")
+                                    Text("user.page.friendlist.following.search")
                                         .foregroundColor(.gray)
                                         .font(.system(size: 15))
                                 }
@@ -240,7 +240,7 @@ struct FriendListView: View {
                         .padding(.vertical, 16)
                         .padding(.trailing, 8)
                         
-                        CommonTextButton(text: "搜索") {
+                        CommonTextButton(text: "action.search") {
                             viewModel.myFilteredIdols.removeAll()
                             if !searchIdolText.isEmpty {
                                 viewModel.searchIdolsCursorDatetime = nil
@@ -258,14 +258,14 @@ struct FriendListView: View {
                                 Spacer()
                                 HStack {
                                     Spacer()
-                                    Text("您当前还没有关注的人")
+                                    Text("user.page.friendlist.no_followings")
                                         .font(.headline)
                                         .foregroundColor(.white)
                                     Spacer()
                                 }
                                 HStack {
                                     Spacer()
-                                    Text("快去排行榜逛一逛，关注一位运动达人吧")
+                                    Text("user.page.friendlist.no_followings.2")
                                         .font(.subheadline)
                                         .foregroundColor(Color.secondText)
                                         .multilineTextAlignment(.center)
@@ -337,7 +337,7 @@ struct FriendListView: View {
                                     .padding(.leading, 12)
                                 
                                 TextField(text: $searchFanText) {
-                                    Text("搜索粉丝")
+                                    Text("user.page.friendlist.follower.search")
                                         .foregroundColor(.gray)
                                         .font(.system(size: 15))
                                 }
@@ -367,7 +367,7 @@ struct FriendListView: View {
                         .padding(.trailing, 8)
                         
                         
-                        CommonTextButton(text: "搜索") {
+                        CommonTextButton(text: "action.search") {
                             viewModel.myFilteredFans.removeAll()
                             if !searchFanText.isEmpty {
                                 viewModel.searchFansCursorDatetime = nil
@@ -385,14 +385,14 @@ struct FriendListView: View {
                                 Spacer()
                                 HStack {
                                     Spacer()
-                                    Text("您当前还没有粉丝")
+                                    Text("user.page.friendlist.no_followers")
                                         .font(.headline)
                                         .foregroundColor(.white)
                                     Spacer()
                                 }
                                 HStack {
                                     Spacer()
-                                    Text("快去比赛中挑战自己，吸引更多粉丝吧")
+                                    Text("user.page.friendlist.no_followers.2")
                                         .font(.subheadline)
                                         .foregroundColor(Color.secondText)
                                         .multilineTextAlignment(.center)
@@ -466,9 +466,7 @@ struct PersonInfoCardView: View {
         HStack(alignment: .center) {
             HStack(spacing: 12) {
                 CachedAsyncImage(
-                    urlString: person.avatarUrl,
-                    placeholder: Image(systemName: "person"),
-                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                    urlString: person.avatarUrl
                 )
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 60, height: 60)

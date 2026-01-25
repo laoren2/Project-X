@@ -59,7 +59,7 @@ struct UserSetUpView: View {
                             NavigationManager.shared.append(.realNameAuthView)
                         }
                         
-                        SetUpItemView(icon: "pencil.and.list.clipboard", title: "user.setup.vip_center") {
+                        SetUpItemView(icon: "vip_icon", title: "user.setup.vip_center", isSysIcon: false) {
                             NavigationManager.shared.append(.subscriptionDetailView)
                         }
                         
@@ -79,11 +79,11 @@ struct UserSetUpView: View {
                             NavigationManager.shared.append(.aboutUsView)
                         }
                         
-                        SetUpItemView(icon: "pencil.and.list.clipboard", title: "user.setup.feedback") {
+                        SetUpItemView(icon: "list.clipboard", title: "user.setup.feedback") {
                             NavigationManager.shared.append(.feedbackView(mailType: .bug))
                         }
                         
-                        SetUpItemView(icon: "pencil.and.list.clipboard", title: "user.setup.rate") {
+                        SetUpItemView(icon: "appstore", title: "user.setup.rate", isSysIcon: false) {
                             if let url = URL(string: "https://apps.apple.com/app/idYOUR_APP_ID?action=write-review") {
                                 openURL(url)
                             }
@@ -114,7 +114,7 @@ struct UserSetUpView: View {
                         .cornerRadius(20)
                     }
 #endif
-                    SetUpItemView(icon: "iphone.and.arrow.forward.outward", title: "user.setup.logout", showChevron: false, showDivider: false) {
+                    SetUpItemView(icon: "logout", title: "user.setup.logout", showChevron: false, showDivider: false, isSysIcon: false) {
                         PopupWindowManager.shared.presentPopup(
                             title: "user.setup.logout",
                             message: "user.setup.popup.logout.content",
@@ -293,7 +293,7 @@ struct UserSetUpAccountView: View {
                 .padding()
                 
                 VStack {
-                    SetUpItemView(icon: "person.slash", title: "user.setup.account_delete", showChevron: false, showDivider: false) {
+                    SetUpItemView(icon: "delete_account", title: "user.setup.account_delete", showChevron: false, showDivider: false, isSysIcon: false) {
                         PopupWindowManager.shared.presentPopup(
                             title: "user.setup.account_delete",
                             message: "user.setup.toast.account_delete.content",
@@ -947,7 +947,7 @@ struct FeedbackView: View {
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: $description)
                             .padding()
-                            .frame(maxHeight: 120)
+                            .frame(minHeight: 120)
                             .foregroundColor(.white)
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
@@ -1185,7 +1185,7 @@ struct AboutUsView: View {
                                 .font(.subheadline)
                             }
                             
-                            SetUpItemView(icon: "envelope", title: "user.setup.contact_us.wx", showChevron: false, showDivider: false) {
+                            SetUpItemView(icon: "wechat", title: "user.setup.contact_us.wx", showChevron: false, showDivider: false, isSysIcon: false) {
                                 UIPasteboard.general.string = vxAccount
                                 let toast = Toast(message: "toast.copied", duration: 2)
                                 ToastManager.shared.show(toast: toast)

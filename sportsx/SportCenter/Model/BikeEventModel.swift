@@ -55,6 +55,7 @@ struct BikeTrack: Identifiable, Equatable {
     let prizePool: Int                  // 奖金池金额
     let score: Int                      // 积分
     let totalParticipants: Int          // 总参与人数
+    let distance: Double
     let currentParticipants: Int = 0        // 当前参与人数
     
     var rankInfo: BikeUserRankCard? = nil
@@ -76,6 +77,7 @@ struct BikeTrack: Identifiable, Equatable {
         self.regionName = track.sub_region_name
         self.prizePool = track.prize_pool
         self.score = track.score
+        self.distance = track.distance
         self.totalParticipants = track.totalParticipants
     }
     
@@ -140,6 +142,7 @@ struct BikeTrackInfoDTO: Codable {
     let sub_region_name: String         // 覆盖的地理子区域
     let prize_pool: Int                 // 奖金池金额
     let score: Int
+    let distance: Double
     let totalParticipants: Int
 }
 

@@ -166,7 +166,9 @@ class UserManager: ObservableObject {
                     try? data.write(to: avatarPath)
                 }
             } else {
-                print("下载头像失败")
+                DispatchQueue.main.async {
+                    self.avatarImage = UIImage(named: "broken_image")
+                }
             }
         }
 
@@ -184,7 +186,9 @@ class UserManager: ObservableObject {
                     }
                 }
             } else {
-                print("下载封面失败")
+                DispatchQueue.main.async {
+                    self.backgroundImage = UIImage(named: "broken_image")
+                }
             }
         }
     }
@@ -486,9 +490,7 @@ class DailyTaskManager: ObservableObject {
                                     HStack(spacing: 0) {
                                         if let url = rewardURL {
                                             CachedAsyncImage(
-                                                urlString: url,
-                                                placeholder: Image("Ads"),
-                                                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                                urlString: url
                                             )
                                             .aspectRatio(contentMode: .fit)
                                             .frame(width: 30)
@@ -751,4 +753,9 @@ struct User: Identifiable, Codable, Hashable {
         self.status = dto.status
         self.isVip = dto.is_vip
     }
+}
+
+struct MailBoxStatus: Codable {
+    let has_unread: Bool
+    let unread_count: Int
 }

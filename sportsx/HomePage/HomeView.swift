@@ -15,7 +15,7 @@ import UIKit
 
 struct HomeView: View {
     @ObservedObject var userManager = UserManager.shared
-    @StateObject private var viewModel = HomeViewModel()
+    @ObservedObject var viewModel: HomeViewModel
     @State private var showSportPicker = false
     //@State private var isDragging: Bool = false     // 是否处于拖动中
     @State private var searchText: String = ""
@@ -273,12 +273,19 @@ struct SquareView: View {
                 }
                 
                 // 功能组件区域
-                HStack(spacing: 0) {
+                HStack(alignment: .bottom, spacing: 0) {
                     let spacings = 5 - viewModel.features.count
                     ForEach(viewModel.features) { feature in
                         VStack(spacing: 5) {
-                            Image(systemName: feature.iconName)
-                                .font(.system(size: 32))
+                            if feature.isSysIcon {
+                                Image(systemName: feature.iconName)
+                                    .font(.system(size: 28))
+                            } else {
+                                Image(feature.iconName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 40, height: 40)
+                            }
                             Text(feature.title)
                                 .font(.system(size: 13))
                         }
@@ -337,6 +344,7 @@ struct SquareView: View {
                 Spacer()
             }
             .padding(.top, 10)
+            .padding(.bottom, 100)
             .hideKeyboardOnScroll()
             //.onScrollDragChanged($isDragging)
         }
@@ -386,9 +394,10 @@ struct SignInSectionView: View {
                         .foregroundColor(.secondText)
                     
                     HStack(spacing: 4) {
-                        Image(systemName: "v.circle.fill")
-                            .foregroundStyle(Color.orange)
-                            .font(.system(size: 15))
+                        Image("vip_icon_on")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 18)
                         Image(systemName: "capslock.fill")
                             .foregroundStyle(Color.white)
                             .font(.system(size: 12))
@@ -537,11 +546,11 @@ struct SignInDayView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .frame(width: 60, height: 30)
                         .foregroundStyle(VipBackgroundColor)
-                    Image(systemName: "v.circle.fill")
-                        .font(.system(size: 15))
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.orange)
-                        .offset(x: -5, y: -5)
+                    Image("vip_icon_on")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 18)
+                        .offset(x: -6, y: -5)
                 }
                 if day.state_vip == .claimed {
                     Image(systemName: "checkmark")
@@ -694,9 +703,9 @@ struct AnnouncementView: View {
     }
 }
 
-#Preview {
+/*#Preview {
     let appState = AppState.shared
     return HomeView()
         .environmentObject(appState)
         .preferredColorScheme(.dark)
-}
+}*/

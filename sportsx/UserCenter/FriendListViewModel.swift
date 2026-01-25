@@ -90,7 +90,7 @@ class FriendListViewModel: ObservableObject {
         guard var components = URLComponents(string: "/user/following_list") else { return }
         components.queryItems = [
             URLQueryItem(name: "user_id", value: user_id),
-            URLQueryItem(name: "limit", value: "11")
+            URLQueryItem(name: "limit", value: "10")
         ]
         if let nicName = name {
             isSearchIdolsLoading = true
@@ -214,7 +214,7 @@ class FriendListViewModel: ObservableObject {
         guard var components = URLComponents(string: "/user/friend_list") else { return }
         components.queryItems = [
             URLQueryItem(name: "user_id", value: user_id),
-            URLQueryItem(name: "limit", value: "11")
+            URLQueryItem(name: "limit", value: "10")
         ]
         if let nicName = name {
             isSearchFriendsLoading = true

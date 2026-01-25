@@ -37,9 +37,10 @@ struct CompetitionCardSelectView: View {
                         }
                     }
                 Spacer()
-                Image(systemName: appState.competitionManager.sport.iconName)
-                    .font(.system(size: 18))
-                    .foregroundStyle(Color.white)
+                Image(appState.competitionManager.sport.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 20)
                 Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.secondText)
@@ -48,13 +49,13 @@ struct CompetitionCardSelectView: View {
                     .background(appState.competitionManager.isTeam ? Color.orange.opacity(0.6) : Color.green.opacity(0.6))
                     .cornerRadius(6)
                 Spacer()
-                // 平衡布局的空按钮
                 Button(action: {
                     appState.navigationManager.append(.sensorBindView)
                 }) {
-                    Image(systemName: "applewatch.side.right")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
+                    Image("device_bind")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 20)
                         .padding(.vertical, 5)
                         .padding(.leading, 20)
                 }
@@ -63,24 +64,18 @@ struct CompetitionCardSelectView: View {
             
             // 组队模式显示区域
             if appState.competitionManager.isTeam {
-                VStack {
-                    if appState.competitionManager.isTeamJoinWindowExpired {
-                        Text("competition.realtime.out_window")
-                            .foregroundColor(.red)
-                            .padding()
-                    } else {
-                        Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .padding()
-                    }
+                if appState.competitionManager.isTeamJoinWindowExpired {
+                    Text("competition.realtime.out_window")
+                        .foregroundColor(.red)
+                        .padding()
+                } else {
+                    Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .padding()
                 }
-                .frame(height: 150)
             } else {
-                Rectangle()
-                    .fill(Color.clear)
-                    .contentShape(Rectangle())
-                    .frame(height: 150)
+                Spacer()
             }
             
             HStack {
@@ -93,10 +88,10 @@ struct CompetitionCardSelectView: View {
                 Spacer()
                 if !userManager.user.isVip {
                     HStack {
-                        Image(systemName: "v.circle.fill")
-                            .font(.system(size: 15))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.red)
+                        Image("vip_icon_on")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 18)
                         Text("competition.cardselect.subscription")
                             .font(.subheadline)
                             .foregroundStyle(Color.secondText)
@@ -105,6 +100,9 @@ struct CompetitionCardSelectView: View {
                     .padding(.horizontal, 8)
                     .background(Color.gray.opacity(0.8))
                     .cornerRadius(10)
+                    .exclusiveTouchTapGesture {
+                        appState.navigationManager.append(.subscriptionDetailView)
+                    }
                 }
             }
             .padding(.horizontal)
@@ -194,7 +192,7 @@ struct CompetitionCardSelectView: View {
                 appState.competitionManager.loadMatchEnv()
             }
             .disabled(appState.competitionManager.isRecording)
-            .padding(.bottom, 120)
+            Spacer()
         }
         .ignoresSafeArea(.keyboard)
         .background(Color.defaultBackground)

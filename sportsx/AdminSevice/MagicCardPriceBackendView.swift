@@ -347,7 +347,7 @@ struct MagicCardPriceView: View {
     
     var body: some View {
         HStack {
-            Text(card.name)
+            Text(card.name_hans)
             Image(card.ccasset_type.iconName)
                 .resizable()
                 .scaledToFit()

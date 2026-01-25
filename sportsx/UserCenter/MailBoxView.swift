@@ -234,7 +234,7 @@ struct MailBoxDetailView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                         .padding(.top, 8)
                                         .exclusiveTouchTapGesture {
-                                            receiveRewards()
+                                            receiveRewards(with: mail.ccassets)
                                         }
                                         .disabled(isRewardsReceived)
                                 }
@@ -286,7 +286,7 @@ struct MailBoxDetailView: View {
         }
     }
     
-    func receiveRewards() {
+    func receiveRewards(with assets: [CCUpdateResponse]) {
         // 暂仅支持 CCAsset
         guard var components = URLComponents(string: "/mailbox/receive_mail_rewards") else { return }
         components.queryItems = [
@@ -305,6 +305,31 @@ struct MailBoxDetailView: View {
                             AssetManager.shared.updateCCAsset(type: ccasset.ccasset_type, newBalance: ccasset.new_ccamount)
                         }
                         self.isRewardsReceived = true
+                        PopupWindowManager.shared.presentPopup(
+                            title: "popup.claim_reward.title",
+                            bottomButtons: [
+                                .confirm("action.confirm")
+                            ]
+                        ) {
+                            VStack {
+                                Text("popup.claim_reward.content")
+                                HStack(spacing: 5) {
+                                    ForEach(assets.indices, id: \.self) { i in
+                                        HStack(spacing: 2) {
+                                            Image(assets[i].ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
+                                            Text("*")
+                                            Text("\(assets[i].new_ccamount)")
+                                                .font(.system(size: 15))
+                                                .fontWeight(.semibold)
+                                        }
+                                    }
+                                }
+                            }
+                            .foregroundStyle(Color.white)
+                        }
                     }
                 }
             default: break
@@ -330,8 +355,6 @@ struct MailCardDetail: Identifiable, Equatable {
     let expired_at: Date?
     
     init(from card: MailCardDetailDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.mailID = card.mail_id
         self.title = card.title
         self.content = card.content
@@ -346,8 +369,8 @@ struct MailCardDetail: Identifiable, Equatable {
         }
         self.ccassets = temp_assets
         self.is_received = card.is_received
-        self.created_at = formatter.date(from: card.created_at)
-        self.expired_at = formatter.date(from: card.expired_at ?? "")
+        self.created_at = DateParser.parseISO8601(card.created_at)
+        self.expired_at = DateParser.parseISO8601(card.expired_at ?? "")
     }
     
     static func == (lhs: MailCardDetail, rhs: MailCardDetail) -> Bool {
@@ -375,12 +398,10 @@ class MailCard: Identifiable, Equatable {
     var isRead: Bool
     
     init(from card: MailCardDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.mailID = card.mail_id
         self.title = card.title
         self.mailType = card.mail_type
-        self.created_at = formatter.date(from: card.created_at)
+        self.created_at = DateParser.parseISO8601(card.created_at)
         self.isRead = card.is_read
     }
     

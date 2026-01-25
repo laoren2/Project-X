@@ -79,7 +79,10 @@ class CompetitionCenterViewModel: ObservableObject {
                             endDate: ISO8601DateFormatter().date(from: unwrappedDta.end_date))
                     }
                 }
-            default: break
+            case .failure:
+                DispatchQueue.main.async {
+                    self.seasonInfo = nil
+                }
             }
         }
     }

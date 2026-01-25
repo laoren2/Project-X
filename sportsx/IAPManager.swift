@@ -210,6 +210,7 @@ class IAPManager: ObservableObject {
                 switch verificationResult {
                 case .verified(let transaction):
                     // 发送到服务器进行验证 & 更新权益
+                    // todo: 当前在重复订阅时（由于本地缓存等情况成功绕过check），系统弹窗提示已订阅后依然会进入这里并 verify 成功，可优化
                     let verifyResult = await verifySubscriptionPurchase(payload: String(transaction.originalID))
                     if verifyResult.isActive {
                         DispatchQueue.main.async {

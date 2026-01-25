@@ -15,8 +15,8 @@ class RunningCompetitionViewModel: ObservableObject {
     let competitionManager = CompetitionManager.shared
     let userManager = UserManager.shared
     
-    @Published var isEventsLoading = false      // 赛事列表的加载状态
-    @Published var isTracksLoading = false      // 赛道列表的加载状态
+    //@Published var isEventsLoading = false      // 赛事列表的加载状态
+    //@Published var isTracksLoading = false      // 赛道列表的加载状态
     
     @Published var events: [RunningEvent] = []         // 赛事列表
     @Published var tracks: [RunningTrack] = []         // 赛道列表
@@ -38,7 +38,7 @@ class RunningCompetitionViewModel: ObservableObject {
     
     // 当前赛道可加入的队伍
     @Published var availableTeams: [RunningTeamAppliedCard] = []
-    
+    @Published var didLoad: Bool = false
     
     init() {}
     
@@ -50,14 +50,6 @@ class RunningCompetitionViewModel: ObservableObject {
     }
     
     func fetchEvents(with regionID: String) {
-        DispatchQueue.main.async {
-            self.events.removeAll()
-            self.selectedEvent = nil
-        }
-        if regionID == "未知" { return }
-        DispatchQueue.main.async {
-            self.isEventsLoading = true
-        }
         guard var components = URLComponents(string: "/competition/running/query_events") else { return }
         components.queryItems = [
             URLQueryItem(name: "region_id", value: regionID)
@@ -67,25 +59,23 @@ class RunningCompetitionViewModel: ObservableObject {
         let request = APIRequest(path: urlPath, method: .get)
             
         NetworkService.sendRequest(with: request, decodingType: RunningEventsResponse.self, showErrorToast: true) { result in
-            DispatchQueue.main.async {
-                self.isEventsLoading = false
-            }
             switch result {
             case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        for event in unwrappedData.events {
-                            self.events.append(RunningEvent(from: event))
-                        }
-                        if !self.events.isEmpty {
-                            self.selectedEvent = self.events[0]
-                        }
+                guard let data else { return }
+                
+                let newEvents = data.events.map { RunningEvent(from: $0) }
+                DispatchQueue.main.async {
+                    self.events = newEvents
+                    self.selectedEvent = newEvents.first
+                    if !newEvents.isEmpty {
                         self.fetchTracks()
                     }
                 }
             case .failure:
                 DispatchQueue.main.async {
-                    self.tracks.removeAll()
+                    self.events = []
+                    self.tracks = []
+                    self.selectedEvent = nil
                     self.selectedTrack = nil
                 }
             }
@@ -93,12 +83,9 @@ class RunningCompetitionViewModel: ObservableObject {
     }
     
     func fetchTracks() {
-        tracks.removeAll()
-        selectedTrack = nil
         guard !events.isEmpty else { return }
         guard let event = selectedEvent else { return }
         
-        isTracksLoading = true
         guard var components = URLComponents(string: "/competition/running/query_tracks") else { return }
         components.queryItems = [
             URLQueryItem(name: "event_id", value: event.eventID)
@@ -108,25 +95,25 @@ class RunningCompetitionViewModel: ObservableObject {
         let request = APIRequest(path: urlPath, method: .get)
             
         NetworkService.sendRequest(with: request, decodingType: RunningTracksResponse.self, showErrorToast: true) { result in
-            DispatchQueue.main.async {
-                self.isTracksLoading = false
-            }
             switch result {
             case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        for track in unwrappedData.tracks {
-                            self.tracks.append(RunningTrack(from: track))
-                        }
-                        if !self.tracks.isEmpty {
-                            if let index = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }) {
-                                self.events[index].tracks = self.tracks
-                            }
-                            self.selectedTrack = self.tracks[0]
+                guard let data else { return }
+                
+                let newTracks = data.tracks.map { RunningTrack(from: $0) }
+                DispatchQueue.main.async {
+                    self.tracks = newTracks
+                    self.selectedTrack = newTracks.first
+                    if !newTracks.isEmpty {
+                        if let index = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }) {
+                            self.events[index].tracks = self.tracks
                         }
                     }
                 }
-            default: break
+            case .failure:
+                DispatchQueue.main.async {
+                    self.tracks = []
+                    self.selectedTrack = nil
+                }
             }
         }
     }

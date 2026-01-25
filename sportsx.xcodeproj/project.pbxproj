@@ -33,6 +33,7 @@
 		A9C0E4FD2EF1A68000D3099A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A9C0E4FB2EF1A68000D3099A /* Localizable.strings */; };
 		A9C0E4FE2EF1A68000D3099A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A9C0E4FB2EF1A68000D3099A /* Localizable.strings */; };
 		A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DAC1232C6514C0006C47B1 /* LoginView.swift */; };
+		A9EA734D2F15B29000519779 /* ShopManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EA734C2F15B28B00519779 /* ShopManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +122,7 @@
 		A9C0E4FF2EF1A6E100D3099A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		A9C0E5002EF1A6E600D3099A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A9DAC1232C6514C0006C47B1 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		A9EA734C2F15B28B00519779 /* ShopManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -219,6 +221,7 @@
 		A911DBA12C47024D0033D809 /* sportsx */ = {
 			isa = PBXGroup;
 			children = (
+				A9EA734C2F15B28B00519779 /* ShopManager.swift */,
 				A9A3F2F92EE0CC0C00DD5179 /* SubscriptionDetailView.swift */,
 				A969A8B02EDF0206005070A2 /* IAPManager.swift */,
 				A9DA6F5C2ED38C5B004C6B08 /* DebugModule */,
@@ -542,6 +545,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9EA734D2F15B29000519779 /* ShopManager.swift in Sources */,
 				A9DAC1242C6514C0006C47B1 /* LoginView.swift in Sources */,
 				A99A6AE62C9CB01900FAC86D /* test.swift in Sources */,
 				A9BF94922E4CD85D000EC9D7 /* AppVersionManager.swift in Sources */,
@@ -962,7 +966,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.6;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
 		};
@@ -998,7 +1002,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.6;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};

@@ -163,8 +163,6 @@ struct BikeTeamManageInfo: Identifiable {
     var competition_date: Date?
     
     init(from team: BikeTeamManageDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.team_id = team.team_id
         self.title = team.title
         self.description = team.description
@@ -177,7 +175,7 @@ struct BikeTeamManageInfo: Identifiable {
         self.is_public = team.is_public
         self.is_locked = team.status != .prepared
         self.is_ready = (team.status != .prepared && team.status != .locked)
-        self.created_at = formatter.date(from: team.created_at)
+        self.created_at = DateParser.parseISO8601(team.created_at)
         self.competition_date = ISO8601DateFormatter().date(from: team.competition_date)
     }
 }
@@ -215,8 +213,6 @@ struct BikeTeamDetailInfo: Identifiable {
     let members: [BikeTeamMember]
     
     init(from team: BikeTeamDetailDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.team_id = team.team_id
         self.title = team.title
         self.description = team.description
@@ -227,7 +223,7 @@ struct BikeTeamDetailInfo: Identifiable {
         self.track_name = team.track_name
         self.is_public = team.is_public
         self.status = team.status
-        self.created_at = formatter.date(from: team.created_at)
+        self.created_at = DateParser.parseISO8601(team.created_at)
         self.competition_date = ISO8601DateFormatter().date(from: team.competition_date)
         var members: [BikeTeamMember] = []
         for member in team.members {
@@ -262,13 +258,11 @@ struct BikeTeamMember: Identifiable, Equatable {
     let is_leader: Bool
     
     init(from team: BikeTeamMemberDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.member_id = team.member_id
         self.user_id = team.user_id
         self.nick_name = team.nick_name
         self.avatar_url = team.avatar_url
-        self.join_date = formatter.date(from: team.join_date)
+        self.join_date = DateParser.parseISO8601(team.join_date)
         self.is_registered = team.is_registered
         self.is_leader = team.is_leader
     }
@@ -297,14 +291,12 @@ struct BikeTeamAppliedMember: Identifiable, Equatable {
     let join_date: Date?
     
     init(from team: BikeTeamAppliedMemberDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.member_id = team.member_id
         self.user_id = team.user_id
         self.nick_name = team.nick_name
         self.avatar_url = team.avatar_url
         self.introduction = team.introduction
-        self.join_date = formatter.date(from: team.join_date)
+        self.join_date = DateParser.parseISO8601(team.join_date)
     }
     
     static func == (lhs: BikeTeamAppliedMember, rhs: BikeTeamAppliedMember) -> Bool {

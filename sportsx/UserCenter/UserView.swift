@@ -200,6 +200,11 @@ struct MainUserView: View {
     let user: User
     let isUserSelf: Bool
     
+    //@State private var tabHeights: [Int: CGFloat] = [:]
+    //var currentTabHeight: CGFloat {
+    //    return maxheight = max(tabHeights.values.max() ?? 0, 300)
+    //}
+    
     var userRegion: LocalizedStringKey? {
         for (_, cities) in regionTable_HK {
             if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
@@ -244,12 +249,11 @@ struct MainUserView: View {
                                         .frame(width: UIScreen.main.bounds.width - 32, height: 200)
                                         .cornerRadius(20)
                                 } else {
-                                    Image("Ads")
+                                    Image("placeholder")
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: UIScreen.main.bounds.width - 32, height: 200)
                                         .cornerRadius(20)
-                                    
                                 }
                                 
                                 // 资料展示区
@@ -313,16 +317,16 @@ struct MainUserView: View {
                                         } else {
                                             if viewModel.relationship == .follower || viewModel.relationship == .none {
                                                 Text("user.page.follow")
-                                                .font(.system(size: 16))
-                                                .bold()
-                                                .foregroundColor(.white)
-                                                .padding(.vertical, 8)
-                                                .padding(.horizontal, 20)
-                                                .background(.pink.opacity(0.8))
-                                                .cornerRadius(8)
-                                                .exclusiveTouchTapGesture {
-                                                    viewModel.follow()
-                                                }
+                                                    .font(.system(size: 16))
+                                                    .bold()
+                                                    .foregroundColor(.white)
+                                                    .padding(.vertical, 8)
+                                                    .padding(.horizontal, 20)
+                                                    .background(.pink.opacity(0.8))
+                                                    .cornerRadius(8)
+                                                    .exclusiveTouchTapGesture {
+                                                        viewModel.follow()
+                                                    }
                                             } else {
                                                 Text("user.page.cancel_follow")
                                                     .font(.system(size: 16))
@@ -442,10 +446,10 @@ struct MainUserView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
                                     if isUserSelf ? userManager.user.isVip : user.isVip {
-                                        Image(systemName: "v.circle.fill")
-                                            .font(.system(size: 15))
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(Color.orange)
+                                        Image("vip_icon_on")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 20)
                                     }
                                     if (!isUserSelf) && viewModel.relationship != .none {
                                         Text(LocalizedStringKey(viewModel.relationship.displayName))
@@ -469,9 +473,10 @@ struct MainUserView: View {
                             HStack(spacing: 0) {
                                 // 设备绑定模块
                                 VStack(spacing: 6) {
-                                    Image(systemName: "waveform.circle.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.white)
+                                    Image("device_bind")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 28)
                                     Text("user.page.features.bind_device")
                                         .font(.system(size: 12))
                                         .foregroundColor(.white)
@@ -485,9 +490,10 @@ struct MainUserView: View {
                                 
                                 // 研究所模块
                                 VStack(spacing: 6) {
-                                    Image(systemName: "flask.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.white)
+                                    Image("institute")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 28)
                                     Text("user.page.features.institute")
                                         .font(.system(size: 12))
                                         .foregroundColor(.white)
@@ -603,7 +609,7 @@ struct MainUserView: View {
                                 .padding(.top, 100)
                         }
                     }
-                    .padding(.bottom, 100)
+                    //.padding(.bottom, 100)
                     .onScrollDragChanged($isDragging)
                 }
                 
@@ -643,8 +649,10 @@ struct MainUserView: View {
                                     }
                                     
                                     HStack(spacing: 4) {
-                                        Image(systemName: viewModel.sport.iconName)
-                                            .font(.system(size: 18))
+                                        Image(viewModel.sport.iconName)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 20)
                                         Image("sport_selected_side_bar_button")
                                             .resizable()
                                             .scaledToFit()
@@ -793,7 +801,7 @@ struct MainUserView: View {
 struct LocalUserView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var userManager = UserManager.shared
-    @StateObject var viewModel = LocalUserViewModel()
+    @ObservedObject var viewModel: LocalUserViewModel
     
     var body: some View {
         GeometryReader { geometry in
@@ -888,12 +896,11 @@ struct LocalMainUserView: View {
                                         .frame(width: UIScreen.main.bounds.width - 32, height: 200)
                                         .cornerRadius(20)
                                 } else {
-                                    Image("Ads")
+                                    Image("placeholder")
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: UIScreen.main.bounds.width - 32, height: 200)
                                         .cornerRadius(20)
-                                    
                                 }
                                 
                                 // 资料展示区
@@ -1046,10 +1053,11 @@ struct LocalMainUserView: View {
                                         .font(.title3)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
-                                    Image(systemName: "v.circle.fill")
-                                        .font(.system(size: 15))
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(userManager.user.isVip ? Color.orange : Color.thirdText)
+                                    
+                                    Image(userManager.user.isVip ? "vip_icon_on" : "vip_icon_off")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 20)
                                         .exclusiveTouchTapGesture {
                                             guard UserManager.shared.isLoggedIn else {
                                                 UserManager.shared.showingLogin = true
@@ -1067,9 +1075,10 @@ struct LocalMainUserView: View {
                         HStack(alignment: .bottom, spacing: 0) {
                             // 设备绑定模块
                             VStack(spacing: 6) {
-                                Image(systemName: "waveform.circle.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.white)
+                                Image("device_bind")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 28)
                                 Text("user.page.features.bind_device")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)
@@ -1082,9 +1091,10 @@ struct LocalMainUserView: View {
                             
                             // 研究所模块
                             VStack(spacing: 6) {
-                                Image(systemName: "flask.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.white)
+                                Image("institute")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 28)
                                 Text("user.page.features.institute")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)
@@ -1166,22 +1176,25 @@ struct LocalMainUserView: View {
                                             // 背景
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(Color.white.opacity(0.25))
-                                                .frame(width: 300, height: 10)
+                                                .frame(width: 280, height: 10)
                                             // 前景
                                             RoundedRectangle(cornerRadius: 6)
                                                 .fill(LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing))
-                                                .frame(width: min(300, max(0, (task.progress / task.totalProgress)) * 300), height: 10)
+                                                .frame(width: min(280, max(0, (task.progress / task.totalProgress)) * 280), height: 10)
                                         }
                                         
                                         // 3个可领取奖励的圆形节点
-                                        HStack(spacing: 47) {
+                                        HStack {
                                             Circle()
                                                 .foregroundStyle(Color.orange.opacity(0.8))
                                                 .frame(width: 40, height: 40)
                                                 .overlay(
-                                                    Image(systemName: viewModel.sport.iconName)
-                                                        .font(.system(size: 18))
+                                                    Image(viewModel.sport.iconName)
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(height: 25)
                                                 )
+                                            Spacer()
                                             ZStack {
                                                 HStack(alignment: .center, spacing: 2) {
                                                     Image(task.reward_stage1_type.iconName)
@@ -1208,6 +1221,7 @@ struct LocalMainUserView: View {
                                                     dailyTaskManager.claimReward(stage: 1, sport: viewModel.sport, rewardImage: task.reward_stage1_type.iconName, rewardCount: task.reward_stage1)
                                                 }
                                             }
+                                            Spacer()
                                             ZStack {
                                                 HStack(alignment: .center, spacing: 2) {
                                                     Image(task.reward_stage2_type.iconName)
@@ -1234,11 +1248,10 @@ struct LocalMainUserView: View {
                                                     dailyTaskManager.claimReward(stage: 2, sport: viewModel.sport, rewardImage: task.reward_stage2_type.iconName, rewardCount: task.reward_stage2)
                                                 }
                                             }
+                                            Spacer()
                                             ZStack {
                                                 CachedAsyncImage(
-                                                    urlString: task.reward_stage3_url,
-                                                    placeholder: Image("Ads"),
-                                                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                                    urlString: task.reward_stage3_url
                                                 )
                                                 .id(task.reward_stage3_url)     // 强制重建视图
                                                 .aspectRatio(contentMode: .fit)
@@ -1261,7 +1274,7 @@ struct LocalMainUserView: View {
                                                 }
                                             }
                                         }
-                                        .frame(width: 300)
+                                        .frame(width: 320)
                                     }
                                     .padding(.top, 10)
                                     
@@ -1362,8 +1375,10 @@ struct LocalMainUserView: View {
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 20, height: 20)
-                                        Image(systemName: viewModel.sport.iconName)
-                                            .font(.system(size: 18))
+                                        Image(viewModel.sport.iconName)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 20)
                                     }
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
@@ -1535,7 +1550,10 @@ struct UserSportSelectedBar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            Image(systemName: sport.iconName)
+                            Image(sport.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 30)
                             Text(LocalizedStringKey(sport.name))
                             if isEditMode {
                                 Image(systemName: "circle.dotted")
@@ -1643,7 +1661,10 @@ struct LocalUserSportSelectedBar: View {
                 LazyVStack(alignment: .leading, spacing: 15) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
-                            Image(systemName: sport.iconName)
+                            Image(sport.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 30)
                             Text(LocalizedStringKey(sport.name))
                             if isEditMode {
                                 Image(systemName: "circle.dotted")
@@ -1705,6 +1726,24 @@ struct LocalUserSportSelectedBar: View {
         }
     }
 }
+
+/*struct TabContentHeightKey: PreferenceKey {
+    static var defaultValue: [Int: CGFloat] = [:]
+    static func reduce(value: inout [Int: CGFloat], nextValue: () -> [Int: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: max)
+    }
+}
+
+extension View {
+    func measureHeight(for index: Int) -> some View {
+        self.background(
+            GeometryReader { proxy in
+                Color.clear
+                    .preference(key: TabContentHeightKey.self, value: [index: proxy.size.height])
+            }
+        )
+    }
+}*/
 
 #Preview {
     let appState = AppState.shared

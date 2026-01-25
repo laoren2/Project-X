@@ -51,7 +51,7 @@ final class BootstrapManager: ObservableObject {
                     title: "toast.network_error",
                     message: "error.network_error",
                     bottomButtons: [
-                        .confirm("action.confirm")
+                        .confirm()
                     ]
                 )
                 state = .ready
@@ -69,12 +69,12 @@ final class BootstrapManager: ObservableObject {
         let versionOK = await checkVersion()
         
         // 网络错误直接放进
-        guard let versionOK else {
+        guard let checkResult = versionOK else {
             state = .ready
             return
         }
         
-        if !versionOK {
+        if !checkResult {
             state = .failed("error.client_version")
             return
         }
@@ -87,13 +87,17 @@ final class BootstrapManager: ObservableObject {
         await AssetManager.shared.queryCCAssets()
         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
-
+        
         // 6. IAP（依赖 token）
         await IAPManager.shared.loadCouponProducts()
         await IAPManager.shared.loadSubscriptionProducts()
-
+        
         // 7. 查询邮件未读状态（依赖 token）
         UserManager.shared.queryMailBox()
+        
+        // 8. 商店信息加载
+        await ShopManager.shared.queryCPAssets(withLoadingToast: true)
+        await ShopManager.shared.queryMagicCards(withLoadingToast: true)
         
         // 启动完成
         state = .ready
@@ -167,43 +171,47 @@ final class BootstrapManager: ObservableObject {
     
     func registerAllCardTypes() {
         // running
-        MagicCardFactory.register(defID: "equipcard_def_0ee41ac7") { cardID, level, params in
-            return HeartRateEffect_C_0ee41ac7(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_running_00000001") { cardID, level, params in
+            return HeartRateEffect_C_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_464ffa29") { cardID, level, params in
-            return HeartRateEffect_B_464ffa29(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_running_00000002") { cardID, level, params in
+            return HeartRateEffect_B_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_c6d9b2ac") { cardID, level, params in
-            return AltitudeEffect_C_c6d9b2ac(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_running_00000003") { cardID, level, params in
+            return AltitudeEffect_C_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_57263168") { cardID, level, params in
-            return AltitudeEffect_B_57263168(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_running_00000004") { cardID, level, params in
+            return AltitudeEffect_B_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_9d861474") { cardID, level, params in
-            return SpeedEffect_B_9d861474(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_running_00000005") { cardID, level, params in
+            return SpeedEffect_B_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_ed38de79") { cardID, level, params in
-            return SpeedEffect_A_ed38de79(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_running_00000006") { cardID, level, params in
+            return SpeedEffect_A_00000001(cardID: cardID, level: level, with: params)
         }
         // bike
-        MagicCardFactory.register(defID: "equipcard_def_9c2d915e") { cardID, level, params in
-            return HeartRateEffect_C_0ee41ac7(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_bike_00000001") { cardID, level, params in
+            return HeartRateEffect_C_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_f26d439d") { cardID, level, params in
-            return HeartRateEffect_B_464ffa29(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_bike_00000002") { cardID, level, params in
+            return HeartRateEffect_B_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_be490d44") { cardID, level, params in
-            return AltitudeEffect_C_c6d9b2ac(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_bike_00000003") { cardID, level, params in
+            return AltitudeEffect_C_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_3c09fe86") { cardID, level, params in
-            return AltitudeEffect_B_57263168(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_bike_00000004") { cardID, level, params in
+            return AltitudeEffect_B_00000001(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_255b9406") { cardID, level, params in
-            return SpeedEffect_B_255b9406(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_bike_00000005") { cardID, level, params in
+            return SpeedEffect_B_00000002(cardID: cardID, level: level, with: params)
         }
-        MagicCardFactory.register(defID: "equipcard_def_e30c207c") { cardID, level, params in
-            return SpeedEffect_A_e30c207c(cardID: cardID, level: level, with: params)
+        MagicCardFactory.register(defID: "equipcard_bike_00000006") { cardID, level, params in
+            return SpeedEffect_A_00000002(cardID: cardID, level: level, with: params)
         }
+        // test
+        //MagicCardFactory.register(defID: "equipcard_bike_00000000") { cardID, level, params in
+        //    return SpeedEffect_A_00000000(cardID: cardID, level: level, with: params)
+        //}
     }
     
     func waitForFullNetworkReady(timeout: TimeInterval = 20) async -> Bool {
@@ -401,9 +409,4 @@ struct sportsxApp: App {
             }
         }
     }*/
-}
-
-struct MailBoxStatus: Codable {
-    let has_unread: Bool
-    let unread_count: Int
 }

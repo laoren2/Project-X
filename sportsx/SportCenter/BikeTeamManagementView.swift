@@ -177,7 +177,9 @@ struct BikeTeamManagementView: View {
                 }
                 globalConfig.refreshTeamManageView = false
             }
-            firstOnAppear = false
+            DispatchQueue.main.async {
+                firstOnAppear = false
+            }
         }
     }
     
@@ -223,14 +225,14 @@ struct BikeTeamAppliedCardView: View {
                 
                 Spacer()
                 
-                Text("\(team.member_count)/\(team.max_member_size) 人")
+                Text("common.member.a/b \(team.member_count) \(team.max_member_size)")
                     .font(.subheadline)
                     .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 3)
                     .background(
                         RoundedRectangle(cornerRadius: 5)
-                            .fill(Color.blue.opacity(0.5))
+                            .stroke(Color.thirdText, lineWidth: 1)
                     )
             }
             
@@ -240,9 +242,7 @@ struct BikeTeamAppliedCardView: View {
                     .font(.subheadline)
                     .foregroundStyle(Color.secondText)
                 CachedAsyncImage(
-                    urlString: team.leader_avatar_url,
-                    placeholder: Image(systemName: "person"),
-                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                    urlString: team.leader_avatar_url
                 )
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 40, height: 40)
@@ -351,14 +351,14 @@ struct BikeTeamCardView: View {
                 
                 Spacer()
                 
-                Text("\(team.member_count)/\(team.max_member_size) 人")
+                Text("common.member.a/b \(team.member_count) \(team.max_member_size)")
                     .font(.subheadline)
                     .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 3)
                     .background(
                         RoundedRectangle(cornerRadius: 5)
-                            .fill(Color.blue.opacity(0.5))
+                            .stroke(Color.thirdText, lineWidth: 1)
                     )
             }
             
@@ -577,7 +577,31 @@ struct BikeTeamDetailView: View {
                                 infoRow(title: "competition.team.intro", value: team.description)
                                 infoRow(title: "competition.team.code", value: team.team_code, highlight: true)
                                 infoRow(title: "competition.team.create_date", value: DateDisplay.formattedDate(team.created_at))
-                                infoRow(title: "competition.match_date", value: DateDisplay.formattedDate(team.competition_date))
+                                
+                                HStack(alignment: .top) {
+                                    HStack(spacing: 4) {
+                                        Text("competition.match_date")
+                                        Image(systemName: "info.circle")
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.team.manage.start_date.popup.title",
+                                                    message: "competition.team.manage.start_date.popup.content",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text(DateDisplay.formattedDate(team.competition_date))
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.white)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .padding(.vertical, 3)
+                                
                                 infoRow(title: "competition.team.region", value: team.region_name)
                                 infoRow(title: "competition.event", value: team.event_name)
                                 infoRow(title: "competition.track", value: team.track_name)
@@ -589,17 +613,27 @@ struct BikeTeamDetailView: View {
                         
                         // 队伍成员列表
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("competition.team.member.a/b \(team.members.count) \(team.max_member_size)")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.bottom, 5)
+                            HStack {
+                                Text("competition.team.member")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                Spacer()
+                                Text("common.member.a/b \(team.members.count) \(team.max_member_size)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondText)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 3)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.thirdText, lineWidth: 1)
+                                    )
+                            }
+                            .padding(.bottom, 5)
                             
                             ForEach(team.members) { member in
                                 HStack(spacing: 10) {
                                     CachedAsyncImage(
-                                        urlString: member.avatar_url,
-                                        placeholder: Image(systemName: "person"),
-                                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                        urlString: member.avatar_url
                                     )
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 40, height: 40)
@@ -743,7 +777,31 @@ struct BikeTeamManageView: View {
                                 infoRow(title: "competition.team.info", value: team.description)
                                 infoRow(title: "competition.team.code", value: team.team_code)
                                 infoRow(title: "competition.team.create_date", value: DateDisplay.formattedDate(team.created_at))
-                                infoRow(title: "competition.match_date", value: DateDisplay.formattedDate(team.competition_date))
+                                
+                                HStack(alignment: .top) {
+                                    HStack(spacing: 4) {
+                                        Text("competition.match_date")
+                                        Image(systemName: "info.circle")
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.team.manage.start_date.popup.title",
+                                                    message: "competition.team.manage.start_date.popup.content",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                    }
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text(DateDisplay.formattedDate(team.competition_date))
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.white)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .padding(.vertical, 3)
+                                
                                 infoRow(title: "competition.team.region", value: team.region_name)
                                 infoRow(title: "competition.event", value: team.event_name)
                                 infoRow(title: "competition.track", value: team.track_name)
@@ -863,17 +921,27 @@ struct BikeTeamManageView: View {
                         
                         // 队伍成员列表
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("competition.team.member.a/b \(viewModel.members.count) \(team.max_member_size)")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.bottom, 5)
+                            HStack {
+                                Text("competition.team.member")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                Spacer()
+                                Text("common.member.a/b \(viewModel.members.count) \(team.max_member_size)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondText)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 3)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.thirdText, lineWidth: 1)
+                                    )
+                            }
+                            .padding(.bottom, 5)
                             
                             ForEach(viewModel.members) { member in
                                 HStack(spacing: 10) {
                                     CachedAsyncImage(
-                                        urlString: member.avatar_url,
-                                        placeholder: Image(systemName: "person"),
-                                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                        urlString: member.avatar_url
                                     )
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 40, height: 40)
@@ -951,9 +1019,7 @@ struct BikeTeamManageView: View {
                                 ForEach(viewModel.request_members) { request in
                                     HStack(spacing: 10) {
                                         CachedAsyncImage(
-                                            urlString: request.avatar_url,
-                                            placeholder: Image(systemName: "person"),
-                                            errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                            urlString: request.avatar_url
                                         )
                                         .aspectRatio(contentMode: .fill)
                                         .frame(width: 40, height: 40)
@@ -1029,7 +1095,7 @@ struct BikeTeamManageView: View {
         HStack(alignment: .top) {
             (Text(LocalizedStringKey(title)) + Text(":"))
                 .font(.subheadline)
-                .foregroundStyle(Color.thirdText)
+                .foregroundStyle(Color.secondText)
                 .frame(width: 80, alignment: .leading)
             
             Spacer()
@@ -1085,7 +1151,7 @@ struct BikeAppliedDetailView: View {
                         .padding(5)
                 }
             }
-            .frame(height: 100)
+            .frame(height: 80)
             .padding(10)
             .background(Color.gray.opacity(0.8))
             .cornerRadius(20)
@@ -1182,6 +1248,7 @@ struct BikeTeamEditorView: View {
                     
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: $viewModel.tempDescription)
+                            .frame(minHeight: 150)
                             .padding()
                             .foregroundColor(.white)
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景

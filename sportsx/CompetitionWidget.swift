@@ -62,11 +62,10 @@ struct CompetitionWidget: View {
                         .fill(Color.black.opacity(0.6))
                         .frame(width: 60, height: 60)
                         .overlay(
-                            Image(systemName: appState.competitionManager.sport.iconName)
+                            Image(appState.competitionManager.sport.iconName)
                                 .resizable()
                                 .scaledToFit()
-                                .foregroundColor(.orange)
-                                .frame(width: 30, height: 30)
+                                .frame(height: 30)
                         )
                 }
                 .position(

@@ -7,6 +7,7 @@
 */
 
 "common.and" = "和";
+"common.or" = "或";
 "common.status" = "狀態";
 "common.loading" = "載入中";
 "common.member.a/b %lld %lld" = "%lld/%lld 人";
@@ -124,12 +125,38 @@
 "home.search.toast" = "搜索不到用戶";
 "home.announcament.no_contents" = "暫無公告";
 "home.announcament.title" = "公告與通知";
-"home.feature.skill" = "使用技巧";
+"home.skill" = "使用技巧";
+"home.skill.title" = "你需要知道的關於 Sporreer 的事";
+"home.skill.title.1" = "比賽報名與參與";
+"home.skill.title.2" = "組隊模式";
+"home.skill.title.3" = "裝備卡牌";
+"home.skill.title.4" = "獎勵結算";
+"home.skill.title.1.subtitle.1" = "比賽記錄";
+"home.skill.title.2.subtitle.1" = "創建和加入隊伍";
+"home.skill.title.2.subtitle.2" = "管理隊伍";
+"home.skill.title.2.subtitle.3" = "180秒連續窗口";
+"home.skill.title.3.subtitle.1" = "可用性";
+"home.skill.title.3.subtitle.2" = "卡牌升級與技能升級";
+"home.skill.title.4.subtitle.2" = "賽道結算";
+"home.skill.title.4.subtitle.3" = "賽季結算";
+"home.skill.title.1.subtitle.1.content" = "比賽報名成功後會自動建立比賽記錄，可在運動中心的記錄管理頁面查看，比賽記錄有未開始/進行中/已完成和已過期4種狀態。 \n在比賽記錄的有效時間內可以開始比賽，單人記錄可以在賽道有效時間內隨時開始，組隊記錄只能在隊伍比賽窗口內開始。 \n比賽記錄取消後會返還相應報名費用，需要注意的是超過記錄的截止時間後無法取消，單人記錄的截止時間為報名賽道的截止時間，組隊記錄的截止時間為隊伍比賽窗口的截止時間。 \n系統會自動處理過期的比賽記錄（進行時間超過2小時的記錄會被當作過期處理）。";
+"home.skill.title.1.subtitle.2.content" = "每條賽道有對應的物資獎金池，每增加一筆已完成狀態的比賽記錄，獎金池就會根據報名費用的一定比例進行累積。";
+"home.skill.title.2.subtitle.1.content" = "可以在對應賽道下建立隊伍，創建後可以在隊伍管理頁面編輯詳細資訊。 \n可以在對應賽道的隊伍清單中查看目前可加入的隊伍，加入隊伍有2種方式，分別是直接透過8位隊伍碼加入，和提交申請資訊申請加入。";
+"home.skill.title.2.subtitle.2.content" = "在隊伍管理頁面可以進行隊伍管理，一支隊伍有準備/鎖定/比賽/進行中和已結束5種狀態，需要注意的是進入比賽狀態後無法撤回，隊伍需要在2小時的比賽窗口內準時開始比賽。 \n隊伍解散後，系統會自動返還報名費用給所有已報名的隊伍成員。";
+"home.skill.title.2.subtitle.3.content" = "隊伍一旦有成員開始比賽後，其餘成員需要在180s的時間窗口內進入比賽，否則無法再加入且比賽記錄無法取消，建議隊伍進入比賽前先進行成員的匯合。";
+"home.skill.title.3.subtitle.1.content" = "裝備卡牌可能在以下場景下無法組裝使用：\n1.客戶端版本不適配。當客戶端版本低於卡牌要求時無法使用，可以在商店或倉庫的詳情頁面檢查版本適配情況。 \n2.運動類型不符。不同運動類型只能使用對應的卡牌。 \n3.運動模式不符。例如單人模式無法使用組隊專屬卡牌。 \n4.感測器不匹配。綁定的感測器類型或位置不符合對應卡牌的需求。";
+"home.skill.title.3.subtitle.2.content" = "透過升級卡牌或卡牌技能可以在一定範圍內增強卡牌收益數值，升級的增幅程度與卡牌的幸運值相關。 \n卡牌的升級有2種方式，1是透過消耗升級材料進行升級，2是透過消耗相同類型的0級卡牌進行升級，注意透過方式2升級時盡量選擇消耗幸運值較低的卡牌是更明智的選擇。 \n升級卡牌的技能前需要先解鎖技能，不同技能的解鎖閾值可以參考卡牌的詳情頁。";
+"home.skill.title.4.subtitle.1.content" = "每場比賽（紀錄）結束後會有一次結算，刷新自己的最佳成績或賽道的最佳成績會有額外的獎勵。";
+"home.skill.title.4.subtitle.2.content" = "一條賽道的比賽結束後會有一次賽道排行榜的結算，結算的獎勵會發放到郵箱中且默認有效期為30天，建議盡快去 我的-郵箱 裡領取。需要注意的是，未完成實名認證將無法進行賽道結算。";
+"home.skill.title.4.subtitle.3.content" = "賽季結束後會有一次賽季成績的整理與結算，結算的獎勵會發放到郵箱中且默認有效期為30天，建議盡快去 我的-郵箱 裡領取。需要注意的是，未完成實名認證將無法進行賽季結算。";
 
 "shop.tab.props" = "道具";
 "shop.tab.equip_card" = "裝備卡";
 "shop.action.buy" = "購買";
-"shop.popup" = "你確定花費 {{MONEY}} 購買 {{ASSET}} * 1 嗎？";
+"shop.popup.buy.cpasset" = "你確定花費 {{MONEY}} 購買 {{ASSET}} * 1 嗎？";
+"shop.popup.buy.ccasset.coin" = "你可以用 {{MONEY1}} 或 {{MONEY2}} 來購買 {{ASSET}}";
+"shop.popup.buy.ccasset.stone1" = "你可以用 {{MONEY}} 來購買 {{ASSET}}";
+"shop.popup.buy.ccasset.confirm" = "你確定花費 {{MONEY}} * {{MONEYCOUNT}} 購買 {{ASSET}} * {{ASSETCOUNT}} 嗎？";
 
 "warehouse.action.goBuy" = "去購買";
 "warehouse.action.goUpgrade" = "去升級";
@@ -174,7 +201,7 @@
 "competition.record.status.completed" = "已完成";
 "competition.record.status.expired" = "數據已過期";
 "competition.record.status.verifying" = "數據校驗中";
-"competition.record.status.verift_failed" = "數據校驗失敗";
+"competition.record.status.verify_failed" = "數據校驗失敗";
 "competition.record.status.computing" = "數據计算中";
 "competition.record.original_time" = "原始成績";
 "competition.record.valid_time" = "有效成績";
@@ -189,11 +216,16 @@
 "competition.record.result.normal" = "距離自己的最好成績只差一點點了，期待你的下一個挑戰！";
 "competition.record.time" = "成績";
 "competition.record.no_data" = "無記錄數據";
+"competition.record.incompleted.no_data" = "暫無報名紀錄";
+"competition.record.completed.no_data" = "暫無已完成紀錄";
 
 "competition.cardselect.choose" = "請選擇你的裝備卡";
 "competition.cardselect.subscription" = "訂閱獲得額外卡牌槽";
 "competition.cardselect.action.choose" = "選擇卡片";
 "competition.cardselect.action.next_step" = "下一步";
+"competition.cardselect.magiccard.equipped" = "已裝備";
+"competition.cardselect.magiccard.empty_slot" = "空卡牌槽";
+"competition.cardselect.magiccard.vipslot" = "專屬卡槽";
 
 "competition.realtime.action.finish" = "結束比賽";
 "competition.realtime.action.finish.2" = "結束";
@@ -234,6 +266,8 @@
 "competition.event.error.no_events" = "目前區域暫無賽事";
 
 "competition.track" = "賽道";
+"competition.track.start" = "起點";
+"competition.track.finish" = "終點";
 "competition.track.info" = "賽道資訊";
 "competition.track.error.no_tracks" = "目前賽事暫無可用賽道\n請切換區域或賽事重試";
 "competition.track.error.closed" = "賽道已關閉";
@@ -292,7 +326,7 @@
 "competition.team.action.quit" = "退出";
 "competition.team.detail" = "隊伍詳情";
 "competition.team.region" = "賽事區域";
-"competition.team.member.a/b %lld %lld" = "隊伍成員 %lld/%lld";
+"competition.team.member" = "隊伍成員";
 "competition.team.error.no_data" = "隊伍無數據";
 "competition.team.status.locked" = "隊伍已鎖定";
 "competition.team.action.lock" = "鎖定隊伍";
@@ -322,6 +356,9 @@
 "competition.team.manage.ready.popup.title" = "隊伍的比賽狀態";
 "competition.team.manage.ready.popup.content" = "當隊伍的所有成員均已報名，且不存在未處理的申請後，隊伍可從鎖定狀態進入比賽狀態，進入比賽狀態後即可依據隊伍的比賽時間準備比賽。 \n注意：進入比賽狀態後隊伍的所有資訊無法修改，比賽狀態無法撤回！";
 "competition.team.status" = "隊伍狀態";
+"competition.team.manage.start_date.popup.title" = "隊伍的比賽時間";
+"competition.team.create.start_date.popup.content" = "隊伍的比賽時間是指隊伍實際上可以進入比賽的最早時刻，從這一刻起，處於比賽狀態的隊伍會開啟2小時的有效時間窗口，有效時間內可以隨時開始比賽。 \n注意：超出有效時間窗口後無法進入比賽，隊伍創建後你可以隨時在隊伍管理頁面進行修改。";
+"competition.team.manage.start_date.popup.content" = "隊伍的比賽時間是指隊伍實際上可以進入比賽的最早時刻，從這一刻起，處於比賽狀態的隊伍會開啟2小時的有效時間窗口，有效時間內可以隨時開始比賽。 \n注意：超出有效時間窗口後無法進入比賽。";
 
 "competition.terrain.road" = "公路";
 "competition.terrain.mountain" = "越野";
@@ -354,9 +391,20 @@
 "competition.applewatch.error.sync" = "請在watch端點選同步手動開始比賽";
 "competition.applewatch.error.finish" = "watch連線失敗，請手動結束watch上的運動";
 
+"competition.slidebar.subtitle" = "查看最新的運動賽事";
+
 "user.page.friend" = "好友";
 "user.page.following" = "關注";
 "user.page.follower" = "粉絲";
+"user.page.friendlist.friend.search" = "搜尋好友";
+"user.page.friendlist.no_friends" = "您目前還沒有好友";
+"user.page.friendlist.no_friends.2" = "去組隊運動，尋找好友吧";
+"user.page.friendlist.following.search" = "搜尋關注";
+"user.page.friendlist.no_followings" = "您目前還沒有關注的人";
+"user.page.friendlist.no_followings.2" = "快去運動中心逛逛，關註一位運動達人吧";
+"user.page.friendlist.follower.search" = "搜尋粉絲";
+"user.page.friendlist.no_followers" = "您目前還沒有粉絲";
+"user.page.friendlist.no_followers.2" = "快去比賽中挑戰自己，吸引更多關注吧";
 "user.page.edit" = "編輯資料";
 "user.page.follow" = "關注";
 "user.page.introduce_placeholder" = "介紹一下自己吧";
@@ -519,7 +567,7 @@
 "iap.subscription.benefits.3" = "極速的運動數據校驗";
 "iap.subscription.action.purchase" = "立即訂閱";
 "iap.subscription.action.update_purchase" = "更新訂閱";
-"iap.subscription.toast.purchase.failed.reapeat_sub" = "此AppleID關聯的其他帳號已訂閱，無法重複訂閱";
+"iap.subscription.toast.purchase.failed.sub_off" = "此AppleID關聯的其他帳號已訂閱，無法重複訂閱";
 "iap.subscription.toast.purchase.failed.sub_on" = "目前訂閱狀態不屬於此appleID，請切換Apple帳號重試";
 "iap.subscription.toast.purchase.failed.reapeat_sub" = "您已訂閱此項目，無法重複訂閱";
 "iap.subscription.toast.help.query.success.title" = "查詢成功";
@@ -549,3 +597,26 @@
 "login.email.title" = "郵箱驗證碼登入";
 "login.email.placeholder" = "請輸入郵件地址";
 "login.toast.error_email" = "請輸入正確的郵箱";
+"login.reigster.popup.welcome" = "歡迎";
+"login.reigster.popup.content" = "歡迎來到Sporreer，我們為您準備了一份新人禮包，請盡快去 \"我的-郵箱\" 領取哦。\n現在先來完善一下個人資料吧！";
+"login.reigster.popup.action.cancel" = "稍後";
+"login.reigster.popup.action.confirm" = "立即完善";
+
+"magiccard.detail" = "卡牌詳情";
+"magiccard.detail.lucky" = "幸運值";
+"magiccard.detail.description" = "卡牌描述";
+"magiccard.detail.sensor.type" = "感測器類型";
+"magiccard.detail.sensor.pos" = "感測器位置";
+"magiccard.detail.skill.unlock" = "解鎖";
+"magiccard.detail.sensor.pos.phone" = "手機";
+"magiccard.detail.lucky.popup" = "卡牌的幸運值會影響每次升級的數值範圍，幸運值越高，獲得高增幅的機率越大。";
+"magiccard.detail.sensor.type.popup" = "需要綁定指定的感測器設備才可以正常使用卡牌，感測器類型列出了卡牌目前支援的所有感測器型號。";
+"magiccard.detail.sensor.pos.popup" = "需要將感測器設備綁定到指定的位置才可以正常使用卡牌，感測器位置列出了卡牌所需的綁定點位置。";
+
+"ccasset.coin" = "金幣";
+"ccasset.coupon" = "點券";
+"ccasset.voucher" = "金券";
+"ccasset.stone" = "升級石";
+"ccasset.stone1" = "初級升級石";
+"ccasset.stone2" = "中級升級石";
+"ccasset.stone3" = "高級升級石";

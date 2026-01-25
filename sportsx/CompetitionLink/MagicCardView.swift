@@ -11,13 +11,15 @@ import SwiftUI
 
 // MARK: - 卡牌视图
 struct MagicCardView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
     let card: MagicCard
-    @State private var showDetail: Bool = false
     let showDetailButton: Bool
+    let isShopCardView: Bool
     
-    init(card: MagicCard, showDetailButton: Bool = true) {
+    init(card: MagicCard, showDetailButton: Bool = true, isShopCardView: Bool = false) {
         self.card = card
         self.showDetailButton = showDetailButton
+        self.isShopCardView = isShopCardView
     }
     
     var body: some View {
@@ -26,52 +28,75 @@ struct MagicCardView: View {
             let height = geometry.size.height
             
             let cornerRadius = width * 0.08
-            let strokeWidth = width * 0.03
-            let nameFont = Font.system(size: width * 0.12, weight: .semibold)
-            let statsFont = Font.system(size: width * 0.1, weight: .medium)
+            let strokeWidth = width * 0.02
+            let nameFont = Font.system(size: width * 0.13, weight: .bold)
             
             ZStack {
                 // 背景图
                 CachedAsyncImage(
-                    urlString: card.imageURL,
-                    placeholder: Image("Ads"),
-                    errorImage: Image(systemName: "photo.badge.exclamationmark")
+                    urlString: card.imageURL
                 )
                 .id(card.imageURL)
                 .scaledToFill()
                 .frame(width: width, height: height)
                 
+                // 卡牌信息
                 VStack(spacing: 0) {
+                    Rectangle()
+                        .foregroundStyle(gradeColor(for: card.rarity))
+                        .frame(height: height * 0.03)
                     HStack {
-                        Text(card.rarity)
-                            .padding(.horizontal, width * 0.03)
-                            .padding(.vertical, width * 0.01)
-                            .background(gradeColor(for: card.rarity))
-                            .cornerRadius(width * 0.03)
+                        Image(card.sportType.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: width * 0.15)
                         
                         Spacer()
-                        
-                        Image(systemName: card.sportType.iconName)
-                        
-                        Spacer()
-                        
-                        Text("Lv.\(card.level)")
+                        Text("\(card.level.roman)")
+                            .font(Font.system(size: width * 0.15, weight: .bold))
                             .opacity(card.level > 0 ? 1 : 0)
                     }
-                    .font(statsFont.weight(.bold))
-                    .frame(width: width * 0.9)
-                    .padding(.top, height * 0.04)
-                    
+                    .padding(.horizontal, width * 0.05)
+                    .padding(.top, height * 0.02)
+                    .background(
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.black.opacity(0.7),
+                                        Color.black.opacity(0)
+                                    ]),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    )
                     Spacer()
-                    
-                    Text(card.name)
-                        .font(nameFont)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .padding(width * 0.05)
-                        .background(Color.gray)
-                        .cornerRadius(width * 0.03)
-                        .padding(.bottom, height * 0.07)
+                    HStack {
+                        Text(card.name)
+                            .font(nameFont)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        Spacer()
+                    }
+                    .padding(.horizontal, width * 0.05)
+                    .padding(.bottom, width * 0.02)
+                    .background(
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.black.opacity(0.7),
+                                        Color.black.opacity(0)
+                                    ]),
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                )
+                            )
+                    )
+                    Rectangle()
+                        .foregroundStyle(gradeColor(for: card.rarity))
+                        .frame(height: height * 0.08)
                 }
                 .foregroundColor(.white)
                 
@@ -81,7 +106,11 @@ struct MagicCardView: View {
                         HStack {
                             Spacer()
                             Button {
-                                showDetail = true
+                                if isShopCardView {
+                                    navigationManager.append(.shopCardDetailView(defID: card.defID))
+                                } else {
+                                    navigationManager.append(.userCardDetailView(cardID: card.cardID))
+                                }
                             } label: {
                                 Image(systemName: "info.circle.fill")
                                     .font(.system(size: width * 0.15))
@@ -94,38 +123,41 @@ struct MagicCardView: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .contentShape(Rectangle())
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(
                         LinearGradient(
-                            colors: [gradeColor(for: card.rarity), gradeColor(for: card.rarity).opacity(0.3)],
-                            startPoint: .top, endPoint: .bottom
+                            gradient: Gradient(colors: [
+                                Color.clear,
+                                Color.white.opacity(0.4),
+                                Color.clear
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
                         ),
                         lineWidth: strokeWidth
                     )
+                    .blendMode(.screen)
             )
-            .contentShape(Rectangle())
         }
         .aspectRatio(5/7, contentMode: .fit) // 保持卡牌比例
-        .fullScreenCover(isPresented: $showDetail) {
-            CardDetailView(card: card, isPresented: $showDetail)
-        }
     }
     
-    private func gradeColor(for grade: String) -> Color {
+    private func gradeColor(for grade: String) -> LinearGradient {
         let firstChar = grade.first ?? "C"
         
         switch firstChar {
         case "S":
-            return Color.yellow
+            return Color.specialCard
         case "A":
-            return Color.green
+            return Color.gold
         case "B":
-            return Color.blue
+            return Color.silver
         case "C":
-            return Color.purple
+            return Color.bronze
         default:
-            return Color.gray
+            return Color.bronze
         }
     }
 }
@@ -135,7 +167,7 @@ struct EmptyCardSlot: View {
     let text: String
     let ratio: Double
     
-    init(text: String = "空卡牌槽", ratio: Double = 5/7) {
+    init(text: String = "competition.cardselect.magiccard.empty_slot", ratio: Double = 5/7) {
         self.text = text
         self.ratio = ratio
     }
@@ -180,20 +212,20 @@ struct EmptyCardVipSlot: View {
             
             ZStack {
                 RoundedRectangle(cornerRadius: width * 0.08)
-                    .fill(Color.red.opacity(0.2))
+                    .fill(Color.orange.opacity(0.2))
                     .overlay(
                         RoundedRectangle(cornerRadius: width * 0.08)
-                            .stroke(Color.red, style: StrokeStyle(lineWidth: width * 0.015, dash: [width * 0.05]))
+                            .stroke(Color.orange, style: StrokeStyle(lineWidth: width * 0.015, dash: [width * 0.05]))
                     )
                 
                 VStack(spacing: width * 0.05) {
-                    Image(systemName: "v.circle.fill")
-                        .font(.system(size: iconSize))
-                        .foregroundColor(.red)
-                    
-                    Text("专属卡槽")
+                    Image("vip_icon_on")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: iconSize)
+                    Text("competition.cardselect.magiccard.vipslot")
                         .font(.system(size: fontSize))
-                        .foregroundColor(.red)
+                        .foregroundColor(.orange)
                 }
             }
         }
@@ -213,7 +245,7 @@ struct MagicCardSelectableView: View {
                 .overlay(
                     GeometryReader { geometry in
                         RoundedRectangle(cornerRadius: geometry.size.width * 0.08)
-                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: geometry.size.width * 0.02)
+                            .stroke(isSelected ? Color.green : Color.clear, lineWidth: geometry.size.width * 0.02)
                     }
                 )
             
@@ -223,7 +255,7 @@ struct MagicCardSelectableView: View {
                         Color.black.opacity(0.3)
                             .cornerRadius(geometry.size.width * 0.08)
                         
-                        Text("不可用")
+                        Text("warehouse.equipcard.unavailable")
                             .font(.system(size: geometry.size.width * 0.2, weight: .bold))
                             .foregroundColor(.white)
                             .padding(geometry.size.width * 0.04)
@@ -240,7 +272,7 @@ struct MagicCardSelectableView: View {
                         Color.black.opacity(0.3)
                             .cornerRadius(geometry.size.width * 0.08)
                         
-                        Text("已装备")
+                        Text("competition.cardselect.magiccard.equipped")
                             .font(.system(size: geometry.size.width * 0.2, weight: .bold))
                             .foregroundColor(.white)
                             .padding(geometry.size.width * 0.04)
@@ -276,206 +308,341 @@ struct MagicCardSelectableView: View {
     }
 }
 
-// MARK: - 卡牌详情视图
-struct CardDetailView: View {
-    let card: MagicCard
-    @Binding var isPresented: Bool
+// MARK: - 用户卡牌详情视图
+struct UserCardDetailView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @State var card: MagicCard?
+    @State var backgroundColor: Color = .defaultBackground
+    let cardID: String
     
     var body: some View {
-        VStack(spacing: 15) {
-            // 顶部关闭按钮
-            HStack {
-                Text("卡牌详情")
-                    .font(.title3)
-                    .bold()
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Button(action: {
-                    isPresented = false
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+        if let card = card {
+            ZStack {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                backgroundColor.softenColor(blendWithWhiteRatio: 0.2),
+                                backgroundColor
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .ignoresSafeArea()
+                VStack(spacing: 15) {
+                    // 顶部关闭按钮
+                    HStack {
+                        Text("magiccard.detail")
+                            .font(.title2)
+                            .bold()
+                            .foregroundStyle(Color.white)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            navigationManager.removeLast()
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title)
+                                .foregroundStyle(Color.secondText)
+                        }
+                    }
+                    .padding(.horizontal)
+                    // 卡牌展示
+                    MagicCardView(card: card, showDetailButton: false)
+                        .frame(height: 300)
+                    
+                    ScrollView {
+                        // 卡牌详细数据
+                        VStack(alignment: .leading, spacing: 15) {
+                            // 卡牌幸运值
+                            HStack {
+                                Text("magiccard.detail.lucky")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                Image(systemName: "info.circle")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondText)
+                                    .exclusiveTouchTapGesture {
+                                        PopupWindowManager.shared.presentPopup(
+                                            title: "magiccard.detail.lucky",
+                                            message: "magiccard.detail.lucky.popup",
+                                            bottomButtons: [
+                                                .confirm()
+                                            ]
+                                        )
+                                    }
+                                Spacer()
+                                
+                                Text(String(format: "%0.2f", card.lucky))
+                                    .font(.headline)
+                                    .foregroundColor(luckyColor(percentage: Float(card.lucky)))
+                                
+                                Image(systemName: luckySymbol(percentage: Float(card.lucky)))
+                                    .foregroundColor(luckyColor(percentage: Float(card.lucky)))
+                            }
+                            .padding(.top, 10)
+                            
+                            Rectangle()
+                                .foregroundStyle(Color.thirdText)
+                                .frame(height: 1)
+                            
+                            // 卡牌描述
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("magiccard.detail.description")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                
+                                Text(card.description)
+                                    .font(.body)
+                                    .foregroundStyle(Color.secondText)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            
+                            // 传感器要求（如果有）
+                            if !card.sensorType.isEmpty {
+                                Rectangle()
+                                    .foregroundStyle(Color.thirdText)
+                                    .frame(height: 1)
+                                
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("magiccard.detail.sensor.type")
+                                            .font(.headline)
+                                            .foregroundStyle(Color.white)
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.secondText)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "magiccard.detail.sensor.type",
+                                                    message: "magiccard.detail.sensor.type.popup",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                        Spacer()
+                                    }
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 15) {
+                                            ForEach (card.sensorType, id: \.self) { sensor in
+                                                sensorIcon(name: sensor.iconName, text: sensor.displayName)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if let location = card.sensorLocation {
+                                Rectangle()
+                                    .foregroundStyle(Color.thirdText)
+                                    .frame(height: 1)
+                                
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("magiccard.detail.sensor.pos")
+                                            .font(.headline)
+                                            .foregroundStyle(Color.white)
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.secondText)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "magiccard.detail.sensor.pos",
+                                                    message: "magiccard.detail.sensor.pos.popup",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                        Spacer()
+                                    }
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack {
+                                            HStack(spacing: 15) {
+                                                if (location & 0b000001) != 0 {
+                                                    sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
+                                                }
+                                                if (location & 0b000010) != 0 {
+                                                    sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                }
+                                                if (location & 0b000100) != 0 {
+                                                    sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                }
+                                                if (location & 0b001000) != 0 {
+                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                }
+                                                if (location & 0b010000) != 0 {
+                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                }
+                                                if (location & 0b100000) != 0 {
+                                                    sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                }
+                                            }
+                                            if let location2 = card.sensorLocation2 {
+                                                Text("common.or")
+                                                    .foregroundStyle(Color.secondText)
+                                                HStack(spacing: 15) {
+                                                    if (location2 & 0b000001) != 0 {
+                                                        sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
+                                                    }
+                                                    if (location2 & 0b000010) != 0 {
+                                                        sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                    }
+                                                    if (location2 & 0b000100) != 0 {
+                                                        sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                    }
+                                                    if (location2 & 0b001000) != 0 {
+                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                    }
+                                                    if (location2 & 0b010000) != 0 {
+                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                    }
+                                                    if (location2 & 0b100000) != 0 {
+                                                        sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // 技能展示
+                            Rectangle()
+                                .foregroundStyle(Color.thirdText)
+                                .frame(height: 1)
+                            VStack(alignment: .leading, spacing: 15) {
+                                if let des = card.descriptionSkill1 {
+                                    skillSection(
+                                        skillLevel: 1,
+                                        unlockLevel: 3,
+                                        currentLevel: card.levelSkill1,
+                                        cardLevel: card.level,
+                                        description: des
+                                    )
+                                }
+                                if let des = card.descriptionSkill2 {
+                                    skillSection(
+                                        skillLevel: 2,
+                                        unlockLevel: 6,
+                                        currentLevel: card.levelSkill2,
+                                        cardLevel: card.level,
+                                        description: des
+                                    )
+                                }
+                                if let des = card.descriptionSkill3 {
+                                    skillSection(
+                                        skillLevel: 3,
+                                        unlockLevel: 10,
+                                        currentLevel: card.levelSkill3,
+                                        cardLevel: card.level,
+                                        description: des
+                                    )
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
+                    }
                 }
             }
-            .padding()
-            
-            // 卡牌展示
-            MagicCardView(card: card, showDetailButton: false)
-            
-            ScrollView {
-                // 卡牌详细数据
-                VStack(alignment: .leading, spacing: 15) {
-                    // 卡牌幸运值
-                    if card.lucky > 0 {
-                        HStack {
-                            Text("幸运值")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            
-                            Spacer()
-                            
-                            Text(String(format: "%0.2f", card.lucky))
-                                .font(.headline)
-                                .foregroundColor(luckyColor(percentage: Float(card.lucky)))
-                            
-                            Image(systemName: luckySymbol(percentage: Float(card.lucky)))
-                                .foregroundColor(luckyColor(percentage: Float(card.lucky)))
-                        }
-                        .padding(.top, 10)
-                    }
-                    
-                    Divider()
-                    
-                    // 卡牌描述
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("卡牌描述")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text(card.description)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    
-                    // 传感器要求（如果有）
-                    if !card.sensorType.isEmpty {
-                        Divider()
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("传感器类型")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 15) {
-                                    ForEach (card.sensorType, id: \.self) { sensor in
-                                        sensorIcon(name: sensor.iconName, text: sensor.displayName)
-                                    }
-                                }
+            .toolbar(.hidden, for: .navigationBar)
+            .enableSwipeBackGesture()
+        } else {
+            VStack(spacing: 50) {
+                VStack(spacing: 20) {
+                    HStack(spacing: 20) {
+                        Rectangle()
+                            .frame(height: 32)
+                            .foregroundStyle(Color.gray.opacity(0.5))
+                            .cornerRadius(16)
+                        Image(systemName: "xmark")
+                            .fontWeight(.semibold)
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.thirdText)
+                            .padding(6)
+                            .background(Color.gray.opacity(0.5))
+                            .clipShape(Circle())
+                            .exclusiveTouchTapGesture {
+                                navigationManager.removeLast()
                             }
-                        }
                     }
-                    
-                    if let location = card.sensorLocation {
-                        Divider()
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("传感器位置")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack {
-                                    HStack(spacing: 15) {
-                                        if (location & 0b000001) != 0 {
-                                            sensorIcon(name: "iphone", text: "手机")
-                                        }
-                                        if (location & 0b000010) != 0 {
-                                            sensorIcon(name: "hand.raised.fill", text: "左手")
-                                        }
-                                        if (location & 0b000100) != 0 {
-                                            sensorIcon(name: "hand.point.right.fill", text: "右手")
-                                        }
-                                        if (location & 0b001000) != 0 {
-                                            sensorIcon(name: "figure.walk", text: "左脚")
-                                        }
-                                        if (location & 0b010000) != 0 {
-                                            sensorIcon(name: "figure.walk", text: "右脚")
-                                        }
-                                        if (location & 0b100000) != 0 {
-                                            sensorIcon(name: "waveform.path.ecg", text: "腰部")
-                                        }
-                                    }
-                                    if let location2 = card.sensorLocation2 {
-                                        Text("或")
-                                        HStack(spacing: 15) {
-                                            if (location2 & 0b000001) != 0 {
-                                                sensorIcon(name: "iphone", text: "手机")
-                                            }
-                                            if (location2 & 0b000010) != 0 {
-                                                sensorIcon(name: "hand.raised.fill", text: "左手")
-                                            }
-                                            if (location2 & 0b000100) != 0 {
-                                                sensorIcon(name: "hand.point.right.fill", text: "右手")
-                                            }
-                                            if (location2 & 0b001000) != 0 {
-                                                sensorIcon(name: "figure.walk", text: "左脚")
-                                            }
-                                            if (location2 & 0b010000) != 0 {
-                                                sensorIcon(name: "figure.walk", text: "右脚")
-                                            }
-                                            if (location2 & 0b100000) != 0 {
-                                                sensorIcon(name: "waveform.path.ecg", text: "腰部")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // 技能展示
-                    Divider()
-                    VStack(alignment: .leading, spacing: 15) {
-                        if let des = card.descriptionSkill1 {
-                            skillSection(
-                                title: "技能1",
-                                unlockLevel: 3,
-                                currentLevel: card.levelSkill1,
-                                cardLevel: card.level,
-                                description: des
-                            )
-                        }
-                        if let des = card.descriptionSkill2 {
-                            skillSection(
-                                title: "技能2",
-                                unlockLevel: 6,
-                                currentLevel: card.levelSkill2,
-                                cardLevel: card.level,
-                                description: des
-                            )
-                        }
-                        if let des = card.descriptionSkill3 {
-                            skillSection(
-                                title: "技能3",
-                                unlockLevel: 10,
-                                currentLevel: card.levelSkill3,
-                                cardLevel: card.level,
-                                description: des
-                            )
-                        }
-                    }
+                    Rectangle()
+                        .aspectRatio(5/7, contentMode: .fit)
+                        .frame(height: 300)
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                        .cornerRadius(20)
                 }
                 .padding(.horizontal)
+                Rectangle()
+                    .foregroundStyle(Color.gray.opacity(0.3))
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .enableSwipeBackGesture()
+            .ignoresSafeArea(edges: .bottom)
+            .background(Color.defaultBackground)
+            .onFirstAppear {
+                queryCardInfo()
             }
         }
     }
     
-    @ViewBuilder
+    func queryCardInfo() {
+        guard var components = URLComponents(string: "/asset/query_user_equip_card_detail") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "card_id", value: cardID)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: MagicCardUserDTO.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        card = MagicCard(from: unwrappedData)
+                    }
+                    downloadImages(url: unwrappedData.image_url)
+                }
+            default: break
+            }
+        }
+    }
+    
+    func downloadImages(url: String) {
+        NetworkService.downloadImage(from: url) { image in
+            if let image = image {
+                if let avg = ImageTool.averageColor(from: image) {
+                    DispatchQueue.main.async {
+                        self.backgroundColor = avg.bestSoftDarkReadableColor()
+                    }
+                }
+            }
+        }
+    }
+    
+    //@ViewBuilder
     private func skillSection(
-        title: String,
+        skillLevel: Int,
         unlockLevel: Int,
         currentLevel: Int?,
         cardLevel: Int,
         description: String
     ) -> some View {
-        let isUnlocked = cardLevel >= unlockLevel
-        
         VStack(alignment: .leading, spacing: 8) {
+            let isUnlocked = cardLevel >= unlockLevel
             HStack {
-                Text("\(title)")
+                Text("institute.upgrade.skill \(skillLevel)")
                     .font(.headline)
-                    .foregroundColor(.primary)
-                Text("（Lv.\(unlockLevel)解锁）")
+                    .foregroundStyle(Color.white)
+                (Text("（level \(unlockLevel.roman) ") + Text("magiccard.detail.skill.unlock") + Text("）"))
                     .font(.subheadline)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(Color.gray)
                     .opacity(isUnlocked ? 0 : 1)
-                
                 Spacer()
-                
                 // 等级方块
                 if let currentLevel = currentLevel {
                     HStack(spacing: 4) {
@@ -488,10 +655,9 @@ struct CardDetailView: View {
                     }
                 }
             }
-            
             Text(description)
                 .font(.subheadline)
-                .foregroundColor((isUnlocked || (currentLevel == nil)) ? .primary : .gray)
+                .foregroundStyle((isUnlocked || (currentLevel == nil)) ? Color.secondText : Color.gray)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -501,14 +667,15 @@ struct CardDetailView: View {
         VStack {
             Image(systemName: name)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundStyle(Color.orange)
             
-            Text(text)
+            Text(LocalizedStringKey(text))
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.secondText)
         }
-        .frame(width: 50, height: 50)
-        .background(Color.blue.opacity(0.1))
+        .padding(.horizontal)
+        .frame(height: 50)
+        .background(Color.white.opacity(0.2))
         .cornerRadius(8)
     }
     
@@ -539,6 +706,364 @@ struct CardDetailView: View {
             return "exclamationmark.triangle"
         } else {
             return "exclamationmark.triangle.fill"
+        }
+    }
+}
+
+struct ShopCardDetailView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @State var card: MagicCardShop?
+    @State var backgroundColor: Color = .defaultBackground
+    let defID: String
+    
+    var body: some View {
+        if let card = card {
+            ZStack(alignment: .bottom) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                backgroundColor.softenColor(blendWithWhiteRatio: 0.2),
+                                backgroundColor
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .ignoresSafeArea()
+                VStack(spacing: 15) {
+                    // 顶部关闭按钮
+                    HStack {
+                        Text("magiccard.detail")
+                            .font(.title2)
+                            .bold()
+                            .foregroundStyle(Color.white)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            navigationManager.removeLast()
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title)
+                                .foregroundStyle(Color.secondText)
+                        }
+                    }
+                    .padding(.horizontal)
+                    // 卡牌展示
+                    MagicCardView(card: MagicCard(withShopCard: card), showDetailButton: false)
+                        .frame(height: 300)
+                    ScrollView {
+                        // 卡牌详细数据
+                        VStack(alignment: .leading, spacing: 15) {
+                            // 卡牌描述
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("magiccard.detail.description")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                
+                                Text(card.description)
+                                    .font(.body)
+                                    .foregroundStyle(Color.secondText)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            // 传感器要求（如果有）
+                            if !card.sensorType.isEmpty {
+                                Rectangle()
+                                    .foregroundStyle(Color.thirdText)
+                                    .frame(height: 1)
+                                
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("magiccard.detail.sensor.type")
+                                            .font(.headline)
+                                            .foregroundStyle(Color.white)
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.secondText)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "magiccard.detail.sensor.type",
+                                                    message: "magiccard.detail.sensor.type.popup",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                        Spacer()
+                                    }
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 15) {
+                                            ForEach (card.sensorType, id: \.self) { sensor in
+                                                sensorIcon(name: sensor.iconName, text: sensor.displayName)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if let location = card.sensorLocation {
+                                Rectangle()
+                                    .foregroundStyle(Color.thirdText)
+                                    .frame(height: 1)
+                                
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("magiccard.detail.sensor.pos")
+                                            .font(.headline)
+                                            .foregroundStyle(Color.white)
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.secondText)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "magiccard.detail.sensor.pos",
+                                                    message: "magiccard.detail.sensor.pos.popup",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                        Spacer()
+                                    }
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack {
+                                            HStack(spacing: 15) {
+                                                if (location & 0b000001) != 0 {
+                                                    sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
+                                                }
+                                                if (location & 0b000010) != 0 {
+                                                    sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                }
+                                                if (location & 0b000100) != 0 {
+                                                    sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                }
+                                                if (location & 0b001000) != 0 {
+                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                }
+                                                if (location & 0b010000) != 0 {
+                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                }
+                                                if (location & 0b100000) != 0 {
+                                                    sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                }
+                                            }
+                                            if let location2 = card.sensorLocation2 {
+                                                Text("common.or")
+                                                    .foregroundStyle(Color.secondText)
+                                                HStack(spacing: 15) {
+                                                    if (location2 & 0b000001) != 0 {
+                                                        sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
+                                                    }
+                                                    if (location2 & 0b000010) != 0 {
+                                                        sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                    }
+                                                    if (location2 & 0b000100) != 0 {
+                                                        sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                    }
+                                                    if (location2 & 0b001000) != 0 {
+                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                    }
+                                                    if (location2 & 0b010000) != 0 {
+                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                    }
+                                                    if (location2 & 0b100000) != 0 {
+                                                        sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // 技能展示
+                            Rectangle()
+                                .foregroundStyle(Color.thirdText)
+                                .frame(height: 1)
+                            VStack(alignment: .leading, spacing: 15) {
+                                if let des = card.descriptionSkill1 {
+                                    skillSection(
+                                        skillLevel: 1,
+                                        unlockLevel: 3,
+                                        description: des
+                                    )
+                                }
+                                if let des = card.descriptionSkill2 {
+                                    skillSection(
+                                        skillLevel: 2,
+                                        unlockLevel: 6,
+                                        description: des
+                                    )
+                                }
+                                if let des = card.descriptionSkill3 {
+                                    skillSection(
+                                        skillLevel: 3,
+                                        unlockLevel: 10,
+                                        description: des
+                                    )
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 10)
+                        .padding(.bottom, 150)
+                    }
+                }
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .circular)
+                        .fill(backgroundColor)
+                        .frame(width: 150, height: 60)
+                        .blur(radius: 10)
+                    HStack(spacing: 10) {
+                        Image(card.ccasset_type.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 30)
+                        Text("\(card.price)")
+                            .font(.system(size: 25))
+                            .foregroundStyle(Color.white)
+                    }
+                    .frame(width: 120, height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .circular)
+                            .fill(Color.orange)
+                    )
+                }
+                .exclusiveTouchTapGesture {
+                    PopupWindowManager.shared.presentPopup(
+                        title: "shop.action.buy",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                AssetManager.shared.purchaseMCWithCC(cardID: card.def_id)
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "shop.popup.buy.cpasset",
+                            items:
+                                [
+                                    ("MONEY", .image(card.ccasset_type.iconName, width: 20)),
+                                    ("MONEY", .text(" * \(card.price)")),
+                                    ("ASSET", .text(card.name))
+                                ]
+                        )
+                    }
+                }
+                .padding(.bottom, 50)
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .enableSwipeBackGesture()
+            .ignoresSafeArea(edges: .bottom)
+        } else {
+            VStack(spacing: 50) {
+                VStack(spacing: 20) {
+                    HStack(spacing: 20) {
+                        Rectangle()
+                            .frame(height: 32)
+                            .foregroundStyle(Color.gray.opacity(0.5))
+                            .cornerRadius(16)
+                        Image(systemName: "xmark")
+                            .fontWeight(.semibold)
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.thirdText)
+                            .padding(6)
+                            .background(Color.gray.opacity(0.5))
+                            .clipShape(Circle())
+                            .exclusiveTouchTapGesture {
+                                navigationManager.removeLast()
+                            }
+                    }
+                    Rectangle()
+                        .aspectRatio(5/7, contentMode: .fit)
+                        .frame(height: 300)
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                        .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                Rectangle()
+                    .foregroundStyle(Color.gray.opacity(0.3))
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .enableSwipeBackGesture()
+            .ignoresSafeArea(edges: .bottom)
+            .background(Color.defaultBackground)
+            .onFirstAppear {
+                queryShopCardInfo()
+            }
+        }
+    }
+    
+    func queryShopCardInfo() {
+        guard var components = URLComponents(string: "/asset/query_equip_card_shop_detail") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "def_id", value: defID)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: MagicCardShopDTO.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        card = MagicCardShop(from: unwrappedData)
+                    }
+                    downloadImages(url: unwrappedData.image_url)
+                }
+            default: break
+            }
+        }
+    }
+    
+    func downloadImages(url: String) {
+        NetworkService.downloadImage(from: url) { image in
+            if let image = image {
+                if let avg = ImageTool.averageColor(from: image) {
+                    DispatchQueue.main.async {
+                        self.backgroundColor = avg.bestSoftDarkReadableColor()
+                    }
+                }
+            }
+        }
+    }
+    
+    // 传感器图标视图
+    private func sensorIcon(name: String, text: String) -> some View {
+        VStack {
+            Image(systemName: name)
+                .font(.title2)
+                .foregroundStyle(Color.orange)
+            
+            Text(LocalizedStringKey(text))
+                .font(.caption)
+                .foregroundStyle(Color.secondText)
+        }
+        .padding(.horizontal)
+        .frame(height: 50)
+        .background(Color.white.opacity(0.2))
+        .cornerRadius(8)
+    }
+    
+    private func skillSection(
+        skillLevel: Int,
+        unlockLevel: Int,
+        description: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("institute.upgrade.skill \(skillLevel)")
+                    .font(.headline)
+                    .foregroundStyle(Color.white)
+                (Text("（level \(unlockLevel.roman) ") + Text("magiccard.detail.skill.unlock") + Text("）"))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.gray)
+                Spacer()
+            }
+            Text(description)
+                .font(.subheadline)
+                .foregroundStyle(Color.secondText)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
