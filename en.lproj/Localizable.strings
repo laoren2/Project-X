@@ -7,6 +7,7 @@
 */
 
 "common.and" = "and";
+"common.or" = "or";
 "common.status" = "Status";
 "common.loading" = "Loading";
 "common.member.a/b %lld %lld" = "%lld/%lld members";
@@ -124,12 +125,38 @@
 "home.search.toast" = "Cannot find user";
 "home.announcament.no_contents" = "No announcements yet";
 "home.announcament.title" = "Announcements & Notices";
-"home.feature.skill" = "Usage Tips";
+"home.skill" = "Usage Tips";
+"home.skill.title" = "Things You Need to Know About Sporreer.";
+"home.skill.title.1" = "Competition registration and participation";
+"home.skill.title.2" = "Team Mode";
+"home.skill.title.3" = "Equipment Cards";
+"home.skill.title.4" = "Reward Settlement";
+"home.skill.title.1.subtitle.1" = "Match records";
+"home.skill.title.2.subtitle.1" = "Create and join a team";
+"home.skill.title.2.subtitle.2" = "Manage teams";
+"home.skill.title.2.subtitle.3" = "180-second continuous window";
+"home.skill.title.3.subtitle.1" = "Availability";
+"home.skill.title.3.subtitle.2" = "Equipment card upgrades and skill upgrades";
+"home.skill.title.4.subtitle.2" = "Track settlement";
+"home.skill.title.4.subtitle.3" = "Season settlement";
+"home.skill.title.1.subtitle.1.content" = "After successful registration, a race record will be automatically created and can be viewed on the record management page in the sports center. Race records have four statuses: Not Started, In Progress, Completed, and Expired.\nRaces can start within the record's valid time. Individual records can start at any time within the track's valid time, while team records can only start within the team race window. \nCancelling a race record will result in a refund of the registration fee. Note that cancellations are not possible after the record's deadline. The deadline for individual records is the deadline for registering for the track, and the deadline for team records is the deadline for the team race window. \nThe system will automatically handle expired race records (records with a duration exceeding 2 hours will be considered expired).";
+"home.skill.title.1.subtitle.2.content" = "Each track has a corresponding prize pool. For each completed race record, the prize pool will accumulate based on a certain percentage of the registration fee.";
+"home.skill.title.2.subtitle.1.content" = "You can create a team under the corresponding track, and then edit the details on the team management page. \nYou can view the teams that are currently available to join in the team list for the corresponding track. There are two ways to join a team: you can join directly using the 8-digit team code, or you can submit an application to join.";
+"home.skill.title.2.subtitle.2.content" = "Team management is available on the team management page. A team has five statuses: Ready, Locked, Match, In Progress, and Finished. Note that once a team enters the match status, it cannot be withdrawn. Teams must start their matches precisely within the 2-hour match window. \nAfter a team disbands, the system will automatically refund the registration fee to all registered team members.";
+"home.skill.title.2.subtitle.3.content" = "Once a team member starts a match, the remaining members must join the match within a 180-second time window; otherwise, they cannot join and the match record cannot be canceled. It is recommended that the team members reunite before entering the match.";
+"home.skill.title.3.subtitle.1.content" = "Equipment cards may fail to equip and be used in the following scenarios: \n1. Client version incompatibility. If the client version is lower than the card's requirements, it cannot be used. You can check the version compatibility on the details page of the shop or inventory. \n2. Sports type mismatch. Different sports types can only use corresponding cards. \n3. Sports mode mismatch. For example, team-specific cards cannot be used in single-player mode. \n4. Sensor mismatch. The type or location of the bound sensor does not meet the requirements of the corresponding card.";
+"home.skill.title.3.subtitle.2.content" = "Upgrading cards or card skills can enhance card benefits within a certain range. The increase in value is related to the card's luck stat. \nThere are two ways to upgrade cards: 1) by consuming upgrade materials, and 2) by consuming level 0 cards of the same type. When upgrading using method 2, it's wiser to choose cards with lower luck stats. \nBefore upgrading a card's skill, you need to unlock the skill first. The unlock thresholds for different skills can be found on the card's details page.";
+"home.skill.title.4.subtitle.1.content" = "There will be a settlement after each race (record), and there will be additional rewards for breaking your own best time or the best time on the track.";
+"home.skill.title.4.subtitle.2.content" = "After each race on a track concludes, a leaderboard update will be released. Rewards will be sent to your in-game mailbox and are valid for 30 days by default. It is recommended to claim your rewards from Profile-MailBox as soon as possible. Please note that you will not be able to participate in track rewards if you have not completed real-name authentication.";
+"home.skill.title.4.subtitle.3.content" = "At the end of the season, there will be a review and settlement of season results. Rewards will be sent to your in-game mailbox and are valid for 30 days by default. It is recommended to claim them from Profile-MailBox as soon as possible. Please note that you will not be able to complete the season settlement if you have not completed real-name authentication.";
 
 "shop.tab.props" = "Props";
 "shop.tab.equip_card" = "EquipCards";
 "shop.action.buy" = "Buy";
 "shop.popup" = "Are you sure you want to spend {{MONEY}} to purchase {{ASSET}} * 1 ?";
+"shop.popup.buy.ccasset.coin" = "You can use {{MONEY1}} or {{MONEY2}} to purchase {{ASSET}}";
+"shop.popup.buy.ccasset.stone1" = "You can use {{MONEY}} to purchase {{ASSET}}";
+"shop.popup.buy.ccasset.confirm" = "Are you sure you want to spend {{MONEY}} * {{MONEYCOUNT}} to purchase {{ASSET}} * {{ASSETCOUNT}}?";
 
 "warehouse.action.goBuy" = "Go Buy";
 "warehouse.action.goUpgrade" = "Go Upgrade";
@@ -174,7 +201,7 @@
 "competition.record.status.completed" = "Completed";
 "competition.record.status.expired" = "Data expired";
 "competition.record.status.verifying" = "Data is being verified";
-"competition.record.status.verift_failed" = "Data validation failed";
+"competition.record.status.verify_failed" = "Data validation failed";
 "competition.record.status.computing" = "In data calculation";
 "competition.record.original_time" = "Original scores";
 "competition.record.valid_time" = "Valid scores";
@@ -189,11 +216,16 @@
 "competition.record.result.normal" = "You're just a little bit away from your best score, we look forward to your next challenge!";
 "competition.record.time" = "Results";
 "competition.record.no_data" = "No record data";
+"competition.record.incompleted.no_data" = "No registration records yet.";
+"competition.record.completed.no_data" = "No completed records yet.";
 
 "competition.cardselect.choose" = "Please select your equipment card";
 "competition.cardselect.subscription" = "Subscribe to get extra card slots";
 "competition.cardselect.action.choose" = "Select Card";
 "competition.cardselect.action.next_step" = "Next step";
+"competition.cardselect.magiccard.equipped" = "equipped";
+"competition.cardselect.magiccard.empty_slot" = "Empty slot";
+"competition.cardselect.magiccard.vipslot" = "Exclusive slot";
 
 "competition.realtime.action.finish" = "End";
 "competition.realtime.action.finish.2" = "End";
@@ -234,6 +266,8 @@
 "competition.event.error.no_events" = "There are currently no events in this region";
 
 "competition.track" = "Track";
+"competition.track.start" = "Start";
+"competition.track.finish" = "End";
 "competition.track.info" = "Track Info";
 "competition.track.error.no_tracks" = "There are currently no available tracks for this event.\nPlease switch regions or events to try again.";
 "competition.track.error.closed" = "The track is closed.";
@@ -292,7 +326,7 @@
 "competition.team.action.quit" = "Quit";
 "competition.team.detail" = "Team Details";
 "competition.team.region" = "Competition Area";
-"competition.team.member.a/b %lld %lld" = "Team members %lld/%lld";
+"competition.team.member" = "Team members";
 "competition.team.error.no_data" = "No team data";
 "competition.team.status.locked" = "Team locked";
 "competition.team.action.lock" = "Lock Team";
@@ -322,6 +356,9 @@
 "competition.team.manage.ready.popup.title" = "Match status";
 "competition.team.manage.ready.popup.content" = "Once all team members have registered and there are no outstanding applications, the team can transition from locked to match mode. In match mode, the team can then prepare for the match according to their scheduled time. \nNote: Once in match mode, all team information cannot be modified, and the match status cannot be revoked!";
 "competition.team.status" = "Team status";
+"competition.team.manage.start_date.popup.title" = "Team match time";
+"competition.team.create.start_date.popup.content" = "The team match time refers to the earliest time a team can actually enter a match. From this moment, teams in match status will have a 2-hour time window during which they can start the match at any time. \nNote: Teams cannot enter a match after the time window expires. You can modify this setting at any time after team creation on the team management page.";
+"competition.team.manage.start_date.popup.content" = "The team's match time refers to the earliest time a team can actually enter the match. From this moment, teams in match status have a 2-hour effective time window, during which they can start the match at any time. \nNote: Teams cannot enter the match after the effective time window has expired.";
 
 "competition.terrain.road" = "Road";
 "competition.terrain.mountain" = "Off-road";
@@ -354,9 +391,20 @@
 "competition.applewatch.error.sync" = "Please click 'Synchronize' on your watch app to manually start the match";
 "competition.applewatch.error.finish" = "Watch connection failed, please manually end the exercise on your watch.";
 
+"competition.slidebar.subtitle" = "View the latest sports events";
+
 "user.page.friend" = "Friend";
 "user.page.following" = "Following";
 "user.page.follower" = "Follower";
+"user.page.friendlist.friend.search" = "Search friends";
+"user.page.friendlist.no_friends" = "You don't have any friends yet.";
+"user.page.friendlist.no_friends.2" = "Go team up for sports and find a friend!";
+"user.page.friendlist.following.search" = "Search followings";
+"user.page.friendlist.no_followings" = "You are not currently following anyone.";
+"user.page.friendlist.no_followings.2" = "Head over to the sports center and follow a fitness enthusiast!";
+"user.page.friendlist.follower.search" = "Search followers";
+"user.page.friendlist.no_followers" = "You currently have no followers.";
+"user.page.friendlist.no_followers.2" = "Go challenge yourself in the competition and attract more attention!";
 "user.page.edit" = "Edit Profile";
 "user.page.follow" = "Follow";
 "user.page.introduce_placeholder" = "Come on, introduce yourself!";
@@ -519,7 +567,7 @@
 "iap.subscription.benefits.3" = "rapid motion data verification";
 "iap.subscription.action.purchase" = "Subscribe Now";
 "iap.subscription.action.update_purchase" = "Update Subscription";
-"iap.subscription.toast.purchase.failed.reapeat_sub" = "This Apple ID is already associated with another account that has subscribed, so you cannot subscribe again";
+"iap.subscription.toast.purchase.failed.sub_off" = "This Apple ID is already associated with another account that has subscribed, so you cannot subscribe again";
 "iap.subscription.toast.purchase.failed.sub_on" = "The current subscription status does not belong to this Apple ID, please switch Apple accounts and try again";
 "iap.subscription.toast.purchase.failed.reapeat_sub" = "You have already subscribed to this project and cannot subscribe again";
 "iap.subscription.toast.help.query.success.title" = "Query Successful";
@@ -549,3 +597,26 @@
 "login.email.title" = "Email verification code login";
 "login.email.placeholder" = "Enter your email address";
 "login.toast.error_email" = "Please enter a valid email address";
+"login.reigster.popup.welcome" = "Welcome";
+"login.reigster.popup.content" = "Welcome to Sporreer! We've prepared a welcome gift for you, please claim it from \"Profile-Mailbox\" as soon as possible. \nNow, please complete your profile!";
+"login.reigster.popup.action.cancel" = "Later";
+"login.reigster.popup.action.confirm" = "Complete now";
+
+"magiccard.detail" = "Card Detail";
+"magiccard.detail.lucky" = "Luck value";
+"magiccard.detail.description" = "Card description";
+"magiccard.detail.sensor.type" = "Sensor type";
+"magiccard.detail.sensor.pos" = "Sensor pos";
+"magiccard.detail.skill.unlock" = "to unlock";
+"magiccard.detail.sensor.pos.phone" = "Phone";
+"magiccard.detail.lucky.popup" = "The card's luck value affects the range of values ​​for each upgrade, the higher the luck value, the greater the probability of obtaining a high increase.";
+"magiccard.detail.sensor.type.popup" = "The card needs to be bound to a specific sensor device to function properly. The sensor type list shows all the sensor models currently supported by the card.";
+"magiccard.detail.sensor.pos.popup" = "The card can only be used properly if the sensor device needs to be bound to a specified location. The sensor location list shows the required binding points for the card.";
+
+"ccasset.coin" = "Coin";
+"ccasset.coupon" = "Point";
+"ccasset.voucher" = "Gold Point";
+"ccasset.stone" = "Stone";
+"ccasset.stone1" = "Primary Stone";
+"ccasset.stone2" = "Intermediate Stone";
+"ccasset.stone3" = "Advanced Stone";

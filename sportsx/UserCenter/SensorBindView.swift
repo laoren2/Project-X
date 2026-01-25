@@ -16,7 +16,7 @@ struct SensorBindView: View {
     @State private var selectedPosition: BodyPosition? = nil
     
     var body: some View {
-        VStack(spacing: 100) {
+        VStack {
             HStack {
                 CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
@@ -35,16 +35,16 @@ struct SensorBindView: View {
                 }
             }
             .padding(.horizontal)
-            
+            Spacer()
             BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posWST)
-            
+            Spacer()
             HStack {
                 BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLH)
                 Spacer()
                 BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRH)
             }
             .padding(.horizontal, 50)
-            
+            Spacer()
             HStack {
                 Spacer()
                 BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLF)
@@ -102,6 +102,7 @@ struct SensorBindView: View {
     func bindAWDevice(pos: BodyPosition) {
         // 创建一个 AppleWatchDevice 并绑定
         // 未来支持更多设备(Xiaomi/Huawei等)
+        ToastManager.shared.start(toast: LoadingToast())
         let newWatch = AppleWatchDevice(
             deviceID: "applewatch-\(pos.rawValue)",
             deviceName: "applewatch",
@@ -116,6 +117,7 @@ struct SensorBindView: View {
                 DispatchQueue.main.async {
                     deviceManager.bindDevice(newWatch, at: pos)
                     isLoading = nil
+                    ToastManager.shared.finish()
                     let toast = Toast(message: "user.page.bind_device.result.success")
                     ToastManager.shared.show(toast: toast)
                 }
@@ -124,6 +126,7 @@ struct SensorBindView: View {
                 counter += 1
                 if counter >= 10 {
                     DispatchQueue.main.async {
+                        ToastManager.shared.finish()
                         isLoading = nil
                         let toast = Toast(message: "user.page.bind_device.result.failed")
                         ToastManager.shared.show(toast: toast)

@@ -10,7 +10,7 @@ import MapKit
 
 
 struct SportCenterView: View {
-    @StateObject var viewModel = CompetitionCenterViewModel()
+    @ObservedObject var viewModel: CompetitionCenterViewModel
     
     var body: some View {
         // todo: 实现训练中心
@@ -62,8 +62,10 @@ struct CompetitionCenterView: View {
                             //Text(appState.sport.name)
                             //    .font(.headline)
                             
-                            Image(systemName: appState.sport.iconName)
-                                .font(.system(size: 20))
+                            Image(appState.sport.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 20)
                         }
                         .foregroundStyle(.white)
                         .exclusiveTouchTapGesture {
@@ -137,6 +139,17 @@ struct CompetitionCenterView: View {
             if let location = locationManager.getLocation(), locationManager.regionID == nil {
                 viewModel.updateCity(from: location)
             }
+            PopupWindowManager.shared.presentPopup(
+                title: "user.setup.realname_auth.undone",
+                message: "user.setup.realname_auth.popup.no_auth",
+                doNotShowAgainKey: "sportCenterView.realname",
+                bottomButtons: [
+                    .cancel("login.reigster.popup.action.cancel"),
+                    .confirm("user.intro.go_auth") {
+                        appState.navigationManager.append(.realNameAuthView)
+                    }
+                ]
+            )
         }
         .onValueChange(of: appState.sport) {
             viewModel.fetchCurrentSeason()
@@ -200,7 +213,7 @@ struct TeamDescriptionView: View {
                         .padding(5)
                 }
             }
-            .frame(height: 100)
+            //.frame(height: 100)
             .padding(10)
             .background(Color.gray.opacity(0.8))
             .cornerRadius(20)
@@ -215,23 +228,27 @@ struct TeamDescriptionView: View {
 // 赛道信息项组件
 struct InfoItemView: View {
     let iconName: String
-    let iconColor: Color
     let text: String
     let param: String
+    let unit: String?
     
     var body: some View {
         HStack(spacing: 5) {
-            Image(systemName: iconName)
-                .font(.system(size: 15))
-                .foregroundColor(iconColor)
-                .frame(width: 24, height: 24, alignment: .center)
-            
-            (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)))
-                .font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
-                .foregroundColor(.secondText)
+            Image(iconName)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 20)
+            HStack(spacing: 2) {
+                (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)))
+                if let unit = unit {
+                    Text(LocalizedStringKey(unit))
+                }
+            }
+            .font(.subheadline)
+            .fixedSize(horizontal: false, vertical: true)
+            .lineLimit(nil)
+            .multilineTextAlignment(.leading)
+            .foregroundColor(.secondText)
         }
     }
 }
@@ -290,13 +307,76 @@ struct TeamRegisterView: View {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        teamCode = ""
+                        PopupWindowManager.shared.dismissPopup()
                         assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
                     }
                 }
             default: break
             }
         }
+    }
+}
+
+enum TrackPointType {
+    case start
+    case end
+}
+
+final class TrackPointAnnotation: MKPointAnnotation {
+    let type: TrackPointType
+
+    init(type: TrackPointType) {
+        self.type = type
+        super.init()
+    }
+}
+
+final class TrackPointAnnotationView: MKAnnotationView {
+    private let titleLabel = UILabel()
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        setupUI()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        setupUI()
+    }
+
+    private func setupUI() {
+        canShowCallout = false
+
+        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        titleLabel.textColor = .white
+        titleLabel.textAlignment = .center
+        titleLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        titleLabel.layer.cornerRadius = 4
+        titleLabel.clipsToBounds = true
+
+        addSubview(titleLabel)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        guard let image = image else { return }
+
+        bounds = CGRect(origin: .zero, size: image.size)
+
+        titleLabel.sizeToFit()
+        titleLabel.frame = CGRect(
+            x: -(titleLabel.bounds.width - image.size.width) / 2 - 10,
+            y: image.size.height + 2,
+            width: titleLabel.bounds.width + 20,
+            height: titleLabel.bounds.height + 10
+        )
+
+        centerOffset = CGPoint(x: 0, y: -image.size.height / 2)
+    }
+
+    func configure(title: String) {
+        titleLabel.text = title
     }
 }
 
@@ -341,8 +421,10 @@ struct TrackMapView: UIViewRepresentable {
             mapRect = mapRect.union(MKMapRect(x: p.x, y: p.y, width: 0, height: 0))
         }
         
-        let edgePadding = UIEdgeInsets(top: 50, left: 60, bottom: 50, right: 60)
+        let edgePadding = UIEdgeInsets(top: 60, left: 60, bottom: 40, right: 60)
+        //DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
         uiView.setVisibleMapRect(mapRect, edgePadding: edgePadding, animated: true)
+        //}
     }
     
     func makeCoordinator() -> Coordinator {
@@ -350,43 +432,41 @@ struct TrackMapView: UIViewRepresentable {
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
-        let fromAnnotation = MKPointAnnotation()
-        let toAnnotation = MKPointAnnotation()
-        
+        let fromAnnotation = TrackPointAnnotation(type: .start)
+        let toAnnotation = TrackPointAnnotation(type: .end)
+
         override init() {
             super.init()
             fromAnnotation.title = "From"
             toAnnotation.title = "To"
         }
-        
+
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            if annotation is MKUserLocation { return nil }
+            guard let annotation = annotation as? TrackPointAnnotation else { return nil }
             
-            let identifier = "customMarker"
-            var view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
-            if view == nil {
-                view = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                view?.canShowCallout = true
-                // 设置自定义图标
-                if let originalImage = UIImage(systemName: "bicycle") {
-                    let size = CGSize(width: 40, height: 30)
-                    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
-                    
-                    let tinted = originalImage.withTintColor(.orange, renderingMode: .alwaysOriginal)
-                    tinted.draw(in: CGRect(origin: .zero, size: size))
-                    
-                    let finalImage = UIGraphicsGetImageFromCurrentImageContext()
-                    UIGraphicsEndImageContext()
-                    
-                    view?.image = finalImage
-                }
-            } else {
-                view?.annotation = annotation
+            let identifier = "TrackPointAnnotationView"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            as? TrackPointAnnotationView
+            ?? TrackPointAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            
+            let imageName: String
+            let titleText: String
+            
+            switch annotation.type {
+            case .start:
+                imageName = "flag_start"
+                titleText = NSLocalizedString("competition.track.start", comment: "")
+            case .end:
+                imageName = "flag_finish"
+                titleText = NSLocalizedString("competition.track.finish", comment: "")
             }
+            
+            view.image = UIImage(named: imageName)
+            view.configure(title: titleText)
             
             return view
         }
-        
+
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let circle = overlay as? MKCircle {
                 let renderer = MKCircleRenderer(circle: circle)
@@ -444,15 +524,7 @@ struct FullScreenMapRepresentable: UIViewRepresentable {
         mapView.isScrollEnabled = true
         mapView.isRotateEnabled = true
         mapView.delegate = context.coordinator
-        
-        context.coordinator.fromAnnotation.coordinate = fromCoordinate
-        context.coordinator.toAnnotation.coordinate = toCoordinate
         mapView.addAnnotations([context.coordinator.fromAnnotation, context.coordinator.toAnnotation])
-        
-        // 添加圆形覆盖层
-        let circle1 = MKCircle(center: fromCoordinate, radius: startRadius)
-        let circle2 = MKCircle(center: toCoordinate, radius: endRadius)
-        mapView.addOverlays([circle1, circle2])
         
         // 隐藏底部 "Legal" 图标
         for subview in mapView.subviews {
@@ -465,6 +537,15 @@ struct FullScreenMapRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MKMapView, context: Context) {
+        // 更新坐标
+        context.coordinator.fromAnnotation.coordinate = fromCoordinate
+        context.coordinator.toAnnotation.coordinate = toCoordinate
+        // 添加圆形覆盖层
+        uiView.removeOverlays(uiView.overlays)
+        let circle1 = MKCircle(center: fromCoordinate, radius: startRadius)
+        let circle2 = MKCircle(center: toCoordinate, radius: endRadius)
+        uiView.addOverlays([circle1, circle2])
+        
         let points: [CLLocationCoordinate2D] = [fromCoordinate, toCoordinate]
         var mapRect = MKMapRect.null
         for point in points {
@@ -481,11 +562,38 @@ struct FullScreenMapRepresentable: UIViewRepresentable {
     }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        let fromAnnotation = MKPointAnnotation()
-        let toAnnotation = MKPointAnnotation()
+        let fromAnnotation = TrackPointAnnotation(type: .start)
+        let toAnnotation = TrackPointAnnotation(type: .end)
+        
         override init() {
             fromAnnotation.title = "From"
             toAnnotation.title = "To"
+        }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard let annotation = annotation as? TrackPointAnnotation else { return nil }
+            
+            let identifier = "TrackPointAnnotationView.Fullscreen"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            as? TrackPointAnnotationView
+            ?? TrackPointAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            
+            let imageName: String
+            let titleText: String
+            
+            switch annotation.type {
+            case .start:
+                imageName = "flag_start"
+                titleText = NSLocalizedString("competition.track.start", comment: "")
+            case .end:
+                imageName = "flag_finish"
+                titleText = NSLocalizedString("competition.track.finish", comment: "")
+            }
+            
+            view.image = UIImage(named: imageName)
+            view.configure(title: titleText)
+            
+            return view
         }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -501,9 +609,9 @@ struct FullScreenMapRepresentable: UIViewRepresentable {
     }
 }
 
-#Preview {
+/*#Preview {
     let appState = AppState.shared
     return SportCenterView()
         .environmentObject(appState)
         .preferredColorScheme(.dark)
-}
+}*/

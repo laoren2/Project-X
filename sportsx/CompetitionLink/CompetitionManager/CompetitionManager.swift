@@ -43,15 +43,6 @@ let SKIPVARIFYSCOREUPLOAD: Bool = {
     #endif
 }()
 
-// 是否忽略比赛终点范围校验
-let IGNOREENDRADIUS: Bool = {
-    #if DEBUG
-    return true
-    #else
-    return false
-    #endif
-}()
-
 // 是否 dump 每场比赛的详细数据
 let DUMPMATCHDATA: Bool = {
     #if DEBUG
@@ -219,10 +210,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
-                    let formatter = ISO8601DateFormatter()
-                    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
                     DispatchQueue.main.async {
-                        if let expired_date = unwrappedData.expired_date, let expired = formatter.date(from: expired_date) {
+                        if let expired_date = unwrappedData.expired_date, let expired = DateParser.parseISO8601(expired_date) {
                             self.stopTeamJoinTimerA()
                             if self.teamJoinTimerB == nil {
                                 let remainingTime = Int(expired.timeIntervalSinceNow)
@@ -313,26 +302,24 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         DispatchQueue.global(qos: .background).async { [self] in
             if isRecording {
                 // 比赛进行中，检查用户是否在终点的安全区域内
-                if !IGNOREENDRADIUS {
-                    let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
-                    let inEndZone = dis <= endRadius
-                    let inSafetyEndZone = dis <= 2 * endRadius
-                    //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
-                    if inSafetyEndZone {
-                        let point = PathPoint(
-                            lat: location.coordinate.latitude,
-                            lon: location.coordinate.longitude,
-                            speed: location.speed,
-                            altitude: location.altitude,
-                            heart_rate: nil,
-                            timestamp: location.timestamp.timeIntervalSince1970
-                        )
-                        pathPointInEndSafetyRadius.append(point)
-                    }
-                    if inEndZone {
-                        DispatchQueue.main.async {
-                            self.stopCompetition()
-                        }
+                let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
+                let inEndZone = dis <= endRadius
+                let inSafetyEndZone = dis <= 2 * endRadius
+                //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
+                if inSafetyEndZone {
+                    let point = PathPoint(
+                        lat: location.coordinate.latitude,
+                        lon: location.coordinate.longitude,
+                        speed: location.speed,
+                        altitude: location.altitude,
+                        heart_rate: nil,
+                        timestamp: location.timestamp.timeIntervalSince1970
+                    )
+                    pathPointInEndSafetyRadius.append(point)
+                }
+                if inEndZone {
+                    DispatchQueue.main.async {
+                        self.stopCompetition()
                     }
                 }
             } else {
@@ -520,9 +507,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             return -1
         }
         
-        if !IGNOREENDRADIUS {
-            guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
-        }
+        guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
         
         guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
@@ -639,9 +624,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         
         // 未完成比赛
-        if !IGNOREENDRADIUS {
-            guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
-        }
+        guard !pathPointInEndSafetyRadius.isEmpty else { return -2 }
         
         guard basePathData.count >= 2 else {
             // 路径过短，不能校验，默认不合法
@@ -872,7 +855,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     // todo: 暂时开始时间和结束时间都由客户端决定，未来可在服务端接收到请求后记录时间进行二次验证
     func finishCompetition_server() {
         let optimizeEndTime = organizeEndTime()
-        
+        //print("optimizeEndTime: \(optimizeEndTime)")
         if let record = currentBikeRecord, sport == .Bike {
             var validationResult = verifyBikeMatchData()
             if DUMPMATCHDATA {
@@ -978,6 +961,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     self.globalConfig.refreshTeamManageView = true
                     DispatchQueue.main.async {
                         if let matchResult = unwrappedData.match_result {
+                            for asset in matchResult.rewards {
+                                self.assetManager.updateCCAsset(type: asset.ccasset_type, newBalance: asset.new_ccamount)
+                            }
                             PopupWindowManager.shared.presentPopup(
                                 title: "competition.record.complete",
                                 bottomButtons: [
@@ -1070,17 +1056,19 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     // 组队比赛开始时使用队伍奖励卡牌的逻辑
-    func startCompetitionWithTeamBonusCard() {
+    func startCompetitionWithTeamBonusCard(cardID: String) {
         guard isTeam else { return }
         guard var components = URLComponents(string: "/competition/\(sport.rawValue)/start_competition_with_team_bonus_card") else { return }
         if let record = currentBikeRecord, sport == .Bike {
             components.queryItems = [
-                URLQueryItem(name: "record_id", value: record.record_id)
+                URLQueryItem(name: "record_id", value: record.record_id),
+                URLQueryItem(name: "card_id", value: cardID)
             ]
         }
         if let record = currentRunningRecord, sport == .Running {
             components.queryItems = [
-                URLQueryItem(name: "record_id", value: record.record_id)
+                URLQueryItem(name: "record_id", value: record.record_id),
+                URLQueryItem(name: "card_id", value: cardID)
             ]
         }
         guard let urlPath = components.url?.absoluteString else { return }
@@ -1352,8 +1340,19 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         matchContext.reset()
         matchContext.isTeam = isTeam
         
-        activeCardEffects = selectedCards.map { card in
-            MagicCardFactory.createEffect(level: card.level, from: card.cardDef)
+        var effects: [MagicCardEffect] = []
+        do {
+            for card in selectedCards {
+                let effect = try MagicCardFactory.createEffect(
+                    level: card.level,
+                    from: card.cardDef
+                )
+                effects.append(effect)
+            }
+            activeCardEffects = effects
+        } catch {
+            ToastManager.shared.show(toast: Toast(message: error.localizedDescription))
+            return
         }
         
         for effect in activeCardEffects {
@@ -1418,6 +1417,16 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         isInValidArea = false
         //isEffectsFinishPrepare = true
+        pathPointInEndSafetyRadius = []
+    }
+}
+
+extension CompetitionManager {
+    // 切到前台刷新 widget 状态
+    func syncWidgetVisibility() {
+        if !isRecording {
+            isShowWidget = false
+        }
     }
 }
 
@@ -1728,15 +1737,14 @@ class MatchContext {
     }
     
     func addOrUpdateTeamBonusTime(cardID: String, bonusTime: Double) {
-        if var item = teamBonus {
-            if let time = item.bonus_seconds {
-                item.bonus_seconds = time + bonusTime
-            } else {
-                item.bonus_seconds = bonusTime
-            }
-        } else {
-            teamBonus = TeamMagicCardBonusItem(card_id: cardID, bonus_ratio: nil, bonus_seconds: bonusTime)
+        if teamBonus == nil {
+            teamBonus = TeamMagicCardBonusItem(
+                card_id: cardID,
+                bonus_ratio: nil,
+                bonus_seconds: 0
+            )
         }
+        teamBonus!.bonus_seconds = (teamBonus!.bonus_seconds ?? 0) + bonusTime
     }
 }
 

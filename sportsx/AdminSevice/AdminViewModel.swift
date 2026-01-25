@@ -22,8 +22,12 @@ class RunningEventBackendViewModel: ObservableObject {
     var selectedEventID: String = ""
     
     // 更新的event信息
-    @Published var name: String = ""
-    @Published var description: String = ""
+    @Published var name_en: String = ""
+    @Published var name_hans: String = ""
+    @Published var name_hant: String = ""
+    @Published var description_en: String = ""
+    @Published var description_hans: String = ""
+    @Published var description_hant: String = ""
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     var image_url: String = ""
@@ -32,8 +36,12 @@ class RunningEventBackendViewModel: ObservableObject {
 struct RunningEventCardEntry: Identifiable, Equatable {
     let id: UUID
     let event_id: String
-    let name: String
-    let description: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
+    let description_en: String
+    let description_hans: String
+    let description_hant: String
     let start_date: String
     let end_date: String
     let season_name: String
@@ -43,8 +51,12 @@ struct RunningEventCardEntry: Identifiable, Equatable {
     init(from event: RunningEventInfoInternalDTO) {
         self.id = UUID()
         self.event_id = event.event_id
-        self.name = event.name
-        self.description = event.description
+        self.name_en = event.name["en"]?.stringValue ?? "空"
+        self.name_hans = event.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = event.name["zh-Hant"]?.stringValue ?? "空"
+        self.description_en = event.description["en"]?.stringValue ?? "空"
+        self.description_hans = event.description["zh-Hans"]?.stringValue ?? "空"
+        self.description_hant = event.description["zh-Hant"]?.stringValue ?? "空"
         self.start_date = event.start_date
         self.end_date = event.end_date
         self.season_name = event.season_name
@@ -59,8 +71,8 @@ struct RunningEventCardEntry: Identifiable, Equatable {
 
 struct RunningEventInfoInternalDTO: Codable {
     let event_id: String
-    let name: String
-    let description: String
+    let name: JSONValue
+    let description: JSONValue
     let start_date: String
     let end_date: String
     let season_name: String
@@ -83,7 +95,9 @@ class RunningTrackBackendViewModel: ObservableObject {
     var selectedTrackID: String = ""
     
     // 更新的track信息
-    @Published var name: String = ""
+    @Published var name_en: String = ""
+    @Published var name_hans: String = ""
+    @Published var name_hant: String = ""
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     
@@ -95,7 +109,9 @@ class RunningTrackBackendViewModel: ObservableObject {
     @Published var to_radius: Int = 0
     
     @Published var elevationDifference: String = ""
-    @Published var subRegioName: String = ""
+    @Published var subRegioName_en: String = ""
+    @Published var subRegioName_hans: String = ""
+    @Published var subRegioName_hant: String = ""
     @Published var prizePool: String = ""
     @Published var distance: String = ""
     @Published var score: String = ""
@@ -107,7 +123,9 @@ class RunningTrackBackendViewModel: ObservableObject {
 struct RunningTrackCardEntry: Identifiable, Equatable {
     let id: UUID
     let track_id: String
-    let name: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
     let from_latitude: String
     let from_longitude: String
     let from_radius: Int
@@ -123,7 +141,9 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let image_url: String
     
     let elevationDifference: String     // 海拔差(米)
-    let subRegioName: String            // 覆盖的地理子区域
+    let subRegioName_en: String            // 覆盖的地理子区域
+    let subRegioName_hans: String
+    let subRegioName_hant: String
     let prizePool: String               // 奖金池金额
     let distance: String
     let score: String                   // 积分
@@ -133,7 +153,9 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     init(from track: RunningTrackInfoInternalDTO) {
         self.id = UUID()
         self.track_id = track.track_id
-        self.name = track.name
+        self.name_en = track.name["en"]?.stringValue ?? "空"
+        self.name_hans = track.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = track.name["zh-Hant"]?.stringValue ?? "空"
         self.from_latitude = track.from_latitude
         self.from_longitude = track.from_longitude
         self.from_radius = track.from_radius
@@ -150,7 +172,9 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.terrain_type = track.terrain_type
         
         self.elevationDifference = track.elevation_difference
-        self.subRegioName = track.sub_region_name
+        self.subRegioName_en = track.sub_region_name["en"]?.stringValue ?? "空"
+        self.subRegioName_hans = track.sub_region_name["zh-Hans"]?.stringValue ?? "空"
+        self.subRegioName_hant = track.sub_region_name["zh-Hant"]?.stringValue ?? "空"
         self.prizePool = track.prize_pool
         self.distance = track.distance
         self.score = track.score
@@ -164,7 +188,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
 
 struct RunningTrackInfoInternalDTO: Codable {
     let track_id: String
-    let name: String
+    let name: JSONValue
     
     let start_date: String
     let end_date: String
@@ -180,7 +204,7 @@ struct RunningTrackInfoInternalDTO: Codable {
     let to_longitude: String
     let to_radius: Int
     let elevation_difference: String    // 海拔差(米)
-    let sub_region_name: String         // 覆盖的地理子区域
+    let sub_region_name: JSONValue         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
     let distance: String
     let score: String
@@ -317,8 +341,12 @@ class BikeEventBackendViewModel: ObservableObject {
     var selectedEventID: String = ""
     
     // 更新的event信息
-    @Published var name: String = ""
-    @Published var description: String = ""
+    @Published var name_en: String = ""
+    @Published var name_hans: String = ""
+    @Published var name_hant: String = ""
+    @Published var description_en: String = ""
+    @Published var description_hans: String = ""
+    @Published var description_hant: String = ""
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     var image_url: String = ""
@@ -327,8 +355,12 @@ class BikeEventBackendViewModel: ObservableObject {
 struct BikeEventCardEntry: Identifiable, Equatable {
     let id: UUID
     let event_id: String
-    let name: String
-    let description: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
+    let description_en: String
+    let description_hans: String
+    let description_hant: String
     let start_date: String
     let end_date: String
     let season_name: String
@@ -338,8 +370,12 @@ struct BikeEventCardEntry: Identifiable, Equatable {
     init(from event: BikeEventInfoInternalDTO) {
         self.id = UUID()
         self.event_id = event.event_id
-        self.name = event.name
-        self.description = event.description
+        self.name_en = event.name["en"]?.stringValue ?? "空"
+        self.name_hans = event.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = event.name["zh-Hant"]?.stringValue ?? "空"
+        self.description_en = event.description["en"]?.stringValue ?? "空"
+        self.description_hans = event.description["zh-Hans"]?.stringValue ?? "空"
+        self.description_hant = event.description["zh-Hant"]?.stringValue ?? "空"
         self.start_date = event.start_date
         self.end_date = event.end_date
         self.season_name = event.season_name
@@ -354,8 +390,8 @@ struct BikeEventCardEntry: Identifiable, Equatable {
 
 struct BikeEventInfoInternalDTO: Codable {
     let event_id: String
-    let name: String
-    let description: String
+    let name: JSONValue
+    let description: JSONValue
     let start_date: String
     let end_date: String
     let season_name: String
@@ -378,7 +414,10 @@ class BikeTrackBackendViewModel: ObservableObject {
     var selectedTrackID: String = ""
     
     // 更新的track信息
-    @Published var name: String = ""
+    @Published var name_en: String = ""
+    @Published var name_hans: String = ""
+    @Published var name_hant: String = ""
+    
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     
@@ -390,9 +429,12 @@ class BikeTrackBackendViewModel: ObservableObject {
     @Published var to_radius: Int = 0
     
     @Published var elevationDifference: String = ""
-    @Published var subRegioName: String = ""
+    @Published var subRegioName_en: String = ""
+    @Published var subRegioName_hans: String = ""
+    @Published var subRegioName_hant: String = ""
     @Published var prizePool: String = ""
     @Published var score: String = ""
+    @Published var distance: String = ""
     @Published var terrainType: BikeTrackTerrainType = .other
     
     var image_url: String = ""
@@ -401,7 +443,9 @@ class BikeTrackBackendViewModel: ObservableObject {
 struct BikeTrackCardEntry: Identifiable, Equatable {
     let id: UUID
     let track_id: String
-    let name: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
     let from_latitude: String
     let from_longitude: String
     let from_radius: Int
@@ -417,16 +461,21 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let image_url: String
     
     let elevationDifference: String     // 海拔差(米)
-    let subRegioName: String            // 覆盖的地理子区域
+    let subRegioName_en: String            // 覆盖的地理子区域
+    let subRegioName_hans: String
+    let subRegioName_hant: String
     let prizePool: String               // 奖金池金额
     let score: String                   // 积分
+    let distance: String
     let terrain_type: BikeTrackTerrainType
     let is_settled: Bool
     
     init(from track: BikeTrackInfoInternalDTO) {
         self.id = UUID()
         self.track_id = track.track_id
-        self.name = track.name
+        self.name_en = track.name["en"]?.stringValue ?? "空"
+        self.name_hans = track.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = track.name["zh-Hant"]?.stringValue ?? "空"
         self.from_latitude = track.from_latitude
         self.from_longitude = track.from_longitude
         self.from_radius = track.from_radius
@@ -442,10 +491,13 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.image_url = track.image_url
         
         self.elevationDifference = track.elevation_difference
-        self.subRegioName = track.sub_region_name
+        self.subRegioName_en = track.sub_region_name["en"]?.stringValue ?? "空"
+        self.subRegioName_hans = track.sub_region_name["zh-Hans"]?.stringValue ?? "空"
+        self.subRegioName_hant = track.sub_region_name["zh-Hant"]?.stringValue ?? "空"
         self.prizePool = track.prize_pool
         self.score = track.score
         self.terrain_type = track.terrain_type
+        self.distance = track.distance
         self.is_settled = track.is_settled
     }
     
@@ -456,7 +508,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
 
 struct BikeTrackInfoInternalDTO: Codable {
     let track_id: String
-    let name: String
+    let name: JSONValue
     
     let start_date: String
     let end_date: String
@@ -473,9 +525,10 @@ struct BikeTrackInfoInternalDTO: Codable {
     let to_radius: Int
     
     let elevation_difference: String    // 海拔差(米)
-    let sub_region_name: String         // 覆盖的地理子区域
+    let sub_region_name: JSONValue         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
     let score: String                   // 积分等级
+    let distance: String
     let terrain_type: BikeTrackTerrainType  // 地形类型
     let is_settled: Bool                // 是否已结算
 }
@@ -609,10 +662,12 @@ class CPAssetBackendViewModel: ObservableObject {
     var selectedAssetID: String = ""
     
     // 更新的asset信息
-    @Published var name: String = ""
-    @Published var description: String = ""
-    @Published var startDate: Date = Date()
-    @Published var endDate: Date = Date().addingTimeInterval(3600*24)
+    @Published var name_en: String = ""
+    @Published var name_hans: String = ""
+    @Published var name_hant: String = ""
+    @Published var description_en: String = ""
+    @Published var description_hans: String = ""
+    @Published var description_hant: String = ""
     var image_url: String = ""
 }
 
@@ -620,15 +675,23 @@ struct CPAssetCardEntry: Identifiable, Equatable {
     var id: String {asset_id}
     let asset_id: String
     let cpasset_type: String
-    let name: String
-    let description: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
+    let description_en: String
+    let description_hans: String
+    let description_hant: String
     let image_url: String
     
     init(from asset: CPAssetDefDTO) {
         self.asset_id = asset.asset_id
         self.cpasset_type = asset.cpasset_type
-        self.name = asset.name
-        self.description = asset.description
+        self.name_en = asset.name["en"]?.stringValue ?? "空"
+        self.name_hans = asset.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = asset.name["zh-Hant"]?.stringValue ?? "空"
+        self.description_en = asset.description["en"]?.stringValue ?? "空"
+        self.description_hans = asset.description["zh-Hans"]?.stringValue ?? "空"
+        self.description_hant = asset.description["zh-Hant"]?.stringValue ?? "空"
         self.image_url = asset.image_url
     }
     
@@ -640,8 +703,8 @@ struct CPAssetCardEntry: Identifiable, Equatable {
 struct CPAssetDefDTO: Codable {
     let asset_id: String
     let cpasset_type: String
-    let name: String
-    let description: String
+    let name: JSONValue
+    let description: JSONValue
     let image_url: String
 }
 
@@ -671,8 +734,12 @@ class CPAssetPriceBackendViewModel: ObservableObject {
 struct CPAssetPriceCardEntry: Identifiable, Equatable {
     var id: String {asset_id}
     let asset_id: String
-    let name: String
-    let description: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
+    let description_en: String
+    let description_hans: String
+    let description_hant: String
     let image_url: String
     let ccasset_type: CCAssetType
     let price: Int
@@ -680,8 +747,12 @@ struct CPAssetPriceCardEntry: Identifiable, Equatable {
     
     init(from asset: CPAssetPriceDTO) {
         self.asset_id = asset.asset_id
-        self.name = asset.name
-        self.description = asset.description
+        self.name_en = asset.name["en"]?.stringValue ?? "空"
+        self.name_hans = asset.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = asset.name["zh-Hant"]?.stringValue ?? "空"
+        self.description_en = asset.description["en"]?.stringValue ?? "空"
+        self.description_hans = asset.description["zh-Hans"]?.stringValue ?? "空"
+        self.description_hant = asset.description["zh-Hant"]?.stringValue ?? "空"
         self.image_url = asset.image_url
         self.ccasset_type = asset.ccasset_type
         self.price = asset.price
@@ -695,8 +766,8 @@ struct CPAssetPriceCardEntry: Identifiable, Equatable {
 
 struct CPAssetPriceDTO: Codable {
     let asset_id: String
-    let name: String
-    let description: String
+    let name: JSONValue
+    let description: JSONValue
     let image_url: String
     let ccasset_type: CCAssetType
     let price: Int
@@ -718,29 +789,87 @@ class MagicCardBackendViewModel: ObservableObject {
     var selectedCardID: String = ""
     
     // 更新的asset信息
-    @Published var name: String = ""
-    @Published var description: String = ""
-    @Published var startDate: Date = Date()
-    @Published var endDate: Date = Date().addingTimeInterval(3600*24)
+    @Published var name_en: String = ""
+    @Published var name_hans: String = ""
+    @Published var name_hant: String = ""
+    @Published var description_en: String = ""
+    @Published var description_hans: String = ""
+    @Published var description_hant: String = ""
+    @Published var skill1_description_en: String = ""
+    @Published var skill1_description_hans: String = ""
+    @Published var skill1_description_hant: String = ""
+    @Published var skill2_description_en: String = ""
+    @Published var skill2_description_hans: String = ""
+    @Published var skill2_description_hant: String = ""
+    @Published var skill3_description_en: String = ""
+    @Published var skill3_description_hans: String = ""
+    @Published var skill3_description_hant: String = ""
     var image_url: String = ""
+    @Published var version: String = ""
 }
 
 struct MagicCardEntry: Identifiable, Equatable {
     var id: String {def_id}
     let def_id: String
     let sport_type: SportName
-    let name: String
-    let description: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
+    let description_en: String
+    let description_hans: String
+    let description_hant: String
+    let skill1_description_en: String
+    let skill1_description_hans: String
+    let skill1_description_hant: String
+    let skill2_description_en: String
+    let skill2_description_hans: String
+    let skill2_description_hant: String
+    let skill3_description_en: String
+    let skill3_description_hans: String
+    let skill3_description_hant: String
     let image_url: String
+    let version: String
     let rarity: String
     
     init(from card: MagicCardDefDTO) {
         self.def_id = card.def_id
-        self.name = card.name
+        self.name_en = card.name_i18n["en"]?.stringValue ?? "空"
+        self.name_hans = card.name_i18n["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = card.name_i18n["zh-Hant"]?.stringValue ?? "空"
+        self.description_en = card.description_i18n["en"]?.stringValue ?? "空"
+        self.description_hans = card.description_i18n["zh-Hans"]?.stringValue ?? "空"
+        self.description_hant = card.description_i18n["zh-Hant"]?.stringValue ?? "空"
+        if let skill1_des = card.skill1_description_i18n {
+            self.skill1_description_en = skill1_des["en"]?.stringValue ?? ""
+            self.skill1_description_hans = skill1_des["zh-Hans"]?.stringValue ?? ""
+            self.skill1_description_hant = skill1_des["zh-Hant"]?.stringValue ?? ""
+        } else {
+            self.skill1_description_en = ""
+            self.skill1_description_hans = ""
+            self.skill1_description_hant = ""
+        }
+        if let skill2_des = card.skill2_description_i18n {
+            self.skill2_description_en = skill2_des["en"]?.stringValue ?? ""
+            self.skill2_description_hans = skill2_des["zh-Hans"]?.stringValue ?? ""
+            self.skill2_description_hant = skill2_des["zh-Hant"]?.stringValue ?? ""
+        } else {
+            self.skill2_description_en = ""
+            self.skill2_description_hans = ""
+            self.skill2_description_hant = ""
+        }
+        if let skill3_des = card.skill3_description_i18n {
+            self.skill3_description_en = skill3_des["en"]?.stringValue ?? ""
+            self.skill3_description_hans = skill3_des["zh-Hans"]?.stringValue ?? ""
+            self.skill3_description_hant = skill3_des["zh-Hant"]?.stringValue ?? ""
+        } else {
+            self.skill3_description_en = ""
+            self.skill3_description_hans = ""
+            self.skill3_description_hant = ""
+        }
         self.image_url = card.image_url
         self.sport_type = card.sport_type
         self.rarity = card.rarity
-        self.description = card.description
+        self.version = card.version
     }
     
     static func == (lhs: MagicCardEntry, rhs: MagicCardEntry) -> Bool {
@@ -750,14 +879,14 @@ struct MagicCardEntry: Identifiable, Equatable {
 
 struct MagicCardDefDTO: Codable {
     let def_id: String
-    let name: String
+    let name_i18n: JSONValue
     let image_url: String
     let sport_type: SportName
     let rarity: String
-    let description: String
-    let skill1_description: String?
-    let skill2_description: String?
-    let skill3_description: String?
+    let description_i18n: JSONValue
+    let skill1_description_i18n: JSONValue?
+    let skill2_description_i18n: JSONValue?
+    let skill3_description_i18n: JSONValue?
     let version: String
     //let type_name: String
     let tags: [String]
@@ -787,7 +916,9 @@ class MagicCardPriceBackendViewModel: ObservableObject {
 struct MagicCardPriceCardEntry: Identifiable, Equatable {
     var id: String {def_id}
     let def_id: String
-    let name: String
+    let name_en: String
+    let name_hans: String
+    let name_hant: String
     let image_url: String
     let ccasset_type: CCAssetType
     let price: Int
@@ -795,7 +926,9 @@ struct MagicCardPriceCardEntry: Identifiable, Equatable {
     
     init(from card: MagicCardPriceDTO) {
         self.def_id = card.def_id
-        self.name = card.name
+        self.name_en = card.name["en"]?.stringValue ?? "空"
+        self.name_hans = card.name["zh-Hans"]?.stringValue ?? "空"
+        self.name_hant = card.name["zh-Hant"]?.stringValue ?? "空"
         self.image_url = card.image_url
         self.ccasset_type = card.ccasset_type
         self.price = card.price
@@ -809,14 +942,14 @@ struct MagicCardPriceCardEntry: Identifiable, Equatable {
 
 struct MagicCardPriceDTO: Codable {
     let def_id: String
-    let name: String
+    let name: JSONValue
     let image_url: String
     let sport_type: SportName
     let rarity: String
-    let description: String
-    let skill1_description: String?
-    let skill2_description: String?
-    let skill3_description: String?
+    let description: JSONValue
+    let skill1_description: JSONValue?
+    let skill2_description: JSONValue?
+    let skill3_description: JSONValue?
     let version: String
     let effect_config: JSONValue
     

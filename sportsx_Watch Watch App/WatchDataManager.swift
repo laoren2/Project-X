@@ -13,6 +13,12 @@ import CoreMotion
 import WatchConnectivity
 import os
 
+
+enum SportType: String {
+    case Bike = "bike"
+    case Running = "running"
+}
+
 class WatchDataManager: NSObject, ObservableObject {
     static let shared = WatchDataManager()
     
@@ -34,6 +40,7 @@ class WatchDataManager: NSObject, ObservableObject {
     
     
     var enableIMU: Bool = false
+    var sportType: SportType = .Bike
     
     @Published var showingAuthToast: Bool = false
     @Published var isNeedWaitingAuth: Bool = false
@@ -210,12 +217,14 @@ class WatchDataManager: NSObject, ObservableObject {
         )
         
         if config.activityType == .running {
+            sportType = .Running
             dataSource.enableCollection(for: HKQuantityType(.stepCount), predicate: nil)
             dataSource.enableCollection(for: HKQuantityType(.distanceWalkingRunning), predicate: nil)
             dataSource.enableCollection(for: HKQuantityType(.runningPower), predicate: nil)
         }
         
         if config.activityType == .cycling {
+            sportType = .Bike
             //dataSource.enableCollection(for: HKQuantityType(.cyclingCadence), predicate: nil)
             dataSource.enableCollection(for: HKQuantityType(.distanceCycling), predicate: nil)
             dataSource.enableCollection(for: HKQuantityType(.cyclingPower), predicate: nil)
@@ -570,8 +579,9 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                         let cycleCount = cycleStats?.averageQuantity()?.doubleValue(for: .count())
                         let energyStats = workout.statistics(for: HKQuantityType(.activeEnergyBurned))
                         let energy = energyStats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
-                        let distanceStats = workout.statistics(for: HKQuantityType(.distanceWalkingRunning))
                         let duration = workout.duration
+                        let runningDistanceStats = workout.statistics(for: HKQuantityType(.distanceWalkingRunning))
+                        let bikeDistanceStats = workout.statistics(for: HKQuantityType(.distanceCycling))
                         
                         self.summaryViewData = SummaryViewData(
                             avgHeartRate: self.avgHeartRate,
@@ -585,31 +595,58 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                         if let step = stepCount {
                             self.summaryViewData?.stepCadence = duration > 0 ? 60 * (step / duration) : nil
                         }
-                        
-                        if let distance = distanceStats?.sumQuantity()?.doubleValue(for: .meter()) {
-                            self.summaryViewData?.distance = distance
-                            // 清理资源
-                            self.resetWorkout()
-                        } else {
-                            let predicate = HKQuery.predicateForSamples(
-                                withStart: workout.startDate,
-                                end: workout.endDate,
-                                options: .strictStartDate
-                            )
-                            let distanceType = HKQuantityType(.distanceWalkingRunning)
-                            let distanceQuery = HKStatisticsQuery(
-                                quantityType: distanceType,
-                                quantitySamplePredicate: predicate,
-                                options: .cumulativeSum
-                            ) { _, result, _ in
-                                let totalMeters = result?.sumQuantity()?.doubleValue(for: .meter()) ?? 0
-                                DispatchQueue.main.async {
-                                    self.summaryViewData?.distance = totalMeters
-                                    // 清理资源
-                                    self.resetWorkout()
+                        if self.sportType == .Running {
+                            if let distance = runningDistanceStats?.sumQuantity()?.doubleValue(for: .meter()) {
+                                self.summaryViewData?.distance = distance
+                                // 清理资源
+                                self.resetWorkout()
+                            } else {
+                                let predicate = HKQuery.predicateForSamples(
+                                    withStart: workout.startDate,
+                                    end: workout.endDate,
+                                    options: .strictStartDate
+                                )
+                                let distanceType = HKQuantityType(.distanceWalkingRunning)
+                                let distanceQuery = HKStatisticsQuery(
+                                    quantityType: distanceType,
+                                    quantitySamplePredicate: predicate,
+                                    options: .cumulativeSum
+                                ) { _, result, _ in
+                                    let totalMeters = result?.sumQuantity()?.doubleValue(for: .meter()) ?? 0
+                                    DispatchQueue.main.async {
+                                        self.summaryViewData?.distance = totalMeters
+                                        // 清理资源
+                                        self.resetWorkout()
+                                    }
                                 }
+                                self.healthStore.execute(distanceQuery)
                             }
-                            self.healthStore.execute(distanceQuery)
+                        } else if self.sportType == .Bike {
+                            if let distance = bikeDistanceStats?.sumQuantity()?.doubleValue(for: .meter()) {
+                                self.summaryViewData?.distance = distance
+                                // 清理资源
+                                self.resetWorkout()
+                            } else {
+                                let predicate = HKQuery.predicateForSamples(
+                                    withStart: workout.startDate,
+                                    end: workout.endDate,
+                                    options: .strictStartDate
+                                )
+                                let distanceType = HKQuantityType(.distanceCycling)
+                                let distanceQuery = HKStatisticsQuery(
+                                    quantityType: distanceType,
+                                    quantitySamplePredicate: predicate,
+                                    options: .cumulativeSum
+                                ) { _, result, _ in
+                                    let totalMeters = result?.sumQuantity()?.doubleValue(for: .meter()) ?? 0
+                                    DispatchQueue.main.async {
+                                        self.summaryViewData?.distance = totalMeters
+                                        // 清理资源
+                                        self.resetWorkout()
+                                    }
+                                }
+                                self.healthStore.execute(distanceQuery)
+                            }
                         }
                     }
                 }

@@ -176,50 +176,44 @@ struct BikeRecordDetailView: View {
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .font(.system(.body, design: .rounded))
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
                                     (Text("competition.record.original_time") + Text(":"))
-                                        .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.originalTime, showFraction: true))")
                                         .font(.system(.body, design: .rounded))
-                                        .bold()
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
                                     (Text("competition.record.valid_time") + Text(":"))
-                                        .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
                                         .font(.system(.body, design: .rounded))
-                                        .bold()
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
                                     (Text("common.status") + Text(":"))
-                                        .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     if detailInfo.status == .completed {
                                         if detailInfo.isFinishComputed == false {
                                             Text("competition.record.status.computing")
                                                 .foregroundColor(.orange)
-                                                .bold()
                                         } else {
                                             Text("competition.record.status.completed")
                                                 .foregroundColor(.green)
-                                                .bold()
                                         }
                                     } else {
                                         Text(LocalizedStringKey(detailInfo.status.displayName))
                                             .foregroundStyle(detailInfo.status.backgroundColor)
-                                            .bold()
                                     }
                                 }
                             }
+                            .bold()
                             Divider()
                                 .environment(\.colorScheme, .dark)
                             // 数据统计
@@ -589,9 +583,7 @@ struct BikeRecordDetailView: View {
                                             HStack(spacing: 16) {
                                                 HStack(spacing: 10) {
                                                     CachedAsyncImage(
-                                                        urlString: score.userInfo.avatarUrl,
-                                                        placeholder: Image(systemName: "person"),
-                                                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                                        urlString: score.userInfo.avatarUrl
                                                     )
                                                     .aspectRatio(contentMode: .fill)
                                                     .frame(width: 40, height: 40)
@@ -1070,14 +1062,14 @@ struct RunningRecordDetailView: View {
                                                 HStack {
                                                     Text("common.speed")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f ", overallSpeedRange.min, overallSpeedRange.max)) + Text("speed.km/h")
+                                                    Text(SpeedHelper.paceString(from: overallSpeedRange.min)) + Text(" - ") + Text(SpeedHelper.paceString(from: overallSpeedRange.max)) + Text("/") + Text("distance.km")
                                                 }
                                                 .foregroundStyle(Color.orange)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     isSpeedDetail.toggle()
                                                 }
-                                                (Text(String(format: "%.0f ", viewModel.samplePath[progressIndex].speed_avg)) + Text("speed.km/h"))
+                                                (Text(SpeedHelper.paceString(from: viewModel.samplePath[progressIndex].speed_avg)) + Text("/") + Text("distance.km"))
                                                     .padding(.horizontal)
                                                     .padding(.vertical, 10)
                                                     .font(.caption2)
@@ -1117,7 +1109,7 @@ struct RunningRecordDetailView: View {
                                         HStack {
                                             Text("common.speed")
                                             Spacer()
-                                            Text("common.average") + Text(String(format: " %.0f ", speedAvg)) + Text("speed.km/h")
+                                            Text("common.average") + Text(SpeedHelper.paceString(from: speedAvg)) + Text("/") + Text("distance.km")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -1442,9 +1434,7 @@ struct RunningRecordDetailView: View {
                                             HStack(spacing: 16) {
                                                 HStack(spacing: 10) {
                                                     CachedAsyncImage(
-                                                        urlString: score.userInfo.avatarUrl,
-                                                        placeholder: Image(systemName: "person"),
-                                                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                                                        urlString: score.userInfo.avatarUrl
                                                     )
                                                     .aspectRatio(contentMode: .fill)
                                                     .frame(width: 40, height: 40)

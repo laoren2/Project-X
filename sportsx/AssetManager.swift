@@ -60,6 +60,32 @@ class AssetManager: ObservableObject {
         }
     }
     
+    func purchaseCCWithCC(buy: CCAssetType, amount: Int, use: CCAssetType) {
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        let body: [String: String] = [
+            "buy": buy.rawValue,
+            "amount": "\(amount)",
+            "use": use.rawValue
+        ]
+        guard let encodedBody = try? JSONEncoder().encode(body) else { return }
+        
+        let request = APIRequest(path: "/asset/buy_ccasset", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: CC_CC_PurchaseResultResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        self.updateCCAsset(type: unwrappedData.decrease_type, newBalance: unwrappedData.decrease_amount)
+                        self.updateCCAsset(type: unwrappedData.increase_type, newBalance: unwrappedData.increase_amount)
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
     func purchaseCPWithCC(assetID: String, amount: Int) {
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
@@ -68,9 +94,7 @@ class AssetManager: ObservableObject {
             "cpasset_id": assetID,
             "cpamount": "\(amount)"
         ]
-        guard let encodedBody = try? JSONEncoder().encode(body) else {
-            return
-        }
+        guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
         let request = APIRequest(path: "/asset/buy_cpasset", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
         NetworkService.sendRequest(with: request, decodingType: CC_CP_PurchaseResultResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
@@ -182,21 +206,18 @@ class AssetManager: ObservableObject {
     }
     
     func queryCPAssets(withLoadingToast: Bool) async {
-        await MainActor.run {
-            cpassets.removeAll()
-        }
         let request = APIRequest(path: "/asset/query_user_cpassets", method: .get, requiresAuth: true)
-        
+
         let result = await NetworkService.sendAsyncRequest(with: request, decodingType: CPAssetUserResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                let newAssets = unwrappedData.assets
+                    .filter { $0.amount > 0 }
+                    .map { CPAssetUserInfo(from: $0) }
+
                 await MainActor.run {
-                    for asset in unwrappedData.assets {
-                        if asset.amount > 0 {
-                            cpassets.append(CPAssetUserInfo(from: asset))
-                        }
-                    }
+                    self.cpassets = newAssets
                 }
             }
         default: break
@@ -204,19 +225,18 @@ class AssetManager: ObservableObject {
     }
     
     func queryMagicCards(withLoadingToast: Bool) async {
-        await MainActor.run {
-            magicCards.removeAll()
-        }
         let request = APIRequest(path: "/asset/query_user_equip_cards", method: .get, requiresAuth: true)
-        
+
         let result = await NetworkService.sendAsyncRequest(with: request, decodingType: MagicCardUserResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                let newCards = unwrappedData.cards.map {
+                    MagicCard(from: $0)
+                }
+
                 await MainActor.run {
-                    for card in unwrappedData.cards {
-                        magicCards.append(MagicCard(from: card))
-                    }
+                    self.magicCards = newCards
                 }
             }
         default: break
@@ -244,6 +264,23 @@ class AssetManager: ObservableObject {
     
     func withdraw(amount: Int) {
         // 处理提现请求
+    }
+}
+
+enum AssetType: String, Codable, CaseIterable {
+    case ccasset = "ccasset"
+    case cpasset = "cpasset"
+    case magiccard = "magiccard"
+    
+    var iconName: String {
+        switch self {
+        case .ccasset:
+            return "ccasset"
+        case .cpasset:
+            return "cpasset"
+        case .magiccard:
+            return "magiccard"
+        }
     }
 }
 
@@ -280,7 +317,7 @@ struct AssetUpdateResponse: Codable {
 }
 
 struct CPAssetUserInfo: Identifiable {
-    var id: String {asset_id}
+    let id: UUID
     let asset_id: String
     let name: String
     let description: String
@@ -288,6 +325,7 @@ struct CPAssetUserInfo: Identifiable {
     var amount: Int
     
     init(from asset: CPAssetUserInfoDTO) {
+        self.id = UUID()
         self.asset_id = asset.asset_id
         self.name = asset.name
         self.description = asset.description
@@ -309,7 +347,7 @@ struct CPAssetUserResponse: Codable {
 }
 
 struct CPAssetShopInfo: Identifiable {
-    var id: String {asset_id}
+    let id: UUID
     let asset_id: String
     let name: String
     let description: String
@@ -318,6 +356,7 @@ struct CPAssetShopInfo: Identifiable {
     let price: Int
     
     init(from asset: CPAssetShopInfoDTO) {
+        self.id = UUID()
         self.asset_id = asset.asset_id
         self.name = asset.name
         self.description = asset.description
@@ -467,28 +506,28 @@ struct MagicCard: Identifiable, Equatable {
         self.lucky = card.lucky
         self.rarity = card.rarity
         
-        // 处理card.effect_def，将所有description中{{}}对应的值乘以multiplier
+        // 处理 card.effect_def，对所有 description 中的 compute 属性（{{compute_values.xx}}）应用 multiplier
         var finalJsonValue: JSONValue = card.effect_def
-        let baseKeys = card.description.extractKeys()       // 提取 {{xxx.xx}}
+        let baseKeys = card.description.extractComputeKeys()       // 提取 {{compute_values.xxx.xx}}
         finalJsonValue.applyingMultiplier(for: baseKeys, multiplier: card.multiplier)
         self.description = card.description.rendered(with: finalJsonValue)
         
         if let des1 = card.description_skill1, let mul = card.multiplier_skill1 {
-            let skill1Keys = des1.extractKeys()
+            let skill1Keys = des1.extractComputeKeys()
             finalJsonValue.applyingMultiplier(for: skill1Keys, multiplier: mul)
             self.descriptionSkill1 = des1.rendered(with: finalJsonValue)
         } else {
             self.descriptionSkill1 = nil
         }
         if let des2 = card.description_skill2, let mul = card.multiplier_skill2 {
-            let skill2Keys = des2.extractKeys()
+            let skill2Keys = des2.extractComputeKeys()
             finalJsonValue.applyingMultiplier(for: skill2Keys, multiplier: mul)
             self.descriptionSkill2 = des2.rendered(with: finalJsonValue)
         } else {
             self.descriptionSkill2 = nil
         }
         if let des3 = card.description_skill3, let mul = card.multiplier_skill3 {
-            let skill3Keys = des3.extractKeys()
+            let skill3Keys = des3.extractComputeKeys()
             finalJsonValue.applyingMultiplier(for: skill3Keys, multiplier: mul)
             self.descriptionSkill3 = des3.rendered(with: finalJsonValue)
         } else {
@@ -644,4 +683,64 @@ struct MagicCardShopDTO: Codable {
 
 struct MagicCardShopResponse: Codable {
     let cards: [MagicCardShopDTO]
+}
+
+struct CommonAssetShopInfo: Identifiable {
+    let id: UUID
+    let assetType: AssetType
+    let asset_id: String
+    let name: String
+    let description: String
+    let ccassetType: CCAssetType
+    let price: Int
+    let version: AppVersion?
+    
+    init(from asset: CPAssetShopInfo) {
+        self.id = asset.id
+        self.assetType = .cpasset
+        self.asset_id = asset.asset_id
+        self.name = asset.name
+        self.description = asset.description
+        self.ccassetType = asset.ccassetType
+        self.price = asset.price
+        self.version = nil
+    }
+    
+    init(from card: MagicCardShop) {
+        self.id = card.id
+        self.assetType = .magiccard
+        self.asset_id = card.def_id
+        self.name = card.name
+        self.description = card.description
+        self.ccassetType = card.ccasset_type
+        self.price = card.price
+        self.version = card.version
+    }
+}
+
+struct CommonAssetUserInfo: Identifiable {
+    let id: UUID
+    let assetType: AssetType
+    let asset_id: String
+    let name: String
+    let description: String
+    let version: AppVersion?
+    
+    init(from asset: CPAssetUserInfo) {
+        self.id = asset.id
+        self.assetType = .cpasset
+        self.asset_id = asset.asset_id
+        self.name = asset.name
+        self.description = asset.description
+        self.version = nil
+    }
+    
+    init(from card: MagicCard) {
+        self.id = card.id
+        self.assetType = .magiccard
+        self.asset_id = card.cardID
+        self.name = card.name
+        self.description = card.description
+        self.version = card.version
+    }
 }

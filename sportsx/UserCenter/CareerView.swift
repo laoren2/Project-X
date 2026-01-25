@@ -16,31 +16,43 @@ struct CareerView: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            // 暂时为适配 iOS16+ 的写法
+            // todo: 替换为更稳定的自定义menu
+            
             HStack {
-                // todo: 替换为更稳定的自定义menu
-                Menu {
-                    ForEach(viewModel.seasons) { season in
-                        Button(action: {
-                            viewModel.selectedSeason = season
-                        }) {
-                            Text(LocalizedStringKey(season.seasonName))
+                if let seasonName = viewModel.selectedSeason?.seasonName {
+                    Menu {
+                        ForEach(viewModel.seasons) { season in
+                            Button(action: {
+                                viewModel.selectedSeason = season
+                            }) {
+                                Text(LocalizedStringKey(season.seasonName))
+                            }
                         }
+                    } label: {
+                        HStack {
+                            Text(LocalizedStringKey(seasonName))
+                                .font(.subheadline)
+                                .foregroundStyle(Color.white)
+                                .fixedSize(horizontal: true, vertical: false)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .background(Color.white.opacity(0.4))
+                        .cornerRadius(8)
                     }
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey(viewModel.selectedSeason?.seasonName ?? "error.unknown"))
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                        
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .cornerRadius(8)
+                } else {
+                    Text("error.unknown")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondText)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .background(Color.white.opacity(0.4))
+                        .cornerRadius(8)
                 }
-                
                 Spacer()
             }
             .padding(.horizontal)
@@ -138,11 +150,12 @@ struct CareerView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(Color.white)
                     Divider()
-                    HStack(spacing: 15) {
+                    HStack(alignment: .bottom, spacing: 15) {
                         VStack(spacing: 5) {
-                            Image(systemName: "clock.fill")
-                                .font(.title2)
-                                .foregroundStyle(Color.green)
+                            Image("total_time")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 25)
                             (Text(String(format: "%.2f", viewModel.totalTime / 3600)) + Text("time.hour"))
                                 .font(.headline)
                                 .fontWeight(.bold)
@@ -155,9 +168,10 @@ struct CareerView: View {
                         .padding(.vertical, 12)
                         
                         VStack(spacing: 5) {
-                            Image(systemName: "figure.run")
-                                .font(.title2)
-                                .foregroundStyle(Color.blue)
+                            Image("total_distance")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 25)
                             (Text(String(format: "%.2f", viewModel.totalDistance)) + Text("distance.km"))
                                 .font(.headline)
                                 .fontWeight(.bold)
@@ -193,17 +207,23 @@ struct CareerView: View {
             .padding(.horizontal)
             
             // 赛事积分记录
-            VStack(alignment: .leading, spacing: 10) {
-                Text("competition.season.event_records")
-                    .font(.headline)
-                    .foregroundStyle(.white)
+            VStack(spacing: 10) {
+                HStack {
+                    Text("competition.season.event_records")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Spacer()
+                }
                 if viewModel.competitionScoreRecords.isEmpty {
-                    HStack {
-                        Spacer()
+                    Spacer()
+                    VStack(spacing: 20) {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 60))
                         Text("error.no_data")
-                            .foregroundStyle(Color.secondText)
-                        Spacer()
+                            .font(.headline)
                     }
+                    .foregroundStyle(Color.white.opacity(0.3))
+                    Spacer()
                 } else {
                     LazyVStack(spacing: 15) {
                         ForEach(viewModel.competitionScoreRecords) { record in
@@ -213,7 +233,9 @@ struct CareerView: View {
                 }
             }
             .padding(.horizontal)
+            Spacer()
         }
+        .frame(minHeight: 700)
     }
     
     // 能力条
@@ -258,35 +280,46 @@ struct LocalCareerView: View {
     var body: some View {
         VStack(spacing: 20) {
             if !userManager.isLoggedIn {
+                Spacer()
                 Text("toast.no_login.2")
                     .foregroundStyle(Color.secondText)
                     .padding(.top, 100)
             } else {
                 HStack {
                     // todo: 替换为更稳定的自定义menu
-                    Menu {
-                        ForEach(viewModel.seasons) { season in
-                            Button(action: {
-                                viewModel.selectedSeason = season
-                            }) {
-                                Text(LocalizedStringKey(season.seasonName))
+                    if let seasonName = viewModel.selectedSeason?.seasonName {
+                        Menu {
+                            ForEach(viewModel.seasons) { season in
+                                Button(action: {
+                                    viewModel.selectedSeason = season
+                                }) {
+                                    Text(LocalizedStringKey(season.seasonName))
+                                }
                             }
+                        } label: {
+                            HStack {
+                                Text(LocalizedStringKey(seasonName))
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                                
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 10)
+                            .background(Color.white.opacity(0.4))
+                            .cornerRadius(8)
                         }
-                    } label: {
-                        HStack {
-                            Text(LocalizedStringKey(viewModel.selectedSeason?.seasonName ?? "error.unknown"))
-                                .font(.subheadline)
-                                .foregroundColor(.white)
-                            
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.8))
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .cornerRadius(8)
+                    } else {
+                        Text("error.unknown")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 10)
+                            .background(Color.white.opacity(0.4))
+                            .cornerRadius(8)
                     }
-                    
                     Spacer()
                 }
                 .padding(.horizontal)
@@ -339,11 +372,12 @@ struct LocalCareerView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(Color.white)
                         Divider()
-                        HStack(spacing: 15) {
+                        HStack(alignment: .bottom, spacing: 15) {
                             VStack(spacing: 5) {
-                                Image(systemName: "clock.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(Color.green)
+                                Image("total_time")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 25)
                                 (Text(String(format: "%.2f", viewModel.totalTime / 3600)) + Text("time.hour"))
                                     .font(.headline)
                                     .fontWeight(.bold)
@@ -356,9 +390,10 @@ struct LocalCareerView: View {
                             .padding(.vertical, 12)
                             
                             VStack(spacing: 5) {
-                                Image(systemName: "figure.run")
-                                    .font(.title2)
-                                    .foregroundStyle(Color.blue)
+                                Image("total_distance")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 25)
                                 (Text(String(format: "%.2f", viewModel.totalDistance)) + Text("distance.km"))
                                     .font(.headline)
                                     .fontWeight(.bold)
@@ -394,17 +429,23 @@ struct LocalCareerView: View {
                 .padding(.horizontal)
                 
                 // 赛事积分记录
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("competition.season.event_records")
-                        .font(.headline)
-                        .foregroundStyle(.white)
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("competition.season.event_records")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Spacer()
+                    }
                     if viewModel.competitionScoreRecords.isEmpty {
-                        HStack {
-                            Spacer()
+                        Spacer()
+                        VStack(spacing: 20) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 60))
                             Text("error.no_data")
-                                .foregroundStyle(Color.secondText)
-                            Spacer()
+                                .font(.headline)
                         }
+                        .foregroundStyle(Color.white.opacity(0.3))
+                        Spacer()
                     } else {
                         LazyVStack(spacing: 15) {
                             ForEach(viewModel.competitionScoreRecords) { record in
@@ -415,7 +456,9 @@ struct LocalCareerView: View {
                 }
                 .padding(.horizontal)
             }
+            Spacer()
         }
+        .frame(minHeight: 600)
     }
     
     // 能力条

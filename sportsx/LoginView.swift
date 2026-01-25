@@ -193,8 +193,19 @@ struct SmsLoginView: View {
                         userManager.saveUserInfoToCache()
                         //config.refreshAll()
                         userManager.isLoggedIn = true
-                        //userManager.showingLogin = false
                         navigationManager.removeLast()
+                        if unwrappedData.isRegister {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "login.reigster.popup.welcome",
+                                message: "login.reigster.popup.content",
+                                bottomButtons: [
+                                    .cancel("login.reigster.popup.action.cancel"),
+                                    .confirm("login.reigster.popup.action.confirm") {
+                                        navigationManager.append(.userIntroEditView)
+                                    }
+                                ]
+                            )
+                        }
                     }
                     
                     userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
@@ -203,12 +214,6 @@ struct SmsLoginView: View {
                         await AssetManager.shared.queryCCAssets()
                         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
                         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
-                    }
-                    
-                    if unwrappedData.isRegister {
-                        print("sms注册成功，进入编辑资料页")
-                    } else {
-                        print("登录成功")
                     }
                 }
             default:
@@ -273,7 +278,9 @@ struct LoginView: View {
 
     @State private var emailAddress: String = ""
     @State private var emailCode: String = ""
-
+#if DEBUG
+    @State private var emailPass: String = ""
+#endif
     @State private var showingWebView = false
     @State private var webPage: WebPage?
     @State private var agreed = false
@@ -311,64 +318,64 @@ struct LoginView: View {
                         .foregroundStyle(Color.thirdText)
                     Spacer()
                 }
-                    VStack(spacing: 20) {
-                        Text("login.email.title")
-                            .foregroundStyle(Color.white)
-                        
-                        TextField(text: $emailAddress) {
-                            Text("login.email.placeholder")
-                                .foregroundStyle(Color.thirdText)
-                        }
-                        .padding(10)
+                VStack(spacing: 20) {
+                    Text("login.email.title")
                         .foregroundStyle(Color.white)
-                        .scrollContentBackground(.hidden)
-                        .keyboardType(.emailAddress)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(10)
-                        
-                        if alreadySendEmailCode {
-                            Text(countdown == 0 ? "login.email.send_result.2" : "login.email.send_result.1 \(countdown)")
-                                .foregroundStyle(Color.secondText)
-                            HStack {
-                                TextField("login.sms.code.placeholder", text: $emailCode)
-                                    .textContentType(.oneTimeCode)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .keyboardType(.numberPad)
-                                
-                                Button(action: {
-                                    if countdown == 0 {
-                                        sendEmailCode()
-                                    }
-                                }) {
-                                    Text("login.sms.action.send_again")
-                                        .foregroundStyle(.white)
-                                        .font(.system(size: 15))
+                    
+                    TextField(text: $emailAddress) {
+                        Text("login.email.placeholder")
+                            .foregroundStyle(Color.thirdText)
+                    }
+                    .padding(10)
+                    .foregroundStyle(Color.white)
+                    .scrollContentBackground(.hidden)
+                    .keyboardType(.emailAddress)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                    
+                    if alreadySendEmailCode {
+                        Text(countdown == 0 ? "login.email.send_result.2" : "login.email.send_result.1 \(countdown)")
+                            .foregroundStyle(Color.secondText)
+                        HStack {
+                            TextField("login.sms.code.placeholder", text: $emailCode)
+                                .textContentType(.oneTimeCode)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .keyboardType(.numberPad)
+                            
+                            Button(action: {
+                                if countdown == 0 {
+                                    sendEmailCode()
                                 }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 8)
-                                .background(countdown == 0 ? Color.green : Color.gray)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
-                                .disabled(countdown != 0)
+                            }) {
+                                Text("login.sms.action.send_again")
+                                    .foregroundStyle(.white)
+                                    .font(.system(size: 15))
                             }
-                        }
-                        
-                        Button(action: {
-                            if alreadySendEmailCode {
-                                loginWithEmail()
-                            } else {
-                                sendEmailCode()
-                            }
-                        }) {
-                            Text(alreadySendEmailCode ? "action.login" : "login.sms.action.verify_and_login")
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .background(agreed ? Color.orange : Color.orange.opacity(0.2))
-                                .foregroundStyle(agreed ? Color.white : Color.thirdText)
-                                .cornerRadius(10)
-                                .padding(.top, 10)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(countdown == 0 ? Color.green : Color.gray)
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .disabled(countdown != 0)
                         }
                     }
-                    .padding(.top, 50)
+                    
+                    Button(action: {
+                        if alreadySendEmailCode {
+                            loginWithEmail()
+                        } else {
+                            sendEmailCode()
+                        }
+                    }) {
+                        Text(alreadySendEmailCode ? "action.login" : "login.sms.action.verify_and_login")
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(agreed ? Color.orange : Color.orange.opacity(0.2))
+                            .foregroundStyle(agreed ? Color.white : Color.thirdText)
+                            .cornerRadius(10)
+                            .padding(.top, 10)
+                    }
+                }
+                .padding(.top, 50)
                 
                 HStack(spacing: 5) {
                     Image(systemName: agreed ? "checkmark.circle" : "circle")
@@ -397,6 +404,24 @@ struct LoginView: View {
                 .sheet(item: $webPage) { item in
                     SafariView(url: item.url)
                 }
+#if DEBUG
+                HStack(spacing: 20) {
+                    TextField(text: $emailPass) {
+                        Text("请输入测试账号密码")
+                            .foregroundStyle(Color.thirdText)
+                    }
+                    .padding(10)
+                    .foregroundStyle(Color.white)
+                    .scrollContentBackground(.hidden)
+                    .keyboardType(.emailAddress)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                    
+                    Button("测试登录") {
+                        loginTestAccount()
+                    }
+                }
+#endif
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -404,7 +429,7 @@ struct LoginView: View {
             // 使用ZStack布局可以暂时解决键盘弹出挤压问题
             VStack {
                 Spacer()
-                HStack {
+                HStack(spacing: 6) {
                     Spacer()
                     VStack {
                         Image("appleid_button")
@@ -419,13 +444,19 @@ struct LoginView: View {
                         loginWithAppleID()
                     }
                     Spacer()
-                    VStack {
-                        Image(systemName: "candybarphone")
-                            .padding()
-                            .font(.system(size: 28))
-                            .background(Color.secondText)
-                            .clipShape(.circle)
-                            .frame(width: 55, height: 55)
+                    VStack(spacing: 6) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.secondText)
+                                .frame(width: 55, height: 55)
+                            Image("sms_login")
+                                .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28)
+                                .foregroundStyle(Color.black)
+                        }
+                            
                         Text("login.sms.action")
                             .font(.system(size: 15))
                             .foregroundStyle(Color.secondText)
@@ -450,6 +481,59 @@ struct LoginView: View {
         .ignoresSafeArea(.keyboard)
         .hideKeyboardOnTap()
     }
+    
+#if DEBUG
+    func loginTestAccount() {
+        let body = ["email_address": emailAddress, "code": emailPass]
+        guard let encodedBody = try? JSONEncoder().encode(body) else { return }
+        
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        let request = APIRequest(path: "/user/login/test_account", method: .post, headers: headers, body: encodedBody)
+        NetworkService.sendRequest(with: request, decodingType: LoginResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    let user = unwrappedData.user
+                    let relation = unwrappedData.relation
+                    DispatchQueue.main.async {
+                        userManager.friendCount = relation.friends
+                        userManager.followerCount = relation.follower
+                        userManager.followedCount = relation.followed
+                        userManager.user = User(from: user)
+                        userManager.role = unwrappedData.role
+                        userManager.saveUserInfoToCache()
+                        userManager.isLoggedIn = true
+                        userManager.showingLogin = false
+                        if unwrappedData.isRegister {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "login.reigster.popup.welcome",
+                                message: "login.reigster.popup.content",
+                                bottomButtons: [
+                                    .cancel("login.reigster.popup.action.cancel"),
+                                    .confirm("login.reigster.popup.action.confirm") {
+                                        navigationManager.append(.userIntroEditView)
+                                    }
+                                ]
+                            )
+                        }
+                    }
+                    
+                    userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
+                    
+                    Task {
+                        await AssetManager.shared.queryCCAssets()
+                        await AssetManager.shared.queryCPAssets(withLoadingToast: false)
+                        await AssetManager.shared.queryMagicCards(withLoadingToast: false)
+                    }
+                }
+            default:
+                break
+            }
+        }
+    }
+#endif
     
     func sendEmailCode() {
         guard agreed else {
@@ -524,6 +608,18 @@ struct LoginView: View {
                         //config.refreshAll()
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
+                        if unwrappedData.isRegister {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "login.reigster.popup.welcome",
+                                message: "login.reigster.popup.content",
+                                bottomButtons: [
+                                    .cancel("login.reigster.popup.action.cancel"),
+                                    .confirm("login.reigster.popup.action.confirm") {
+                                        navigationManager.append(.userIntroEditView)
+                                    }
+                                ]
+                            )
+                        }
                     }
                     
                     userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
@@ -532,12 +628,6 @@ struct LoginView: View {
                         await AssetManager.shared.queryCCAssets()
                         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
                         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
-                    }
-                    
-                    if unwrappedData.isRegister {
-                        print("email注册成功，进入编辑资料页")
-                    } else {
-                        print("登录成功")
                     }
                 }
             default:
@@ -582,6 +672,9 @@ struct LoginView: View {
         
         timer?.invalidate()
         timer = nil
+#if DEBUG
+        emailPass = ""
+#endif
     }
 }
 
@@ -644,6 +737,18 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
                         //GlobalConfig.shared.refreshAll()
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
+                        if unwrappedData.isRegister {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "login.reigster.popup.welcome",
+                                message: "login.reigster.popup.content",
+                                bottomButtons: [
+                                    .cancel("login.reigster.popup.action.cancel"),
+                                    .confirm("login.reigster.popup.action.confirm") {
+                                        NavigationManager.shared.append(.userIntroEditView)
+                                    }
+                                ]
+                            )
+                        }
                     }
                     
                     userManager.downloadImages(avatar_url: user.avatar_image_url, background_url: user.background_image_url)
@@ -652,12 +757,6 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
                         await AssetManager.shared.queryCCAssets()
                         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
                         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
-                    }
-                    
-                    if unwrappedData.isRegister {
-                        print("Apple注册成功，进入编辑资料页")
-                    } else {
-                        print("Apple登录成功")
                     }
                 }
             default: break

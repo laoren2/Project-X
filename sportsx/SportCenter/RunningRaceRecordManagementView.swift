@@ -79,7 +79,7 @@ struct RunningRaceRecordManagementView: View {
                                     .foregroundColor(.gray.opacity(0.5))
                                     .padding(.top, 80)
                                 
-                                Text("暂无报名记录")
+                                Text("competition.record.incompleted.no_data")
                                     .font(.headline)
                                     .foregroundColor(.gray)
                             }
@@ -122,7 +122,7 @@ struct RunningRaceRecordManagementView: View {
                                     .foregroundColor(.gray.opacity(0.5))
                                     .padding(.top, 80)
                                 
-                                Text("暂无已完成的记录")
+                                Text("competition.record.completed.no_data")
                                     .font(.headline)
                                     .foregroundColor(.gray)
                             }
@@ -171,7 +171,9 @@ struct RunningRaceRecordManagementView: View {
                 }
                 globalConfig.refreshRecordManageView = false
             }
-            firstOnAppear = false
+            DispatchQueue.main.async {
+                firstOnAppear = false
+            }
         }
     }
 }

@@ -53,9 +53,48 @@ struct InstituteView: View {
                            await assetManager.queryCCAssets()
                         }
                     }
-                AssetCounterView(icon: CCAssetType.stone1.iconName, amount: assetManager.stone1)
-                AssetCounterView(icon: CCAssetType.stone2.iconName, amount: assetManager.stone2)
-                AssetCounterView(icon: CCAssetType.stone3.iconName, amount: assetManager.stone3)
+                HStack(spacing: 4) {
+                    AssetCounterView(icon: CCAssetType.stone1.iconName, amount: assetManager.stone1)
+                    Button(action:{
+                        PopupWindowManager.shared.presentPopup(
+                            bottomButtons: []
+                        ) {
+                            Stone1PurchaseView()
+                        }
+                    }) {
+                        Image(systemName: "plus.rectangle.fill")
+                            .foregroundStyle(Color.white)
+                            .font(.system(size: 18))
+                    }
+                }
+                HStack(spacing: 4) {
+                    AssetCounterView(icon: CCAssetType.stone2.iconName, amount: assetManager.stone2)
+                    Button(action:{
+                        PopupWindowManager.shared.presentPopup(
+                            bottomButtons: []
+                        ) {
+                            Stone23PurchaseView(assetType: .stone2, price: 10)
+                        }
+                    }) {
+                        Image(systemName: "plus.rectangle.fill")
+                            .foregroundStyle(Color.white)
+                            .font(.system(size: 18))
+                    }
+                }
+                HStack(spacing: 4) {
+                    AssetCounterView(icon: CCAssetType.stone3.iconName, amount: assetManager.stone3)
+                    Button(action:{
+                        PopupWindowManager.shared.presentPopup(
+                            bottomButtons: []
+                        ) {
+                            Stone23PurchaseView(assetType: .stone3, price: 20)
+                        }
+                    }) {
+                        Image(systemName: "plus.rectangle.fill")
+                            .foregroundStyle(Color.white)
+                            .font(.system(size: 18))
+                    }
+                }
             }
             .padding(.horizontal)
             
@@ -614,6 +653,232 @@ struct InstituteView: View {
     }
 }
 
+struct Stone1PurchaseView: View {
+    @ObservedObject var assetManager = AssetManager.shared
+    
+    @State var stone1Count: Int = 1
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            (Text("shop.action.buy") + Text("ccasset.stone"))
+                .font(.title3.bold())
+                .foregroundColor(.white)
+            RichTextLabel(
+                templateKey: "shop.popup.buy.ccasset.stone1",
+                items:
+                    [
+                        ("MONEY", .image(CCAssetType.coin.iconName, width: 20)),
+                        ("ASSET", .image(CCAssetType.stone1.iconName, width: 20))
+                    ]
+            )
+            if stone1Count < 1 {
+                Text("购买数量最少为1")
+                    .font(.caption)
+                    .foregroundStyle(Color.pink)
+            }
+            HStack(spacing: 12) {
+                TextField("0", value: $stone1Count, formatter: NumberFormatter())
+                    .keyboardType(.numberPad)
+                    .foregroundColor(.white)
+                    .font(.system(size: 20, weight: .semibold))
+                    .padding(10)
+                    .frame(height: 40)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
+                    .onChange(of: stone1Count) { newValue in
+                        if newValue > 999 {
+                            stone1Count = 1000
+                        }
+                    }
+                HStack(spacing: 6) {
+                    Button("+1") { stone1Count += 1 }
+                        .padding(.horizontal, 6)
+                        .frame(height: 40)
+                        .background(Color.black.opacity(0.25))
+                        .cornerRadius(6)
+                    Button("+10") { stone1Count += 10 }
+                        .padding(.horizontal, 6)
+                        .frame(height: 40)
+                        .background(Color.black.opacity(0.25))
+                        .cornerRadius(6)
+                }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.white)
+            }
+            HStack(spacing: 30) {
+                Button {
+                    PopupWindowManager.shared.dismissPopup()
+                    PopupWindowManager.shared.presentPopup(
+                        title: "shop.action.buy",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                assetManager.purchaseCCWithCC(buy: .stone1, amount: stone1Count, use: .coin)
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "shop.popup.buy.ccasset.confirm",
+                            items:
+                                [
+                                    ("MONEY", .image(CCAssetType.coin.iconName, width: 20)),
+                                    ("MONEYCOUNT", .text("\(Int(stone1Count * 100))")),
+                                    ("ASSET", .image(CCAssetType.stone1.iconName, width: 20)),
+                                    ("ASSETCOUNT", .text("\(stone1Count)"))
+                                ]
+                        )
+                    }
+                } label: {
+                    HStack {
+                        Image("coin")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("\(Int(stone1Count * 100))")
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(10)
+                    .background(stone1Count > 0 ? Color.orange : Color.gray)
+                    .cornerRadius(10)
+                }
+                .disabled(stone1Count < 1)
+            }
+        }
+    }
+}
+
+struct Stone23PurchaseView: View {
+    @ObservedObject var assetManager = AssetManager.shared
+    @State var stoneCount: Int = 1
+    let assetType: CCAssetType
+    let price: Int
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            (Text("shop.action.buy") + Text("ccasset.stone"))
+                .font(.title3.bold())
+                .foregroundColor(.white)
+            RichTextLabel(
+                templateKey: "shop.popup.buy.ccasset.coin",
+                items:
+                    [
+                        ("MONEY1", .image(CCAssetType.coupon.iconName, width: 20)),
+                        ("MONEY2", .image(CCAssetType.voucher.iconName, width: 20)),
+                        ("ASSET", .image(assetType.iconName, width: 20))
+                    ]
+            )
+            if stoneCount < 1 {
+                Text("购买数量最少为1")
+                    .font(.caption)
+                    .foregroundStyle(Color.pink)
+            }
+            HStack(spacing: 12) {
+                TextField("0", value: $stoneCount, formatter: NumberFormatter())
+                    .keyboardType(.numberPad)
+                    .foregroundColor(.white)
+                    .font(.system(size: 20, weight: .semibold))
+                    .padding(10)
+                    .frame(height: 40)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
+                    .onChange(of: stoneCount) { newValue in
+                        if newValue > 999 {
+                            stoneCount = 1000
+                        }
+                    }
+                HStack(spacing: 6) {
+                    Button("+1") { stoneCount += 1 }
+                        .padding(.horizontal, 6)
+                        .frame(height: 40)
+                        .background(Color.black.opacity(0.25))
+                        .cornerRadius(6)
+                    Button("+10") { stoneCount += 10 }
+                        .padding(.horizontal, 6)
+                        .frame(height: 40)
+                        .background(Color.black.opacity(0.25))
+                        .cornerRadius(6)
+                }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.white)
+            }
+            HStack(spacing: 30) {
+                Button {
+                    PopupWindowManager.shared.dismissPopup()
+                    PopupWindowManager.shared.presentPopup(
+                        title: "shop.action.buy",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                assetManager.purchaseCCWithCC(buy: assetType, amount: stoneCount, use: .coupon)
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "shop.popup.buy.ccasset.confirm",
+                            items:
+                                [
+                                    ("MONEY", .image(CCAssetType.coupon.iconName, width: 20)),
+                                    ("MONEYCOUNT", .text("\(Int(stoneCount * price))")),
+                                    ("ASSET", .image(assetType.iconName, width: 20)),
+                                    ("ASSETCOUNT", .text("\(stoneCount)"))
+                                ]
+                        )
+                    }
+                } label: {
+                    HStack {
+                        Image("coupon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("\(Int(stoneCount * price))")
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(10)
+                    .background(stoneCount > 0 ? Color.orange : Color.gray)
+                    .cornerRadius(10)
+                }
+                .disabled(stoneCount < 1)
+                Button {
+                    PopupWindowManager.shared.dismissPopup()
+                    PopupWindowManager.shared.presentPopup(
+                        title: "shop.action.buy",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                assetManager.purchaseCCWithCC(buy: assetType, amount: stoneCount, use: .voucher)
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "shop.popup.buy.ccasset.confirm",
+                            items:
+                                [
+                                    ("MONEY", .image(CCAssetType.voucher.iconName, width: 20)),
+                                    ("MONEYCOUNT", .text("\(Int(stoneCount * price))")),
+                                    ("ASSET", .image(assetType.iconName, width: 20)),
+                                    ("ASSETCOUNT", .text("\(stoneCount)"))
+                                ]
+                        )
+                    }
+                } label: {
+                    HStack {
+                        Image("voucher")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("\(Int(stoneCount * price))")
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(10)
+                    .background(stoneCount > 0 ? Color.orange : Color.gray)
+                    .cornerRadius(10)
+                }
+                .disabled(stoneCount < 1)
+            }
+        }
+    }
+}
+
 struct CardSelectedSheetView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
@@ -790,6 +1055,7 @@ struct RichTextLabel: UIViewRepresentable {
     
     func updateUIView(_ uiView: UITextView, context: Context) {
         uiView.attributedText = attributedText
+        uiView.textAlignment = .center
     }
     
     func sizeThatFits(

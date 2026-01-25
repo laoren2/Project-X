@@ -27,8 +27,15 @@ struct MailboxBackendView: View {
     
     @State private var user2_id: String = ""
     @State private var mail_type: String = MailType.NOTIFICATION.rawValue
-    @State private var title: String = ""
-    @State private var content: String = ""
+    
+    @State private var title_hans: String = ""
+    @State private var title_hant: String = ""
+    @State private var title_en: String = ""
+    
+    @State private var content_hans: String = ""
+    @State private var content_hant: String = ""
+    @State private var content_en: String = ""
+    
     @State private var attachments: String = ""
     
     let mail_types = [
@@ -122,9 +129,17 @@ struct MailboxBackendView: View {
                                     .padding(.horizontal, 10)
                                     .cornerRadius(8)
                                 }
-                                TextField("标题", text: $title)
+                                TextField("标题hans", text: $title_hans)
                                     .background(.gray.opacity(0.1))
-                                TextField("内容", text: $content)
+                                TextField("标题hant", text: $title_hant)
+                                    .background(.gray.opacity(0.1))
+                                TextField("标题en", text: $title_en)
+                                    .background(.gray.opacity(0.1))
+                                TextField("内容hans", text: $content_hans)
+                                    .background(.gray.opacity(0.1))
+                                TextField("内容hant", text: $content_hant)
+                                    .background(.gray.opacity(0.1))
+                                TextField("内容en", text: $content_en)
                                     .background(.gray.opacity(0.1))
                                 TextField("附件", text: $attachments)
                                     .background(.gray.opacity(0.1))
@@ -134,6 +149,7 @@ struct MailboxBackendView: View {
                                 sendMail()
                             }
                             .padding()
+                            .disabled(user2_id.isEmpty || title_en.isEmpty || title_hans.isEmpty || title_hant.isEmpty)
                         }
                     }
                 }
@@ -148,20 +164,28 @@ struct MailboxBackendView: View {
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
-        var body: [String: String] = [
+        var title_i18n: [String: String] = [:]
+        if !title_hans.isEmpty { title_i18n["zh-Hans"] = title_hans }
+        if !title_hant.isEmpty { title_i18n["zh-Hant"] = title_hant }
+        if !title_en.isEmpty { title_i18n["en"] = title_en }
+
+        var content_i18n: [String: String] = [:]
+        if !content_hans.isEmpty { content_i18n["zh-Hans"] = content_hans }
+        if !content_hant.isEmpty { content_i18n["zh-Hant"] = content_hant }
+        if !content_en.isEmpty { content_i18n["en"] = content_en }
+        
+        var body: [String: Any] = [
             "user_id": user2_id,
             "type": mail_type,
-            "title": title
+            "title": title_i18n
         ]
-        if !content.isEmpty {
-            body["content"] = content
+        if !content_i18n.isEmpty {
+            body["content"] = content_i18n
         }
         if !attachments.isEmpty {
             body["attachments"] = attachments
         }
-        guard let encodedBody = try? JSONEncoder().encode(body) else {
-            return
-        }
+        guard JSONSerialization.isValidJSONObject(body), let encodedBody = try? JSONSerialization.data(withJSONObject: body) else { return }
         
         let request = APIRequest(path: "/mailbox/send_mail", method: .post, headers: headers, body: encodedBody, isInternal: true)
         

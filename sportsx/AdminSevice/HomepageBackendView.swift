@@ -12,15 +12,23 @@ import PhotosUI
 struct HomepageBackendView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
     @StateObject var viewModel = HomepageBackendViewModel()
-    @State private var announcement: String = ""
+    @State private var announcement_en: String = ""
+    @State private var announcement_hans: String = ""
+    @State private var announcement_hant: String = ""
     @State private var image_url: String = ""
     @State private var web_url: String = ""
     @State private var is_displayed: Bool = false
     @State var isLoading: Bool = false
     
-    @State var adImage: UIImage? = nil
-    @State var showImagePicker: Bool = false
-    @State var selectedImageItem: PhotosPickerItem?
+    @State var adImage_hans: UIImage? = nil
+    @State var showImagePicker_hans: Bool = false
+    @State var selectedImageItem_hans: PhotosPickerItem?
+    @State var adImage_hant: UIImage? = nil
+    @State var showImagePicker_hant: Bool = false
+    @State var selectedImageItem_hant: PhotosPickerItem?
+    @State var adImage_en: UIImage? = nil
+    @State var showImagePicker_en: Bool = false
+    @State var selectedImageItem_en: PhotosPickerItem?
     
     var body: some View {
         VStack {
@@ -52,62 +60,68 @@ struct HomepageBackendView: View {
             ScrollView {
                 VStack(spacing: 50) {
                     VStack {
-                        Text("更新公告")
-                        TextEditor(text: $announcement)
+                        Text("更新公告hans")
+                        TextEditor(text: $announcement_hans)
+                            .frame(minHeight: 100)
                             .padding()
-                            .foregroundColor(.white)
-                            .scrollContentBackground(.hidden)
-                            .background(Color.gray)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
+                        Text("更新公告hant")
+                        TextEditor(text: $announcement_hant)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
+                        Text("更新公告en")
+                        TextEditor(text: $announcement_en)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
                         Button("更新") {
                             updateAnnouncement()
                         }
-                        .foregroundStyle(announcement.isEmpty ? Color.gray : Color.green)
-                        .disabled(announcement.isEmpty)
+                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty) ? Color.gray : Color.green)
+                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty)
                     }
                     VStack(spacing: 20) {
                         Text("管理轮播广告页")
-                        if let image = adImage {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 150)
-                                .onTapGesture {
-                                    showImagePicker = true
-                                }
-                        } else {
-                            Button("选择图片") {
-                                showImagePicker = true
+                        GroupBox("图片 hans") {
+                            imagePickerView(image: adImage_hans) {
+                                showImagePicker_hans = true
                             }
                         }
-                        TextField("web_url", text: $web_url)
-                            .background(.gray.opacity(0.1))
-                        Toggle("是否显示", isOn: $is_displayed)
-                        Button("添加Ad") {
-                            createBannerAds()
-                        }
-                        Button("查询") {
-                            queryBannerAds()
-                        }
-                        ScrollView {
-                            LazyVStack(spacing: 15) {
-                                ForEach(viewModel.ads) { ad in
-                                    AdInfoView(ad: ad)
-                                        .onAppear {
-                                            if ad == viewModel.ads.last && viewModel.hasMoreAds {
-                                                queryBannerAds()
-                                            }
-                                        }
-                                }
-                                if isLoading {
-                                    ProgressView()
-                                        .padding()
-                                }
+                        
+                        GroupBox("图片 hant") {
+                            imagePickerView(image: adImage_hant) {
+                                showImagePicker_hant = true
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical)
                         }
-                        .background(.gray.opacity(0.1))
-                        .cornerRadius(10)
+                        
+                        GroupBox("图片 en") {
+                            imagePickerView(image: adImage_en) {
+                                showImagePicker_en = true
+                            }
+                        }
+                        Section {
+                            TextField("web_url", text: $web_url)
+                                .background(.gray.opacity(0.1))
+                        }
+                        Section {
+                            Toggle("是否显示", isOn: $is_displayed)
+                        }
+                        Section {
+                            Button("添加Ad") {
+                                createBannerAds()
+                            }
+                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil)
+                        }
                     }
                 }
                 .padding(.horizontal)
@@ -115,32 +129,85 @@ struct HomepageBackendView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .photosPicker(isPresented: $showImagePicker_hans, selection: $selectedImageItem_hans, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_hant, selection: $selectedImageItem_hant, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_en, selection: $selectedImageItem_en, matching: .images)
+        .onValueChange(of: selectedImageItem_hans) {
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await selectedImageItem_hans?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
-                    adImage = uiImage
+                    adImage_hans = uiImage
                 } else {
-                    adImage = nil
+                    adImage_hans = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_hant) {
+            Task {
+                if let data = try? await selectedImageItem_hant?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_hant = uiImage
+                } else {
+                    adImage_hant = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_en) {
+            Task {
+                if let data = try? await selectedImageItem_en?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_en = uiImage
+                } else {
+                    adImage_en = nil
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func imagePickerView(
+        image: UIImage?,
+        onTap: @escaping () -> Void
+    ) -> some View {
+        Button(action: onTap) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+                    .background(Color.gray.opacity(0.05))
+                    .frame(height: 140)
+
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 120)
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 28))
+                            .foregroundColor(.gray)
+                        Text("点击选择图片")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 14))
+                    }
                 }
             }
         }
     }
     
     func updateAnnouncement() {
-        guard !announcement.isEmpty else { return }
-        
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
-        let body: [String: String] = [
-            "content": announcement
-        ]
+        var announcement_i18n: [String: String] = [:]
+        if !announcement_hans.isEmpty { announcement_i18n["zh-Hans"] = announcement_hans }
+        if !announcement_hant.isEmpty { announcement_i18n["zh-Hant"] = announcement_hant }
+        if !announcement_en.isEmpty { announcement_i18n["en"] = announcement_en }
         
-        guard let encodedBody = try? JSONEncoder().encode(body) else {
-            return
-        }
+        let body: [String: Any] = [
+            "content": announcement_i18n
+        ]
+        guard JSONSerialization.isValidJSONObject(body), let encodedBody = try? JSONSerialization.data(withJSONObject: body) else { return }
         
         let request = APIRequest(path: "/homepage/update_announcements", method: .post, headers: headers, body: encodedBody, isInternal: true)
         
@@ -148,8 +215,6 @@ struct HomepageBackendView: View {
     }
     
     func createBannerAds() {
-        guard adImage != nil else { return }
-        
         let boundary = "Boundary-\(UUID().uuidString)"
         
         var headers: [String: String] = [:]
@@ -174,7 +239,9 @@ struct HomepageBackendView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("image", adImage, "ad.jpg")
+            ("image_hans", adImage_hans, "ad_hans.jpg"),
+            ("image_hant", adImage_hant, "ad_hant.jpg"),
+            ("image_en", adImage_en, "ad_en.jpg")
         ]
         for (name, image, filename) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
@@ -232,9 +299,7 @@ struct AdInfoView: View {
     var body: some View {
         HStack {
             CachedAsyncImage(
-                urlString: ad.image_url,
-                placeholder: Image("Ads"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: ad.image_url
             )
             .aspectRatio(contentMode: .fit)
             .frame(height: 30)

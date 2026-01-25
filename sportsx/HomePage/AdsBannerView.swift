@@ -19,15 +19,13 @@ struct AdsCard: View {
     var body: some View {
         if let url = image {
             CachedAsyncImage(
-                urlString: url,
-                placeholder: Image("Ads"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: url
             )
             .scaledToFill()
             .frame(width: width, height: height)
             .clipped()
         } else if let localURL = imageLocal {
-            Image(localURL)
+            ImageTool.localizedImage(localURL)
                 .resizable()
                 .scaledToFill()
                 .frame(width: width, height: height)
@@ -38,7 +36,7 @@ struct AdsCard: View {
                     }
                 }
         } else {
-            Image("Ads")
+            Image("placeholder")
                 .resizable()
                 .scaledToFill()
                 .frame(width: width, height: height)
@@ -48,13 +46,14 @@ struct AdsCard: View {
 
 struct AdsBannerView: View {
     @EnvironmentObject var appState: AppState
-    
-    var width: CGFloat
-    var height: CGFloat
+    @State private var isUserInteracting = false
+    let width: CGFloat
+    let height: CGFloat
     
     @State var ads: [AdInfo]
     @State var currentIndex = 1
     @State private var cancellable: AnyCancellable? = nil
+    @State private var currentTask: Task<Void, Never>?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -63,13 +62,22 @@ struct AdsBannerView: View {
                 adsCount: ads.count,
                 width: width,
                 onScrollWillBegin: {
+                    isUserInteracting = true
                     if cancellable != nil {
                         stopAutoScroll()
                     }
                 },
                 onScrollDidEnd: {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        startAutoScroll()
+                    isUserInteracting = false
+                    
+                    currentTask?.cancel()  // 取消之前的计时任务
+                    currentTask = Task {
+                        try? await Task.sleep(nanoseconds: UInt64(2 * 1_000_000_000))
+                        if !Task.isCancelled {
+                            await MainActor.run {
+                                startAutoScroll()
+                            }
+                        }
                     }
                 }
             ) {
@@ -110,22 +118,24 @@ struct AdsBannerView: View {
     
     // 开始自动滚动
     func startAutoScroll() {
+        //print("startAutoScroll")
         guard ads.count > 0 else { return }
+        guard cancellable == nil else { return }
+        guard !isUserInteracting else { return }
         
-        // 如果 Timer 已经存在，则不再创建新的 Timer
-        if cancellable != nil {
-            return
-        }
         // 创建一个 Timer Publisher，每隔3秒发送一次事件
         cancellable = Timer.publish(every: 3, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                currentIndex += 1
+                if !isUserInteracting {
+                    currentIndex += 1
+                }
             }
     }
     
     // 停止自动滚动
     func stopAutoScroll() {
+        //print("stopAutoScroll")
         cancellable?.cancel()
         cancellable = nil
     }

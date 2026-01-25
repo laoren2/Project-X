@@ -347,7 +347,7 @@ struct CPAssetPriceView: View {
     
     var body: some View {
         HStack {
-            Text(asset.name)
+            Text(asset.name_hans)
             Image(asset.ccasset_type.iconName)
                 .resizable()
                 .scaledToFit()

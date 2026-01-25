@@ -200,9 +200,7 @@ struct BikeRankingListView: View {
                             .font(.subheadline)
                     }
                     CachedAsyncImage(
-                        urlString: userManager.user.avatarImageURL,
-                        placeholder: Image(systemName: "person"),
-                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                        urlString: userManager.user.avatarImageURL
                     )
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 50, height: 50)
@@ -299,9 +297,7 @@ struct BikeScoreRankEntryView: View {
                 .font(.headline)
                 .padding(.horizontal, 10)
             CachedAsyncImage(
-                urlString: entry.avatarImageURL,
-                placeholder: Image(systemName: "person"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: entry.avatarImageURL
             )
             .aspectRatio(contentMode: .fill)
             .frame(width: 50, height: 50)
@@ -334,9 +330,7 @@ struct BikeRankingListEntryView: View {
                 .font(.headline)
                 .padding(.horizontal, 10)
             CachedAsyncImage(
-                urlString: entry.avatarImageURL,
-                placeholder: Image(systemName: "person"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: entry.avatarImageURL
             )
             .aspectRatio(contentMode: .fill)
             .frame(width: 50, height: 50)
@@ -412,7 +406,7 @@ struct RunningScoreRankingView: View {
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.gender.displayName)
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
@@ -519,7 +513,7 @@ struct RunningRankingListView: View {
                     }
                 } label: {
                     HStack {
-                        Text(viewModel.gender.displayName)
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
                             .font(.subheadline)
                         Image(systemName: "chevron.down")
                             .font(.caption)
@@ -564,9 +558,7 @@ struct RunningRankingListView: View {
                             .font(.subheadline)
                     }
                     CachedAsyncImage(
-                        urlString: userManager.user.avatarImageURL,
-                        placeholder: Image(systemName: "person"),
-                        errorImage: Image(systemName: "photo.badge.exclamationmark")
+                        urlString: userManager.user.avatarImageURL
                     )
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 50, height: 50)
@@ -663,9 +655,7 @@ struct RunningScoreRankEntryView: View {
                 .font(.headline)
                 .padding(.horizontal, 10)
             CachedAsyncImage(
-                urlString: entry.avatarImageURL,
-                placeholder: Image(systemName: "person"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: entry.avatarImageURL
             )
             .aspectRatio(contentMode: .fill)
             .frame(width: 50, height: 50)
@@ -698,9 +688,7 @@ struct RunningRankingListEntryView: View {
                 .font(.headline)
                 .padding(.horizontal, 10)
             CachedAsyncImage(
-                urlString: entry.avatarImageURL,
-                placeholder: Image(systemName: "person"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: entry.avatarImageURL
             )
             .aspectRatio(contentMode: .fill)
             .frame(width: 50, height: 50)

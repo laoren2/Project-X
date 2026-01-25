@@ -30,9 +30,9 @@ struct CoordinateConverter {
     private static func outOfChina(coordinate: CLLocationCoordinate2D) -> Bool {
         let lat = coordinate.latitude
         let lon = coordinate.longitude
-        let isCoorInCN = lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55
-        let isCodeInCN = LocationManager.shared.countryCode == "CN"
-        return !(isCoorInCN && isCodeInCN)
+        //let isCoorInCN = lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55
+        let isInCN = LocationManager.shared.countryCode == "CN"
+        return !isInCN
     }
 
     // 转换函数
@@ -103,10 +103,31 @@ struct CoordinateConverter {
     }
 }
 
+struct DateParser {
+    static func parseISO8601(_ string: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        
+        // 先尝试带微秒
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+        if let date = formatter.date(from: string) {
+            return date
+        }
+        
+        // 不带微秒 fallback
+        formatter.formatOptions = [
+            .withInternetDateTime
+        ]
+        return formatter.date(from: string)
+    }
+}
+
 struct DateDisplay {
     static func formattedDate(_ date: Date?) -> String {
         guard let date = date else {
-            return "error.unknown"
+            return "----/--/-- --:--:--"
         }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
@@ -122,7 +143,7 @@ enum TimePart {
 
 struct TimeDisplay {
     static func formattedTime(_ interval: TimeInterval?, showFraction: Bool = false, part: TimePart = .all) -> String {
-        guard let duration = interval else { return "无数据" }
+        guard let duration = interval else { return "--:--" }
         
         let totalSeconds = Int(duration)
         let hours = totalSeconds / 3600
@@ -334,6 +355,17 @@ extension JSONValue {
     }
 }
 
+struct JSONHelper {
+    static func toJSONString(_ dict: [String: String]) -> String? {
+        guard JSONSerialization.isValidJSONObject(dict),
+              let data = try? JSONSerialization.data(withJSONObject: dict),
+              let json = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return json
+    }
+}
+
 struct AgreementHelper {
     static func makeAgreementURL(baseUrl: String) -> URL? {
         let raw = Locale.current.identifier.lowercased()
@@ -352,5 +384,21 @@ struct AgreementHelper {
         if let url = makeAgreementURL(baseUrl: baseUrl) {
             binding.wrappedValue = WebPage(url: url)
         }
+    }
+}
+
+struct SpeedHelper {
+    static func paceString(from speedKmh: Double) -> String {
+        guard speedKmh > 0.1, speedKmh.isFinite else {
+            return "00'00''"
+        }
+        
+        // 每公里所需总秒数
+        let totalSeconds = Int(round(3600.0 / speedKmh))
+        
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        
+        return String(format: "%d'%02d''", minutes, seconds)
     }
 }

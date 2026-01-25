@@ -85,8 +85,6 @@ struct BikeRaceRecord: Identifiable, Equatable {
     let createdDate: Date?                  // 记录的创建时间
     
     init(from record: BikeRaceRecordDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.record_id = record.record_id
         self.regionName = record.region_name
         self.eventName = record.event_name
@@ -97,13 +95,13 @@ struct BikeRaceRecord: Identifiable, Equatable {
         self.trackEndRadius = record.track_end_radius
         self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
         self.status = record.status
-        self.startDate = formatter.date(from: record.start_date ?? "")
-        self.endDate = formatter.date(from: record.end_date ?? "")
+        self.startDate = DateParser.parseISO8601(record.start_date ?? "")
+        self.endDate = DateParser.parseISO8601(record.end_date ?? "")
         self.duration = record.duration_seconds
         self.isTeam = record.is_team
         self.teamTitle = record.team_title
         self.teamCompetitionDate = ISO8601DateFormatter().date(from: record.team_competition_date ?? "")
-        self.createdDate = formatter.date(from: record.created_at)
+        self.createdDate = DateParser.parseISO8601(record.created_at)
     }
     
     // 格式化比赛类型
@@ -170,8 +168,6 @@ struct RunningRaceRecord: Identifiable, Equatable {
     let createdDate: Date?                  // 记录的创建时间
     
     init(from record: RunningRaceRecordDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.record_id = record.record_id
         self.regionName = record.region_name
         self.eventName = record.event_name
@@ -182,13 +178,13 @@ struct RunningRaceRecord: Identifiable, Equatable {
         self.trackEndRadius = record.track_end_radius
         self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
         self.status = record.status
-        self.startDate = formatter.date(from: record.start_date ?? "")
-        self.endDate = formatter.date(from: record.end_date ?? "")
+        self.startDate = DateParser.parseISO8601(record.start_date ?? "")
+        self.endDate = DateParser.parseISO8601(record.end_date ?? "")
         self.duration = record.duration_seconds
         self.isTeam = record.is_team
         self.teamTitle = record.team_title
         self.teamCompetitionDate = ISO8601DateFormatter().date(from: record.team_competition_date ?? "")
-        self.createdDate = formatter.date(from: record.created_at)
+        self.createdDate = DateParser.parseISO8601(record.created_at)
     }
     
     // 格式化比赛类型

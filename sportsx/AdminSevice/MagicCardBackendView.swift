@@ -97,7 +97,7 @@ struct MagicCardBackendView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.top)
+                .padding(.vertical)
             }
             .background(.gray.opacity(0.1))
             .cornerRadius(10)
@@ -117,9 +117,9 @@ struct MagicCardBackendView: View {
         .sheet(isPresented: $viewModel.showCreateSheet) {
             MagicCardCreateView(viewModel: viewModel)
         }
-        //.sheet(isPresented: $viewModel.showUpdateSheet) {
-        //    CPAssetUpdateView(viewModel: viewModel)
-        //}
+        .sheet(isPresented: $viewModel.showUpdateSheet) {
+            MagicCardUpdateView(viewModel: viewModel)
+        }
     }
     
     func queryMagicCards() {
@@ -163,12 +163,27 @@ struct MagicCardCreateView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: MagicCardBackendViewModel
     
-    @State var name: String = ""
+    @State var name_en: String = ""
+    @State var name_hans: String = ""
+    @State var name_hant: String = ""
+    
     @State var sportType: String = SportName.Bike.rawValue
-    @State var description: String = ""
-    @State var description1: String = ""
-    @State var description2: String = ""
-    @State var description3: String = ""
+    
+    @State var description_en: String = ""
+    @State var description_hans: String = ""
+    @State var description_hant: String = ""
+    
+    @State var description1_en: String = ""
+    @State var description1_hans: String = ""
+    @State var description1_hant: String = ""
+    @State var description2_en: String = ""
+    @State var description2_hans: String = ""
+    @State var description2_hant: String = ""
+    @State var description3_en: String = ""
+    @State var description3_hans: String = ""
+    @State var description3_hant: String = ""
+    
+    @State var defID: String = "equipcard_"
     @State var rarity: String = ""
     //@State var typeName: String = ""
     @State var version: String = ""
@@ -176,11 +191,6 @@ struct MagicCardCreateView: View {
     //["team_mode", "rain_day"]
     
     @State private var effectConfig: String = ""
-    /*{
-      "effect_type": "pedal_boost",
-      "value": 1.2,
-      "condition": {"min_rpm": 50, "max_rpm": 120}
-    }*/
     
     
     @State var coverImage: UIImage? = nil
@@ -194,7 +204,9 @@ struct MagicCardCreateView: View {
         VStack {
             Form {
                 Section(header: Text("基本信息")) {
-                    TextField("卡牌名称", text: $name)
+                    TextField("卡牌名称hans", text: $name_hans)
+                    TextField("卡牌名称hant", text: $name_hant)
+                    TextField("卡牌名称en", text: $name_en)
                     Menu {
                         ForEach(sportTypes, id: \.self) { type in
                             Button(type.rawValue) {
@@ -212,10 +224,21 @@ struct MagicCardCreateView: View {
                         .padding(.horizontal, 10)
                         .cornerRadius(8)
                     }
-                    TextField("卡牌描述", text: $description)
-                    TextField("卡牌描述1(选填)", text: $description1)
-                    TextField("卡牌描述2(选填)", text: $description2)
-                    TextField("卡牌描述3(选填)", text: $description3)
+                    TextField("卡牌描述hans", text: $description_hans)
+                    TextField("卡牌描述hant", text: $description_hant)
+                    TextField("卡牌描述en", text: $description_en)
+                    
+                    TextField("技能1描述hans(选填)", text: $description1_hans)
+                    TextField("技能1描述hant(选填)", text: $description1_hant)
+                    TextField("技能1描述en(选填)", text: $description1_en)
+                    TextField("技能2描述hans(选填)", text: $description2_hans)
+                    TextField("技能2描述hant(选填)", text: $description2_hant)
+                    TextField("技能2描述en(选填)", text: $description2_en)
+                    TextField("技能3描述hans(选填)", text: $description3_hans)
+                    TextField("技能3描述hant(选填)", text: $description3_hant)
+                    TextField("技能3描述en(选填)", text: $description3_en)
+                    
+                    TextField("def_id", text: $defID)
                     TextField("稀有度", text: $rarity)
                     //TextField("卡牌effect名称", text: $typeName)
                     TextField("version", text: $version)
@@ -246,7 +269,7 @@ struct MagicCardCreateView: View {
                         viewModel.showCreateSheet = false
                         createMagicCard()
                     }
-                    .disabled(name.isEmpty || sportType.isEmpty || description.isEmpty || version.isEmpty || effectConfig.isEmpty)
+                    .disabled(name_hant.isEmpty || sportType.isEmpty || description_hant.isEmpty || version.isEmpty || effectConfig.isEmpty)
                 }
             }
         }
@@ -271,28 +294,59 @@ struct MagicCardCreateView: View {
         
         var body = Data()
         
+        var name_i18n: [String: String] = [:]
+        if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
+        if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
+        if !name_en.isEmpty { name_i18n["en"] = name_en }
+
+        var des_i18n: [String: String] = [:]
+        if !description_hans.isEmpty { des_i18n["zh-Hans"] = description_hans }
+        if !description_hant.isEmpty { des_i18n["zh-Hant"] = description_hant }
+        if !description_en.isEmpty { des_i18n["en"] = description_en }
+        
+        var des1_i18n: [String: String] = [:]
+        if !description1_hans.isEmpty { des1_i18n["zh-Hans"] = description1_hans }
+        if !description1_hant.isEmpty { des1_i18n["zh-Hant"] = description1_hant }
+        if !description1_en.isEmpty { des1_i18n["en"] = description1_en }
+        
+        var des2_i18n: [String: String] = [:]
+        if !description2_hans.isEmpty { des2_i18n["zh-Hans"] = description2_hans }
+        if !description2_hant.isEmpty { des2_i18n["zh-Hant"] = description2_hant }
+        if !description2_en.isEmpty { des2_i18n["en"] = description2_en }
+        
+        var des3_i18n: [String: String] = [:]
+        if !description3_hans.isEmpty { des3_i18n["zh-Hans"] = description3_hans }
+        if !description3_hant.isEmpty { des3_i18n["zh-Hant"] = description3_hant }
+        if !description3_en.isEmpty { des3_i18n["en"] = description3_en }
+        
         // 文字字段
         var textFields: [String : String] = [
-            "name": name,
+            "def_id": defID,
             "sport_type": sportType,
             "rarity": rarity,
-            "description": description,
             "version": version,
-            //"type_name": typeName,
             "effect_config": effectConfig
         ]
-        if !description1.isEmpty {
-            textFields["skill1_description"] = description1
+        
+        if let nameJSON = JSONHelper.toJSONString(name_i18n) {
+            textFields["name"] = nameJSON
         }
-        if !description2.isEmpty {
-            textFields["skill2_description"] = description2
+        if let desJSON = JSONHelper.toJSONString(des_i18n) {
+            textFields["description"] = desJSON
         }
-        if !description3.isEmpty {
-            textFields["skill3_description"] = description3
+        if let des1JSON = JSONHelper.toJSONString(des1_i18n) {
+            textFields["skill1_description"] = des1JSON
+        }
+        if let des2JSON = JSONHelper.toJSONString(des2_i18n) {
+            textFields["skill2_description"] = des2JSON
+        }
+        if let des3JSON = JSONHelper.toJSONString(des3_i18n) {
+            textFields["skill3_description"] = des3JSON
         }
         if !tags.isEmpty {
             textFields["tags"] = tags
         }
+        
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
@@ -321,6 +375,212 @@ struct MagicCardCreateView: View {
     }
 }
 
+struct MagicCardUpdateView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var viewModel: MagicCardBackendViewModel
+    
+    @State var cardImage: UIImage? = nil
+    @State var showImagePicker: Bool = false
+    @State var selectedImageItem: PhotosPickerItem?
+    
+    
+    var body: some View {
+        VStack {
+            Form {
+                Section(header: Text("卡牌基本信息")) {
+                    HStack {
+                        Text("卡牌支持最低客户端版本")
+                        TextField("version", text: $viewModel.version)
+                    }
+                    HStack {
+                        Text("卡牌名称hans")
+                        TextField("赛事名称hans", text: $viewModel.name_hans)
+                    }
+                    HStack {
+                        Text("卡牌名称hant")
+                        TextField("赛事名称hant", text: $viewModel.name_hant)
+                    }
+                    HStack {
+                        Text("卡牌名称en")
+                        TextField("赛事名称en", text: $viewModel.name_en)
+                    }
+                    HStack {
+                        Text("卡牌描述hans")
+                        TextField("描述hans", text: $viewModel.description_hans)
+                    }
+                    HStack {
+                        Text("卡牌描述hant")
+                        TextField("描述hant", text: $viewModel.description_hant)
+                    }
+                    HStack {
+                        Text("卡牌描述en")
+                        TextField("描述en", text: $viewModel.description_en)
+                    }
+                    HStack {
+                        Text("卡牌技能一描述hans")
+                        TextField("描述hans", text: $viewModel.skill1_description_hans)
+                    }
+                    HStack {
+                        Text("卡牌技能一描述hant")
+                        TextField("描述hant", text: $viewModel.skill1_description_hant)
+                    }
+                    HStack {
+                        Text("卡牌技能一描述en")
+                        TextField("描述en", text: $viewModel.skill1_description_en)
+                    }
+                    HStack {
+                        Text("卡牌技能二描述hans")
+                        TextField("描述hans", text: $viewModel.skill2_description_hans)
+                    }
+                    HStack {
+                        Text("卡牌技能二描述hant")
+                        TextField("描述hant", text: $viewModel.skill2_description_hant)
+                    }
+                    HStack {
+                        Text("卡牌技能二描述en")
+                        TextField("描述en", text: $viewModel.skill2_description_en)
+                    }
+                    HStack {
+                        Text("卡牌技能三描述hans")
+                        TextField("描述hans", text: $viewModel.skill3_description_hans)
+                    }
+                    HStack {
+                        Text("卡牌技能三描述hant")
+                        TextField("描述hant", text: $viewModel.skill3_description_hant)
+                    }
+                    HStack {
+                        Text("卡牌技能三描述en")
+                        TextField("描述en", text: $viewModel.skill3_description_en)
+                    }
+                }
+                Section(header: Text("封面图片")) {
+                    if let image = cardImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 150)
+                            .onTapGesture {
+                                showImagePicker = true
+                            }
+                    } else {
+                        ProgressView()
+                    }
+                }
+                Section {
+                    Button("修改道具") {
+                        viewModel.showUpdateSheet = false
+                        updateCPAsset()
+                    }
+                }
+            }
+        }
+        .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
+        .onValueChange(of: selectedImageItem) {
+            Task {
+                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    cardImage = uiImage
+                } else {
+                    cardImage = nil
+                }
+            }
+        }
+        .onAppear {
+            NetworkService.downloadImage(from: viewModel.image_url) { image in
+                DispatchQueue.main.async {
+                    if let image = image {
+                        cardImage = image
+                    } else {
+                        cardImage = UIImage(systemName: "photo.badge.exclamationmark")
+                    }
+                }
+            }
+        }
+    }
+    
+    func updateCPAsset() {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
+        
+        var body = Data()
+        
+        var name_i18n: [String: String] = [:]
+        if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
+        if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
+        if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+
+        var des_i18n: [String: String] = [:]
+        if !viewModel.description_hans.isEmpty { des_i18n["zh-Hans"] = viewModel.description_hans }
+        if !viewModel.description_hant.isEmpty { des_i18n["zh-Hant"] = viewModel.description_hant }
+        if !viewModel.description_en.isEmpty { des_i18n["en"] = viewModel.description_en }
+        
+        var des1_i18n: [String: String] = [:]
+        if !viewModel.skill1_description_hans.isEmpty { des1_i18n["zh-Hans"] = viewModel.skill1_description_hans }
+        if !viewModel.skill1_description_hant.isEmpty { des1_i18n["zh-Hant"] = viewModel.skill1_description_hant }
+        if !viewModel.skill1_description_en.isEmpty { des1_i18n["en"] = viewModel.skill1_description_en }
+        
+        var des2_i18n: [String: String] = [:]
+        if !viewModel.skill2_description_hans.isEmpty { des2_i18n["zh-Hans"] = viewModel.skill2_description_hans }
+        if !viewModel.skill2_description_hant.isEmpty { des2_i18n["zh-Hant"] = viewModel.skill2_description_hant }
+        if !viewModel.skill2_description_en.isEmpty { des2_i18n["en"] = viewModel.skill2_description_en }
+        
+        var des3_i18n: [String: String] = [:]
+        if !viewModel.skill3_description_hans.isEmpty { des3_i18n["zh-Hans"] = viewModel.skill3_description_hans }
+        if !viewModel.skill3_description_hant.isEmpty { des3_i18n["zh-Hant"] = viewModel.skill3_description_hant }
+        if !viewModel.skill3_description_en.isEmpty { des3_i18n["en"] = viewModel.skill3_description_en }
+        
+        // 文字字段
+        var textFields: [String : String] = [
+            "def_id": viewModel.selectedCardID,
+            "version": viewModel.version
+        ]
+        
+        if let nameJSON = JSONHelper.toJSONString(name_i18n) {
+            textFields["name"] = nameJSON
+        }
+        if let desJSON = JSONHelper.toJSONString(des_i18n) {
+            textFields["description"] = desJSON
+        }
+        if !des1_i18n.isEmpty, let des1JSON = JSONHelper.toJSONString(des1_i18n) {
+            textFields["skill1_description"] = des1JSON
+        }
+        if !des2_i18n.isEmpty, let des2JSON = JSONHelper.toJSONString(des2_i18n) {
+            textFields["skill2_description"] = des2JSON
+        }
+        if !des3_i18n.isEmpty, let des3JSON = JSONHelper.toJSONString(des3_i18n) {
+            textFields["skill3_description"] = des3JSON
+        }
+        
+        for (key, value) in textFields {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            body.append("\(value)\r\n")
+        }
+        
+        // 图片字段
+        let images: [(name: String, image: UIImage?, filename: String)] = [
+            ("image", cardImage, "cover.jpg")
+        ]
+        for (name, image, filename) in images {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage) {
+                body.append("--\(boundary)\r\n")
+                body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
+                body.append("Content-Type: image/jpg\r\n\r\n")
+                body.append(imageData)
+                body.append("\r\n")
+            }
+        }
+        
+        body.append("--\(boundary)--\r\n")
+        
+        let request = APIRequest(path: "/asset/update_equip_card_def", method: .post, headers: headers, body: body, isInternal: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
+    }
+}
+
 struct MagicCardDefView: View {
     @ObservedObject var viewModel: MagicCardBackendViewModel
     let card: MagicCardEntry
@@ -328,7 +588,7 @@ struct MagicCardDefView: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            Text(card.name)
+            Text(card.name_hans)
             Text(card.sport_type.rawValue)
             Text(card.rarity)
             Text("id")
@@ -342,18 +602,30 @@ struct MagicCardDefView: View {
                 }
             Spacer()
             Button("修改") {
-                //loadSelectedEventInfo()
-                //viewModel.showUpdateSheet = true
+                loadSelectedCardInfo()
+                viewModel.showUpdateSheet = true
             }
         }
     }
     
-    /*func loadSelectedEventInfo() {
-        viewModel.selectedEventID = event.event_id
-        viewModel.name = event.name
-        viewModel.description = event.description
-        viewModel.startDate = ISO8601DateFormatter().date(from: event.start_date) ?? Date()
-        viewModel.endDate = ISO8601DateFormatter().date(from: event.end_date) ?? Date()
-        viewModel.image_url = event.image_url
-    }*/
+    func loadSelectedCardInfo() {
+        viewModel.selectedCardID = card.def_id
+        viewModel.name_en = card.name_en
+        viewModel.name_hans = card.name_hans
+        viewModel.name_hant = card.name_hant
+        viewModel.description_en = card.description_en
+        viewModel.description_hans = card.description_hans
+        viewModel.description_hant = card.description_hant
+        viewModel.skill1_description_en = card.skill1_description_en
+        viewModel.skill1_description_hans = card.skill1_description_hans
+        viewModel.skill1_description_hant = card.skill1_description_hant
+        viewModel.skill2_description_en = card.skill2_description_en
+        viewModel.skill2_description_hans = card.skill2_description_hans
+        viewModel.skill2_description_hant = card.skill2_description_hant
+        viewModel.skill3_description_en = card.skill3_description_en
+        viewModel.skill3_description_hans = card.skill3_description_hans
+        viewModel.skill3_description_hant = card.skill3_description_hant
+        viewModel.image_url = card.image_url
+        viewModel.version = card.version
+    }
 }

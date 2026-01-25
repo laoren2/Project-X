@@ -60,7 +60,7 @@ class ImageLoader: ObservableObject {
 }
 
 struct ImageTool {
-    // 图片压缩(jpeg格式)，二分法调整压缩比例，必要时缩小分辨率
+    // jpeg 图片压缩，二分法调整压缩比例，必要时缩小分辨率
     static func compressImage(_ image: UIImage, maxSizeKB: Int = 300) -> Data? {
         var resizedImage: UIImage = image
         let maxBytes = maxSizeKB * 1024
@@ -118,6 +118,55 @@ struct ImageTool {
         return resizedImage
     }
     
+    // png 图片压缩
+    static func compressPNGImage(
+        _ image: UIImage,
+        maxSizeKB: Int = 300
+    ) -> Data? {
+        let maxBytes = maxSizeKB * 1024
+        guard var data = image.pngData() else { return nil }
+        if data.count <= maxBytes {
+            return data
+        }
+        var resizedImage = image
+        var scale: CGFloat = 0.9
+        
+        while scale >= 0.1 {
+            guard let resized = resizeImageForPNG(resizedImage, scale: scale) else { break }
+            resizedImage = resized
+            if let newData = resizedImage.pngData() {
+                data = newData
+                if data.count <= maxBytes {
+                    return data
+                }
+            }
+            scale -= 0.1
+        }
+        // 压不下去也返回当前最小的
+        return data
+    }
+    
+    private static func resizeImageForPNG(
+        _ image: UIImage,
+        scale: CGFloat
+    ) -> UIImage? {
+        let width = floor(image.size.width * scale)
+        let height = floor(image.size.height * scale)
+        guard width > 0, height > 0 else { return nil }
+        
+        let newSize = CGSize(width: width, height: height)
+        
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        format.opaque = false   // PNG 必须 false
+        
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        return resizedImage
+    }
+    
     // 计算图片的平均颜色
     static func averageColor(from image: UIImage) -> UIColor? {
         guard let ciImage = CIImage(image: image) else { return nil }
@@ -143,5 +192,13 @@ struct ImageTool {
             blue: CGFloat(bitmap[2]) / 255.0,
             alpha: 1.0
         )
+    }
+    
+    // SwiftUI 显示本地化图片资源不可靠
+    static func localizedImage(_ name: String) -> Image {
+        if let uiImage = UIImage(named: name) {
+            return Image(uiImage: uiImage)
+        }
+        return Image(name)  // fallback
     }
 }

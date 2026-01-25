@@ -113,7 +113,7 @@ struct CompetitionRealtimeView: View {
                             .clipShape(.rect(cornerRadius: 10))
                         }
                     }
-                    Spacer()
+                    .padding(.bottom, 40)
                     HStack {
                         Spacer()
                         Button {
@@ -141,14 +141,17 @@ struct CompetitionRealtimeView: View {
                                 .clipShape(Circle())
                         }
                     }
-                    .padding(.bottom, 600)
+                    Spacer()
                 }
                 .padding(.horizontal)
             }
             VStack {
                 HStack {
                     HStack(spacing: 2) {
-                        Image(systemName: appState.competitionManager.sport.iconName)
+                        Image(appState.competitionManager.sport.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 20)
                         Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     }
                     .foregroundStyle(Color.white)
@@ -172,7 +175,10 @@ struct CompetitionRealtimeView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     Spacer()
                     HStack(spacing: 2) {
-                        Image(systemName: appState.competitionManager.sport.iconName)
+                        Image(appState.competitionManager.sport.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 20)
                         Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     }
                     .padding(6)
@@ -335,12 +341,12 @@ struct CompetitionRealtimeView: View {
                             }
                         }
                     }
-                    .frame(height: 600)
+                    .frame(height: 550)
                 }
-                .background(Color.defaultBackground)
+                .background(Color.defaultBackground.opacity(0.8))
                 .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
             }
-            .offset(y: chevronDirection ? 400 : 0)
+            .offset(y: chevronDirection ? 350 : 0)
         }
         .ignoresSafeArea(edges: .bottom)
         .toolbar(.hidden, for: .navigationBar)

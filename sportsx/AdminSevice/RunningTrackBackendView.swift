@@ -154,10 +154,10 @@ struct RunningTrackCreateView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: RunningTrackBackendViewModel
     
-    @State var name: String = ""
-    @State var eventName: String = ""
-    @State var seasonName: String = ""
-    @State var regionName: String = ""
+    @State var name_en: String = ""
+    @State var name_hans: String = ""
+    @State var name_hant: String = ""
+    @State var eventID: String = ""
     @State var startDate: Date = Date()
     @State var endDate: Date = Date().addingTimeInterval(3600*24)
     
@@ -168,8 +168,13 @@ struct RunningTrackCreateView: View {
     @State var to_lo: String = ""
     @State var to_radius: Int = 10
     
+    @State var singleRegisterCardID: String = ""
+    @State var teamRegisterCardID: String = ""
+    
     @State var elevationDifference: String = ""
-    @State var subRegioName: String = ""
+    @State var subRegioName_en: String = ""
+    @State var subRegioName_hans: String = ""
+    @State var subRegioName_hant: String = ""
     @State var prizePool: String = ""
     @State var distance: String = ""
     @State var score: String = ""
@@ -188,10 +193,10 @@ struct RunningTrackCreateView: View {
         VStack {
             Form {
                 Section(header: Text("基本信息")) {
-                    TextField("赛道名称", text: $name)
-                    TextField("赛事名称", text: $eventName)
-                    TextField("赛季名称", text: $seasonName)
-                    TextField("区域名称", text: $regionName)
+                    TextField("赛道名称hans", text: $name_hans)
+                    TextField("赛道名称hant", text: $name_hant)
+                    TextField("赛道名称en", text: $name_en)
+                    TextField("赛事ID", text: $eventID)
                 }
                 Section(header: Text("时间")) {
                     DatePicker("开始时间", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
@@ -231,13 +236,17 @@ struct RunningTrackCreateView: View {
                     }
                     TextField("海拔差", text: $elevationDifference)
                         .keyboardType(.numberPad)
-                    TextField("子区域", text: $subRegioName)
+                    TextField("子区域hans", text: $subRegioName_hans)
+                    TextField("子区域hant", text: $subRegioName_hant)
+                    TextField("子区域en", text: $subRegioName_en)
                     TextField("奖金池", text: $prizePool)
                         .keyboardType(.numberPad)
                     TextField("路程", text: $distance)
                         .keyboardType(.decimalPad)
                     TextField("积分", text: $score)
                         .keyboardType(.numberPad)
+                    TextField("单人报名卡ID", text: $singleRegisterCardID)
+                    TextField("组队报名卡ID", text: $teamRegisterCardID)
                 }
                 Section(header: Text("封面图片")) {
                     if let image = trackImage {
@@ -260,9 +269,8 @@ struct RunningTrackCreateView: View {
                         createTrack()
                     }
                     .disabled(
-                        name.isEmpty || eventName.isEmpty || seasonName.isEmpty || regionName.isEmpty
-                        || from_la.isEmpty || from_lo.isEmpty || to_la.isEmpty || to_lo.isEmpty
-                        || elevationDifference.isEmpty || subRegioName.isEmpty || prizePool.isEmpty
+                        name_hant.isEmpty || eventID.isEmpty || from_la.isEmpty || from_lo.isEmpty || to_la.isEmpty || to_lo.isEmpty
+                        || elevationDifference.isEmpty || subRegioName_hant.isEmpty || prizePool.isEmpty
                         || score.isEmpty || from_radius == 0 || to_radius == 0
                     )
                 }
@@ -289,14 +297,21 @@ struct RunningTrackCreateView: View {
         
         var body = Data()
         
+        var name_i18n: [String: String] = [:]
+        if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
+        if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
+        if !name_en.isEmpty { name_i18n["en"] = name_en }
+
+        var subRegionName_i18n: [String: String] = [:]
+        if !subRegioName_hans.isEmpty { subRegionName_i18n["zh-Hans"] = subRegioName_hans }
+        if !subRegioName_hant.isEmpty { subRegionName_i18n["zh-Hant"] = subRegioName_hant }
+        if !subRegioName_en.isEmpty { subRegionName_i18n["en"] = subRegioName_en }
+        
         // 文字字段
-        let textFields: [String : String] = [
-            "name": name,
+        var textFields: [String : String] = [
             "start_date": ISO8601DateFormatter().string(from: startDate),
             "end_date": ISO8601DateFormatter().string(from: endDate),
-            "event_name": eventName,
-            "season_name": seasonName,
-            "region_name": regionName,
+            "event_id": eventID,
             "terrain_type": terrainType.rawValue,
             "from_latitude": from_la,
             "from_longitude": from_lo,
@@ -304,12 +319,20 @@ struct RunningTrackCreateView: View {
             "to_latitude": to_la,
             "to_longitude": to_lo,
             "to_radius": "\(to_radius)",
-            "elevationDifference": elevationDifference ,
-            "subRegioName": subRegioName,
+            "single_registercard_id": singleRegisterCardID,
+            "team_registercard_id": teamRegisterCardID,
+            "elevationDifference": elevationDifference,
             "prizePool": prizePool,
             "distance": distance,
             "score": score
         ]
+        
+        if let nameJSON = JSONHelper.toJSONString(name_i18n) {
+            textFields["name"] = nameJSON
+        }
+        if let subRegionNameJSON = JSONHelper.toJSONString(subRegionName_i18n) {
+            textFields["subRegioName"] = subRegionNameJSON
+        }
         
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
@@ -356,7 +379,18 @@ struct RunningTrackUpdateView: View {
         VStack {
             Form {
                 Section(header: Text("基本信息")) {
-                    TextField("赛道名称", text: $viewModel.name)
+                    HStack {
+                        Text("赛道名称hans")
+                        TextField("赛道名称hans", text: $viewModel.name_hans)
+                    }
+                    HStack {
+                        Text("赛道名称hant")
+                        TextField("赛道名称hant", text: $viewModel.name_hant)
+                    }
+                    HStack {
+                        Text("赛道名称en")
+                        TextField("赛道名称en", text: $viewModel.name_en)
+                    }
                 }
                 Section(header: Text("时间")) {
                     DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
@@ -396,7 +430,18 @@ struct RunningTrackUpdateView: View {
                     }
                     TextField("海拔差", text: $viewModel.elevationDifference)
                         .keyboardType(.numberPad)
-                    TextField("子区域", text: $viewModel.subRegioName)
+                    HStack {
+                        Text("子区域en")
+                        TextField("子区域en", text: $viewModel.subRegioName_en)
+                    }
+                    HStack {
+                        Text("子区域hans")
+                        TextField("子区域hans", text: $viewModel.subRegioName_hans)
+                    }
+                    HStack {
+                        Text("子区域hant")
+                        TextField("子区域hant", text: $viewModel.subRegioName_hant)
+                    }
                     TextField("奖金池", text: $viewModel.prizePool)
                         .keyboardType(.numberPad)
                     TextField("路程", text: $viewModel.distance)
@@ -457,10 +502,19 @@ struct RunningTrackUpdateView: View {
         
         var body = Data()
         
+        var name_i18n: [String: String] = [:]
+        if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
+        if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
+        if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+
+        var subRegionName_i18n: [String: String] = [:]
+        if !viewModel.subRegioName_hans.isEmpty { subRegionName_i18n["zh-Hans"] = viewModel.subRegioName_hans }
+        if !viewModel.subRegioName_hant.isEmpty { subRegionName_i18n["zh-Hant"] = viewModel.subRegioName_hant }
+        if !viewModel.subRegioName_en.isEmpty { subRegionName_i18n["en"] = viewModel.subRegioName_en }
+        
         // 文字字段
-        let textFields: [String : String] = [
+        var textFields: [String : String] = [
             "track_id": viewModel.selectedTrackID,
-            "name": viewModel.name,
             "start_date": ISO8601DateFormatter().string(from: viewModel.startDate),
             "end_date": ISO8601DateFormatter().string(from: viewModel.endDate),
             "from_latitude": viewModel.from_la,
@@ -470,12 +524,19 @@ struct RunningTrackUpdateView: View {
             "to_longitude": viewModel.to_lo,
             "to_radius": "\(viewModel.to_radius)",
             "elevationDifference": viewModel.elevationDifference,
-            "subRegioName": viewModel.subRegioName,
             "prizePool": viewModel.prizePool,
             "distance": viewModel.distance,
             "score": viewModel.score,
             "terrain_type": viewModel.terrainType.rawValue
         ]
+        
+        if let nameJSON = JSONHelper.toJSONString(name_i18n) {
+            textFields["name"] = nameJSON
+        }
+        if let subRegionNameJSON = JSONHelper.toJSONString(subRegionName_i18n) {
+            textFields["subRegioName"] = subRegionNameJSON
+        }
+        
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
@@ -534,7 +595,7 @@ struct RunningTrackCardView: View {
             Text(track.season_name)
             Text(track.region_name)
             Text(track.event_name)
-            Text(track.name)
+            Text(track.name_hans)
             Spacer()
             Button("修改") {
                 loadSelectedTrackInfo()
@@ -563,7 +624,9 @@ struct RunningTrackCardView: View {
     
     func loadSelectedTrackInfo() {
         viewModel.selectedTrackID = track.track_id
-        viewModel.name = track.name
+        viewModel.name_en = track.name_en
+        viewModel.name_hans = track.name_hans
+        viewModel.name_hant = track.name_hant
         viewModel.startDate = ISO8601DateFormatter().date(from: track.start_date) ?? Date()
         viewModel.endDate = ISO8601DateFormatter().date(from: track.end_date) ?? Date()
         viewModel.image_url = track.image_url
@@ -575,7 +638,9 @@ struct RunningTrackCardView: View {
         viewModel.to_radius = track.to_radius
         
         viewModel.elevationDifference = track.elevationDifference
-        viewModel.subRegioName = track.subRegioName
+        viewModel.subRegioName_en = track.subRegioName_en
+        viewModel.subRegioName_hans = track.subRegioName_hans
+        viewModel.subRegioName_hant = track.subRegioName_hant
         viewModel.prizePool = track.prizePool
         viewModel.distance = track.distance
         viewModel.score = track.score

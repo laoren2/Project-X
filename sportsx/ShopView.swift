@@ -12,17 +12,11 @@ import StoreKit
 struct ShopView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
-    @State var cpassets: [CPAssetShopInfo] = []
-    @State var magicCards: [MagicCardShop] = []
-    @State var selectedAsset: CPAssetShopInfo? = nil
-    @State var selectedCard: MagicCardShop? = nil
+    @ObservedObject var shopManager = ShopManager.shared
     @State var selectedTab: Int = 0
-    @State private var firstOnAppear = true
-    let globalConfig = GlobalConfig.shared
-    
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             Rectangle()
                 .fill(
                     LinearGradient(
@@ -38,7 +32,7 @@ struct ShopView: View {
             
             VStack(spacing: 0) {
                 // 顶部资产栏
-                HStack(spacing: 4) {
+                HStack {
                     Spacer()
                     HStack(spacing: 10) {
                         Image(systemName: "arrow.clockwise")
@@ -49,20 +43,35 @@ struct ShopView: View {
                                     await assetManager.queryCCAssets()
                                 }
                             }
-                        AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
-                        AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
-                        AssetCounterView(icon: CCAssetType.coupon.iconName, amount: assetManager.coupon)
-                    }
-                    Button(action:{
-                        guard UserManager.shared.isLoggedIn else {
-                            UserManager.shared.showingLogin = true
-                            return
+                        HStack(spacing: 4) {
+                            AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
+                            Button(action:{
+                                PopupWindowManager.shared.presentPopup(
+                                    bottomButtons: []
+                                ) {
+                                    CoinPurchaseView()
+                                }
+                            }) {
+                                Image(systemName: "plus.rectangle.fill")
+                                    .foregroundStyle(Color.white)
+                                    .font(.system(size: 18))
+                            }
                         }
-                        appState.navigationManager.append(.iapCouponView)
-                    }) {
-                        Image(systemName: "plus.rectangle.fill")
-                            .foregroundStyle(Color.white)
-                            .font(.system(size: 18))
+                        AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
+                        HStack(spacing: 4) {
+                            AssetCounterView(icon: CCAssetType.coupon.iconName, amount: assetManager.coupon)
+                            Button(action:{
+                                guard UserManager.shared.isLoggedIn else {
+                                    UserManager.shared.showingLogin = true
+                                    return
+                                }
+                                appState.navigationManager.append(.iapCouponView)
+                            }) {
+                                Image(systemName: "plus.rectangle.fill")
+                                    .foregroundStyle(Color.white)
+                                    .font(.system(size: 18))
+                            }
+                        }
                     }
                 }
                 .padding(15)
@@ -109,94 +118,34 @@ struct ShopView: View {
                 TabView(selection: $selectedTab) {
                     GeometryReader { geo in
                         let itemSpacing: CGFloat = 10
-                        let columnCount = 5
+                        let columnCount = 4
                         let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
                         let itemWidth = (geo.size.width - totalSpacing - 20) / CGFloat(columnCount) // 20为ScrollView两侧padding
-
+                        
                         ZStack(alignment: .bottom) {
                             ScrollView {
                                 LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                    ForEach(cpassets) { asset in
+                                    ForEach(shopManager.cpassets) { asset in
                                         CPAssetShopCardView(asset: asset)
                                             .frame(width: itemWidth)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                                    .stroke(shopManager.selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
                                             )
                                             .onTapGesture {
-                                                if selectedAsset?.id == asset.id {
-                                                    selectedAsset = nil
+                                                if shopManager.selectedAsset?.id == asset.id {
+                                                    shopManager.selectedAsset = nil
                                                 } else {
-                                                    selectedAsset = asset
+                                                    shopManager.selectedAsset = CommonAssetShopInfo(from: asset)
                                                 }
                                             }
                                     }
                                 }
-                                .padding(10)
+                                .padding(.top, 10)
+                                .padding(.bottom, 100)
                             }
                             .refreshable {
-                                selectedAsset = nil
-                                await queryCPAssets(withLoadingToast: false)
-                            }
-                            if let selected = selectedAsset {
-                                HStack(alignment: .bottom, spacing: 20) {
-                                    VStack(alignment: .leading) {
-                                        HStack(spacing: 4) {
-                                            Text(selected.name)
-                                                .bold()
-                                            Spacer()
-                                            Image(selected.ccassetType.iconName)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 20)
-                                            Text("\(selected.price)")
-                                        }
-                                        .font(.system(size: 15))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 5)
-                                        
-                                        ScrollView {
-                                            Text(selected.description)
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(4)
-                                        }
-                                        .frame(height: 48)
-                                        .padding(6)
-                                        .background(Color.gray.opacity(0.8))
-                                        .cornerRadius(10)
-                                    }
-                                    Text("shop.action.buy")
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(Color.orange)
-                                        .cornerRadius(8)
-                                        .onTapGesture {
-                                            PopupWindowManager.shared.presentPopup(
-                                                title: "shop.action.buy",
-                                                bottomButtons: [
-                                                    .cancel(),
-                                                    .confirm {
-                                                        assetManager.purchaseCPWithCC(assetID: selected.asset_id, amount: 1)
-                                                    }
-                                                ]
-                                            ) {
-                                                RichTextLabel(
-                                                    templateKey: "shop.popup",
-                                                    items:
-                                                        [
-                                                            ("MONEY", .image(selected.ccassetType.iconName, width: 20)),
-                                                            ("MONEY", .text(" * \(selected.price)")),
-                                                            ("ASSET", .text(selected.name))
-                                                        ]
-                                                )
-                                            }
-                                        }
-                                }
-                                .padding()
-                                .background(Color.black)
+                                await shopManager.queryCPAssets(withLoadingToast: false)
                             }
                         }
                     }
@@ -211,13 +160,13 @@ struct ShopView: View {
                         ZStack(alignment: .bottom) {
                             ScrollView {
                                 LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                    ForEach(magicCards) { card in
+                                    ForEach(shopManager.magicCards) { card in
                                         ZStack {
                                             MagicCardShopCardView(card: card)
                                                 .frame(width: itemWidth)
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 12)
-                                                        .stroke(selectedCard?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
+                                                        .stroke(shopManager.selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
                                                 )
                                             /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
                                              GeometryReader { geometry in
@@ -231,85 +180,19 @@ struct ShopView: View {
                                              }*/
                                         }
                                         .onTapGesture {
-                                            if selectedCard?.id == card.id {
-                                                selectedCard = nil
+                                            if shopManager.selectedAsset?.id == card.id {
+                                                shopManager.selectedAsset = nil
                                             } else {
-                                                selectedCard = card
+                                                shopManager.selectedAsset = CommonAssetShopInfo(from: card)
                                             }
                                         }
                                     }
                                 }
-                                .padding(20)
+                                .padding(.top, 20)
+                                .padding(.bottom, 100)
                             }
                             .refreshable {
-                                selectedCard = nil
-                                await queryMagicCards(withLoadingToast: false)
-                            }
-                            // 介绍栏
-                            if let card = selectedCard {
-                                HStack(alignment: .bottom, spacing: 20) {
-                                    VStack(alignment: .leading) {
-                                        HStack {
-                                            Text(card.name)
-                                                .bold()
-                                            if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                Text("warehouse.equipcard.unavailable.detail")
-                                                    .font(.system(size: 13))
-                                                    .foregroundColor(.red)
-                                            }
-                                            Spacer()
-                                            Image(card.ccasset_type.iconName)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 20)
-                                            Text("\(card.price)")
-                                        }
-                                        .font(.system(size: 15))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 5)
-                                        
-                                        ScrollView {
-                                            Text(card.description)
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(4)
-                                        }
-                                        .frame(height: 48)
-                                        .padding(6)
-                                        .background(Color.gray.opacity(0.8))
-                                        .cornerRadius(10)
-                                    }
-                                    Text("shop.action.buy")
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(Color.orange)
-                                        .cornerRadius(8)
-                                        .onTapGesture {
-                                            PopupWindowManager.shared.presentPopup(
-                                                title: "shop.action.buy",
-                                                bottomButtons: [
-                                                    .cancel(),
-                                                    .confirm {
-                                                        assetManager.purchaseMCWithCC(cardID: card.def_id)
-                                                    }
-                                                ]
-                                            ) {
-                                                RichTextLabel(
-                                                    templateKey: "shop.popup",
-                                                    items:
-                                                        [
-                                                            ("MONEY", .image(card.ccasset_type.iconName, width: 20)),
-                                                            ("MONEY", .text(" * \(card.price)")),
-                                                            ("ASSET", .text(card.name))
-                                                        ]
-                                                )
-                                            }
-                                        }
-                                }
-                                .padding()
-                                .background(Color.black)
+                                await shopManager.queryMagicCards(withLoadingToast: false)
                             }
                         }
                     }
@@ -318,64 +201,216 @@ struct ShopView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .background(Color.gray.opacity(0.2))
             }
-            .padding(.bottom, 50)   // todo: 不用估计值
+            
+            if let asset = shopManager.selectedAsset {
+                HStack(alignment: .bottom, spacing: 20) {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(asset.name)
+                                .bold()
+                            if let version = asset.version, !AppVersionManager.shared.checkMinimumVersion(version) {
+                                Text("warehouse.equipcard.unavailable.detail")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.red)
+                            }
+                            Spacer()
+                            Image(asset.ccassetType.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20)
+                            Text("\(asset.price)")
+                        }
+                        .font(.system(size: 15))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 5)
+                        
+                        ScrollView {
+                            Text(asset.description)
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(4)
+                        }
+                        .frame(height: 48)
+                        .padding(6)
+                        .background(Color.gray.opacity(0.8))
+                        .cornerRadius(10)
+                    }
+                    Text("shop.action.buy")
+                        .foregroundColor(.white)
+                        .frame(height: 60)
+                        .padding(.horizontal, 16)
+                        .background(Color.orange)
+                        .cornerRadius(8)
+                        .exclusiveTouchTapGesture {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "shop.action.buy",
+                                bottomButtons: [
+                                    .cancel(),
+                                    .confirm {
+                                        if asset.assetType == .cpasset {
+                                            assetManager.purchaseCPWithCC(assetID: asset.asset_id, amount: 1)
+                                        } else if asset.assetType == .magiccard {
+                                            assetManager.purchaseMCWithCC(cardID: asset.asset_id)
+                                        }
+                                    }
+                                ]
+                            ) {
+                                RichTextLabel(
+                                    templateKey: "shop.popup.buy.cpasset",
+                                    items:
+                                        [
+                                            ("MONEY", .image(asset.ccassetType.iconName, width: 20)),
+                                            ("MONEY", .text(" * \(asset.price)")),
+                                            ("ASSET", .text(asset.name))
+                                        ]
+                                )
+                            }
+                        }
+                }
+                .padding()
+                .background(Color.black)
+                .padding(.bottom, 85)
+            }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .onStableAppear {
-            if firstOnAppear || globalConfig.refreshShopView {
-                Task {
-                    DispatchQueue.main.async {
-                        selectedAsset = nil
-                        selectedCard = nil
-                    }
-                    await queryCPAssets(withLoadingToast: true)
-                    await queryMagicCards(withLoadingToast: true)
-                }
-                globalConfig.refreshShopView  = false
-            }
-            firstOnAppear = false
-        }
+        .ignoresSafeArea(edges: .bottom)
     }
+}
+
+struct CoinPurchaseView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var assetManager = AssetManager.shared
     
-    func queryCPAssets(withLoadingToast: Bool) async {
-        DispatchQueue.main.async {
-            cpassets.removeAll()
-        }
-        let request = APIRequest(path: "/asset/query_cpassets_on_shelves", method: .get, requiresAuth: true)
-        
-        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: CPAssetShopResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
-        
-        switch result {
-        case .success(let data):
-            if let unwrappedData = data {
-                DispatchQueue.main.async {
-                    for asset in unwrappedData.assets {
-                        cpassets.append(CPAssetShopInfo(from: asset))
-                    }
-                }
-            }
-        default: break
-        }
-    }
+    @State var coinCount: Int = 10   // 10的倍数
     
-    func queryMagicCards(withLoadingToast: Bool) async {
-        DispatchQueue.main.async {
-            magicCards = []
-        }
-        let request = APIRequest(path: "/asset/query_equip_cards_on_shelves", method: .get, requiresAuth: true)
-        
-        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: MagicCardShopResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
-        
-        switch result {
-        case .success(let data):
-            if let unwrappedData = data {
-                DispatchQueue.main.async {
-                    for card in unwrappedData.cards {
-                        magicCards.append(MagicCardShop(from: card))
-                    }
-                }
+    var body: some View {
+        VStack(spacing: 20) {
+            (Text("shop.action.buy") + Text("ccasset.coin"))
+                .font(.title3.bold())
+                .foregroundColor(.white)
+            RichTextLabel(
+                templateKey: "shop.popup.buy.ccasset.coin",
+                items:
+                    [
+                        ("MONEY1", .image(CCAssetType.coupon.iconName, width: 20)),
+                        ("MONEY2", .image(CCAssetType.voucher.iconName, width: 20)),
+                        ("ASSET", .image(CCAssetType.coin.iconName, width: 20))
+                    ]
+            )
+            if coinCount % 10 != 0 {
+                Text("购买金币数量必须为10的整数倍")
+                    .font(.caption)
+                    .foregroundStyle(Color.pink)
             }
-        default: break
+            if coinCount < 10 {
+                Text("购买金币数量最少为10")
+                    .font(.caption)
+                    .foregroundStyle(Color.pink)
+            }
+            HStack(spacing: 12) {
+                TextField("0", value: $coinCount, formatter: NumberFormatter())
+                    .keyboardType(.numberPad)
+                    .foregroundColor(.white)
+                    .font(.system(size: 20, weight: .semibold))
+                    .padding(10)
+                    .frame(height: 40)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
+                    .onChange(of: coinCount) { newValue in
+                        if newValue > 99999 {
+                            coinCount = 100000
+                        }
+                    }
+                HStack(spacing: 6) {
+                    Button("+10") { coinCount += 10 }
+                        .padding(.horizontal, 6)
+                        .frame(height: 40)
+                        .background(Color.black.opacity(0.25))
+                        .cornerRadius(6)
+                    Button("+100") { coinCount += 100 }
+                        .padding(.horizontal, 6)
+                        .frame(height: 40)
+                        .background(Color.black.opacity(0.25))
+                        .cornerRadius(6)
+                }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.white)
+            }
+            HStack(spacing: 30) {
+                Button {
+                    PopupWindowManager.shared.dismissPopup()
+                    PopupWindowManager.shared.presentPopup(
+                        title: "shop.action.buy",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                assetManager.purchaseCCWithCC(buy: .coin, amount: coinCount, use: .coupon)
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "shop.popup.buy.ccasset.confirm",
+                            items:
+                                [
+                                    ("MONEY", .image(CCAssetType.coupon.iconName, width: 20)),
+                                    ("MONEYCOUNT", .text("\(Int(coinCount / 10))")),
+                                    ("ASSET", .image(CCAssetType.coin.iconName, width: 20)),
+                                    ("ASSETCOUNT", .text("\(coinCount)"))
+                                ]
+                        )
+                    }
+                } label: {
+                    HStack {
+                        Image("coupon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("\(Int(coinCount / 10))")
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(10)
+                    .background((coinCount % 10 == 0 && coinCount >= 10) ? Color.orange : Color.gray)
+                    .cornerRadius(10)
+                }
+                .disabled(coinCount % 10 != 0 || coinCount < 10)
+                Button {
+                    PopupWindowManager.shared.dismissPopup()
+                    PopupWindowManager.shared.presentPopup(
+                        title: "shop.action.buy",
+                        bottomButtons: [
+                            .cancel(),
+                            .confirm {
+                                assetManager.purchaseCCWithCC(buy: .coin, amount: coinCount, use: .voucher)
+                            }
+                        ]
+                    ) {
+                        RichTextLabel(
+                            templateKey: "shop.popup.buy.ccasset.confirm",
+                            items:
+                                [
+                                    ("MONEY", .image(CCAssetType.voucher.iconName, width: 20)),
+                                    ("MONEYCOUNT", .text("\(Int(coinCount / 10))")),
+                                    ("ASSET", .image(CCAssetType.coin.iconName, width: 20)),
+                                    ("ASSETCOUNT", .text("\(coinCount)"))
+                                ]
+                        )
+                    }
+                } label: {
+                    HStack {
+                        Image("voucher")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("\(Int(coinCount / 10))")
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(10)
+                    .background((coinCount % 10 == 0 && coinCount >= 10) ? Color.orange : Color.gray)
+                    .cornerRadius(10)
+                }
+                .disabled(coinCount % 10 != 0 || coinCount < 10)
+            }
         }
     }
 }
@@ -401,11 +436,9 @@ struct CPAssetShopCardView: View {
     let asset: CPAssetShopInfo
     
     var body: some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 10) {
             CachedAsyncImage(
-                urlString: asset.image_url,
-                placeholder: Image("Ads"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: asset.image_url
             )
             .aspectRatio(contentMode: .fit)
             .frame(height: 55)
@@ -415,10 +448,10 @@ struct CPAssetShopCardView: View {
                 Image(asset.ccassetType.iconName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 15)
+                    .frame(width: 18)
                 Text("\(asset.price)")
             }
-            .font(.caption2)
+            .font(.system(size: 15, weight: .semibold, design: .rounded))
             .foregroundColor(.white)
             .padding(4)
             .frame(maxWidth: .infinity)
@@ -426,8 +459,8 @@ struct CPAssetShopCardView: View {
             .cornerRadius(4)
             .frame(height: 25)
         }
-        .frame(height: 80)
-        .padding(8)
+        .frame(height: 90)
+        .padding(10)
         .background(Color.black.opacity(0.2))
         .cornerRadius(10)
     }
@@ -438,17 +471,17 @@ struct MagicCardShopCardView: View {
     
     var body: some View {
         VStack(spacing: 15) {
-            MagicCardView(card: MagicCard(withShopCard: card))
+            MagicCardView(card: MagicCard(withShopCard: card), isShopCardView: true)
                 //.frame(height: 120)
             
             HStack(spacing: 2) {
                 Image(card.ccasset_type.iconName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 15)
+                    .frame(width: 18)
                 Text("\(card.price)")
             }
-            .font(.caption2)
+            .font(.system(size: 15, weight: .semibold, design: .rounded))
             .foregroundColor(.white)
             .padding(4)
             .frame(maxWidth: .infinity)

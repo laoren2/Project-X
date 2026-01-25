@@ -12,14 +12,15 @@ struct StoreHouseView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject var userManager = UserManager.shared
-    @State var selectedCPAsset: CPAssetUserInfo? = nil
-    @State var selectedCard: MagicCard? = nil
+    
+    @State var selectedAsset: CommonAssetUserInfo? = nil
+    
     @State var selectedTab: Int = 0
     let globalConfig = GlobalConfig.shared
     
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             Rectangle()
                 .fill(
                     LinearGradient(
@@ -83,59 +84,25 @@ struct StoreHouseView: View {
                                             .frame(width: itemWidth)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(selectedCPAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                                    .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
                                             )
                                             .onTapGesture {
-                                                if selectedCPAsset?.id == asset.id {
-                                                    selectedCPAsset = nil
+                                                if selectedAsset?.id == asset.id {
+                                                    selectedAsset = nil
                                                 } else {
-                                                    selectedCPAsset = asset
+                                                    selectedAsset = CommonAssetUserInfo(from: asset)
                                                 }
                                             }
                                     }
                                 }
-                                .padding(10)
+                                .padding(.top, 10)
+                                .padding(.bottom, 100)
                             }
                             .refreshable {
                                 await MainActor.run {
-                                    selectedCPAsset = nil
+                                    selectedAsset = nil
                                 }
                                 await assetManager.queryCPAssets(withLoadingToast: false)
-                            }
-                            if let selected = selectedCPAsset {
-                                HStack(alignment: .bottom, spacing: 20) {
-                                    VStack(alignment: .leading) {
-                                        Text(selected.name)
-                                            .bold()
-                                            .font(.system(size: 15))
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 5)
-                                        
-                                        ScrollView {
-                                            Text(selected.description)
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(4)
-                                        }
-                                        .frame(height: 48)
-                                        .padding(6)
-                                        .background(Color.gray.opacity(0.8))
-                                        .cornerRadius(10)
-                                    }
-                                    
-                                    Text("warehouse.action.goBuy")
-                                        .foregroundColor(.white)
-                                        .frame(height: 60)
-                                        .padding(.horizontal, 16)
-                                        .background(Color.orange)
-                                        .cornerRadius(8)
-                                        .onTapGesture {
-                                            appState.navigationManager.selectedTab = .shop
-                                        }
-                                }
-                                .padding()
-                                .background(Color.black)
                             }
                         }
                     }
@@ -156,91 +123,34 @@ struct StoreHouseView: View {
                                                 .frame(width: itemWidth)
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 10)
-                                                        .stroke(selectedCard?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
+                                                        .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
                                                 )
                                             if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                GeometryReader { geometry in
-                                                    Text("warehouse.equipcard.unavailable")
-                                                        .font(.system(size: geometry.size.width * 0.2, weight: .bold))
-                                                        .foregroundColor(.white)
-                                                        .padding(geometry.size.width * 0.04)
-                                                        .background(Color.red.opacity(0.5))
-                                                        .cornerRadius(geometry.size.width * 0.04)
-                                                }
+                                                Text("warehouse.equipcard.unavailable")
+                                                    .font(.system(size: itemWidth * 0.2, weight: .bold))
+                                                    .foregroundColor(.white)
+                                                    .padding(itemWidth * 0.04)
+                                                    .background(Color.red.opacity(0.5))
+                                                    .cornerRadius(itemWidth * 0.04)
                                             }
                                         }
-                                        //.contentShape(Rectangle())      // 解决 MagicCard 图片尺寸宽高比不同导致的点击范围偏差
                                         .onTapGesture {
-                                            if selectedCard?.id == card.id {
-                                                selectedCard = nil
+                                            if selectedAsset?.id == card.id {
+                                                selectedAsset = nil
                                             } else {
-                                                selectedCard = card
+                                                selectedAsset = CommonAssetUserInfo(from: card)
                                             }
                                         }
                                     }
                                 }
-                                .padding(20)
+                                .padding(.top, 20)
+                                .padding(.bottom, 100)
                             }
                             .refreshable {
                                 await MainActor.run {
-                                    selectedCard = nil
+                                    selectedAsset = nil
                                 }
                                 await assetManager.queryMagicCards(withLoadingToast: false)
-                            }
-                            if let card = selectedCard {
-                                HStack(alignment: .bottom, spacing: 20) {
-                                    VStack(alignment: .leading) {
-                                        HStack {
-                                            Text(card.name)
-                                                .bold()
-                                                .font(.system(size: 15))
-                                                .foregroundColor(.white)
-                                                .padding(.horizontal, 5)
-                                            if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                Text("warehouse.equipcard.unavailable.detail")
-                                                    .font(.system(size: 13))
-                                                    .foregroundColor(.red)
-                                            }
-                                        }
-                                        
-                                        ScrollView {
-                                            Text(card.description)
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.white)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(4)
-                                        }
-                                        .frame(height: 48)
-                                        .padding(6)
-                                        .background(Color.gray.opacity(0.8))
-                                        .cornerRadius(10)
-                                    }
-                                    //VStack {
-                                        Text("warehouse.action.goUpgrade")
-                                            .foregroundColor(.white)
-                                            .frame(height: 60)
-                                            .padding(.horizontal, 16)
-                                            .background(Color.green)
-                                            .cornerRadius(8)
-                                            .onTapGesture {
-                                                appState.navigationManager.append(.instituteView)
-                                            }
-                                        /*Text("warehouse.action.destroy")
-                                            .foregroundColor(.white)
-                                            .frame(width: 100)
-                                            .padding(.vertical, 8)
-                                            .background(Color.orange)
-                                            .cornerRadius(8)
-                                            .onTapGesture {
-                                                Task{
-                                                    await assetManager.destroyMagicCard(cardID: card.cardID)
-                                                    selectedCard = nil
-                                                }
-                                            }
-                                    }*/
-                                }
-                                .padding()
-                                .background(Color.black)
                             }
                         }
                     }
@@ -249,12 +159,65 @@ struct StoreHouseView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .background(Color.gray.opacity(0.2))
             }
-            .padding(.bottom, 50)   // todo: 不用估计值
+            
+            if let asset = selectedAsset {
+                HStack(alignment: .bottom, spacing: 20) {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(asset.name)
+                                .bold()
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 5)
+                            if let version = asset.version, !AppVersionManager.shared.checkMinimumVersion(version) {
+                                Text("warehouse.equipcard.unavailable.detail")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        ScrollView {
+                            Text(asset.description)
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(4)
+                        }
+                        .frame(height: 48)
+                        .padding(6)
+                        .background(Color.gray.opacity(0.8))
+                        .cornerRadius(10)
+                    }
+                    if asset.assetType == .cpasset {
+                        Text("warehouse.action.goBuy")
+                            .foregroundColor(.white)
+                            .frame(height: 60)
+                            .padding(.horizontal, 16)
+                            .background(Color.orange)
+                            .cornerRadius(8)
+                            .onTapGesture {
+                                appState.navigationManager.selectedTab = .shop
+                            }
+                    } else if asset.assetType == .magiccard {
+                        Text("warehouse.action.goUpgrade")
+                            .foregroundColor(.white)
+                            .frame(height: 60)
+                            .padding(.horizontal, 16)
+                            .background(Color.green)
+                            .cornerRadius(8)
+                            .onTapGesture {
+                                appState.navigationManager.append(.instituteView)
+                            }
+                    }
+                }
+                .padding()
+                .background(Color.black)
+                .padding(.bottom, 85)
+            }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .ignoresSafeArea(edges: .bottom)
         .onValueChange(of: userManager.isLoggedIn) {
-            selectedCPAsset = nil
-            selectedCard = nil
+            selectedAsset = nil
             if !userManager.isLoggedIn {
                 assetManager.resetAll()
             }
@@ -263,8 +226,7 @@ struct StoreHouseView: View {
             if globalConfig.refreshStoreHouseView {
                 Task {
                     DispatchQueue.main.async {
-                        selectedCPAsset = nil
-                        selectedCard = nil
+                        selectedAsset = nil
                     }
                     await assetManager.queryCPAssets(withLoadingToast: true)
                     await assetManager.queryMagicCards(withLoadingToast: true)
@@ -281,9 +243,7 @@ struct CPAssetUserCardView: View {
     var body: some View {
         VStack(spacing: 5) {
             CachedAsyncImage(
-                urlString: asset.image_url,
-                placeholder: Image("Ads"),
-                errorImage: Image(systemName: "photo.badge.exclamationmark")
+                urlString: asset.image_url
             )
             .aspectRatio(contentMode: .fit)
             .frame(height: 55)
@@ -293,7 +253,7 @@ struct CPAssetUserCardView: View {
                 Text("x")
                 Text("\(asset.amount)")
             }
-            .font(.caption2)
+            .font(.system(size: 15, weight: .bold, design: .rounded))
             .foregroundColor(.secondText)
             .padding(4)
             .frame(maxWidth: .infinity)

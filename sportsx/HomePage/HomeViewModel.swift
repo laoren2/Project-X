@@ -61,8 +61,8 @@ class HomeViewModel: ObservableObject {
     let features = [
         //FeatureComponent(iconName: "star.fill", title: "技巧", destination: .skillView),
         //FeatureComponent(iconName: "star.fill", title: "活动", destination: .activityView)
-        FeatureComponent(iconName: "list.clipboard", title: "action.feedback", destination: .feedbackView(mailType: .other)),
-        FeatureComponent(iconName: "list.clipboard", title: "home.feature.skill", destination: .usageTipView)
+        FeatureComponent(iconName: "list.clipboard", title: "action.feedback", isSysIcon: true, destination: .feedbackView(mailType: .other)),
+        FeatureComponent(iconName: "skill", title: "home.skill", isSysIcon: false, destination: .usageTipView)
     ]
     
     // Date formatter for "yyyy-MM-dd"
@@ -76,8 +76,7 @@ class HomeViewModel: ObservableObject {
     }()
     
     let localAds: [AdInfo] = [
-        AdInfo(imageLocalURL: "Ads", appRoute: .usageTipView),
-        AdInfo(appRoute: .usageTipView)
+        AdInfo(imageLocalURL: "ad_usage_tips", appRoute: .usageTipView)
     ]
     
     init() {
@@ -278,11 +277,11 @@ class HomeViewModel: ObservableObject {
                             VStack {
                                 Text("home.sign_in.popup.claim_reward_success.content_vip")
                                 HStack(spacing: 4) {
-                                    Image(day.ccassetType.iconName)
+                                    Image(day.ccassetTypeVip.iconName)
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 20)
-                                    Text("* \(day.ccassetReward)")
+                                    Text("* \(day.ccassetRewardVip)")
                                         .font(.system(size: 15))
                                         .fontWeight(.semibold)
                                 }
@@ -498,6 +497,7 @@ struct FeatureComponent: Identifiable {
     let id = UUID()
     let iconName: String
     let title: LocalizedStringKey
+    let isSysIcon: Bool
     let destination: AppRoute
 }
 
@@ -559,10 +559,8 @@ struct AnnouncementInfo: Identifiable {
     let date: Date?
     
     init(from announcement: AnnouncementDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.content = announcement.content
-        self.date = formatter.date(from: announcement.date)
+        self.date = DateParser.parseISO8601(announcement.date)
     }
 }
 

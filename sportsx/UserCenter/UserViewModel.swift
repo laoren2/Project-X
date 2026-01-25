@@ -203,26 +203,24 @@ class UserViewModel: ObservableObject {
     
     func downloadImages(avatar_url: String, background_url: String) {
         NetworkService.downloadImage(from: avatar_url) { image in
-            if let image = image {
-                DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                if let image = image {
                     self.avatarImage = image
+                } else {
+                    self.avatarImage = UIImage(named: "broken_image")
                 }
-            } else {
-                //print("下载头像失败")
             }
         }
         NetworkService.downloadImage(from: background_url) { image in
-            if let image = image {
-                DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                if let image = image {
                     self.backgroundImage = image
-                }
-                if let avg = ImageTool.averageColor(from: image) {
-                    DispatchQueue.main.async {
+                    if let avg = ImageTool.averageColor(from: image) {
                         self.backgroundColor = avg.bestSoftDarkReadableColor()
                     }
+                } else {
+                    self.backgroundImage = UIImage(named: "broken_image")
                 }
-            } else {
-                //print("下载封面失败")
             }
         }
     }
@@ -462,8 +460,6 @@ struct CareerRecord: Identifiable {
     let recordDate: Date?
     
     init (from record: CareerRecordDTO) {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         self.recordID = record.record_id
         self.trackID = record.track_id
         self.trackName = record.track_name
@@ -471,7 +467,7 @@ struct CareerRecord: Identifiable {
         self.region = record.region
         self.trackScore = record.track_score
         self.score = record.score
-        self.recordDate = formatter.date(from: record.record_date)
+        self.recordDate = DateParser.parseISO8601(record.record_date)
     }
 }
 
@@ -520,6 +516,7 @@ struct SetUpItemView<Content: View>: View {
     let showChevron: Bool
     let showDivider: Bool
     let isDarkScheme: Bool
+    let isSysIcon: Bool
     let onEdit: (() -> Void)
     let trailingView: (() -> Content)
     
@@ -530,6 +527,7 @@ struct SetUpItemView<Content: View>: View {
         showChevron: Bool = true,
         showDivider: Bool = true,
         isDarkScheme: Bool = true,
+        isSysIcon: Bool = true,
         onEdit: @escaping (() -> Void),
         @ViewBuilder trailingView: @escaping () -> Content =  { EmptyView() }
     ) {
@@ -538,6 +536,7 @@ struct SetUpItemView<Content: View>: View {
         self.showChevron = showChevron
         self.showDivider = showDivider
         self.isDarkScheme = isDarkScheme
+        self.isSysIcon = isSysIcon
         self.onEdit = onEdit
         self.trailingView = trailingView
     }
@@ -545,10 +544,18 @@ struct SetUpItemView<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
-                Image(systemName: icon)
-                    .foregroundColor(isDarkScheme ? .secondText : .black)
-                    .frame(width: 22, height: 22)
-                
+                if isSysIcon {
+                    Image(systemName: icon)
+                        .foregroundColor(isDarkScheme ? .secondText : .black)
+                        .frame(width: 22, height: 22)
+                } else {
+                    Image(icon)
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                        .foregroundStyle(Color.secondText)
+                }
                 Text(LocalizedStringKey(title))
                     .font(.system(size: 16))
                     .foregroundColor(isDarkScheme ? .secondText : .black)

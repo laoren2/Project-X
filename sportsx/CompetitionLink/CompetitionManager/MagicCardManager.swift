@@ -8,6 +8,18 @@
 import Foundation
 import WatchConnectivity
 
+
+enum MagicCardFactoryError: LocalizedError {
+    case effectNotRegistered(defID: String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .effectNotRegistered(let defID):
+            return "未找到卡牌定义"
+        }
+    }
+}
+
 class MagicCardFactory {
     typealias CardConstructor = (String, Int, JSONValue) -> MagicCardEffect
     private static var registry: [String: CardConstructor] = [:]
@@ -16,10 +28,9 @@ class MagicCardFactory {
         registry[defID] = constructor
     }
     
-    static func createEffect(level: Int, from definition: MagicCardDef) -> MagicCardEffect {
+    static func createEffect(level: Int, from definition: MagicCardDef) throws -> MagicCardEffect {
         guard let constructor = registry[definition.defID] else {
-            print("No CardEffect registered for defID \(definition.defID)")
-            return EmptyCardEffect()
+            throw MagicCardFactoryError.effectNotRegistered(defID: definition.defID)
         }
         return constructor(definition.cardID, level, definition.params)
     }
@@ -453,13 +464,15 @@ class RunningValidationEffect: MagicCardEffect {
     }
 }
 
-class SpeedEffect_B_255b9406: MagicCardEffect {
+class SpeedEffect_B_00000002: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
     
+    let speed: Double
     let bonus_ratio: Double
     let bonus_ratio_member: Double
+    let speed_skill1: Double
     let bonus_skill1: Double
     let bonus_member_skill1: Double
     
@@ -468,25 +481,27 @@ class SpeedEffect_B_255b9406: MagicCardEffect {
         self.level = level
         self.params = params
         
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
-        self.bonus_ratio_member = params["bonus_ratio_member"]?.doubleValue ?? 0
-        self.bonus_skill1 = params["bonus_skill1"]?.doubleValue ?? 0
-        self.bonus_member_skill1 = params["bonus_member_skill1"]?.doubleValue ?? 0
+        self.speed = params["static_values", "speed"]?.doubleValue ?? 0
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
+        self.speed_skill1 = params["static_values", "speed_skill1"]?.doubleValue ?? 0
+        self.bonus_skill1 = params["compute_values", "bonus_skill1"]?.doubleValue ?? 0
+        self.bonus_member_skill1 = params["compute_values", "bonus_member_skill1"]?.doubleValue ?? 0
     }
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
-            CompetitionManager.shared.startCompetitionWithTeamBonusCard()
+            CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
-            if context.speed >= 30 {
+            if context.speed >= self.speed {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
         }
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
-            if self.level >= 3 && speedAvg_kmh >= 25 {
+            if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
@@ -494,15 +509,40 @@ class SpeedEffect_B_255b9406: MagicCardEffect {
     }
 }
 
-class SpeedEffect_A_e30c207c: MagicCardEffect {
+/*class SpeedEffect_A_00000000: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
     
+    init(cardID: String, level: Int, with params: JSONValue) {
+        self.cardID = cardID
+        self.level = level
+        self.params = params
+    }
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchStart) { context in
+            CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
+        }
+        eventBus.on(.matchCycleUpdate) { context in
+            context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.2)
+            context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: 0.1)
+        }
+    }
+}*/
+
+class SpeedEffect_A_00000002: MagicCardEffect {
+    let cardID: String
+    let level: Int
+    let params: JSONValue
+    
+    let speed: Double
     let bonus_ratio: Double
     let bonus_ratio_member: Double
+    let speed_skill1: Double
     let bonus_skill1: Double
     let bonus_member_skill1: Double
+    let speed_skill2: Double
     let bonus_skill2: Double
     let bonus_member_skill2: Double
     
@@ -511,31 +551,34 @@ class SpeedEffect_A_e30c207c: MagicCardEffect {
         self.level = level
         self.params = params
         
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
-        self.bonus_ratio_member = params["bonus_ratio_member"]?.doubleValue ?? 0
-        self.bonus_skill1 = params["bonus_skill1"]?.doubleValue ?? 0
-        self.bonus_member_skill1 = params["bonus_member_skill1"]?.doubleValue ?? 0
-        self.bonus_skill2 = params["bonus_skill2"]?.doubleValue ?? 0
-        self.bonus_member_skill2 = params["bonus_member_skill2"]?.doubleValue ?? 0
+        self.speed = params["static_values", "speed"]?.doubleValue ?? 0
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
+        self.speed_skill1 = params["static_values", "speed_skill1"]?.doubleValue ?? 0
+        self.bonus_skill1 = params["compute_values", "bonus_skill1"]?.doubleValue ?? 0
+        self.bonus_member_skill1 = params["compute_values", "bonus_member_skill1"]?.doubleValue ?? 0
+        self.speed_skill2 = params["static_values", "speed_skill2"]?.doubleValue ?? 0
+        self.bonus_skill2 = params["compute_values", "bonus_skill2"]?.doubleValue ?? 0
+        self.bonus_member_skill2 = params["compute_values", "bonus_member_skill2"]?.doubleValue ?? 0
     }
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
-            CompetitionManager.shared.startCompetitionWithTeamBonusCard()
+            CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
-            if context.speed >= 35 {
+            if context.speed >= self.speed {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
         }
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
-            if self.level >= 3 && speedAvg_kmh >= 30 {
+            if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
-            if self.level >= 6 && speedAvg_kmh >= 32.5 {
+            if self.level >= 6 && speedAvg_kmh >= self.speed_skill2 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill2)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill2)
             }
@@ -543,13 +586,15 @@ class SpeedEffect_A_e30c207c: MagicCardEffect {
     }
 }
 
-class SpeedEffect_B_9d861474: MagicCardEffect {
+class SpeedEffect_B_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
     
+    let speed: Double
     let bonus_ratio: Double
     let bonus_ratio_member: Double
+    let speed_skill1: Double
     let bonus_skill1: Double
     let bonus_member_skill1: Double
     
@@ -558,19 +603,25 @@ class SpeedEffect_B_9d861474: MagicCardEffect {
         self.level = level
         self.params = params
         
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
-        self.bonus_ratio_member = params["bonus_ratio_member"]?.doubleValue ?? 0
-        self.bonus_skill1 = params["bonus_skill1"]?.doubleValue ?? 0
-        self.bonus_member_skill1 = params["bonus_member_skill1"]?.doubleValue ?? 0
+        let speed_min = params["static_values", "speed_min"]?.doubleValue ?? 0
+        let speed_second = params["static_values", "speed_second"]?.doubleValue ?? 0
+        self.speed = speed_min + speed_second / 60
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
+        let speed_min_skill1 = params["static_values", "speed_min_skill1"]?.doubleValue ?? 0
+        let speed_second_skill1 = params["static_values", "speed_second_skill1"]?.doubleValue ?? 0
+        self.speed_skill1 = speed_min_skill1 + speed_second_skill1 / 60
+        self.bonus_skill1 = params["compute_values", "bonus_skill1"]?.doubleValue ?? 0
+        self.bonus_member_skill1 = params["compute_values", "bonus_member_skill1"]?.doubleValue ?? 0
     }
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
-            CompetitionManager.shared.startCompetitionWithTeamBonusCard()
+            CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
             let speed_minkm = 60.0 / context.speed
-            if speed_minkm <= 5.5 {
+            if speed_minkm <= self.speed {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
@@ -578,7 +629,7 @@ class SpeedEffect_B_9d861474: MagicCardEffect {
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             let speedAvg_minkm = 60.0 / speedAvg_kmh
-            if self.level >= 3 && speedAvg_minkm <= 6 {
+            if self.level >= 3 && speedAvg_minkm <= self.speed_skill1 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
@@ -586,15 +637,18 @@ class SpeedEffect_B_9d861474: MagicCardEffect {
     }
 }
 
-class SpeedEffect_A_ed38de79: MagicCardEffect {
+class SpeedEffect_A_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
     
+    let speed: Double
     let bonus_ratio: Double
     let bonus_ratio_member: Double
+    let speed_skill1: Double
     let bonus_skill1: Double
     let bonus_member_skill1: Double
+    let speed_skill2: Double
     let bonus_skill2: Double
     let bonus_member_skill2: Double
     
@@ -603,21 +657,32 @@ class SpeedEffect_A_ed38de79: MagicCardEffect {
         self.level = level
         self.params = params
         
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
-        self.bonus_ratio_member = params["bonus_ratio_member"]?.doubleValue ?? 0
-        self.bonus_skill1 = params["bonus_skill1"]?.doubleValue ?? 0
-        self.bonus_member_skill1 = params["bonus_member_skill1"]?.doubleValue ?? 0
-        self.bonus_skill2 = params["bonus_skill2"]?.doubleValue ?? 0
-        self.bonus_member_skill2 = params["bonus_member_skill2"]?.doubleValue ?? 0
+        let speed_min = params["static_values", "speed_min"]?.doubleValue ?? 0
+        let speed_second = params["static_values", "speed_second"]?.doubleValue ?? 0
+        self.speed = speed_min + speed_second / 60
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
+        
+        let speed_min_skill1 = params["static_values", "speed_min_skill1"]?.doubleValue ?? 0
+        let speed_second_skill1 = params["static_values", "speed_second_skill1"]?.doubleValue ?? 0
+        self.speed_skill1 = speed_min_skill1 + speed_second_skill1 / 60
+        self.bonus_skill1 = params["compute_values", "bonus_skill1"]?.doubleValue ?? 0
+        self.bonus_member_skill1 = params["compute_values", "bonus_member_skill1"]?.doubleValue ?? 0
+        
+        let speed_min_skill2 = params["static_values", "speed_min_skill2"]?.doubleValue ?? 0
+        let speed_second_skill2 = params["static_values", "speed_second_skill2"]?.doubleValue ?? 0
+        self.speed_skill2 = speed_min_skill2 + speed_second_skill2 / 60
+        self.bonus_skill2 = params["compute_values", "bonus_skill2"]?.doubleValue ?? 0
+        self.bonus_member_skill2 = params["compute_values", "bonus_member_skill2"]?.doubleValue ?? 0
     }
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
-            CompetitionManager.shared.startCompetitionWithTeamBonusCard()
+            CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
             let speed_minkm = 60.0 / context.speed
-            if speed_minkm <= 5 {
+            if speed_minkm <= self.speed {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
@@ -625,11 +690,11 @@ class SpeedEffect_A_ed38de79: MagicCardEffect {
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             let speedAvg_minkm = 60.0 / speedAvg_kmh
-            if self.level >= 3 && speedAvg_minkm <= 5.5 {
+            if self.level >= 3 && speedAvg_minkm <= self.speed_skill1 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
-            if self.level >= 6 && speedAvg_minkm <= 5.25 {
+            if self.level >= 6 && speedAvg_minkm <= self.speed_skill2 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill2)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill2)
             }
@@ -637,7 +702,7 @@ class SpeedEffect_A_ed38de79: MagicCardEffect {
     }
 }
 
-class AltitudeEffect_C_c6d9b2ac: MagicCardEffect {
+class AltitudeEffect_C_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
@@ -649,7 +714,7 @@ class AltitudeEffect_C_c6d9b2ac: MagicCardEffect {
         self.cardID = cardID
         self.level = level
         self.params = params
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
     }
     
     func register(eventBus: MatchEventBus) {
@@ -662,7 +727,7 @@ class AltitudeEffect_C_c6d9b2ac: MagicCardEffect {
     }
 }
 
-class AltitudeEffect_B_57263168: MagicCardEffect {
+class AltitudeEffect_B_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
@@ -670,50 +735,57 @@ class AltitudeEffect_B_57263168: MagicCardEffect {
     let bonus_ratio: Double
     let bonus_from_skill1: Double
     let bonus_to_skill1: Double
+    let altitude_low: Double
+    let altitude_high: Double
+    
     var last_altitude: Double = 0
-    var min_altitude: Double = Double.greatestFiniteMagnitude
-    var max_altitude: Double = -Double.greatestFiniteMagnitude
+    var cumulative_climb: Double = 0
     
     init(cardID: String, level: Int, with params: JSONValue) {
         self.cardID = cardID
         self.level = level
         self.params = params
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
-        self.bonus_from_skill1 = params["bonus_from_skill1"]?.doubleValue ?? 0
-        self.bonus_to_skill1 = params["bonus_to_skill1"]?.doubleValue ?? 0
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_from_skill1 = params["compute_values", "bonus_from_skill1"]?.doubleValue ?? 0
+        self.bonus_to_skill1 = params["compute_values", "bonus_to_skill1"]?.doubleValue ?? 0
+        self.altitude_low = params["static_values", "altitude_low"]?.doubleValue ?? 10
+        self.altitude_high = params["static_values", "altitude_high"]?.doubleValue ?? 100
     }
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchCycleUpdate) { context in
             if context.altitude > self.last_altitude {
+                let meters = context.altitude - self.last_altitude
+                self.cumulative_climb += meters
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
             }
             self.last_altitude = context.altitude
-            self.min_altitude = min(self.min_altitude, context.altitude)
-            self.max_altitude = max(self.max_altitude, context.altitude)
         }
         eventBus.on(.matchEnd) { context in
-            let altitude_delta = self.max_altitude - self.min_altitude
-            if self.level >= 3 && altitude_delta >= 10 && altitude_delta <= 100 {
-                let bonus = self.bonus_from_skill1 + (self.bonus_to_skill1 - self.bonus_from_skill1) * (altitude_delta - 10) / 90.0
+            if self.level >= 3 && self.cumulative_climb >= self.altitude_low && self.cumulative_climb <= self.altitude_high {
+                let bonus = self.bonus_from_skill1 + (self.bonus_to_skill1 - self.bonus_from_skill1) * (self.cumulative_climb - self.altitude_low) / (self.altitude_high - self.altitude_low)
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
             }
         }
     }
 }
 
-class HeartRateEffect_C_0ee41ac7: MagicCardEffect {
+class HeartRateEffect_C_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
     
     let bonus_ratio: Double
+    let heart_rate_low: Double
+    let heart_rate_high: Double
     
     init(cardID: String, level: Int, with params: JSONValue) {
         self.cardID = cardID
         self.level = level
         self.params = params
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.heart_rate_low = params["static_values", "heart_rate_low"]?.doubleValue ?? 120
+        self.heart_rate_high = params["static_values", "heart_rate_high"]?.doubleValue ?? 160
     }
     
     func load() async -> Bool {
@@ -735,27 +807,38 @@ class HeartRateEffect_C_0ee41ac7: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchCycleUpdate) { context in
-            if let heartRate = context.latestHeartRate, heartRate >= 120, heartRate <= 160  {
+            if let heartRate = context.latestHeartRate, heartRate >= self.heart_rate_low, heartRate <= self.heart_rate_high  {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.01 * self.bonus_ratio * 3)
             }
         }
     }
 }
 
-class HeartRateEffect_B_464ffa29: MagicCardEffect {
+class HeartRateEffect_B_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
     let params: JSONValue
     
     let bonus_ratio: Double
+    let aerobic_ratio_skill1: Double
     let bonus_time_skill1: Double
+    let bonus_time2_skill1: Double
+    let heart_rate_low: Double
+    let heart_rate_high: Double
+    
+    var aerobic_duration: Double = 0
     
     init(cardID: String, level: Int, with params: JSONValue) {
         self.cardID = cardID
         self.level = level
         self.params = params
-        self.bonus_ratio = params["bonus_ratio"]?.doubleValue ?? 0
-        self.bonus_time_skill1 = params["skill1", "bonus_time_skill1"]?.doubleValue ?? 0
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        let aerobic_per_skill1 = params["static_values", "aerobic_ratio_skill1"]?.doubleValue ?? 50
+        self.aerobic_ratio_skill1 = 0.01 * aerobic_per_skill1
+        self.bonus_time_skill1 = params["compute_values", "bonus_time_skill1"]?.doubleValue ?? 0
+        self.bonus_time2_skill1 = params["compute_values", "bonus_time2_skill1"]?.doubleValue ?? 0
+        self.heart_rate_low = params["static_values", "heart_rate_low"]?.doubleValue ?? 120
+        self.heart_rate_high = params["static_values", "heart_rate_high"]?.doubleValue ?? 160
     }
     
     func load() async -> Bool {
@@ -777,13 +860,19 @@ class HeartRateEffect_B_464ffa29: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchCycleUpdate) { context in
-            if let heartRate = context.latestHeartRate, heartRate >= 120, heartRate <= 160 {
+            if let heartRate = context.latestHeartRate, heartRate >= self.heart_rate_low, heartRate <= self.heart_rate_high {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.01 * self.bonus_ratio * 3)
+                self.aerobic_duration += 3
             }
         }
         eventBus.on(.matchEnd) { context in
+            let aerobic_ratio = self.aerobic_duration /  DataFusionManager.shared.elapsedTime
+            if self.level >= 3 && aerobic_ratio >= self.aerobic_ratio_skill1 && aerobic_ratio <= 1 {
+                let bonus = (aerobic_ratio - self.aerobic_ratio_skill1) / (1 - self.aerobic_ratio_skill1) * self.bonus_time2_skill1
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
+            }
             if let avgHeartRate = context.avgHeartRate {
-                if self.level >= 3 && avgHeartRate >= 120 && avgHeartRate <= 160 {
+                if self.level >= 3 && avgHeartRate >= self.heart_rate_low && avgHeartRate <= self.heart_rate_high {
                     context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_time_skill1)
                 }
             }
