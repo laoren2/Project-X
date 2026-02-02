@@ -15,6 +15,8 @@ import Combine
 enum AppRoute: Hashable {
     case bikeRecordDetailView(recordID: String)
     case runningRecordDetailView(recordID: String)
+    case bikeEventDetailView(eventID: String)
+    case runningEventDetailView(eventID: String)
     case competitionCardSelectView
     case competitionRealtimeView
     case sportTrainingView(sport: SportName)
@@ -31,6 +33,7 @@ enum AppRoute: Hashable {
     case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
+    case smsLoginView
     case phoneBindView
     case appleBindView
     case bikeRankingListView(trackID: String, gender: Gender, isHistory: Bool = false)
@@ -59,6 +62,7 @@ enum AppRoute: Hashable {
     case emailBindView
     case userCardDetailView(cardID: String)
     case shopCardDetailView(defID: String)
+    case regionSelectedView
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -68,7 +72,6 @@ enum AppRoute: Hashable {
     case bikeEventBackendView
     case bikeTrackBackendView
     case bikeRecordBackendView
-    case regionSelectedView
     case cpAssetBackendView
     case cpAssetPriceBackendView
     case mailboxBackendView
@@ -77,7 +80,7 @@ enum AppRoute: Hashable {
     case bikeMatchDebugView
     case feedbackMailBackendView
     case homepageBackendView
-    case smsLoginView
+    case localDebugView
 #endif
     
     var string: String {
@@ -86,6 +89,10 @@ enum AppRoute: Hashable {
             return "bikeRecordDetailView"
         case .runningRecordDetailView:
             return "runningRecordDetailView"
+        case .bikeEventDetailView:
+            return "bikeEventDetailView"
+        case .runningEventDetailView:
+            return "runningEventDetailView"
         case .competitionCardSelectView:
             return "competitionCardSelectView"
         case .competitionRealtimeView:
@@ -176,6 +183,8 @@ enum AppRoute: Hashable {
             return "userCardDetailView"
         case .shopCardDetailView:
             return "shopCardDetailView"
+        case .regionSelectedView:
+            return "regionSelectedView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"
@@ -193,8 +202,6 @@ enum AppRoute: Hashable {
             return "bikeTrackBackendView"
         case .bikeRecordBackendView:
             return "bikeRecordBackendView"
-        case .regionSelectedView:
-            return "regionSelectedView"
         case .cpAssetBackendView:
             return "cpAssetBackendView"
         case .cpAssetPriceBackendView:
@@ -211,6 +218,8 @@ enum AppRoute: Hashable {
             return "feedbackMailBackendView"
         case .homepageBackendView:
             return "homepageBackendView"
+        case .localDebugView:
+            return "localDebugView"
 #endif
         }
     }

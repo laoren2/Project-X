@@ -88,11 +88,13 @@ struct RealNameAuthView: View {
                 .font(.caption)
                 .foregroundStyle(Color.thirdText)
             Text(userManager.user.isRealnameAuth ? "user.setup.realname_auth.action.reauth" : "user.setup.realname_auth.action.auth")
-                .padding(.vertical, 10)
-                .padding(.horizontal, 25)
-                .foregroundStyle(Color.secondText)
+                .font(.headline)
+                .foregroundStyle(Color.white)
+                .padding(.vertical)
+                .frame(maxWidth: .infinity)
                 .background(cardImage == nil ? Color.gray : Color.orange)
                 .cornerRadius(10)
+                .padding(.top, 20)
                 .onTapGesture {
                     appliedOCR()
                 }
@@ -141,9 +143,12 @@ struct RealNameAuthView: View {
         
         let request = APIRequest(path: "/user/realname_hk", method: .post, headers: headers, body: body, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
+                DispatchQueue.main.async {
+                    ToastManager.shared.show(toast: Toast(message: "user.setup.realname_auth.toast.success"))
+                }
                 Task {
                     await UserManager.shared.fetchMeInfo()
                 }

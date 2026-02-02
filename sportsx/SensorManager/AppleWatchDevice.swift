@@ -151,10 +151,11 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         } catch {
             Logger.competition.notice_public("[AppleWatchDevice] Failed to update stop applicationContext: \(error)")
         }
-        
+#if DEBUG
         if SAVESENSORDATA {
             self.finalizeCompetitionData()
         }
+#endif
         canReceiveData = false
         enableIMU = false
     }
@@ -260,9 +261,11 @@ extension AppleWatchDevice: WCSessionDelegate {
                         gyroZ: gyroz
                     )
                     batchData.append(sensorData)
+#if DEBUG
                     if SAVESENSORDATA {
                         competitionData.append(sensorData)
                     }
+#endif
                 }
             }
             //Logger.competition.notice_public("receive batch size : ", cnt)
@@ -270,7 +273,7 @@ extension AppleWatchDevice: WCSessionDelegate {
                 //Logger.competition.notice_public("add batch data")
                 dataFusionManager.addSensorData(sensorPos, batchData)
             }
-            
+#if DEBUG
             if SAVESENSORDATA {
                 // 批量保存
                 if competitionData.count >= batchSize {
@@ -279,6 +282,7 @@ extension AppleWatchDevice: WCSessionDelegate {
                     saveBatchAsCSV(dataBatch: batch)
                 }
             }
+#endif
         }
         if let statsData = message["statsData"] as? [String: Any] {
             //Logger.competition.notice_public("statsData")

@@ -16,7 +16,7 @@ struct SensorBindView: View {
     @State private var selectedPosition: BodyPosition? = nil
     
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             HStack {
                 CommonIconButton(icon: "chevron.left") {
                     appState.navigationManager.removeLast()
@@ -35,24 +35,16 @@ struct SensorBindView: View {
                 }
             }
             .padding(.horizontal)
-            Spacer()
-            BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posWST)
-            Spacer()
-            HStack {
-                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLH)
-                Spacer()
-                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRH)
+            ScrollView {
+                VStack(spacing: 20) {
+                    //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posWST)
+                    BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLH)
+                    BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRH)
+                    //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLF)
+                    //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRF)
+                }
+                .padding()
             }
-            .padding(.horizontal, 50)
-            Spacer()
-            HStack {
-                Spacer()
-                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLF)
-                Spacer()
-                BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRF)
-                Spacer()
-            }
-            Spacer()
         }
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
@@ -147,9 +139,16 @@ struct BodyBindView: View {
     let position: BodyPosition
     
     var body: some View {
-        VStack(spacing: 10) {
+        HStack(spacing: 10) {
+            Image(position.icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 45)
             Text(LocalizedStringKey(position.name))
+                .font(.title3)
+                .bold()
                 .foregroundStyle(Color.secondText)
+            Spacer()
             if deviceManager.isBound(at: position),
                let device = deviceManager.getDevice(at: position) {
                 // 已绑定状态 => 显示设备名

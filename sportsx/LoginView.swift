@@ -47,29 +47,29 @@ struct SmsLoginView: View {
             HStack {
                 Text("login.subtitle")
                     .foregroundStyle(Color.thirdText)
+                    .font(.headline)
                 Spacer()
             }
             VStack(spacing: 20) {
                 Text("login.sms.title")
                     .foregroundStyle(Color.white)
-                
+                    .font(.title2)
                 HStack {
                     Text("+852")
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(Color.white)
-                        .background(Color.gray)
+                        .padding()
+                        .foregroundStyle(Color.black)
+                        .background(Color.white)
                         .cornerRadius(10)
                     
                     TextField(text: $phoneNumber) {
                         Text("login.sms.phone.placeholder")
-                            .foregroundStyle(Color.thirdText)
+                            .foregroundStyle(Color.gray)
                     }
-                    .padding(10)
-                    .foregroundStyle(Color.white)
+                    .padding()
+                    .foregroundStyle(Color.black)
                     .scrollContentBackground(.hidden)
                     .keyboardType(.numberPad)
-                    .background(.ultraThinMaterial)
+                    .background(Color.white)
                     .cornerRadius(10)
                 }
                 
@@ -77,10 +77,17 @@ struct SmsLoginView: View {
                     Text(countdown == 0 ? "login.sms.send_result.2" : "login.sms.send_result.1 \(countdown)")
                         .foregroundStyle(Color.secondText)
                     HStack {
-                        TextField("login.sms.code.placeholder", text: $smsCode)
-                            .textContentType(.oneTimeCode)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.numberPad)
+                        TextField(text: $smsCode) {
+                            Text("login.sms.code.placeholder")
+                                .foregroundStyle(Color.gray)
+                        }
+                        .padding()
+                        .foregroundStyle(Color.black)
+                        .textContentType(.oneTimeCode)
+                        .scrollContentBackground(.hidden)
+                        .keyboardType(.numberPad)
+                        .background(Color.white)
+                        .cornerRadius(10)
                         
                         Button(action: {
                             if countdown == 0 {
@@ -88,13 +95,11 @@ struct SmsLoginView: View {
                             }
                         }) {
                             Text("login.sms.action.send_again")
-                                .foregroundStyle(.white)
-                                .font(.system(size: 15))
+                                .foregroundStyle(Color.white)
+                                .padding()
+                                .background(countdown == 0 ? Color.green : Color.gray)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(countdown == 0 ? Color.green : Color.gray)
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
                         .disabled(countdown != 0)
                     }
                 }
@@ -107,10 +112,11 @@ struct SmsLoginView: View {
                     }
                 }) {
                     Text(alreadySendSMSCode ? "action.login" : "login.sms.action.verify_and_login")
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(agreed ? Color.orange : Color.orange.opacity(0.2))
+                        .font(.headline)
                         .foregroundStyle(agreed ? Color.white : Color.thirdText)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                        .background(agreed ? Color.orange : Color.orange.opacity(0.2))
                         .cornerRadius(10)
                         .padding(.top, 10)
                 }
@@ -316,31 +322,39 @@ struct LoginView: View {
                 HStack {
                     Text("login.subtitle")
                         .foregroundStyle(Color.thirdText)
+                        .font(.headline)
                     Spacer()
                 }
                 VStack(spacing: 20) {
                     Text("login.email.title")
                         .foregroundStyle(Color.white)
-                    
+                        .font(.title2)
                     TextField(text: $emailAddress) {
                         Text("login.email.placeholder")
-                            .foregroundStyle(Color.thirdText)
+                            .foregroundStyle(Color.gray)
                     }
-                    .padding(10)
-                    .foregroundStyle(Color.white)
+                    .padding()
+                    .foregroundStyle(Color.black)
                     .scrollContentBackground(.hidden)
                     .keyboardType(.emailAddress)
-                    .background(.ultraThinMaterial)
+                    .background(Color.white)
                     .cornerRadius(10)
                     
                     if alreadySendEmailCode {
                         Text(countdown == 0 ? "login.email.send_result.2" : "login.email.send_result.1 \(countdown)")
                             .foregroundStyle(Color.secondText)
                         HStack {
-                            TextField("login.sms.code.placeholder", text: $emailCode)
-                                .textContentType(.oneTimeCode)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.numberPad)
+                            TextField(text: $emailCode) {
+                                Text("login.sms.code.placeholder")
+                                    .foregroundStyle(Color.gray)
+                            }
+                            .padding()
+                            .foregroundStyle(Color.black)
+                            .textContentType(.oneTimeCode)
+                            .scrollContentBackground(.hidden)
+                            .keyboardType(.numberPad)
+                            .background(Color.white)
+                            .cornerRadius(10)
                             
                             Button(action: {
                                 if countdown == 0 {
@@ -348,13 +362,11 @@ struct LoginView: View {
                                 }
                             }) {
                                 Text("login.sms.action.send_again")
-                                    .foregroundStyle(.white)
-                                    .font(.system(size: 15))
+                                    .padding()
+                                    .foregroundStyle(Color.white)
+                                    .background(countdown == 0 ? Color.green : Color.gray)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(countdown == 0 ? Color.green : Color.gray)
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
                             .disabled(countdown != 0)
                         }
                     }
@@ -367,10 +379,11 @@ struct LoginView: View {
                         }
                     }) {
                         Text(alreadySendEmailCode ? "action.login" : "login.sms.action.verify_and_login")
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(agreed ? Color.orange : Color.orange.opacity(0.2))
+                            .font(.headline)
                             .foregroundStyle(agreed ? Color.white : Color.thirdText)
+                            .padding(.vertical)
+                            .frame(maxWidth: .infinity)
+                            .background(agreed ? Color.orange : Color.orange.opacity(0.2))
                             .cornerRadius(10)
                             .padding(.top, 10)
                     }

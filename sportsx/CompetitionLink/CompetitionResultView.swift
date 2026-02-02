@@ -172,31 +172,47 @@ struct BikeRecordDetailView: View {
                             // 成绩总览
                             VStack(spacing: 8) {
                                 HStack {
-                                    (Text("competition.track.distance") + Text(":"))
+                                    Text("competition.track.distance")
+                                        .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
-                                        .font(.system(.body, design: .rounded))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    (Text("competition.record.original_time") + Text(":"))
+                                    Text("competition.record.original_time")
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.originalTime, showFraction: true))")
                                         .font(.system(.body, design: .rounded))
                                         .foregroundStyle(Color.white)
                                 }
+                                .bold()
                                 HStack {
-                                    (Text("competition.record.valid_time") + Text(":"))
-                                        .foregroundStyle(Color.secondText)
+                                    HStack(spacing: 2) {
+                                        Text("competition.record.valid_time")
+                                            .bold()
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.record.valid_time",
+                                                    message: "competition.record.valid_time.popup.content",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                    }
+                                    .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
-                                        .font(.system(.body, design: .rounded))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    (Text("common.status") + Text(":"))
+                                    Text("common.status")
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     if detailInfo.status == .completed {
@@ -212,8 +228,8 @@ struct BikeRecordDetailView: View {
                                             .foregroundStyle(detailInfo.status.backgroundColor)
                                     }
                                 }
+                                .bold()
                             }
-                            .bold()
                             Divider()
                                 .environment(\.colorScheme, .dark)
                             // 数据统计
@@ -856,31 +872,47 @@ struct RunningRecordDetailView: View {
                             // 成绩总览
                             VStack(spacing: 8) {
                                 HStack {
-                                    (Text("competition.track.distance") + Text(":"))
+                                    Text("competition.track.distance")
+                                        .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
-                                        .font(.system(.body, design: .rounded))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    (Text("competition.record.original_time") + Text(":"))
+                                    Text("competition.record.original_time")
+                                        .bold()
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.originalTime, showFraction: true))")
-                                        .font(.system(.body, design: .rounded))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    (Text("competition.record.valid_time") + Text(":"))
-                                        .foregroundStyle(Color.secondText)
+                                    HStack(spacing: 2) {
+                                        Text("competition.record.valid_time")
+                                            .bold()
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.record.valid_time",
+                                                    message: "competition.record.valid_time.popup.content",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                    }
+                                    .foregroundStyle(Color.secondText)
                                     Spacer()
                                     Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
-                                        .font(.system(.body, design: .rounded))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    (Text("common.status") + Text(":"))
+                                    Text("common.status")
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     if detailInfo.status == .completed {
@@ -896,8 +928,8 @@ struct RunningRecordDetailView: View {
                                             .foregroundStyle(detailInfo.status.backgroundColor)
                                     }
                                 }
+                                .bold()
                             }
-                            .bold()
                             Divider()
                                 .environment(\.colorScheme, .dark)
                             // 数据统计

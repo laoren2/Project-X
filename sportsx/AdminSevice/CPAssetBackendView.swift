@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/7/3.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -462,3 +462,4 @@ struct CPAssetDefView: View {
         viewModel.image_url = asset.image_url
     }
 }
+#endif

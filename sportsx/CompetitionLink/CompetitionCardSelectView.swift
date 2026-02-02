@@ -203,6 +203,25 @@ struct CompetitionCardSelectView: View {
             if appState.competitionManager.isTeam {
                 appState.competitionManager.startTeamJoinTimerA()
             }
+            if appState.competitionManager.sport == .Bike {
+                PopupWindowManager.shared.presentPopup(
+                    title: "competition.event.precautions",
+                    message: "competition.cardselect.popup.content.bike",
+                    doNotShowAgainKey: "CompetitionCardSelectView.phone_pos.bike",
+                    bottomButtons: [
+                        .confirm()
+                    ]
+                )
+            } else if appState.competitionManager.sport == .Running {
+                PopupWindowManager.shared.presentPopup(
+                    title: "competition.event.precautions",
+                    message: "competition.cardselect.popup.content.running",
+                    doNotShowAgainKey: "CompetitionCardSelectView.phone_pos.running",
+                    bottomButtons: [
+                        .confirm()
+                    ]
+                )
+            }
         }
         .bottomSheet(isPresented: $showCardSelection, size: .large, destroyOnDismiss: true) {
             CardSelectionView(showCardSelection: $showCardSelection)

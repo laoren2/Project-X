@@ -209,8 +209,8 @@ struct RealtimeMapView: UIViewRepresentable {
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: RealtimeMapView
-        let fromAnnotation = MKPointAnnotation()
-        let toAnnotation = MKPointAnnotation()
+        let fromAnnotation = TrackPointAnnotation(type: .start)
+        let toAnnotation = TrackPointAnnotation(type: .end)
         // 缓存
         var lastPointCount: Int = 0
         var lastIsReverse: Bool = false
@@ -230,6 +230,32 @@ struct RealtimeMapView: UIViewRepresentable {
             DispatchQueue.main.async {
                 self.isProgrammaticChange = false
             }
+        }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard let annotation = annotation as? TrackPointAnnotation else { return nil }
+            
+            let identifier = "TrackPointAnnotationView.realtime"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            as? TrackPointAnnotationView
+            ?? TrackPointAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            
+            let imageName: String
+            let titleText: String
+            
+            switch annotation.type {
+            case .start:
+                imageName = "flag_start"
+                titleText = NSLocalizedString("competition.track.start", comment: "")
+            case .end:
+                imageName = "flag_finish"
+                titleText = NSLocalizedString("competition.track.finish", comment: "")
+            }
+            
+            view.image = UIImage(named: imageName)
+            view.configure(title: titleText)
+            
+            return view
         }
         
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {

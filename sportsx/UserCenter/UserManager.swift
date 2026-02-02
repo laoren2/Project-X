@@ -85,7 +85,7 @@ class UserManager: ObservableObject {
     func cancelUser() {
         let request = APIRequest(path: "/user/delete", method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async {

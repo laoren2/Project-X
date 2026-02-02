@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/6/11.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -235,7 +235,7 @@ struct RunningTrackCreateView: View {
                         .cornerRadius(8)
                     }
                     TextField("海拔差", text: $elevationDifference)
-                        .keyboardType(.numberPad)
+                        .keyboardType(.numbersAndPunctuation)
                     TextField("子区域hans", text: $subRegioName_hans)
                     TextField("子区域hant", text: $subRegioName_hant)
                     TextField("子区域en", text: $subRegioName_en)
@@ -651,3 +651,4 @@ struct RunningTrackCardView: View {
 #Preview {
     RunningTrackBackendView()
 }
+#endif

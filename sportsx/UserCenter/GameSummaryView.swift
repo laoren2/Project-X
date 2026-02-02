@@ -92,7 +92,7 @@ struct GameSummaryCardView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
-                Text(gameSummaryCard.cityName)
+                Text(LocalizedStringKey(gameSummaryCard.cityName))
             }
             .font(.headline)
             .foregroundStyle(Color.white)

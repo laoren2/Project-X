@@ -1,0 +1,15 @@
+/* 
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/2.
+  
+*/
+
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当比赛在后台进行期间会使用后台定位。";
+"NSLocationWhenInUseUsageDescription" = "用于展示附近可参与的比赛与赛道信息。";
+"NSPhotoLibraryUsageDescription" = "用于访问你的本地相册图片来更新你的个人信息，不会访问未被你选择的照片。";
+"NSHealthShareUsageDescription" = "用于读取你的运动和心率等健康数据，以便生成更准确的运动记录和表现分析。";
+"NSHealthUpdateUsageDescription" = "用于将你的运动记录写入健康 App，方便你在系统健康应用中统一查看运动历史。";
+"NSMotionUsageDescription" = "用于读取设备运动传感器数据以记录和分析你的运动表现。";
+

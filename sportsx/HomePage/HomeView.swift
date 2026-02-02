@@ -365,16 +365,15 @@ struct SignInSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(alignment: .bottom) {
                 Text("home.sign_in.tile")
                     .font(.headline)
                     .foregroundColor(.white)
-                Image(systemName: "gift.fill")
-                    .foregroundColor(.orange)
-                    .font(.system(size: 15))
-                
+                Image("vip_benefit_gift")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 28)
                 Spacer()
-                
                 HStack {
                     Image(systemName: "bell.badge")
                         .foregroundColor(vm.reminderEnabled ? .orange : .secondText)
@@ -414,6 +413,10 @@ struct SignInSectionView: View {
                         }
                         navigationManager.append(.subscriptionDetailView)
                     }
+                } else {
+                    Text("home.sign_in.subtile")
+                        .font(.caption)
+                        .foregroundColor(.secondText)
                 }
                 Spacer()
                 if vm.reminderEnabled {

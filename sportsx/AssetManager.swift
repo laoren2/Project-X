@@ -72,13 +72,14 @@ class AssetManager: ObservableObject {
         guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
         let request = APIRequest(path: "/asset/buy_ccasset", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: CC_CC_PurchaseResultResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: CC_CC_PurchaseResultResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         self.updateCCAsset(type: unwrappedData.decrease_type, newBalance: unwrappedData.decrease_amount)
                         self.updateCCAsset(type: unwrappedData.increase_type, newBalance: unwrappedData.increase_amount)
+                        ToastManager.shared.show(toast: Toast(message: "iap.coupon.success"))
                     }
                 }
             default: break
@@ -97,13 +98,14 @@ class AssetManager: ObservableObject {
         guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
         let request = APIRequest(path: "/asset/buy_cpasset", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: CC_CP_PurchaseResultResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: CC_CP_PurchaseResultResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         self.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
                         self.updateCPAsset(assetID: unwrappedData.cpasset_id, newBalance: unwrappedData.new_cpamount)
+                        ToastManager.shared.show(toast: Toast(message: "iap.coupon.success"))
                     }
                 }
             default: break
@@ -120,13 +122,14 @@ class AssetManager: ObservableObject {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: CC_MC_PurchaseResultResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: CC_MC_PurchaseResultResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         self.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
-                        self.magicCards.append(MagicCard(from: unwrappedData.card))
+                        self.magicCards.insert(MagicCard(from: unwrappedData.card), at: 0)
+                        ToastManager.shared.show(toast: Toast(message: "iap.coupon.success"))
                     }
                 }
             default: break

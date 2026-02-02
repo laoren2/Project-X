@@ -123,11 +123,10 @@ class CompetitionCenterViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        if let regionID = unwrappedData.region_id, let countryCode = unwrappedData.country_code {
-                            self.locationManager.regionID = regionID
-                            GlobalConfig.shared.locationID = regionID
-                            self.locationManager.countryCode = countryCode
-                            
+                        self.locationManager.regionID = unwrappedData.region_id
+                        GlobalConfig.shared.locationID = unwrappedData.region_id
+                        self.locationManager.countryCode = unwrappedData.country_code
+                        if let regionID = unwrappedData.region_id, let _ = unwrappedData.country_code {
                             let userManager = UserManager.shared
                             if userManager.isLoggedIn && userManager.user.enableAutoLocation && userManager.user.location != regionID {
                                 userManager.updateUserLocation(regionID: regionID)

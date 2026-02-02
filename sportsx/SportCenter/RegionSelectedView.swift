@@ -23,10 +23,10 @@ struct RegionSelectedView: View {
         } else if locationManager.countryCode == "HK" {
             base = regionTable_HK
         } else {
-            base = [:]
+            base = regionTable_HK   // 暂时只支持 HK 地区所以使用 HK 兜底，未来完善 Map boundry 后可删除
         }
         
-        if onlyShowWithEvents && (locationManager.countryCode != nil) {
+        if onlyShowWithEvents {
             // 过滤只保留包含赛事城市的区域
             var filtered: [String: [Region]] = [:]
             for (province, cities) in base {
@@ -201,10 +201,18 @@ struct RegionSelectedView: View {
     }
     
     func fetchRegionID(location: CLLocation) {
+        var lat = location.coordinate.latitude
+        var lon = location.coordinate.longitude
+#if DEBUG
+        if GlobalConfig.shared.isMockLocation_debug {
+            lat = GlobalConfig.shared.location_debug.latitude
+            lon = GlobalConfig.shared.location_debug.longitude
+        }
+#endif
         guard var components = URLComponents(string: "/competition/query_region_id") else { return }
         components.queryItems = [
-            URLQueryItem(name: "lat", value: "\(location.coordinate.latitude)"),
-            URLQueryItem(name: "lon", value: "\(location.coordinate.longitude)")
+            URLQueryItem(name: "lat", value: "\(lat)"),
+            URLQueryItem(name: "lon", value: "\(lon)")
         ]
         guard let urlPath = components.string else { return }
         
@@ -215,11 +223,10 @@ struct RegionSelectedView: View {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        if let regionID = unwrappedData.region_id, let countryCode = unwrappedData.country_code {
-                            self.locationManager.regionID = regionID
-                            GlobalConfig.shared.locationID = regionID
-                            locationManager.countryCode = countryCode
-                            
+                        self.locationManager.regionID = unwrappedData.region_id
+                        GlobalConfig.shared.locationID = unwrappedData.region_id
+                        locationManager.countryCode = unwrappedData.country_code
+                        if let regionID = unwrappedData.region_id, let _ = unwrappedData.country_code {
                             let userManager = UserManager.shared
                             if userManager.isLoggedIn && userManager.user.enableAutoLocation && userManager.user.location != regionID {
                                 userManager.updateUserLocation(regionID: regionID)
@@ -234,12 +241,11 @@ struct RegionSelectedView: View {
     }
     
     func fetchRegionsWithEvents() {
-        if locationManager.countryCode == nil { return }
-        
+        //guard let code = locationManager.countryCode else { return }
         guard var components = URLComponents(string: "/competition/query_regions_with_events") else { return }
         components.queryItems = [
             URLQueryItem(name: "sport_type", value: appState.sport.rawValue),
-            URLQueryItem(name: "country_code", value: locationManager.countryCode ?? "未知")
+            URLQueryItem(name: "country_code", value: "HK")  // 暂时只支持 HK 地区所以使用 HK 兜底，待完善 Map boundry 后可删去
         ]
         guard let urlPath = components.string else { return }
             

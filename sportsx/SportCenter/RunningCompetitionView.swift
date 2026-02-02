@@ -17,7 +17,6 @@ struct RunningCompetitionView: View {
     @ObservedObject var userManager = UserManager.shared
     let assetManager = AssetManager.shared
     
-    @State private var selectedDetailEvent: RunningEvent? = nil
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
     @State private var selectedTrackForFullMap: RunningTrack? = nil
@@ -116,7 +115,7 @@ struct RunningCompetitionView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
                                     .exclusiveTouchTapGesture {
-                                        selectedDetailEvent = event
+                                        appState.navigationManager.append(.runningEventDetailView(eventID: event.eventID))
                                     }
                                 }
                                 
@@ -259,13 +258,13 @@ struct RunningCompetitionView: View {
                                     Divider()
                                     
                                     // 赛道详细信息
-                                    let infoItems: [(icon: String, text: String, value: String, unit: String?)] = [
-                                        ("terrain", "competition.track.terrain", track.terrainType.displayName, nil),
-                                        ("altitude", "competition.track.altitude", "\(track.elevationDifference)", "distance.m"),
-                                        ("total_distance", "competition.track.distance", "\(track.distance)", "distance.km"),
-                                        ("voucher", "competition.track.prize_pool", "\(track.prizePool)", nil),
-                                        ("sub_region", "competition.track.sub_region", track.regionName, nil),
-                                        ("season_score", "competition.track.score", "\(track.score)", nil)
+                                    let infoItems: [(icon: String, text: String, value: String, unit: String?, isSysIcon: Bool)] = [
+                                        ("terrain", "competition.track.terrain", track.terrainType.displayName, nil, false),
+                                        (track.elevationDifference >= 0 ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill", "competition.track.altitude", "\(track.elevationDifference)", "distance.m", true),
+                                        ("total_distance", "competition.track.distance", "\(track.distance)", "distance.km", false),
+                                        ("voucher", "competition.track.prize_pool", "\(track.prizePool)", nil, false),
+                                        ("sub_region", "competition.track.sub_region", track.regionName, nil, false),
+                                        ("season_score", "competition.track.score", "\(track.score)", nil, false)
                                     ]
                                     HStack(alignment: .top) {
                                         Spacer()
@@ -276,7 +275,8 @@ struct RunningCompetitionView: View {
                                                         iconName: infoItems[index].icon,
                                                         text: infoItems[index].text,
                                                         param: infoItems[index].value,
-                                                        unit: infoItems[index].unit
+                                                        unit: infoItems[index].unit,
+                                                        isSysIcon: infoItems[index].isSysIcon
                                                     )
                                                 }
                                             }
@@ -289,7 +289,8 @@ struct RunningCompetitionView: View {
                                                         iconName: infoItems[index].icon,
                                                         text: infoItems[index].text,
                                                         param: infoItems[index].value,
-                                                        unit: infoItems[index].unit
+                                                        unit: infoItems[index].unit,
+                                                        isSysIcon: infoItems[index].isSysIcon
                                                     )
                                                 }
                                             }
@@ -471,6 +472,7 @@ struct RunningCompetitionView: View {
             // todo: 解决切换赛道时因selectedTrack变化导致的闪烁问题
             if let track = viewModel.selectedTrack, !appState.competitionManager.isRecording {
                 HStack {
+                    Spacer()
                     Text("competition.register.now")
                         .font(.title2)
                         .foregroundStyle(.white)
@@ -551,9 +553,6 @@ struct RunningCompetitionView: View {
                 .padding(.bottom, 85)
             }
         }
-        .sheet(item: $selectedDetailEvent) { event in
-            RunningEventDetailView(event: event)
-        }
         .onValueChange(of: locationManager.regionID) {
             if let regionID = locationManager.regionID {
                 viewModel.fetchEvents(with: regionID)
@@ -616,7 +615,7 @@ struct RunningCompetitionView: View {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: RunningRegisterResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningRegisterResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -646,61 +645,134 @@ struct RunningCompetitionView: View {
 }
 
 struct RunningEventDetailView: View {
-    let event: RunningEvent
-    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @State var event: RunningEvent?
+    @State var backgroundColor: Color = .defaultBackground
+    let eventID: String
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // 背景图片
-                    CachedAsyncImage(
-                        urlString: event.image_url
-                    )
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 200)
-                    .clipped()
-                    
-                    VStack(alignment: .leading, spacing: 16) {
-                        // 比赛名称
-                        Text(event.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .padding(.top)
-                        
-                        // 比赛时间
-                        HStack {
-                            Image(systemName: "calendar")
-                            (Text(LocalizedStringKey(DateDisplay.formattedDate(event.startDate))) + Text("-") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.endDate))))
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // 赛事详情
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("competition.event.detail")
-                                .font(.headline)
-                            Text(event.description)
-                                .font(.subheadline)
-                        }
-                        
-                        // 比赛规则
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("competition.event.precautions")
-                                .font(.headline)
-                            Text("competition.event.running.precautions.content")
-                                .foregroundColor(.secondary)
-                        }
+        VStack {
+            HStack {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.white)
+                    .exclusiveTouchTapGesture {
+                        navigationManager.removeLast()
                     }
-                    .padding()
+                
+                Spacer()
+                
+                Text("competition.event.detail")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("action.close") {
-                        dismiss()
+            .padding(.horizontal)
+            if let event = event {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // 背景图片
+                        CachedAsyncImage(
+                            urlString: event.image_url
+                        )
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 200)
+                        .clipped()
+                        
+                        VStack(alignment: .leading, spacing: 16) {
+                            // 比赛名称
+                            Text(event.name)
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .padding(.top)
+                                .foregroundStyle(Color.white)
+                            // 比赛时间
+                            HStack {
+                                Image(systemName: "calendar")
+                                (Text(LocalizedStringKey(DateDisplay.formattedDate(event.startDate))) + Text("-") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.endDate))))
+                            }
+                            .foregroundStyle(Color.secondText)
+                            
+                            // 赛事详情
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("competition.event.detail")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                Text(event.description)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondText)
+                            }
+                            
+                            // 比赛规则
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("competition.event.precautions")
+                                    .font(.headline)
+                                    .foregroundStyle(Color.white)
+                                Text("competition.event.running.precautions.content")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondText)
+                            }
+                        }
+                        .padding()
                     }
                 }
+            } else {
+                VStack {
+                    Spacer()
+                    Text("error.no_data")
+                        .foregroundStyle(Color.thirdText)
+                        .frame(maxWidth: .infinity)
+                    Spacer()
+                }
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+        .background(backgroundColor)
+        .onFirstAppear {
+            queryEventDetail()
+        }
+    }
+    
+    func downloadImages(url: String) {
+        NetworkService.downloadImage(from: url) { image in
+            if let image = image {
+                if let avg = ImageTool.averageColor(from: image) {
+                    DispatchQueue.main.async {
+                        self.backgroundColor = avg.bestSoftDarkReadableColor()
+                    }
+                }
+            }
+        }
+    }
+    
+    func queryEventDetail() {
+        guard var components = URLComponents(string: "/competition/running/query_event_detail") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "event_id", value: eventID)
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get)
+        
+        NetworkService.sendRequest(with: request, decodingType: RunningEventInfoDTO.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        event = RunningEvent(from: unwrappedData)
+                    }
+                    downloadImages(url: unwrappedData.image_url)
+                }
+            default: break
             }
         }
     }
@@ -895,7 +967,7 @@ struct RunningTeamCreateView: View {
         }
         let request = APIRequest(path: "/competition/running/create_team", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: TeamCreatedResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: TeamCreatedResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -903,6 +975,7 @@ struct RunningTeamCreateView: View {
                         self.assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
                         UIPasteboard.general.string = unwrappedData.team_code
                         self.appState.navigationManager.removeLast()
+                        ToastManager.shared.show(toast: Toast(message: "competition.team.create.toast.success"))
                     }
                 }
             default: break
@@ -1138,11 +1211,12 @@ struct RunningTeamAppliedView: View {
         
         let request = APIRequest(path: "/competition/running/applied_join_team", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async {
                     viewModel.showIntroSheet = false
+                    ToastManager.shared.show(toast: Toast(message: "competition.team.applied.toast.success"))
                 }
             default: break
             }

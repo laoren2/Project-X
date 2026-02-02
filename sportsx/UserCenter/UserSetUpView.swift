@@ -108,8 +108,8 @@ struct UserSetUpView: View {
                         .cornerRadius(20)
                     }
                     VStack(spacing: 0) {
-                        SetUpItemView(icon: "pc", title: "本地bike调试", showDivider: false, isDarkScheme: false) {
-                            NavigationManager.shared.append(.bikeMatchDebugView)
+                        SetUpItemView(icon: "pc", title: "debug调试", showDivider: false, isDarkScheme: false) {
+                            NavigationManager.shared.append(.localDebugView)
                         }
                         .cornerRadius(20)
                     }
@@ -172,7 +172,7 @@ struct UserSetUpView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .onStableAppear {
+        .onFirstAppear {
             updateCacheSize()
 #if DEBUG
             userManager.fetchMeRole()
@@ -362,28 +362,39 @@ struct PhoneBindView: View {
             if let number = userManager.user.phoneNumber {
                 Text("user.setup.phone.bind_info \(number.maskedPhone())")
                     .foregroundStyle(.white)
-                Button("user.setup.action.phone.unbind") {
+                Button(action: {
                     unbindPhone()
+                }) {
+                    Text("user.setup.action.phone.unbind")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                        .padding(.top, 10)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.top, 10)
             } else {
+                Text("user.setup.phone.bind")
+                    .font(.title2)
+                    .foregroundStyle(Color.white)
                 HStack {
                     Text("+852")
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 10)
-                        .foregroundStyle(.white)
-                        .background(Color.gray)
-                        .cornerRadius(5)
+                        .padding()
+                        .foregroundStyle(Color.black)
+                        .background(Color.white)
+                        .cornerRadius(10)
                     
-                    TextField("login.sms.phone.placeholder", text: $phoneNumber)
-                        .padding(.leading, 10)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .keyboardType(.numberPad)
+                    TextField(text: $phoneNumber) {
+                        Text("login.sms.phone.placeholder")
+                            .foregroundStyle(Color.gray)
+                    }
+                    .padding()
+                    .foregroundStyle(Color.black)
+                    .scrollContentBackground(.hidden)
+                    .keyboardType(.numberPad)
+                    .background(Color.white)
+                    .cornerRadius(10)
                 }
                 
                 if alreadySendCode {
@@ -391,9 +402,13 @@ struct PhoneBindView: View {
                         .foregroundStyle(Color.secondText)
                     HStack {
                         TextField("login.sms.code.placeholder", text: $verificationCode)
+                            .padding()
+                            .foregroundStyle(Color.black)
                             .textContentType(.oneTimeCode)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .scrollContentBackground(.hidden)
                             .keyboardType(.numberPad)
+                            .background(Color.white)
+                            .cornerRadius(10)
                         
                         Button(action: {
                             if countdown == 0 {
@@ -402,12 +417,10 @@ struct PhoneBindView: View {
                         }) {
                             Text("login.sms.action.send_again")
                                 .foregroundStyle(.white)
-                                .font(.system(size: 15))
+                                .padding()
+                                .background(countdown == 0 ? Color.green : Color.gray)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(countdown == 0 ? Color.green : Color.gray)
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
                         .disabled(countdown != 0)
                     }
                 }
@@ -420,10 +433,11 @@ struct PhoneBindView: View {
                     }
                 }) {
                     Text(alreadySendCode ? "user.setup.action.phone.bind" : "user.setup.action.phone.verify_and_bind")
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
                         .background(Color.orange)
-                        .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.top, 10)
                 }
@@ -561,15 +575,18 @@ struct AppleBindView: View {
                 Text("user.setup.apple.bind_info \(email.maskedEmail())")
                     .foregroundStyle(.white)
                     .padding(.horizontal)
-                Button("user.setup.action.phone.unbind") {
+                Button(action: {
                     unbindApple()
+                }) {
+                    Text("user.setup.action.phone.unbind")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                        .padding(.top, 10)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.top, 10)
             } else {
                 VStack {
                     Image("appleid_button")
@@ -584,6 +601,7 @@ struct AppleBindView: View {
             }
             Spacer()
         }
+        .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
@@ -655,20 +673,33 @@ struct EmailBindView: View {
             if let email = userManager.user.email {
                 Text("user.setup.email.bind_info \(email.maskedEmail())")
                     .foregroundStyle(.white)
-                Button("user.setup.action.phone.unbind") {
+                Button(action: {
                     unbindEmail()
+                }) {
+                    Text("user.setup.action.phone.unbind")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                        .padding(.top, 10)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.top, 10)
             } else {
-                TextField("login.email.placeholder", text: $emailAddress)
-                    .padding(.leading, 10)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.emailAddress)
+                Text("user.setup.email.bind")
+                    .font(.title2)
+                    .foregroundStyle(Color.white)
+                
+                TextField(text: $emailAddress) {
+                    Text("login.email.placeholder")
+                        .foregroundStyle(Color.gray)
+                }
+                .padding()
+                .foregroundStyle(Color.black)
+                .scrollContentBackground(.hidden)
+                .keyboardType(.emailAddress)
+                .background(Color.white)
+                .cornerRadius(10)
                 
                 if alreadySendCode {
                     Text(countdown == 0 ? "login.email.send_result.2" : "login.email.send_result.1 \(countdown)")
@@ -704,10 +735,11 @@ struct EmailBindView: View {
                     }
                 }) {
                     Text(alreadySendCode ? "user.setup.action.phone.bind" : "user.setup.action.phone.verify_and_bind")
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
                         .background(Color.orange)
-                        .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.top, 10)
                 }
@@ -1191,7 +1223,7 @@ struct AboutUsView: View {
                                 ToastManager.shared.show(toast: toast)
                             } trailingView: {
                                 HStack(spacing: 4) {
-                                    Text(vxAccount)
+                                    Text("+852 \(vxAccount)")
                                     Image(systemName: "doc.on.doc")
                                 }
                                 .foregroundStyle(Color.thirdText)
@@ -1210,6 +1242,96 @@ struct AboutUsView: View {
         .enableSwipeBackGesture()
     }
 }
+
+#if DEBUG
+struct LocalDebugPanelView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject var config = GlobalConfig.shared
+    
+    @State var lat: Double = GlobalConfig.shared.location_debug.latitude
+    @State var lon: Double = GlobalConfig.shared.location_debug.longitude
+    @State var isDevEnv: Bool
+    
+    init() {
+        _isDevEnv = State(initialValue: UserDefaults.standard.bool(forKey: "debug.isDevEnv"))
+    }
+    
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                Spacer()
+                Text("debug设置")
+                    .font(.system(size: 18, weight: .bold))
+                Spacer()
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
+            ScrollView {
+                VStack {
+                    VStack {
+                        Text("设备 GPS 定位")
+                            .bold()
+                            .padding(.bottom, 20)
+                        TextField("Latitude", value: $lat, format: .number)
+                            .keyboardType(.numbersAndPunctuation)
+                            .background(Color.gray)
+                        TextField("Longitude", value: $lon, format: .number)
+                            .keyboardType(.numbersAndPunctuation)
+                            .background(Color.gray)
+                        HStack {
+                            Spacer()
+                            Button("设置") {
+                                GlobalConfig.shared.location_debug = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                            }
+                            Spacer()
+                            Button(config.isMockLocation_debug ? "取消应用" : "应用") {
+                                config.isMockLocation_debug.toggle()
+                            }
+                            Spacer()
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.gray, lineWidth: 2)
+                    )
+                    VStack {
+                        Text("server env (切换后重启生效)")
+                            .bold()
+                            .padding(.bottom, 20)
+                        HStack {
+                            Text("当前连接的服务环境:")
+                            Spacer()
+                            Text(isDevEnv ? "dev" : "prod")
+                            Button("切换") {
+                                isDevEnv.toggle()
+                                UserDefaults.standard.set(isDevEnv, forKey: "debug.isDevEnv")
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.gray, lineWidth: 2)
+                    )
+                }
+                .padding()
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+    }
+}
+#endif
 
 #Preview {
     let appState = AppState.shared

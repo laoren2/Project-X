@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/6/16.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -435,7 +435,7 @@ struct BikeTrackUpdateView: View {
                         .cornerRadius(8)
                     }
                     TextField("海拔差", text: $viewModel.elevationDifference)
-                        .keyboardType(.numberPad)
+                        .keyboardType(.numbersAndPunctuation)
                     HStack {
                         Text("子区域en")
                         TextField("子区域en", text: $viewModel.subRegioName_en)
@@ -653,3 +653,4 @@ struct BikeTrackCardView: View {
         viewModel.terrainType = track.terrain_type
     }
 }
+#endif

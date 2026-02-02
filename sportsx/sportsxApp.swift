@@ -80,7 +80,9 @@ final class BootstrapManager: ObservableObject {
         }
         
         // 4. 用户信息（依赖 token）
+#if DEBUG
         UserManager.shared.fetchMeRole()
+#endif
         await UserManager.shared.fetchMeInfo()
         
         // 5. 资产系统（依赖 token）
@@ -103,7 +105,18 @@ final class BootstrapManager: ObservableObject {
         state = .ready
     }
     
+#if DEBUG
+    func prepareDebugEnv() {
+        if UserDefaults.standard.bool(forKey: "debug.isDevEnv") {
+            NetworkService.baseDomain = "https://dev.valbara.top"
+        }
+    }
+#endif
+    
     func prepare() {
+#if DEBUG
+        prepareDebugEnv()
+#endif
         // 新安装时清理 token
         clearTokenAfterInstall()
         // 设置共享缓存，50MB内存 + 200MB磁盘
@@ -330,11 +343,14 @@ struct TestLaunchView: View {
         VStack(spacing: 50) {
             Spacer()
             Image("single_app_icon")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 100)
-            (Text("common.loading") + Text("....."))
-                .foregroundStyle(Color.white)
+                .foregroundStyle(Color.orange.opacity(0.8))
+            Text("app.slogan")
+                .font(.system(.title, design: .rounded, weight: .heavy))
+                .foregroundStyle(Color.secondText)
                 .frame(maxWidth: .infinity)
             Spacer()
         }

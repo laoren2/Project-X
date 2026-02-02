@@ -57,9 +57,9 @@ struct EmptyResponse: Decodable {}
 
 
 struct NetworkService {
-    static let baseDomain: String = "https://dev.valbara.top"
-    static let baseUrl: String = "https://dev.valbara.top/api/v1"
-    static let baseUrl_internal: String = "https://dev.valbara.top/api/internal"
+    static var baseDomain: String = "https://app.valbara.top"
+    static var baseUrl: String { "\(baseDomain)/api/v1" }
+    static var baseUrl_internal: String { "\(baseDomain)/api/internal" }
     
     //static let baseDomain: String = "https://192.168.1.5:8000"
     //static let baseUrl: String = "https://192.168.1.5:8000/api/v1"
@@ -140,7 +140,7 @@ struct NetworkService {
             
             // 检查 HTTP 状态码
             guard let httpResponse = response as? HTTPURLResponse else {
-                let toast = customErrorToast?(.unknown) ?? Toast(message: "未知错误", duration: 2)
+                let toast = customErrorToast?(.unknown) ?? Toast(message: "error.unknown.2", duration: 2)
                 if showErrorToast {
                     DispatchQueue.main.async {
                         ToastManager.shared.show(toast: toast)
@@ -151,7 +151,7 @@ struct NetworkService {
             }
             
             guard httpResponse.statusCode == 200 else {
-                var toast = Toast(message: "服务错误:\(httpResponse.statusCode)", duration: 2)
+                var toast = Toast(message: "error.server", duration: 2)
                 if httpResponse.statusCode == 401 {
                     toast.message = "toast.no_login"
                     DispatchQueue.main.async {
@@ -172,7 +172,7 @@ struct NetworkService {
             
             // 解析 JSON
             guard let data = data else {
-                let toast = customErrorToast?(.noData) ?? Toast(message: "数据错误", duration: 2)
+                let toast = customErrorToast?(.noData) ?? Toast(message: "error.data", duration: 2)
                 if showErrorToast {
                     DispatchQueue.main.async {
                         ToastManager.shared.show(toast: toast)
@@ -183,7 +183,7 @@ struct NetworkService {
             }
             
             guard let decoded = try? JSONDecoder().decode(APIResponse<T>.self, from: data) else {
-                let toast = customErrorToast?(.decodeError) ?? Toast(message: "数据错误2", duration: 2)
+                let toast = customErrorToast?(.decodeError) ?? Toast(message: "error.data", duration: 2)
                 if showErrorToast {
                     DispatchQueue.main.async {
                         ToastManager.shared.show(toast: toast)

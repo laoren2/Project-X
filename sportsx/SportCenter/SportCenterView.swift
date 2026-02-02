@@ -231,13 +231,28 @@ struct InfoItemView: View {
     let text: String
     let param: String
     let unit: String?
+    let isSysIcon: Bool
+    
+    init(iconName: String, text: String, param: String, unit: String? = nil, isSysIcon: Bool = false) {
+        self.iconName = iconName
+        self.text = text
+        self.param = param
+        self.unit = unit
+        self.isSysIcon = isSysIcon
+    }
     
     var body: some View {
         HStack(spacing: 5) {
-            Image(iconName)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 20)
+            if isSysIcon {
+                Image(systemName: iconName)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.white)
+            } else {
+                Image(iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 20)
+            }
             HStack(spacing: 2) {
                 (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)))
                 if let unit = unit {
@@ -248,7 +263,7 @@ struct InfoItemView: View {
             .fixedSize(horizontal: false, vertical: true)
             .lineLimit(nil)
             .multilineTextAlignment(.leading)
-            .foregroundColor(.secondText)
+            .foregroundStyle(Color.secondText)
         }
     }
 }
@@ -302,13 +317,14 @@ struct TeamRegisterView: View {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: CPAssetResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         PopupWindowManager.shared.dismissPopup()
                         assetManager.updateCPAsset(assetID: unwrappedData.asset_id, newBalance: unwrappedData.new_balance)
+                        ToastManager.shared.show(toast: Toast(message: "competition.register.result.success"))
                     }
                 }
             default: break

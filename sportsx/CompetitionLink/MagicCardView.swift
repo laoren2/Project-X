@@ -374,13 +374,9 @@ struct UserCardDetailView: View {
                                         )
                                     }
                                 Spacer()
-                                
                                 Text(String(format: "%0.2f", card.lucky))
                                     .font(.headline)
-                                    .foregroundColor(luckyColor(percentage: Float(card.lucky)))
-                                
-                                Image(systemName: luckySymbol(percentage: Float(card.lucky)))
-                                    .foregroundColor(luckyColor(percentage: Float(card.lucky)))
+                                    .foregroundStyle(Color.secondText)
                             }
                             .padding(.top, 10)
                             
@@ -428,7 +424,17 @@ struct UserCardDetailView: View {
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 15) {
                                             ForEach (card.sensorType, id: \.self) { sensor in
-                                                sensorIcon(name: sensor.iconName, text: sensor.displayName)
+                                                VStack {
+                                                    Image(systemName: sensor.iconName)
+                                                        .font(.system(size: 20))
+                                                    Text(LocalizedStringKey(sensor.displayName))
+                                                        .font(.caption)
+                                                }
+                                                .padding(.horizontal)
+                                                .frame(height: 50)
+                                                .foregroundStyle(Color.white)
+                                                .background(Color.white.opacity(0.2))
+                                                .cornerRadius(8)
                                             }
                                         }
                                     }
@@ -466,19 +472,19 @@ struct UserCardDetailView: View {
                                                     sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
                                                 }
                                                 if (location & 0b000010) != 0 {
-                                                    sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                    sensorIcon(name: "left_hand", text: "user.page.bind_device.body.lh")
                                                 }
                                                 if (location & 0b000100) != 0 {
-                                                    sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                    sensorIcon(name: "right_hand", text: "user.page.bind_device.body.rh")
                                                 }
                                                 if (location & 0b001000) != 0 {
-                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                    sensorIcon(name: "left_foot", text: "user.page.bind_device.body.lf")
                                                 }
                                                 if (location & 0b010000) != 0 {
-                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                    sensorIcon(name: "right_foot", text: "user.page.bind_device.body.rf")
                                                 }
                                                 if (location & 0b100000) != 0 {
-                                                    sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                    sensorIcon(name: "chest", text: "user.page.bind_device.body.wst")
                                                 }
                                             }
                                             if let location2 = card.sensorLocation2 {
@@ -489,19 +495,19 @@ struct UserCardDetailView: View {
                                                         sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
                                                     }
                                                     if (location2 & 0b000010) != 0 {
-                                                        sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                        sensorIcon(name: "left_hand", text: "user.page.bind_device.body.lh")
                                                     }
                                                     if (location2 & 0b000100) != 0 {
-                                                        sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                        sensorIcon(name: "right_hand", text: "user.page.bind_device.body.rh")
                                                     }
                                                     if (location2 & 0b001000) != 0 {
-                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                        sensorIcon(name: "left_foot", text: "user.page.bind_device.body.lf")
                                                     }
                                                     if (location2 & 0b010000) != 0 {
-                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                        sensorIcon(name: "right_foot", text: "user.page.bind_device.body.rf")
                                                     }
                                                     if (location2 & 0b100000) != 0 {
-                                                        sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                        sensorIcon(name: "chest", text: "user.page.bind_device.body.wst")
                                                     }
                                                 }
                                             }
@@ -664,17 +670,17 @@ struct UserCardDetailView: View {
     
     // 传感器图标视图
     private func sensorIcon(name: String, text: String) -> some View {
-        VStack {
-            Image(systemName: name)
-                .font(.title2)
-                .foregroundStyle(Color.orange)
-            
+        VStack(spacing: 2) {
+            Image(name)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 25)
             Text(LocalizedStringKey(text))
                 .font(.caption)
-                .foregroundStyle(Color.secondText)
+                .foregroundStyle(Color.white)
         }
         .padding(.horizontal)
-        .frame(height: 50)
+        .padding(.vertical, 4)
         .background(Color.white.opacity(0.2))
         .cornerRadius(8)
     }
@@ -795,7 +801,17 @@ struct ShopCardDetailView: View {
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 15) {
                                             ForEach (card.sensorType, id: \.self) { sensor in
-                                                sensorIcon(name: sensor.iconName, text: sensor.displayName)
+                                                VStack {
+                                                    Image(systemName: sensor.iconName)
+                                                        .font(.system(size: 20))
+                                                    Text(LocalizedStringKey(sensor.displayName))
+                                                        .font(.caption)
+                                                }
+                                                .padding(.horizontal)
+                                                .frame(height: 50)
+                                                .foregroundStyle(Color.white)
+                                                .background(Color.white.opacity(0.2))
+                                                .cornerRadius(8)
                                             }
                                         }
                                     }
@@ -832,19 +848,19 @@ struct ShopCardDetailView: View {
                                                     sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
                                                 }
                                                 if (location & 0b000010) != 0 {
-                                                    sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                    sensorIcon(name: "left_hand", text: "user.page.bind_device.body.lh")
                                                 }
                                                 if (location & 0b000100) != 0 {
-                                                    sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                    sensorIcon(name: "right_hand", text: "user.page.bind_device.body.rh")
                                                 }
                                                 if (location & 0b001000) != 0 {
-                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                    sensorIcon(name: "left_foot", text: "user.page.bind_device.body.lf")
                                                 }
                                                 if (location & 0b010000) != 0 {
-                                                    sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                    sensorIcon(name: "right_foot", text: "user.page.bind_device.body.rf")
                                                 }
                                                 if (location & 0b100000) != 0 {
-                                                    sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                    sensorIcon(name: "chest", text: "user.page.bind_device.body.wst")
                                                 }
                                             }
                                             if let location2 = card.sensorLocation2 {
@@ -855,19 +871,19 @@ struct ShopCardDetailView: View {
                                                         sensorIcon(name: "iphone", text: "magiccard.detail.sensor.pos.phone")
                                                     }
                                                     if (location2 & 0b000010) != 0 {
-                                                        sensorIcon(name: "hand.raised.fill", text: "user.page.bind_device.body.lh")
+                                                        sensorIcon(name: "left_hand", text: "user.page.bind_device.body.lh")
                                                     }
                                                     if (location2 & 0b000100) != 0 {
-                                                        sensorIcon(name: "hand.point.right.fill", text: "user.page.bind_device.body.rh")
+                                                        sensorIcon(name: "right_hand", text: "user.page.bind_device.body.rh")
                                                     }
                                                     if (location2 & 0b001000) != 0 {
-                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.lf")
+                                                        sensorIcon(name: "left_foot", text: "user.page.bind_device.body.lf")
                                                     }
                                                     if (location2 & 0b010000) != 0 {
-                                                        sensorIcon(name: "figure.walk", text: "user.page.bind_device.body.rf")
+                                                        sensorIcon(name: "right_foot", text: "user.page.bind_device.body.rf")
                                                     }
                                                     if (location2 & 0b100000) != 0 {
-                                                        sensorIcon(name: "waveform.path.ecg", text: "user.page.bind_device.body.wst")
+                                                        sensorIcon(name: "chest", text: "user.page.bind_device.body.wst")
                                                     }
                                                 }
                                             }
@@ -1030,17 +1046,17 @@ struct ShopCardDetailView: View {
     
     // 传感器图标视图
     private func sensorIcon(name: String, text: String) -> some View {
-        VStack {
-            Image(systemName: name)
-                .font(.title2)
-                .foregroundStyle(Color.orange)
-            
+        VStack(spacing: 2) {
+            Image(name)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 25)
             Text(LocalizedStringKey(text))
                 .font(.caption)
-                .foregroundStyle(Color.secondText)
+                .foregroundStyle(Color.white)
         }
         .padding(.horizontal)
-        .frame(height: 50)
+        .padding(.vertical, 4)
         .background(Color.white.opacity(0.2))
         .cornerRadius(8)
     }

@@ -6,8 +6,6 @@
 	<array>
 		<string>location</string>
 	</array>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>WKBackgroundModes</key>

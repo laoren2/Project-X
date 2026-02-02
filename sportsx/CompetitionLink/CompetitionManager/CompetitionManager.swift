@@ -15,42 +15,19 @@ import Combine
 import CoreML
 import os
 
-
+#if DEBUG
 // phone原始数据保存到本地
-let SAVEPHONERAWDATA: Bool = {
-    #if DEBUG
-    return false
-    #else
-    return false
-    #endif
-}()
+var SAVEPHONERAWDATA: Bool = false
 
 // sensor数据保存到本地
-let SAVESENSORDATA: Bool = {
-    #if DEBUG
-    return false
-    #else
-    return false
-    #endif
-}()
+var SAVESENSORDATA: Bool = false
 
 // 是否上传非真实比赛校验分数
-let SKIPVARIFYSCOREUPLOAD: Bool = {
-    #if DEBUG
-    return true
-    #else
-    return false
-    #endif
-}()
+let SKIPVARIFYSCOREUPLOAD: Bool = true
 
 // 是否 dump 每场比赛的详细数据
-let DUMPMATCHDATA: Bool = {
-    #if DEBUG
-    return true
-    #else
-    return false
-    #endif
-}()
+let DUMPMATCHDATA: Bool = false
+#endif
 
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = CompetitionManager()
@@ -440,17 +417,20 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
         }
         
-        if SAVEPHONERAWDATA {
-            self.finalizeCompetitionData()
-        }
         eventBus.emit(.matchEnd, context: matchContext)
         
         finishCompetition_server()
+        
+#if DEBUG
+        if SAVEPHONERAWDATA {
+            self.finalizeCompetitionData()
+        }
         if DUMPMATCHDATA {
             basePathData_debug = basePathData
             bikePathData_debug = bikePathData
             runningPathData_debug = runningPathData
         }
+#endif
         resetCompetitionProperties()
         Logger.competition.notice_public("competition stop")
     }
@@ -605,7 +585,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         score -= 10.0 * Double(cnt / bikePathData.count)
         
         // 规则 5：GPS 跳变数
-        let jumpCount = countGpsJumps(path: basePathData, maxReasonableKmh: 50)
+        let jumpCount = countGpsJumps(path: basePathData, maxReasonableKmh: 60)
         score -= Double(jumpCount) * 5
         
         // 规则 6：功率 / 心率 一致性
@@ -858,12 +838,14 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         //print("optimizeEndTime: \(optimizeEndTime)")
         if let record = currentBikeRecord, sport == .Bike {
             var validationResult = verifyBikeMatchData()
+#if DEBUG
             if DUMPMATCHDATA {
                 validationScore_debug = validationResult
             }
             if SKIPVARIFYSCOREUPLOAD {
                 validationResult = 100.0
             }
+#endif
             //print("BikeMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
@@ -880,7 +862,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
             
             let request = APIRequest(path: "/competition/bike/finish_\(record.isTeam ? "team" : "single")_competition", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            NetworkService.sendRequest(with: request, decodingType: MatchFinishResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            NetworkService.sendRequest(with: request, decodingType: MatchFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
@@ -931,12 +913,14 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         if let record = currentRunningRecord, sport == .Running {
             var validationResult = verifyRunningMatchData()
+#if DEBUG
             if DUMPMATCHDATA {
                 validationScore_debug = validationResult
             }
             if SKIPVARIFYSCOREUPLOAD {
                 validationResult = 100.0
             }
+#endif
             //print("RunningMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
@@ -953,7 +937,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
             
             let request = APIRequest(path: "/competition/running/finish_\(record.isTeam ? "team" : "single")_competition", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            NetworkService.sendRequest(with: request, decodingType: MatchFinishResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            NetworkService.sendRequest(with: request, decodingType: MatchFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
@@ -1021,7 +1005,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 return false
             }
             let request = APIRequest(path: "/competition/bike/start_\(record.isTeam ? "team" : "single")_competition", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            let result = await NetworkService.sendAsyncRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true)
+            let result = await NetworkService.sendAsyncRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true)
             switch result {
             case .success:
                 return true
@@ -1042,7 +1026,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 return false
             }
             let request = APIRequest(path: "/competition/running/start_\(record.isTeam ? "team" : "single")_competition", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            let result = await NetworkService.sendAsyncRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true)
+            let result = await NetworkService.sendAsyncRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true)
             switch result {
             case .success:
                 return true
@@ -1099,9 +1083,11 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         isRecording = true
         
+#if DEBUG
         if SAVEPHONERAWDATA {
             competitionData = []
         }
+#endif
         
         // Start location updates
         LocationManager.shared.changeToHighUpdate()
@@ -1276,6 +1262,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         // 暂时默认都使用dataFusionManager管理phone data
         self.dataFusionManager.addPhoneData(dataPoint)
         
+#if DEBUG
         if SAVEPHONERAWDATA {
             competitionData.append(dataPoint)
             // 检查是否达到批量保存条件
@@ -1285,16 +1272,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 saveBatchAsCSV(dataBatch: batch)
             }
         }
-    }
-    
-    // 结束比赛，保存剩余数据
-    private func finalizeCompetitionData() {
-        if competitionData.isEmpty { return }
-        
-        let batch = competitionData
-        competitionData.removeAll()
-        saveBatchAsCSV(dataBatch: batch)
-        Logger.competition.notice_public("phone data finalized.")
+#endif
     }
     
     private func startRecordingAudio() {
@@ -1642,6 +1620,16 @@ extension CompetitionManager {
                 Logger.competition.notice_public("phone failed to append CSV: \(error)")
             }
         }
+    }
+    
+    // 结束比赛，保存剩余数据
+    private func finalizeCompetitionData() {
+        if competitionData.isEmpty { return }
+        
+        let batch = competitionData
+        competitionData.removeAll()
+        saveBatchAsCSV(dataBatch: batch)
+        Logger.competition.notice_public("phone data finalized.")
     }
 #endif
 }

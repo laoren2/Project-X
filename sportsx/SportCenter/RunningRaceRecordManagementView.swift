@@ -298,10 +298,9 @@ struct RunningCompetitionRecordCard: View {
             // 对于未完成的比赛，添加操作按钮
             if record.status == .notStarted {
                 HStack(spacing: 0) {
-                    Text("\(record.regionName)-\(record.eventName)")
+                    (Text(LocalizedStringKey(record.regionName)) + Text(" - \(record.eventName)"))
                         .font(.caption)
                         .foregroundStyle(Color.secondText)
-                        .padding(.leading, 2)
                     
                     Spacer()
                     
@@ -357,10 +356,9 @@ struct RunningCompetitionRecordCard: View {
             // 对于已完成的比赛，添加详情按钮
             if record.status != .notStarted && record.status != .recording {
                 HStack {
-                    Text("\(record.regionName)-\(record.eventName)")
+                    (Text(LocalizedStringKey(record.regionName)) + Text(" - \(record.eventName)"))
                         .font(.caption)
                         .foregroundStyle(Color.secondText)
-                        .padding(.leading, 2)
                     
                     Spacer()
                     

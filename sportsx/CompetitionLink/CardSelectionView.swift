@@ -222,7 +222,7 @@ struct CardSelectionView: View {
                     return
                 }
                 if tempSelectedCards.contains(where: { $0.tags.contains("team") }) {
-                    ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.repeat"))
+                    ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.exceed"))
                     return
                 }
             }

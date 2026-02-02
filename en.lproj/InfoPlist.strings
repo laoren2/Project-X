@@ -1,0 +1,14 @@
+/* 
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/2.
+  
+*/
+
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
+"NSLocationWhenInUseUsageDescription" = "Used to display information about nearby races and tracks that are available to participate in.";
+"NSPhotoLibraryUsageDescription" = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
+"NSHealthShareUsageDescription" = "It is used to read your exercise and heart rate data to generate more accurate exercise records and performance analysis.";
+"NSHealthUpdateUsageDescription" = "This is used to write your exercise records to the Health App, making it easy for you to view your exercise history in the system's Health app.";
+"NSMotionUsageDescription" = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
