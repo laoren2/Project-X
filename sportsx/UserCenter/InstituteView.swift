@@ -278,17 +278,18 @@ struct InstituteView: View {
                                         .scaledToFit()
                                         .frame(width: 20)
                                     Text("\(price.new_ccamount)")
+                                        .font(.system(.subheadline, design: .rounded, weight: .bold))
                                 }
-                                .font(.system(size: 12))
                             }
                         }
                     }
                     Text(card.level == 10 ? "institute.upgrade.max_level" : "institute.upgrade.upgradeway.mat")
                         .font(.system(size: 16))
                 }
-                .padding()
-                .foregroundStyle(Color.secondText)
-                .background(card.level == 10 ? Color.green : Color.orange)
+                .padding(.vertical)
+                .frame(maxWidth: .infinity)
+                .foregroundStyle(Color.white)
+                .background(card.level == 10 ? Color.green.opacity(0.8) : Color.orange)
                 .cornerRadius(10)
                 .exclusiveTouchTapGesture {
                     guard card.level < 10 else {
@@ -318,7 +319,8 @@ struct InstituteView: View {
             } else {
                 Text("institute.upgrade.upgradeway.mat")
                     .font(.system(size: 16))
-                    .padding()
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity)
                     .foregroundStyle(Color.secondText)
                     .background(Color.gray)
                     .cornerRadius(10)
@@ -383,9 +385,10 @@ struct InstituteView: View {
             }
             if let card = selectedCard, let fusion = selectedFusionCard {
                 Text(card.level == 10 ? "institute.upgrade.max_level" : "institute.upgrade.action")
-                    .padding()
-                    .foregroundStyle(Color.secondText)
-                    .background(card.level == 10 ? Color.green : Color.orange)
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity)
+                    .foregroundStyle(Color.white)
+                    .background(card.level == 10 ? Color.green.opacity(0.8) : Color.orange)
                     .cornerRadius(10)
                     .exclusiveTouchTapGesture {
                         guard card.level < 10 else {
@@ -409,7 +412,8 @@ struct InstituteView: View {
                     }
             } else {
                 Text("institute.upgrade.action")
-                    .padding()
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity)
                     .foregroundStyle(Color.secondText)
                     .background(Color.gray)
                     .cornerRadius(10)
@@ -521,7 +525,7 @@ struct InstituteView: View {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: MagicCardMatUpgradeResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: MagicCardMatUpgradeResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -533,6 +537,7 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
             default: break
@@ -551,7 +556,7 @@ struct InstituteView: View {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: MagicCardUserDTO.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: MagicCardUserDTO.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -564,6 +569,7 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
             default: break
@@ -581,7 +587,7 @@ struct InstituteView: View {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: MagicCardSkillUpgradeResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: MagicCardSkillUpgradeResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -591,6 +597,7 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
             default: break
@@ -608,7 +615,7 @@ struct InstituteView: View {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: MagicCardSkillUpgradeResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: MagicCardSkillUpgradeResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -618,6 +625,7 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
             default: break
@@ -635,7 +643,7 @@ struct InstituteView: View {
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
-        NetworkService.sendRequest(with: request, decodingType: MagicCardSkillUpgradeResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: MagicCardSkillUpgradeResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -645,6 +653,7 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
             default: break
@@ -989,15 +998,15 @@ struct SkillUpgradeView: View {
             HStack(spacing: 4) {
                 ForEach(0..<5, id: \.self) { i in
                     Rectangle()
-                        .fill(i < currentLevel && isUnlocked ? Color.orange : Color.gray.opacity(0.3))
+                        .fill(isUnlocked ? (i < currentLevel ? Color.orange : Color.black.opacity(0.5)) : Color.gray)
                         .frame(width: 12, height: 12)
                         .cornerRadius(2)
                 }
             }
         }
         .padding()
-        .foregroundColor(isUnlocked ? .secondText : .gray)
-        .background(isUnlocked ? (currentLevel == 5 ? Color.green.opacity(0.5) : Color.orange.opacity(0.5)) : Color.gray.opacity(0.5))
+        .foregroundStyle(isUnlocked ? Color.white : Color.gray)
+        .background(isUnlocked ? (currentLevel == 5 ? Color.green.opacity(0.8) : Color.white.opacity(0.5)) : Color.gray.opacity(0.5))
         .cornerRadius(10)
     }
 }

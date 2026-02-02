@@ -45,7 +45,6 @@ struct AdsCard: View {
 }
 
 struct AdsBannerView: View {
-    @EnvironmentObject var appState: AppState
     @State private var isUserInteracting = false
     let width: CGFloat
     let height: CGFloat
@@ -289,7 +288,7 @@ struct TextCard: View {
             .lineLimit(2)
             .multilineTextAlignment(.leading)
             .frame(/*width: width, */height: height, alignment: .leading)
-            .padding(.horizontal, 12)
+            //.padding(.horizontal, 12)
             //.background(Color.black.opacity(0.4))
     }
 }
@@ -299,8 +298,10 @@ struct TextBannerView: View {
     let height: CGFloat
     let texts: [String]
 
+    @State private var isUserInteracting = false
     @State private var currentIndex: Int = 1
     @State private var cancellable: AnyCancellable?
+    @State private var currentTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -309,11 +310,22 @@ struct TextBannerView: View {
                 itemCount: texts.count,
                 height: height,
                 onScrollWillBegin: {
-                    stopAutoScroll()
+                    isUserInteracting = true
+                    if cancellable != nil {
+                        stopAutoScroll()
+                    }
                 },
                 onScrollDidEnd: {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        startAutoScroll()
+                    isUserInteracting = false
+                    
+                    currentTask?.cancel()  // 取消之前的计时任务
+                    currentTask = Task {
+                        try? await Task.sleep(nanoseconds: UInt64(2 * 1_000_000_000))
+                        if !Task.isCancelled {
+                            await MainActor.run {
+                                startAutoScroll()
+                            }
+                        }
                     }
                 }
             ) {
@@ -363,12 +375,15 @@ struct TextBannerView: View {
 
     func startAutoScroll() {
         guard texts.count > 0 else { return }
-        if cancellable != nil { return }
+        guard cancellable == nil else { return }
+        guard !isUserInteracting else { return }
 
         cancellable = Timer.publish(every: 3, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                currentIndex += 1
+                if !isUserInteracting {
+                    currentIndex += 1
+                }
             }
     }
 

@@ -18,6 +18,8 @@
 "common.average" = "平均";
 "common.speed" = "速度";
 
+"app.slogan" = "随时随地  即刻开赛";
+
 "sport.bike" = "自行车";
 "sport.running" = "跑步";
 
@@ -81,7 +83,10 @@
 "action.detail" = "详情";
 
 "error.unknown" = "未知";
+"error.unknown.2" = "未知错误";
 "error.no_data" = "无数据";
+"error.data" = "数据错误";
+"error.server" = "服务错误";
 "error.client_version" = "客户端版本过低，请升级后继续使用";
 "error.network_error" = "网络连接失败，请稍后重试";
 
@@ -114,6 +119,7 @@
 "popup.claim_reward.content" = "你已成功领取奖励：";
 
 "home.sign_in.tile" = "每日签到";
+"home.sign_in.subtile" = "连续签到奖励更多哦";
 "home.sign_in.vip_tile" = "立即订阅领取更多签到奖励";
 "home.sign_in.reminder_time %@" = "提醒时间：%@";
 "home.sign_in.reminder_time" = "提醒时间";
@@ -131,24 +137,37 @@
 "home.skill.title.2" = "组队模式";
 "home.skill.title.3" = "装备卡牌";
 "home.skill.title.4" = "奖励结算";
+"home.skill.title.5" = "比赛成绩";
 "home.skill.title.1.subtitle.1" = "比赛记录";
+"home.skill.title.1.subtitle.2" = "数据校验";
 "home.skill.title.2.subtitle.1" = "创建和加入队伍";
 "home.skill.title.2.subtitle.2" = "管理队伍";
-"home.skill.title.2.subtitle.3" = "180秒连续窗口";
+"home.skill.title.2.subtitle.3" = "队伍报名";
+"home.skill.title.2.subtitle.4" = "180秒连续窗口";
 "home.skill.title.3.subtitle.1" = "可用性";
 "home.skill.title.3.subtitle.2" = "卡牌升级与技能升级";
+"home.skill.title.3.subtitle.3" = "卡牌收益";
 "home.skill.title.4.subtitle.2" = "赛道结算";
 "home.skill.title.4.subtitle.3" = "赛季结算";
-"home.skill.title.1.subtitle.1.content" = "比赛报名成功后会自动创建一条比赛记录，可在运动中心的记录管理页面查看，比赛记录有未开始/进行中/已完成和已过期4种状态。 \n在比赛记录的有效时间内可以开始比赛，单人记录可以在赛道有效时间内随时开始，组队记录只能在队伍比赛窗口内开始。 \n比赛记录取消后会返还相应报名费用，需要注意的是超过记录的截止时间后无法取消，单人记录的截止时间为报名赛道的截止时间，组队记录的截止时间为队伍比赛窗口的截止时间。 \n系统会自动处理过期的比赛记录（进行时间超过2小时的记录会被当作过期处理）。";
-"home.skill.title.1.subtitle.2.content" = "每条赛道有对应的物资奖金池，每增加一条已完成状态的比赛记录，奖金池就会根据报名费用的一定比例进行累积。";
+"home.skill.title.5.subtitle.1" = "原始成绩";
+"home.skill.title.5.subtitle.2" = "有效成绩";
+"home.skill.title.5.subtitle.3" = "成绩状态";
+"home.skill.title.1.subtitle.1.content" = "比赛报名成功后会自动创建一条比赛记录，可在运动中心的记录管理页面查看，比赛记录有未开始/进行中/已完成/待校验和已过期5种状态。 \n在比赛记录的有效时间内可以开始比赛，单人记录可以在赛道有效时间内随时开始，组队记录只能在队伍比赛窗口内开始。 \n结束比赛可以通过自动和手动2种方式，当你位于终点区域范围内时比赛引擎会自动结束比赛，若没有自动结束，你也可以在终点区域范围附近手动点击结束按钮。 \n比赛记录取消后会返还相应报名费用，需要注意的是超过记录的截止时间后无法取消，单人记录的截止时间为报名赛道的截止时间，组队记录的截止时间为队伍比赛窗口的截止时间。 \n系统会自动处理过期的比赛记录（进行时间超过2小时的记录会被当作过期处理）。";
+"home.skill.title.1.subtitle.2.content" = "在当前的自行车和跑步比赛中，需要全程将手机固定在大腿外层位置进行数据校验，运动中频繁移动手机可能会导致校验失败，数据校验分为实时校验和后台校验2个阶段，受限于计算资源，数据校验过程可能会延迟数分钟至数小时。";
+"home.skill.title.1.subtitle.3.content" = "每条赛道有对应的物资奖金池，每增加一条已完成状态的比赛记录，奖金池就会根据报名费用的一定比例进行累积。";
 "home.skill.title.2.subtitle.1.content" = "可以在对应赛道下创建队伍，创建后可以在队伍管理页面编辑详细信息。\n可以在对应赛道的队伍列表中查看当前可加入的队伍，加入队伍有2种方式，分别是直接通过8位队伍码加入，和提交申请信息申请加入";
 "home.skill.title.2.subtitle.2.content" = "在队伍管理页面可以进行队伍管理，一支队伍有准备/锁定/比赛/进行中和已结束5种状态，需要注意的是进入比赛状态后无法撤回，队伍需要在2小时的比赛窗口内准时开始比赛。\n队伍解散后，系统会自动返还报名费用给所有已报名的队伍成员。";
-"home.skill.title.2.subtitle.3.content" = "队伍一旦有成员开始比赛后，其余成员需要在180s的时间窗口内进入比赛，否则无法再加入且比赛记录无法取消，建议队伍进入比赛前先进行成员的汇合。";
+"home.skill.title.2.subtitle.3.content" = "使用8位队伍码可以在队伍内报名，队伍内所有成员均报名成功后可以进入比赛状态，在队伍进入比赛状态前你可以随时取消报名。";
+"home.skill.title.2.subtitle.4.content" = "队伍一旦有成员开始比赛后，其余成员需要在180s的时间窗口内进入比赛，否则无法再加入且比赛记录无法取消，建议队伍进入比赛前先进行成员的汇合。";
 "home.skill.title.3.subtitle.1.content" = "装备卡牌可能在以下场景下无法装配使用：\n1.客户端版本不适配。当客户端版本低于卡牌要求时无法使用，可以在商店或仓库的详情页面检查版本适配情况。\n2.运动类型不匹配。不同运动类型只能使用对应的卡牌。\n3.运动模式不匹配。例如单人模式无法使用组队专属卡牌。\n4.传感器不匹配。绑定的传感器类型或位置不符合对应卡牌的需求。";
 "home.skill.title.3.subtitle.2.content" = "通过升级卡牌或卡牌技能可以在一定范围内增强卡牌收益数值，升级的增幅程度与卡牌的幸运值相关。\n卡牌的升级有2种方式，1是通过消耗升级材料进行升级，2是通过消耗相同类型的0级卡牌进行升级，注意通过方式2升级时尽量选择消耗幸运值较低的卡牌是更明智的选择。\n升级卡牌的技能前需要先解锁技能，不同技能的解锁阈值可以参考卡牌的详情页。";
+"home.skill.title.3.subtitle.3.content" = "装备卡牌可以在特定的条件下产生收益并影响你或你所在队伍的当前比赛成绩，成功应用卡牌收益需要满足以下条件：\n1.比赛过程中达到对应卡牌详情中描述的奖励条件\n2.比赛数据通过数据校验\n3.延迟收益类型卡牌（如队伍收益类型）需要等待收益数据计算完成";
 "home.skill.title.4.subtitle.1.content" = "每场比赛（记录）结束后会有一次结算，刷新自己的最好成绩或赛道的最好成绩会有额外的奖励。";
 "home.skill.title.4.subtitle.2.content" = "一条赛道的比赛结束后会有一次赛道排行榜的结算，结算的奖励会发放到邮箱中且默认有效期为30天，建议尽快去 我的-邮箱 里领取。需要注意的是，未完成实名认证将无法进行赛道结算。";
 "home.skill.title.4.subtitle.3.content" = "赛季结束后会有一次赛季成绩的整理与结算，结算的奖励会发放到邮箱中且默认有效期为30天，建议尽快去 我的-邮箱 里领取。需要注意的是，未完成实名认证将无法进行赛季结算。";
+"home.skill.title.5.subtitle.1.content" = "比赛的原始成绩是指比赛引擎记录的 运动结束时刻 - 运动开始时刻 的数值，是不应用任何奖励/惩罚效果的原始结果。 \n运动开始时刻是指你在有效起点区域范围内点击开始时的时刻，运动结束时刻会根据系统记录的末段的多维数据进行优化和调整，所以无需担心实际自动或手动结束比赛的时机，唯一需要注意的是，当你选择手动结束比赛时要尽量靠近有效终点区域。";
+"home.skill.title.5.subtitle.2.content" = "比赛的有效成绩是指在原始成绩上应用所有已装备卡牌或关联卡牌收益后的成绩，此成绩会在比赛完成后写入排行榜并统计进你的运动生涯，需要注意的是，总收益上限为原始成绩的20%，即有效成绩的下限为原始成绩的80%。";
+"home.skill.title.5.subtitle.3.content" = "成绩状态与比赛记录状态整体一致，增加了数据计算中状态，表示当前有未统计完成的收益。数据计算中状态可能存在延迟情况，部分情况可能会延迟数分钟至数小时才会统计完成。";
 
 "shop.tab.props" = "道具";
 "shop.tab.equip_card" = "装备卡";
@@ -205,6 +224,7 @@
 "competition.record.status.computing" = "数据计算中";
 "competition.record.original_time" = "原始成绩";
 "competition.record.valid_time" = "有效成绩";
+"competition.record.valid_time.popup.content" = "有效成绩是指在原始成绩上应用所有已装备卡牌或关联卡牌收益后的成绩，此成绩会在比赛完成后写入排行榜并统计进你的运动生涯。";
 "competition.record.time_and_data" = "成绩与数据";
 "competition.record.result" = "比赛结算";
 "competition.record.title" = "参赛记录";
@@ -226,6 +246,8 @@
 "competition.cardselect.magiccard.equipped" = "已装备";
 "competition.cardselect.magiccard.empty_slot" = "空卡牌槽";
 "competition.cardselect.magiccard.vipslot" = "专属卡槽";
+"competition.cardselect.popup.content.bike" = "进行自行车比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
+"competition.cardselect.popup.content.running" = "进行跑步比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
 
 "competition.realtime.action.finish" = "结束比赛";
 "competition.realtime.action.finish.2" = "结束";
@@ -295,11 +317,13 @@
 "competition.team.intro" = "队伍简介";
 "competition.team.setup" = "队伍设置";
 "competition.team.create" = "创建队伍";
+"competition.team.create.toast.success" = "创建成功，队伍码已复制";
 "competition.team.member.count %lld" = "队伍人数: %lld人";
 "competition.team.public" = "公开队伍信息";
 "competition.team.toast.no_name" = "请输入队伍名称";
 "competition.team.toast.invalid_time" = "比赛时间不合法";
 "competition.team.join" = "加入队伍";
+"competition.team.join.toast.success" = "加入成功";
 "competition.team.join.placeholder" = "输入8位队伍码直接加入";
 "competition.team.join.action" = "一键加入";
 "competition.team.join.toast.invalid_teamcode" = "请输入合法的8位队伍码";
@@ -315,6 +339,7 @@
 "competition.team.create.no_team.2" = "去运动中心创建您的第一支队伍吧";
 "competition.team.applied.no_team" = "您还没有申请任何队伍";
 "competition.team.applied.no_team.2" = "在运动中心申请加入感兴趣的队伍";
+"competition.team.applied.toast.success" = "申请成功";
 "competition.team.joined.no_team" = "您还没有加入任何队伍";
 "competition.team.joined.no_team.2" = "在运动中心申请加入感兴趣的队伍";
 "competition.team.action.view_intro" = "查看简介";
@@ -375,6 +400,7 @@
 "competition.magiccard.error.no_sensor" = "传感器未绑定";
 "competition.magiccard.error.repeat" = "不可重复装备";
 "competition.magiccard.error.count" = "卡牌数量错误";
+"competition.magiccard.error.exceed" = "只能装备1张该类型卡牌";
 
 "competition.applewatch.control.info" = "点击结束并不会结束比赛，只会停止手表端的数据收集，想要结束比赛请在手机端操作";
 "competition.applewatch.sync" = "同步";
@@ -437,6 +463,7 @@
 
 "user.setup.account_and_security" = "账号与安全";
 "user.setup.realname_auth" = "实名认证";
+"user.setup.realname_auth.toast.success" = "认证成功";
 "user.setup.realname_auth.done" = "已完成实名认证";
 "user.setup.realname_auth.undone" = "未完成实名认证";
 "user.setup.realname_auth.undone.2" = "未实名";
@@ -462,9 +489,11 @@
 "user.setup.phone.status.no_bind" = "未绑定";
 "user.setup.phone.status.has_bind" = "已绑定";
 "user.setup.phone.bind_info %@" = "已绑定手机号：%@";
+"user.setup.phone.bind" = "绑定手机号";
 "user.setup.apple.bind_info %@" = "已绑定apple账号：%@";
 "user.setup.action.apple.bind" = "绑定 Apple 账号";
 "user.setup.email.bind_info %@" = "已绑定邮箱：%@";
+"user.setup.email.bind" = "绑定邮箱";
 "user.setup.action.phone.bind" = "绑定";
 "user.setup.action.phone.verify_and_bind" = "验证并绑定";
 "user.setup.action.phone.unbind" = "解除绑定";
@@ -537,6 +566,7 @@
 "institute.upgrade.upgradeway.fusion.content" = "通过消耗等级为0的相同装备卡进行装备卡的升级";
 "institute.upgrade.upgradeway.mat.popup" = "你确定消耗 {{ITEMS}} 进行升级吗？";
 "institute.upgrade.upgradeway.fusion.popup" = "你确定融合一张 {{ITEMS}} 进行升级吗？";
+"institute.upgrade.toast.success" = "升级成功";
 
 "mail.detail" = "邮件详情";
 "mail.send_date" = "发送时间";

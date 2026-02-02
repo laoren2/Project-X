@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/11/24.
 //
-
+#if DEBUG
 import SwiftUI
 
 // 本地调试比赛链路和IMU数据
@@ -325,3 +325,4 @@ struct TestBikePathDetailView: View {
 class BikeMatchDebugViewModel: ObservableObject {
     @Published var samplePath: [BikeSamplePathPoint] = []
 }
+#endif

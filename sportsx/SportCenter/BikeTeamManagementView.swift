@@ -264,7 +264,7 @@ struct BikeTeamAppliedCardView: View {
             // 分隔线
             Divider()
             
-            Text("\(team.region_name)-\(team.event_name)-\(team.track_name)")
+            (Text(LocalizedStringKey(team.region_name)) + Text(" - \(team.event_name) - \(team.track_name)"))
                 .font(.caption)
                 .foregroundStyle(Color.secondText)
             
@@ -371,7 +371,7 @@ struct BikeTeamCardView: View {
             
             Divider()
             
-            Text("\(team.region_name)-\(team.event_name)-\(team.track_name)")
+            (Text(LocalizedStringKey(team.region_name)) + Text(" - \(team.event_name) - \(team.track_name)"))
                 .font(.caption)
                 .foregroundStyle(Color.secondText)
             

@@ -1551,6 +1551,7 @@ struct UserSportSelectedBar: View {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
                             Image(sport.iconName)
+                                .renderingMode(.template)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 30)
@@ -1562,7 +1563,7 @@ struct UserSportSelectedBar: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background((sport == selectedSport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
-                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.secondText)
+                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
                             if isEditMode {
@@ -1662,6 +1663,7 @@ struct LocalUserSportSelectedBar: View {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
                             Image(sport.iconName)
+                                .renderingMode(.template)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 30)
@@ -1673,7 +1675,7 @@ struct LocalUserSportSelectedBar: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background((sport == selectedSport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
-                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.secondText)
+                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
                             if isEditMode {

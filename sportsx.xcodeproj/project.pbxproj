@@ -16,6 +16,8 @@
 		A911DBC02C47024E0033D809 /* sportsxUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */; };
 		A912CD872E1D6F6A009062AD /* StoreHouseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A912CD862E1D6F62009062AD /* StoreHouseView.swift */; };
 		A933C48D2DBDE1ED000C51D8 /* GlobalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */; };
+		A93DEA7A2F303A3900CE8871 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A93DEA782F303A3900CE8871 /* InfoPlist.strings */; };
+		A93DEA7B2F303A3900CE8871 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A93DEA782F303A3900CE8871 /* InfoPlist.strings */; };
 		A95064892D0239B600998E30 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95064882D0239AE00998E30 /* LocationManager.swift */; };
 		A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95721702D2FBCE300286592 /* NavigationManager.swift */; };
 		A96640092D832DB700A94B73 /* AssetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96640082D832DB700A94B73 /* AssetManager.swift */; };
@@ -101,6 +103,9 @@
 		A911DBBF2C47024E0033D809 /* sportsxUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		A912CD862E1D6F62009062AD /* StoreHouseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreHouseView.swift; sourceTree = "<group>"; };
 		A933C48C2DBDE1EB000C51D8 /* GlobalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalConfig.swift; sourceTree = "<group>"; };
+		A93DEA792F303A3900CE8871 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A93DEA7C2F303A4900CE8871 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		A93DEA7D2F303A4E00CE8871 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		A95064872D0133C400998E30 /* sportsx.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = sportsx.entitlements; sourceTree = "<group>"; };
 		A95064882D0239AE00998E30 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		A95721702D2FBCE300286592 /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
@@ -194,6 +199,7 @@
 			isa = PBXGroup;
 			children = (
 				A9C0E4FB2EF1A68000D3099A /* Localizable.strings */,
+				A93DEA782F303A3900CE8871 /* InfoPlist.strings */,
 				A911DBA12C47024D0033D809 /* sportsx */,
 				A911DBB22C47024E0033D809 /* sportsxTests */,
 				A911DBBC2C47024E0033D809 /* sportsxUITests */,
@@ -499,6 +505,7 @@
 				A9C0E4FE2EF1A68000D3099A /* Localizable.strings in Resources */,
 				A911DBAA2C47024E0033D809 /* Preview Assets.xcassets in Resources */,
 				A911DBA72C47024E0033D809 /* Assets.xcassets in Resources */,
+				A93DEA7B2F303A3900CE8871 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -520,6 +527,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A93DEA7A2F303A3900CE8871 /* InfoPlist.strings in Resources */,
 				A9C0E4FD2EF1A68000D3099A /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -632,6 +640,16 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		A93DEA782F303A3900CE8871 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A93DEA792F303A3900CE8871 /* en */,
+				A93DEA7C2F303A4900CE8871 /* zh-Hans */,
+				A93DEA7D2F303A4E00CE8871 /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		A9C0E4FB2EF1A68000D3099A /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -782,12 +800,10 @@
 				INFOPLIST_FILE = sportsx/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCameraUsageDescription = testCamera;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "需要位置权限来展示当前地区比赛信息";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "需要后台定位权限来持续记录运动";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "需要位置权限来展示当前地区比赛信息2";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = testMicro;
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = testPhoto;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当比赛在后台进行期间会使用后台定位。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "用于展示附近可参与的比赛与赛道信息。";
+				INFOPLIST_KEY_NSMotionUsageDescription = "用于读取设备运动传感器数据以记录和分析你的运动表现。";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于访问你的本地相册图片来更新你的个人信息，不会访问未被你选择的照片。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -822,21 +838,21 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = sportsx/sportsx.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = sportsx/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCameraUsageDescription = testCamera;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "需要位置权限来展示当前地区比赛信息";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "需要后台定位权限来持续记录运动";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "需要位置权限来展示当前地区比赛信息2";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = testMicro;
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = testPhoto;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当比赛在后台进行期间会使用后台定位。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "用于展示附近可参与的比赛与赛道信息。";
+				INFOPLIST_KEY_NSMotionUsageDescription = "用于读取设备运动传感器数据以记录和分析你的运动表现。";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于访问你的本地相册图片来更新你的个人信息，不会访问未被你选择的照片。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -851,9 +867,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.renjie.sportsx;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = sporreer_iOS_Distribution;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -977,10 +995,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
@@ -994,9 +1014,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.renjie.sportsx.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=watchos*]" = sporreer_watchOS_Distribution;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;

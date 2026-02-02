@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/12/9.
 //
-
+#if DEBUG
 import SwiftUI
 
 
@@ -229,3 +229,4 @@ struct FeedbackMailDetailView: View {
         }
     }
 }
+#endif

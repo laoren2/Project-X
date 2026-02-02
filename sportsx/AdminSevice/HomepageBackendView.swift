@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/12/15.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -317,3 +317,4 @@ struct AdInfoView: View {
         
     }
 }
+#endif

@@ -28,6 +28,16 @@ enum BodyPosition: Int, CaseIterable, Identifiable {
         case .posWST: return "user.page.bind_device.body.wst"
         }
     }
+    
+    var icon: String {
+        switch self {
+        case .posLH: return "left_hand"
+        case .posRH: return "right_hand"
+        case .posLF: return "placeholder"
+        case .posRF: return "placeholder"
+        case .posWST: return "placeholder"
+        }
+    }
 }
 
 // 传感器设备通用协议

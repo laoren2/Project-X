@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreLocation
 
 
 class GlobalConfig: ObservableObject {
@@ -17,6 +18,12 @@ class GlobalConfig: ObservableObject {
     
     // 用来做全局的按钮防抖
     @Published var isButtonLocked = false
+    
+    // debug 配置
+#if DEBUG
+    @Published var isMockLocation_debug: Bool = false
+    var location_debug: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+#endif
     
     // 是否允许导航中原生侧滑返回手势
     var swipeBackEnabled: Bool = true

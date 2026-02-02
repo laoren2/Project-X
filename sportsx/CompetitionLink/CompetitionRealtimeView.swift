@@ -119,11 +119,16 @@ struct CompetitionRealtimeView: View {
                         Button {
                             mapMode = .overview
                         } label: {
-                            Image(systemName: "point.3.connected.trianglepath.dotted")
-                                .foregroundColor(.white)
-                                .padding()
-                                .background(Color.black.opacity(0.3))
-                                .clipShape(Circle())
+                            ZStack {
+                                Circle()
+                                    .fill(Color.black.opacity(0.3))
+                                    .frame(width: 50, height: 50)
+                                Image("location2")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 25, height: 25)
+                            }
+                            .contentShape(Circle())
                         }
                     }
                     HStack {
@@ -131,14 +136,16 @@ struct CompetitionRealtimeView: View {
                         Button {
                             mapMode = .followUser
                         } label: {
-                            Image("location")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                                .foregroundColor(.white)
-                                .padding()
-                                .background(Color.black.opacity(0.3))
-                                .clipShape(Circle())
+                            ZStack {
+                                Circle()
+                                    .fill(Color.black.opacity(0.3))
+                                    .frame(width: 50, height: 50)
+                                Image("location")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                            }
+                            .contentShape(Circle())
                         }
                     }
                     Spacer()
@@ -338,6 +345,7 @@ struct CompetitionRealtimeView: View {
                                             .foregroundStyle(Color.secondText)
                                     }
                                 }
+                                .padding(.bottom, 50)
                             }
                         }
                     }

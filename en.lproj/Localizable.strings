@@ -18,6 +18,8 @@
 "common.average" = "Average";
 "common.speed" = "Speed";
 
+"app.slogan" = "Play for Passion";
+
 "sport.bike" = "Bike";
 "sport.running" = "Running";
 
@@ -81,7 +83,10 @@
 "action.detail" = "Detail";
 
 "error.unknown" = "Unknown";
+"error.unknown.2" = "Unknown error";
 "error.no_data" = "No data";
+"error.data" = "Data error";
+"error.server" = "Server error";
 "error.client_version" = "The client version is too low, please upgrade and continue using it.";
 "error.network_error" = "Network connection failed, please try again later.";
 
@@ -114,6 +119,7 @@
 "popup.claim_reward.content" = "You have successfully claimed your reward:";
 
 "home.sign_in.tile" = "Daily Check-in";
+"home.sign_in.subtile" = "More rewards for consecutive check-ins!";
 "home.sign_in.vip_tile" = "Subscribe now to receive more sign-in rewards";
 "home.sign_in.reminder_time %@" = "reminder time: %@";
 "home.sign_in.reminder_time" = "reminder time";
@@ -131,24 +137,37 @@
 "home.skill.title.2" = "Team Mode";
 "home.skill.title.3" = "Equipment Cards";
 "home.skill.title.4" = "Reward Settlement";
+"home.skill.title.5" = "Competition Results";
 "home.skill.title.1.subtitle.1" = "Match records";
+"home.skill.title.1.subtitle.2" = "Data Validation";
 "home.skill.title.2.subtitle.1" = "Create and join a team";
 "home.skill.title.2.subtitle.2" = "Manage teams";
-"home.skill.title.2.subtitle.3" = "180-second continuous window";
+"home.skill.title.2.subtitle.3" = "Team registration";
+"home.skill.title.2.subtitle.4" = "180-second continuous window";
 "home.skill.title.3.subtitle.1" = "Availability";
 "home.skill.title.3.subtitle.2" = "Equipment card upgrades and skill upgrades";
+"home.skill.title.3.subtitle.3" = "Equipment card benefits";
 "home.skill.title.4.subtitle.2" = "Track settlement";
 "home.skill.title.4.subtitle.3" = "Season settlement";
-"home.skill.title.1.subtitle.1.content" = "After successful registration, a race record will be automatically created and can be viewed on the record management page in the sports center. Race records have four statuses: Not Started, In Progress, Completed, and Expired.\nRaces can start within the record's valid time. Individual records can start at any time within the track's valid time, while team records can only start within the team race window. \nCancelling a race record will result in a refund of the registration fee. Note that cancellations are not possible after the record's deadline. The deadline for individual records is the deadline for registering for the track, and the deadline for team records is the deadline for the team race window. \nThe system will automatically handle expired race records (records with a duration exceeding 2 hours will be considered expired).";
-"home.skill.title.1.subtitle.2.content" = "Each track has a corresponding prize pool. For each completed race record, the prize pool will accumulate based on a certain percentage of the registration fee.";
+"home.skill.title.5.subtitle.1" = "Original scores";
+"home.skill.title.5.subtitle.2" = "Valid scores";
+"home.skill.title.5.subtitle.3" = "Result status";
+"home.skill.title.1.subtitle.1.content" = "After successful registration, a race record will be automatically created and can be viewed on the record management page in the sports center. Race records have five statuses: Not Started, In Progress, Completed, Pending Verification, and Expired.\nRaces can start within the record's valid time. Individual records can start at any time within the track's valid time, while team records can only start within the team race window. \nThere are two ways to end the race: automatically and manually. The race engine will automatically end the race when you are within the finish line area. If it does not end automatically, you can also manually click the end button near the finish line area. \nCancelling a race record will result in a refund of the registration fee. Note that cancellations are not possible after the record's deadline. The deadline for individual records is the deadline for registering for the track, and the deadline for team records is the deadline for the team race window. \nThe system will automatically handle expired race records (records with a duration exceeding 2 hours will be considered expired).";
+"home.skill.title.1.subtitle.2.content" = "In current cycling and running competitions, it is necessary to keep the phone fixed to the outer thigh for data verification throughout the entire process. Frequent movement of the phone during the exercise may cause verification failure. Data verification is divided into two stages: real-time verification and background verification. Due to limited computing resources, the data verification process may be delayed by several minutes to several hours.";
+"home.skill.title.1.subtitle.3.content" = "Each track has a corresponding prize pool. For each completed race record, the prize pool will accumulate based on a certain percentage of the registration fee.";
 "home.skill.title.2.subtitle.1.content" = "You can create a team under the corresponding track, and then edit the details on the team management page. \nYou can view the teams that are currently available to join in the team list for the corresponding track. There are two ways to join a team: you can join directly using the 8-digit team code, or you can submit an application to join.";
 "home.skill.title.2.subtitle.2.content" = "Team management is available on the team management page. A team has five statuses: Ready, Locked, Match, In Progress, and Finished. Note that once a team enters the match status, it cannot be withdrawn. Teams must start their matches precisely within the 2-hour match window. \nAfter a team disbands, the system will automatically refund the registration fee to all registered team members.";
-"home.skill.title.2.subtitle.3.content" = "Once a team member starts a match, the remaining members must join the match within a 180-second time window; otherwise, they cannot join and the match record cannot be canceled. It is recommended that the team members reunite before entering the match.";
+"home.skill.title.2.subtitle.3.content" = "You can register within a team using an 8-digit team code. Once all team members have successfully registered, the team can enter the competition phase. You can cancel your registration at any time before the team enters the competition phase.";
+"home.skill.title.2.subtitle.4.content" = "Once a team member starts a match, the remaining members must join the match within a 180-second time window; otherwise, they cannot join and the match record cannot be canceled. It is recommended that the team members reunite before entering the match.";
 "home.skill.title.3.subtitle.1.content" = "Equipment cards may fail to equip and be used in the following scenarios: \n1. Client version incompatibility. If the client version is lower than the card's requirements, it cannot be used. You can check the version compatibility on the details page of the shop or inventory. \n2. Sports type mismatch. Different sports types can only use corresponding cards. \n3. Sports mode mismatch. For example, team-specific cards cannot be used in single-player mode. \n4. Sensor mismatch. The type or location of the bound sensor does not meet the requirements of the corresponding card.";
 "home.skill.title.3.subtitle.2.content" = "Upgrading cards or card skills can enhance card benefits within a certain range. The increase in value is related to the card's luck stat. \nThere are two ways to upgrade cards: 1) by consuming upgrade materials, and 2) by consuming level 0 cards of the same type. When upgrading using method 2, it's wiser to choose cards with lower luck stats. \nBefore upgrading a card's skill, you need to unlock the skill first. The unlock thresholds for different skills can be found on the card's details page.";
+"home.skill.title.3.subtitle.3.content" = "Equipment cards can generate benefits under specific conditions and affect your or your team's current match results. To successfully apply card benefits, the following conditions must be met: \n1. The reward conditions described in the corresponding card details are met during the match. \n2. The match data passes data verification. \n3. For cards with delayed benefits (such as team benefit cards), the benefit data calculation needs to be completed.";
 "home.skill.title.4.subtitle.1.content" = "There will be a settlement after each race (record), and there will be additional rewards for breaking your own best time or the best time on the track.";
 "home.skill.title.4.subtitle.2.content" = "After each race on a track concludes, a leaderboard update will be released. Rewards will be sent to your in-game mailbox and are valid for 30 days by default. It is recommended to claim your rewards from Profile-MailBox as soon as possible. Please note that you will not be able to participate in track rewards if you have not completed real-name authentication.";
 "home.skill.title.4.subtitle.3.content" = "At the end of the season, there will be a review and settlement of season results. Rewards will be sent to your in-game mailbox and are valid for 30 days by default. It is recommended to claim them from Profile-MailBox as soon as possible. Please note that you will not be able to complete the season settlement if you have not completed real-name authentication.";
+"home.skill.title.5.subtitle.1.content" = "The original score of the race refers to the value recorded by the race engine as the difference between the start and end times of the race. This is the original result without any reward or penalty effects. \nThe start time of the race is the moment you click start within the valid starting area. The end time of the race will be optimized and adjusted based on the multi-dimensional data recorded by the system at the end of the race. Therefore, there is no need to worry about the actual timing of automatically or manually ending the race. The only thing to note is that when you choose to manually end the race, you should try to be as close to the valid finish area as possible.";
+"home.skill.title.5.subtitle.2.content" = "The effective score in a match refers to the score after applying the benefits of all equipped cards or associated cards to the original score. This score will be written into the leaderboard and counted in your career after the match is completed. It should be noted that the total benefit cap is 20% of the original score, that is, the lower limit of the effective score is 80% of the original score.";
+"home.skill.title.5.subtitle.3.content" = "The performance status is generally consistent with the match record status, but an additional data-calculation-in-progress status has been added, indicating that there are currently uncounted earnings. The data-calculation-in-progress status may experience delays, ranging from several minutes to several hours, before the statistics are completed.";
 
 "shop.tab.props" = "Props";
 "shop.tab.equip_card" = "EquipCards";
@@ -205,6 +224,7 @@
 "competition.record.status.computing" = "In data calculation";
 "competition.record.original_time" = "Original scores";
 "competition.record.valid_time" = "Valid scores";
+"competition.record.valid_time.popup.content" = "A valid score refers to the score achieved after applying the benefits of all equipped or associated cards to the original score. This score will be written into the leaderboard and counted in your athletic career after the match is completed.";
 "competition.record.time_and_data" = "Results and Data";
 "competition.record.result" = "Match Results";
 "competition.record.title" = "Match Records";
@@ -226,6 +246,8 @@
 "competition.cardselect.magiccard.equipped" = "equipped";
 "competition.cardselect.magiccard.empty_slot" = "Empty slot";
 "competition.cardselect.magiccard.vipslot" = "Exclusive slot";
+"competition.cardselect.popup.content.bike" = "Throughout the bike competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
+"competition.cardselect.popup.content.running" = "Throughout the running competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
 
 "competition.realtime.action.finish" = "End";
 "competition.realtime.action.finish.2" = "End";
@@ -295,11 +317,13 @@
 "competition.team.intro" = "Team Introduction";
 "competition.team.setup" = "Team Setup";
 "competition.team.create" = "Create team";
+"competition.team.create.toast.success" = "Team creation successful, team code copied.";
 "competition.team.member.count %lld" = "Team size: %lld人";
 "competition.team.public" = "Public team information";
 "competition.team.toast.no_name" = "Please enter the team name";
 "competition.team.toast.invalid_time" = "The match time was illegal.";
 "competition.team.join" = "Join the team";
+"competition.team.join.toast.success" = "Joined successfully";
 "competition.team.join.placeholder" = "Enter the 8-digit team code to join directly";
 "competition.team.join.action" = "Join with one click";
 "competition.team.join.toast.invalid_teamcode" = "Please enter a valid 8-digit team code";
@@ -315,6 +339,7 @@
 "competition.team.create.no_team.2" = "Go to the sports center and create your first team!";
 "competition.team.applied.no_team" = "You have not applied for any team yet.";
 "competition.team.applied.no_team.2" = "Apply to join a team you are interested in at the sports center!";
+"competition.team.applied.toast.success" = "Application successful";
 "competition.team.joined.no_team" = "You have not joined any team yet.";
 "competition.team.joined.no_team.2" = "Go to the sports center and apply to join a team you're interested in!";
 "competition.team.action.view_intro" = "View Introduction";
@@ -375,6 +400,7 @@
 "competition.magiccard.error.no_sensor" = "Sensor not bound";
 "competition.magiccard.error.repeat" = "Non-repeatable equipment";
 "competition.magiccard.error.count" = "Card count error";
+"competition.magiccard.error.exceed" = "You can only equip one card of this type";
 
 "competition.applewatch.control.info" = "Clicking 'End' will not end the game, it will only stop data collection on the watch. To end the game, please do so on your mobile device.";
 "competition.applewatch.sync" = "Synchronize";
@@ -437,6 +463,7 @@
 
 "user.setup.account_and_security" = "Account and Security";
 "user.setup.realname_auth" = "Real-name Authentication";
+"user.setup.realname_auth.toast.success" = "Authentication successful";
 "user.setup.realname_auth.done" = "Real-name authentication completed";
 "user.setup.realname_auth.undone" = "Real-name authentication not completed";
 "user.setup.realname_auth.undone.2" = "Unverified";
@@ -462,9 +489,11 @@
 "user.setup.phone.status.no_bind" = "Unbound";
 "user.setup.phone.status.has_bind" = "Already Bound";
 "user.setup.phone.bind_info %@" = "Mobile phone number already bound: %@";
+"user.setup.phone.bind" = "Bind phone number";
 "user.setup.apple.bind_info %@" = "Apple account already bound: %@";
 "user.setup.action.apple.bind" = "Bind apple account";
 "user.setup.email.bind_info %@" = "Email already bound: %@";
+"user.setup.email.bind" = "Bind Email";
 "user.setup.action.phone.bind" = "Bind";
 "user.setup.action.phone.verify_and_bind" = "Verify and Bind";
 "user.setup.action.phone.unbind" = "Unbind";
@@ -537,6 +566,7 @@
 "institute.upgrade.upgradeway.fusion.content" = "Upgrade equipment cards by consuming identical equipment cards of level 0.";
 "institute.upgrade.upgradeway.mat.popup" = "Are you sure you want to use {{ITEMS}} for the upgrade?";
 "institute.upgrade.upgradeway.fusion.popup" = "Are you sure you want to fuse a {{ITEMS}} card for the upgrade?";
+"institute.upgrade.toast.success" = "Upgrade successful";
 
 "mail.detail" = "Email Details";
 "mail.send_date" = "Sending time";

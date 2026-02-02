@@ -193,6 +193,10 @@ struct RealNaviView: View {
                     BikeRecordDetailView(recordID: rid)
                 case .runningRecordDetailView(let rid):
                     RunningRecordDetailView(recordID: rid)
+                case .bikeEventDetailView(let eid):
+                    BikeEventDetailView(eventID: eid)
+                case .runningEventDetailView(let eid):
+                    RunningEventDetailView(eventID: eid)
                 case .competitionCardSelectView:
                     CompetitionCardSelectView()
                 case .competitionRealtimeView:
@@ -318,6 +322,8 @@ struct RealNaviView: View {
                     FeedbackMailBackendView()
                 case .homepageBackendView:
                     HomepageBackendView()
+                case .localDebugView:
+                    LocalDebugPanelView()
 #endif
                 }
             }
@@ -400,6 +406,7 @@ struct SportSelectionSidebar: View {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
                         HStack {
                             Image(sport.iconName)
+                                .renderingMode(.template)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 30)
@@ -408,7 +415,7 @@ struct SportSelectionSidebar: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(sport == selectedSport ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
-                        .foregroundStyle(sport == selectedSport ? Color.white : Color.secondText)
+                        .foregroundStyle(sport == selectedSport ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
                             selectedSport = sport
@@ -433,9 +440,7 @@ struct SportSelectionSidebar: View {
 }
 
 
-#Preview{
-    let appState = AppState.shared
-    return NaviView()
-        .environmentObject(appState)
-        //.preferredColorScheme(.dark)
+
+#Preview {
+    TestLaunchView()
 }

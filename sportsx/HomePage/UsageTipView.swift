@@ -16,7 +16,8 @@ struct UsageTipView: View {
             title: "home.skill.title.1",
             items: [
                 UsageTipItem(rank: 1, subtitle: "home.skill.title.1.subtitle.1", content: "home.skill.title.1.subtitle.1.content"),
-                UsageTipItem(rank: 2, subtitle: "competition.track.prize_pool", content: "home.skill.title.1.subtitle.2.content")
+                UsageTipItem(rank: 2, subtitle: "home.skill.title.1.subtitle.2", content: "home.skill.title.1.subtitle.2.content"),
+                UsageTipItem(rank: 3, subtitle: "competition.track.prize_pool", content: "home.skill.title.1.subtitle.3.content")
             ]
         ),
         UsageTipSection(
@@ -25,7 +26,8 @@ struct UsageTipView: View {
             items: [
                 UsageTipItem(rank: 1, subtitle: "home.skill.title.2.subtitle.1", content: "home.skill.title.2.subtitle.1.content"),
                 UsageTipItem(rank: 2, subtitle: "home.skill.title.2.subtitle.2", content: "home.skill.title.2.subtitle.2.content"),
-                UsageTipItem(rank: 3, subtitle: "home.skill.title.2.subtitle.3", content: "home.skill.title.2.subtitle.3.content")
+                UsageTipItem(rank: 3, subtitle: "home.skill.title.2.subtitle.3", content: "home.skill.title.2.subtitle.3.content"),
+                UsageTipItem(rank: 4, subtitle: "home.skill.title.2.subtitle.4", content: "home.skill.title.2.subtitle.4.content")
             ]
         ),
         UsageTipSection(
@@ -33,7 +35,8 @@ struct UsageTipView: View {
             title: "home.skill.title.3",
             items: [
                 UsageTipItem(rank: 1, subtitle: "home.skill.title.3.subtitle.1", content: "home.skill.title.3.subtitle.1.content"),
-                UsageTipItem(rank: 2, subtitle: "home.skill.title.3.subtitle.2", content: "home.skill.title.3.subtitle.2.content")
+                UsageTipItem(rank: 2, subtitle: "home.skill.title.3.subtitle.2", content: "home.skill.title.3.subtitle.2.content"),
+                UsageTipItem(rank: 3, subtitle: "home.skill.title.3.subtitle.3", content: "home.skill.title.3.subtitle.3.content")
             ]
         ),
         UsageTipSection(
@@ -43,6 +46,15 @@ struct UsageTipView: View {
                 UsageTipItem(rank: 1, subtitle: "competition.record.result", content: "home.skill.title.4.subtitle.1.content"),
                 UsageTipItem(rank: 2, subtitle: "home.skill.title.4.subtitle.2", content: "home.skill.title.4.subtitle.2.content"),
                 UsageTipItem(rank: 3, subtitle: "home.skill.title.4.subtitle.3", content: "home.skill.title.4.subtitle.3.content")
+            ]
+        ),
+        UsageTipSection(
+            rank: 5,
+            title: "home.skill.title.5",
+            items: [
+                UsageTipItem(rank: 1, subtitle: "home.skill.title.5.subtitle.1", content: "home.skill.title.5.subtitle.1.content"),
+                UsageTipItem(rank: 2, subtitle: "home.skill.title.5.subtitle.2", content: "home.skill.title.5.subtitle.2.content"),
+                UsageTipItem(rank: 3, subtitle: "home.skill.title.5.subtitle.3", content: "home.skill.title.5.subtitle.3.content")
             ]
         )
     ]

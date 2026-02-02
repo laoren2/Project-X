@@ -70,7 +70,9 @@ struct SubscriptionDetailView: View {
                                         .foregroundStyle(isSubscribed ? .green : .thirdText)
                                     Spacer()
                                     Button(action:{
-                                        updateSubscriptionStatus(enforce: true)
+                                        Task {
+                                            await updateSubscriptionStatus(enforce: true)
+                                        }
                                     }) {
                                         Image(systemName: "arrow.clockwise")
                                             .font(.system(size: 15))
@@ -116,26 +118,26 @@ struct SubscriptionDetailView: View {
                                 .foregroundStyle(Color.white)
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack(spacing: 20) {
-                                    Image("single_app_icon")
+                                    Image("vip_benefit_extra_card")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 20, height: 20)
+                                        .frame(width: 30)
                                     Text("iap.subscription.benefits.1")
                                 }
                                 Divider()
                                 HStack(spacing: 20) {
-                                    Image("single_app_icon")
+                                    Image("vip_benefit_gift")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 20, height: 20)
+                                        .frame(width: 30)
                                     Text("iap.subscription.benefits.2")
                                 }
                                 Divider()
                                 HStack(spacing: 20) {
-                                    Image("single_app_icon")
+                                    Image("vip_benefit_fast_validation")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 20, height: 20)
+                                        .frame(width: 30)
                                     Text("iap.subscription.benefits.3")
                                 }
                             }
@@ -204,36 +206,55 @@ struct SubscriptionDetailView: View {
                         selectedProduct = manager.subscriptionProducts[0]
                     }
                 }
+                await updateSubscriptionStatus()
             }
-            updateSubscriptionStatus()
         }
     }
     
-    func updateSubscriptionStatus(enforce: Bool = false) {
-        guard var components = URLComponents(string: "/iap/query_subscription_status") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "enforce", value: "\(enforce)")
+    func updateSubscriptionStatus(enforce: Bool = false) async {
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+        
+        var body: [String: String] = [
+            "enforce": "\(enforce)"
         ]
-        guard let urlPath = components.url?.absoluteString else { return }
         
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        if enforce {
+            for await verificationResult in Transaction.currentEntitlements {
+                guard case .verified(let transaction) = verificationResult else { continue }
+                if manager.subscriptionProductIDs.contains(transaction.productID) {
+                    // 这是当前有效订阅
+                    //print("find active sub: \(transaction.productID)")
+                    //print("origin_id: \(transaction.originalID)")
+                    body["transaction_id"] = String(transaction.originalID)
+                    break
+                }
+            }
+        }
         
-        NetworkService.sendRequest(with: request, decodingType: IAPSubscriptionInfoResponse.self, showLoadingToast: true, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        isSubscribed = unwrappedData.is_active
-                        UserManager.shared.user.isVip = unwrappedData.is_active
-                        if let autoStatus = unwrappedData.auto_renew, let start = unwrappedData.started_at, let end = unwrappedData.expired_at {
-                            autoRenew = autoStatus
-                            startDate = ISO8601DateFormatter().date(from: start)
-                            expireDate = ISO8601DateFormatter().date(from: end)
-                        }
+        guard let encodedBody = try? JSONEncoder().encode(body) else { return }
+        
+        let request = APIRequest(path: "/iap/query_subscription_status", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+        
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: IAPSubscriptionInfoResponse.self, showLoadingToast: true, showErrorToast: true)
+        
+        switch result {
+        case .success(let data):
+            if let unwrappedData = data {
+                DispatchQueue.main.async {
+                    isSubscribed = unwrappedData.is_active
+                    if let autoStatus = unwrappedData.auto_renew, let start = unwrappedData.started_at, let end = unwrappedData.expired_at {
+                        autoRenew = autoStatus
+                        startDate = ISO8601DateFormatter().date(from: start)
+                        expireDate = ISO8601DateFormatter().date(from: end)
                     }
                 }
-            default: break
+                // 更新 isVip & original_transaction_id
+                if enforce {
+                    await UserManager.shared.fetchMeInfo()
+                }
             }
+        default: break
         }
     }
 }

@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/8/24.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -629,3 +629,4 @@ struct MagicCardDefView: View {
         viewModel.version = card.version
     }
 }
+#endif

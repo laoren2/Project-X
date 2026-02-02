@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/7/7.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -371,3 +371,4 @@ struct CPAssetPriceView: View {
         viewModel.image_url = event.image_url
     }*/
 }
+#endif

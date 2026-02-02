@@ -564,7 +564,7 @@ struct CompetitionScoreCard: View {
                 Text(trackRecord.eventName)
                     .foregroundColor(.white)
                 Spacer()
-                Text(trackRecord.region)
+                Text(LocalizedStringKey(trackRecord.region))
                     .foregroundColor(.secondText)
             }
             .fontWeight(.bold)

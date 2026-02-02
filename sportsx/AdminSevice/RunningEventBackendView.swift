@@ -4,7 +4,7 @@
 //
 //  Created by 任杰 on 2025/6/4.
 //
-
+#if DEBUG
 import SwiftUI
 import PhotosUI
 
@@ -161,6 +161,7 @@ struct RunningEventCreateView: View {
     @State var startDate: Date = Date()
     @State var endDate: Date = Date().addingTimeInterval(3600*24)
     
+    @State var imageURL: String = ""
     @State var eventImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
@@ -173,11 +174,42 @@ struct RunningEventCreateView: View {
                     TextField("赛事名称hans", text: $name_hans)
                     TextField("赛事名称hant", text: $name_hant)
                     TextField("赛事名称en", text: $name_en)
-                    TextField("描述hans", text: $description_hans)
-                    TextField("描述hant", text: $description_hant)
-                    TextField("描述en", text: $description_en)
+                    TextEditor(text: $description_hans)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                                Text("描述hans")
+                            }
+                        )
+                    TextEditor(text: $description_hant)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                                Text("描述hant")
+                            }
+                        )
+                    TextEditor(text: $description_en)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                                Text("描述en")
+                            }
+                        )
+                    //TextField("描述hans", text: $description_hans)
+                    //TextField("描述hant", text: $description_hant)
+                    //TextField("描述en", text: $description_en)
                     TextField("赛季ID", text: $seasonID)
                     TextField("区域ID", text: $regionID)
+                    TextField("image_url", text: $imageURL)
                 }
                 Section(header: Text("时间")) {
                     DatePicker("开始时间", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
@@ -253,6 +285,10 @@ struct RunningEventCreateView: View {
             textFields["description"] = desJSON
         }
         
+        if !imageURL.isEmpty {
+            textFields["image_url"] = imageURL
+        }
+        
         for (key, value) in textFields {
             body.append("--\(boundary)\r\n")
             body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
@@ -306,18 +342,36 @@ struct RunningEventUpdateView: View {
                         Text("赛事名称en")
                         TextField("赛事名称en", text: $viewModel.name_en)
                     }
-                    HStack {
-                        Text("描述hans")
-                        TextField("描述hans", text: $viewModel.description_hans)
-                    }
-                    HStack {
-                        Text("描述hant")
-                        TextField("描述hant", text: $viewModel.description_hant)
-                    }
-                    HStack {
-                        Text("描述en")
-                        TextField("描述en", text: $viewModel.description_en)
-                    }
+                    Text("描述hans")
+                    TextEditor(text: $viewModel.description_hans)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            }
+                        )
+                    Text("描述hant")
+                    TextEditor(text: $viewModel.description_hant)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            }
+                        )
+                    Text("描述en")
+                    TextEditor(text: $viewModel.description_en)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            }
+                        )
                 }
                 Section(header: Text("时间")) {
                     DatePicker("开始时间", selection: $viewModel.startDate, displayedComponents: [.date, .hourAndMinute])
@@ -463,3 +517,4 @@ struct RunningEventCardView: View {
 #Preview {
     RunningEventBackendView()
 }
+#endif

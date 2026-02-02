@@ -199,11 +199,12 @@ class RunningTeamJoinViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async {
                     self.teamCode = ""
+                    ToastManager.shared.show(toast: Toast(message: "competition.team.join.toast.success"))
                 }
             default: break
             }
