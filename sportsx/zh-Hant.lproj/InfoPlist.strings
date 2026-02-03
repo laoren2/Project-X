@@ -9,6 +9,6 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "用於在後台進行運動時持續記錄軌跡、距離等數據，並匹配對應的比賽賽道。僅當比賽在背景進行期間會使用後台定位。";
 "NSLocationWhenInUseUsageDescription" = "用於展示附近可參與的比賽與賽道資訊。";
 "NSPhotoLibraryUsageDescription" = "用於存取你的本地相簿圖片來更新你的個人信息，不會訪問未被你選擇的照片。";
-"NSHealthShareUsageDescription" = "用於讀取你的運動和心率等健康數據，以便產生更準確的運動記錄和表現分析。";
-"NSHealthUpdateUsageDescription" = "用於將你的運動記錄寫入健康 App，方便你在系統健康應用中統一查看運動歷史。";
+"NSHealthShareUsageDescription" = "用於存取您的健康 App 讀取心率、步數等運動數據，並透過 Apple Watch 同步至 iPhone 進行記錄和分析。";
+"NSHealthUpdateUsageDescription" = "用於將您在 Apple Watch 上記錄的運動資料寫入健康 App，方便你在系統健康應用程式中統一查看運動歷史。";
 "NSMotionUsageDescription" = "用於讀取設備運動感測器數據以記錄和分析你的運動表現。";

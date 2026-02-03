@@ -1,0 +1,10 @@
+/* 
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/4.
+  
+*/
+
+"NSHealthShareUsageDescription" = "It is used to read your exercise and heart rate data to generate more accurate exercise records and performance analysis.";
+"NSHealthUpdateUsageDescription" = "This is used to write your exercise records to the Health App, making it easy for you to view your exercise history in the system's Health app.";
