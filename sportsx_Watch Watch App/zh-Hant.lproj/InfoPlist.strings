@@ -1,0 +1,10 @@
+/* 
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/4.
+  
+*/
+
+"NSHealthShareUsageDescription" = "用於讀取你的運動和心率等健康數據，以便產生更準確的運動記錄和表現分析。";
+"NSHealthUpdateUsageDescription" = "用於將你的運動記錄寫入健康 App，方便你在系統健康應用中統一查看運動歷史。";
