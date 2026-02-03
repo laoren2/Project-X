@@ -151,10 +151,23 @@ struct BodyBindView: View {
             Spacer()
             if deviceManager.isBound(at: position),
                let device = deviceManager.getDevice(at: position) {
-                // 已绑定状态 => 显示设备名
-                (Text("user.setup.phone.status.has_bind") + Text(": ") + Text("\(device.deviceName)"))
-                    .foregroundColor(.white)
-                
+                HStack(spacing: 2) {
+                    // 已绑定状态 => 显示设备名
+                    Text("\(device.deviceName)")
+                    Image(systemName: "info.circle")
+                        .font(.subheadline)
+                        .exclusiveTouchTapGesture {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "\(device.deviceName)",
+                                message: "user.page.bind_device.popup.applewatch",
+                                bottomButtons: [
+                                    .confirm()
+                                ]
+                            )
+                        }
+                }
+                .foregroundStyle(Color.secondText)
+                Spacer()
                 Text("user.setup.action.phone.unbind")
                     .padding(.vertical, 8)
                     .padding(.horizontal, 15)

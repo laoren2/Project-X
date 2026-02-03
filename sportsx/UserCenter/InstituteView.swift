@@ -681,7 +681,7 @@ struct Stone1PurchaseView: View {
                     ]
             )
             if stone1Count < 1 {
-                Text("购买数量最少为1")
+                Text("shop.popup.buy.stone.error")
                     .font(.caption)
                     .foregroundStyle(Color.pink)
             }
@@ -694,9 +694,9 @@ struct Stone1PurchaseView: View {
                     .frame(height: 40)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .onChange(of: stone1Count) { newValue in
-                        if newValue > 999 {
-                            stone1Count = 1000
+                    .onValueChange(of: stone1Count) {
+                        if stone1Count > 999 {
+                            stone1Count = 999
                         }
                     }
                 HStack(spacing: 6) {
@@ -716,7 +716,7 @@ struct Stone1PurchaseView: View {
             }
             HStack(spacing: 30) {
                 Button {
-                    PopupWindowManager.shared.dismissPopup()
+                    _ = PopupWindowManager.shared.dismissPopup()
                     PopupWindowManager.shared.presentPopup(
                         title: "shop.action.buy",
                         bottomButtons: [
@@ -777,7 +777,7 @@ struct Stone23PurchaseView: View {
                     ]
             )
             if stoneCount < 1 {
-                Text("购买数量最少为1")
+                Text("shop.popup.buy.stone.error")
                     .font(.caption)
                     .foregroundStyle(Color.pink)
             }
@@ -790,9 +790,9 @@ struct Stone23PurchaseView: View {
                     .frame(height: 40)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .onChange(of: stoneCount) { newValue in
-                        if newValue > 999 {
-                            stoneCount = 1000
+                    .onValueChange(of: stoneCount) {
+                        if stoneCount > 999 {
+                            stoneCount = 999
                         }
                     }
                 HStack(spacing: 6) {
@@ -812,7 +812,7 @@ struct Stone23PurchaseView: View {
             }
             HStack(spacing: 30) {
                 Button {
-                    PopupWindowManager.shared.dismissPopup()
+                    _ = PopupWindowManager.shared.dismissPopup()
                     PopupWindowManager.shared.presentPopup(
                         title: "shop.action.buy",
                         bottomButtons: [
@@ -848,7 +848,7 @@ struct Stone23PurchaseView: View {
                 }
                 .disabled(stoneCount < 1)
                 Button {
-                    PopupWindowManager.shared.dismissPopup()
+                    _ = PopupWindowManager.shared.dismissPopup()
                     PopupWindowManager.shared.presentPopup(
                         title: "shop.action.buy",
                         bottomButtons: [

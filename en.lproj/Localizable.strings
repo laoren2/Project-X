@@ -176,6 +176,9 @@
 "shop.popup.buy.ccasset.coin" = "You can use {{MONEY1}} or {{MONEY2}} to purchase {{ASSET}}";
 "shop.popup.buy.ccasset.stone1" = "You can use {{MONEY}} to purchase {{ASSET}}";
 "shop.popup.buy.ccasset.confirm" = "Are you sure you want to spend {{MONEY}} * {{MONEYCOUNT}} to purchase {{ASSET}} * {{ASSETCOUNT}}?";
+"shop.popup.buy.coin.error.1" = "The number of gold coins purchased must be a multiple of 10.";
+"shop.popup.buy.coin.error.2" = "The minimum number of gold coins to purchase is 10.";
+"shop.popup.buy.stone.error" = "The minimum purchase quantity is 1.";
 
 "warehouse.action.goBuy" = "Go Buy";
 "warehouse.action.goUpgrade" = "Go Upgrade";
@@ -448,6 +451,7 @@
 "user.page.bind_device.body.rf" = "Right foot";
 "user.page.bind_device.body.wst" = "Chest";
 "user.page.bind_device.no_device" = "No devices can be connected at the moment";
+"user.page.bind_device.popup.applewatch" = "Once you bind your Apple Watch with the relevant cards, the Apple Watch app will automatically open to assist with recording when you start a game on your phone. If it doesn't open automatically, you can manually open the Apple Watch app and tap the sync button within 30 seconds to synchronize your status.";
 "user.page.features.institute" = "Institute";
 "user.page.features.email_box" = "Mailbox";
 "user.page.tab.career" = "Career";

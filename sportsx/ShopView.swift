@@ -299,12 +299,12 @@ struct CoinPurchaseView: View {
                     ]
             )
             if coinCount % 10 != 0 {
-                Text("购买金币数量必须为10的整数倍")
+                Text("shop.popup.buy.coin.error.1")
                     .font(.caption)
                     .foregroundStyle(Color.pink)
             }
             if coinCount < 10 {
-                Text("购买金币数量最少为10")
+                Text("shop.popup.buy.coin.error.2")
                     .font(.caption)
                     .foregroundStyle(Color.pink)
             }
@@ -317,9 +317,9 @@ struct CoinPurchaseView: View {
                     .frame(height: 40)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .onChange(of: coinCount) { newValue in
-                        if newValue > 99999 {
-                            coinCount = 100000
+                    .onValueChange(of: coinCount) {
+                        if coinCount > 99999 {
+                            coinCount = 99999
                         }
                     }
                 HStack(spacing: 6) {
@@ -339,7 +339,7 @@ struct CoinPurchaseView: View {
             }
             HStack(spacing: 30) {
                 Button {
-                    PopupWindowManager.shared.dismissPopup()
+                    _ = PopupWindowManager.shared.dismissPopup()
                     PopupWindowManager.shared.presentPopup(
                         title: "shop.action.buy",
                         bottomButtons: [
@@ -375,7 +375,7 @@ struct CoinPurchaseView: View {
                 }
                 .disabled(coinCount % 10 != 0 || coinCount < 10)
                 Button {
-                    PopupWindowManager.shared.dismissPopup()
+                    _ = PopupWindowManager.shared.dismissPopup()
                     PopupWindowManager.shared.presentPopup(
                         title: "shop.action.buy",
                         bottomButtons: [

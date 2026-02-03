@@ -12,7 +12,8 @@ import SwiftUI
 class UserViewModel: ObservableObject {
     let userManager = UserManager.shared
     
-    @Published var sport: SportName = .Default // 默认运动
+    @Published var sport: SportName = .Default              // 负责刷新 UI
+    @Published var activeSport: SportName = .Default        // 负责网络请求任务
     
     @Published var currentUser: User?
     @Published var avatarImage: UIImage?        // 用户头像
@@ -79,6 +80,7 @@ class UserViewModel: ObservableObject {
                         self.followerCount = unwrappedData.relation.follower
                         self.currentUser = User(from: unwrappedData.user)
                         self.sport = unwrappedData.user.default_sport
+                        self.activeSport = self.sport
                         self.downloadImages(avatar_url: unwrappedData.user.avatar_image_url, background_url: unwrappedData.user.background_image_url)
                     }
                 }
@@ -90,7 +92,7 @@ class UserViewModel: ObservableObject {
     func queryHistoryCareers() {
         seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "error.unknown")]
         selectedSeason = nil
-        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
+        guard var components = URLComponents(string: "/competition/\(activeSport.rawValue)/query_history_seasons") else { return }
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
@@ -120,7 +122,7 @@ class UserViewModel: ObservableObject {
         guard let season = selectedSeason else { return }
         
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + "query_user_career_data"
+            string: "/competition/\(activeSport.rawValue)/" + "query_user_career_data"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "season_id", value: season.seasonID)
@@ -147,11 +149,10 @@ class UserViewModel: ObservableObject {
     }
     
     func queryCareerRecords() {
-        competitionScoreRecords = []
         guard let season = selectedSeason else { return }
         
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + "query_user_career_records"
+            string: "/competition/\(activeSport.rawValue)/" + "query_user_career_records"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "season_id", value: season.seasonID)
@@ -164,10 +165,9 @@ class UserViewModel: ObservableObject {
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
+                    let records = unwrappedData.records.map { CareerRecord(from: $0) }
                     DispatchQueue.main.async {
-                        for record in unwrappedData.records {
-                            self.competitionScoreRecords.append(CareerRecord(from: record))
-                        }
+                        self.competitionScoreRecords = records
                     }
                 }
             default: break
@@ -176,9 +176,8 @@ class UserViewModel: ObservableObject {
     }
     
     func queryCurrentRecords() {
-        gameSummaryCards = []
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + "query_user_current_best_records"
+            string: "/competition/\(activeSport.rawValue)/" + "query_user_current_best_records"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "user_id", value: userID)
@@ -190,10 +189,9 @@ class UserViewModel: ObservableObject {
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
+                    let records = unwrappedData.records.map { GameSummaryCard(from: $0) }
                     DispatchQueue.main.async {
-                        for record in unwrappedData.records {
-                            self.gameSummaryCards.append(GameSummaryCard(from: record))
-                        }
+                        self.gameSummaryCards = records
                     }
                 }
             default: break
@@ -302,7 +300,8 @@ class UserViewModel: ObservableObject {
 class LocalUserViewModel: ObservableObject {
     let userManager = UserManager.shared
     
-    @Published var sport: SportName = .Default // 默认运动
+    @Published var sport: SportName = .Default              // 负责刷新 UI
+    @Published var activeSport: SportName = .Default        // 负责网络请求任务
     @Published var showSidebar = false  // 侧边栏是否显示
     
     // 赛季总积分
@@ -330,16 +329,17 @@ class LocalUserViewModel: ObservableObject {
     
     init() {
         self.sport = userManager.user.defaultSport
+        self.activeSport = userManager.user.defaultSport
         
         queryHistoryCareers()
         queryCurrentRecords()
-        DailyTaskManager.shared.queryDailyTask(sport: self.sport)
+        DailyTaskManager.shared.queryDailyTask(sport: self.activeSport)
     }
     
     func queryHistoryCareers() {
         seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "error.unknown")]
         selectedSeason = nil
-        guard let components = URLComponents(string: "/competition/\(sport.rawValue)/query_history_seasons") else { return }
+        guard let components = URLComponents(string: "/competition/\(activeSport.rawValue)/query_history_seasons") else { return }
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
@@ -369,7 +369,7 @@ class LocalUserViewModel: ObservableObject {
         guard let season = selectedSeason else { return }
         
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + "query_me_career_data"
+            string: "/competition/\(activeSport.rawValue)/" + "query_me_career_data"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "season_id", value: season.seasonID)
@@ -395,11 +395,10 @@ class LocalUserViewModel: ObservableObject {
     }
     
     func queryCareerRecords() {
-        competitionScoreRecords = []
         guard let season = selectedSeason else { return }
         
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + "query_me_career_records"
+            string: "/competition/\(activeSport.rawValue)/" + "query_me_career_records"
         ) else { return }
         components.queryItems = [
             URLQueryItem(name: "season_id", value: season.seasonID)
@@ -411,10 +410,9 @@ class LocalUserViewModel: ObservableObject {
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
+                    let records = unwrappedData.records.map { CareerRecord(from: $0) }
                     DispatchQueue.main.async {
-                        for record in unwrappedData.records {
-                            self.competitionScoreRecords.append(CareerRecord(from: record))
-                        }
+                        self.competitionScoreRecords = records
                     }
                 }
             default: break
@@ -423,9 +421,8 @@ class LocalUserViewModel: ObservableObject {
     }
     
     func queryCurrentRecords() {
-        gameSummaryCards = []
         guard var components = URLComponents(
-            string: "/competition/\(sport.rawValue)/" + "query_me_current_best_records"
+            string: "/competition/\(activeSport.rawValue)/" + "query_me_current_best_records"
         ) else { return }
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
@@ -434,10 +431,9 @@ class LocalUserViewModel: ObservableObject {
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
+                    let records = unwrappedData.records.map { GameSummaryCard(from: $0) }
                     DispatchQueue.main.async {
-                        for record in unwrappedData.records {
-                            self.gameSummaryCards.append(GameSummaryCard(from: record))
-                        }
+                        self.gameSummaryCards = records
                     }
                 }
             default: break
