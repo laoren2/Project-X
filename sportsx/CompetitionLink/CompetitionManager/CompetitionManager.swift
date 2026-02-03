@@ -103,7 +103,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published var bikePathData: [BikePathPoint] = []           // 轨迹数据
     @Published var runningPathData: [RunningPathPoint] = []     // 轨迹数据
     private var pathPointInEndSafetyRadius: [PathPoint] = []    // 在终点的安全范围内记录的点
-    @Published var realtimeStatisticData = StatisticData()      // 比赛时 realtimeView 展示的实时统计数据
+    @Published var realtimeStatisticData: StatisticData = .empty      // 比赛时 realtimeView 展示的实时统计数据
     
     private var timer: DispatchSourceTimer? //定时器
     private var collectionTimer: Timer?
@@ -438,42 +438,37 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     // 处理外设发送来的统计数据
     func handleStatsData(stats: [String: Any]) {
         statsQueue.async {
+            var newData = self.realtimeStatisticData
+            
             if let avgHeartRate = stats["avgHeartRate"] as? Double {
                 self.matchContext.avgHeartRate = avgHeartRate
             }
             if let totalEnergy = stats["totalEnergy"] as? Double {
                 self.matchContext.totalEnergy = totalEnergy
-                DispatchQueue.main.async {
-                    self.realtimeStatisticData.totalEnergy = Int(totalEnergy)
-                }
+                newData.totalEnergy = Int(totalEnergy)
             }
             if let avgPower = stats["avgPower"] as? Double {
                 self.matchContext.avgPower = avgPower
             }
             if let latestHeartRate = stats["latestHeartRate"] as? Double {
                 self.matchContext.latestHeartRate = latestHeartRate
-                DispatchQueue.main.async {
-                    self.realtimeStatisticData.heartRate = Int(latestHeartRate)
-                }
+                newData.heartRate = Int(latestHeartRate)
             }
             if let latestPower = stats["latestPower"] as? Double {
                 self.matchContext.latestPower = latestPower
-                DispatchQueue.main.async {
-                    self.realtimeStatisticData.power = Int(latestPower)
-                }
+                newData.power = Int(latestPower)
             }
             if let stepCadence = stats["stepCadence"] as? Double {
                 //print("receive stepCadence: \(stepCadence)")
                 self.matchContext.stepCadence = stepCadence
-                DispatchQueue.main.async {
-                    self.realtimeStatisticData.stepCadence = Int(stepCadence)
-                }
+                newData.stepCadence = Int(stepCadence)
             }
             if let cycleCadence = stats["cycleCadence"] as? Double {
                 self.matchContext.pedalCadence = cycleCadence
-                DispatchQueue.main.async {
-                    self.realtimeStatisticData.pedalCadence = Int(cycleCadence)
-                }
+                newData.pedalCadence = Int(cycleCadence)
+            }
+            DispatchQueue.main.async {
+                self.realtimeStatisticData = newData   // 一次性发布
             }
         }
     }
@@ -1064,7 +1059,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     func startRecordingSession() {
         // 清理定时器任务可能残留的数据
-        realtimeStatisticData.reset()
+        realtimeStatisticData = .empty
         basePathData = []
         bikePathData = []
         runningPathData = []
@@ -1379,7 +1374,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         activeCardEffects.removeAll()
         eventBus.reset()
         matchContext.reset()
-        realtimeStatisticData.reset()
+        realtimeStatisticData = .empty
         sensorRequest = 0
         startCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
         startRadius = 0.0
@@ -1808,34 +1803,16 @@ struct MatchFinishResponse: Codable {
 }
 
 // todo: 拆分不同运动的统计数据
-class StatisticData {
-    var distance: Double        // 距离/m
-    var avgSpeed: Double        // 平均速度km/h
-    var heartRate: Int?         // 心率
-    var totalEnergy: Int?       // 能耗
-    var pedalCadence: Int?      // 踏频
-    var stepCadence: Int?       // 步频
-    var power: Int?             // 功率
+struct StatisticData {
+    var distance: Double = 0        // 距离/m
+    var avgSpeed: Double = 0        // 平均速度km/h
+    var heartRate: Int? = nil         // 心率
+    var totalEnergy: Int? = nil        // 能耗
+    var pedalCadence: Int? = nil       // 踏频
+    var stepCadence: Int? = nil        // 步频
+    var power: Int? = nil              // 功率
     
-    init() {
-        self.distance = 0
-        self.avgSpeed = 0
-        self.heartRate = nil
-        self.totalEnergy = nil
-        self.pedalCadence = nil
-        self.stepCadence = nil
-        self.power = nil
-    }
-    
-    func reset() {
-        distance = 0
-        avgSpeed = 0
-        heartRate = nil
-        totalEnergy = nil
-        pedalCadence = nil
-        stepCadence = nil
-        power = nil
-    }
+    static let empty = StatisticData()
 }
 
 class IMUFilter {

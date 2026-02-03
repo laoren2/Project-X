@@ -343,6 +343,7 @@ struct CompetitionRealtimeView: View {
                                     } else {
                                         Text("competition.realtime.card.no_cards")
                                             .foregroundStyle(Color.secondText)
+                                            .padding(.top, 50)
                                     }
                                 }
                                 .padding(.bottom, 50)

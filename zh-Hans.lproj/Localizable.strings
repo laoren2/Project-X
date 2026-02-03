@@ -176,6 +176,9 @@
 "shop.popup.buy.ccasset.coin" = "你可以使用 {{MONEY1}} 或 {{MONEY2}} 来购买 {{ASSET}}";
 "shop.popup.buy.ccasset.stone1" = "你可以用 {{MONEY}} 来购买 {{ASSET}}";
 "shop.popup.buy.ccasset.confirm" = "你确定花费 {{MONEY}} * {{MONEYCOUNT}} 购买 {{ASSET}} * {{ASSETCOUNT}} 吗？";
+"shop.popup.buy.coin.error.1" = "购买金币数量必须为10的整数倍";
+"shop.popup.buy.coin.error.2" = "购买金币数量最少为10";
+"shop.popup.buy.stone.error" = "购买数量最少为1";
 
 "warehouse.action.goBuy" = "去购买";
 "warehouse.action.goUpgrade" = "去升级";
@@ -448,6 +451,7 @@
 "user.page.bind_device.body.rf" = "右脚";
 "user.page.bind_device.body.wst" = "胸前";
 "user.page.bind_device.no_device" = "暂无可连接的设备";
+"user.page.bind_device.popup.applewatch" = "当绑定AppleWatch并装备相关卡牌后，在手机端开始比赛会自动打开watch端app进行辅助记录，如果没有自动打开可以手动打开watch端app，并在30s内点击同步按钮进行状态同步。";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "邮箱";
 "user.page.tab.career" = "生涯";
@@ -496,7 +500,7 @@
 "user.setup.email.bind" = "绑定邮箱";
 "user.setup.action.phone.bind" = "绑定";
 "user.setup.action.phone.verify_and_bind" = "验证并绑定";
-"user.setup.action.phone.unbind" = "解除绑定";
+"user.setup.action.phone.unbind" = "解绑";
 "user.setup.account_delete" = "注销账号";
 "user.setup.toast.account_delete.content" = "注销后账号所有信息将被销毁，操作无法撤回，确定要注销吗？";
 "user.setup.action.account_delete" = "注销";

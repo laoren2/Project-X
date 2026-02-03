@@ -176,6 +176,9 @@
 "shop.popup.buy.ccasset.coin" = "你可以用 {{MONEY1}} 或 {{MONEY2}} 來購買 {{ASSET}}";
 "shop.popup.buy.ccasset.stone1" = "你可以用 {{MONEY}} 來購買 {{ASSET}}";
 "shop.popup.buy.ccasset.confirm" = "你確定花費 {{MONEY}} * {{MONEYCOUNT}} 購買 {{ASSET}} * {{ASSETCOUNT}} 嗎？";
+"shop.popup.buy.coin.error.1" = "購買金幣數量必須為10的整數倍";
+"shop.popup.buy.coin.error.2" = "購買金幣數量最少為10";
+"shop.popup.buy.stone.error" = "購買數量最少為1";
 
 "warehouse.action.goBuy" = "去購買";
 "warehouse.action.goUpgrade" = "去升級";
@@ -448,6 +451,7 @@
 "user.page.bind_device.body.rf" = "右腳";
 "user.page.bind_device.body.wst" = "胸前";
 "user.page.bind_device.no_device" = "暫無可連接的設備";
+"user.page.bind_device.popup.applewatch" = "當綁定AppleWatch並裝備相關卡牌後，在手機端開始比賽會自動開啟watch端app進行輔助記錄，如果沒有自動開啟可以手動開啟watch端app，並在30s內點選同步按鈕進行狀態同步。";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "郵箱";
 "user.page.tab.career" = "生涯";
@@ -496,7 +500,7 @@
 "user.setup.email.bind" = "綁定郵箱";
 "user.setup.action.phone.bind" = "綁定";
 "user.setup.action.phone.verify_and_bind" = "驗證並綁定";
-"user.setup.action.phone.unbind" = "解除綁定";
+"user.setup.action.phone.unbind" = "解綁";
 "user.setup.account_delete" = "註銷帳號";
 "user.setup.toast.account_delete.content" = "註銷後帳號所有資料將被銷毀，操作無法撤回，確定要註銷嗎？";
 "user.setup.action.account_delete" = "註銷";

@@ -416,7 +416,7 @@ struct PhoneBindView: View {
                             }
                         }) {
                             Text("login.sms.action.send_again")
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color.white)
                                 .padding()
                                 .background(countdown == 0 ? Color.green : Color.gray)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -706,9 +706,13 @@ struct EmailBindView: View {
                         .foregroundStyle(Color.secondText)
                     HStack {
                         TextField("login.sms.code.placeholder", text: $verificationCode)
+                            .padding()
+                            .foregroundStyle(Color.black)
                             .textContentType(.oneTimeCode)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .scrollContentBackground(.hidden)
                             .keyboardType(.numberPad)
+                            .background(Color.white)
+                            .cornerRadius(10)
                         
                         Button(action: {
                             if countdown == 0 {
@@ -716,13 +720,11 @@ struct EmailBindView: View {
                             }
                         }) {
                             Text("login.sms.action.send_again")
-                                .foregroundStyle(.white)
-                                .font(.system(size: 15))
+                                .padding()
+                                .foregroundStyle(Color.white)
+                                .background(countdown == 0 ? Color.green : Color.gray)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(countdown == 0 ? Color.green : Color.gray)
-                        .clipShape(RoundedRectangle(cornerRadius: 5))
                         .disabled(countdown != 0)
                     }
                 }

@@ -74,6 +74,7 @@ struct BikeRecordDetailView: View {
     }
     
 #if DEBUG
+    var showEstimatePedalCount: Bool = true
     @State var isPedalDetail: Bool = false
     var overallPedalCountRange: (min: Double, max: Double) {
         let pedals = viewModel.samplePath.compactMap { $0.pedal_count_avg }
@@ -452,67 +453,69 @@ struct BikeRecordDetailView: View {
                                         }
                                     }
 #if DEBUG
-                                    if isPedalDetail {
-                                        VStack {
-                                            ZStack(alignment: .center) {
+                                    if showEstimatePedalCount {
+                                        if isPedalDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("测试踏频")
+                                                        Spacer()
+                                                        Text(String(format: "%.0f - %.0f 次/分", overallPedalCountRange.min, overallPedalCountRange.max))
+                                                    }
+                                                    .foregroundStyle(Color.pink)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isPedalDetail.toggle()
+                                                    }
+                                                    Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].pedal_count_avg))
+                                                        .padding(.horizontal)
+                                                        .padding(.vertical, 10)
+                                                        .font(.caption2)
+                                                        .foregroundColor(.white)
+                                                        .background(Color.pink.opacity(0.8))
+                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                }
+                                                ZStack {
+                                                    HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            let overall = (overallPedalCountRange.max - overallPedalCountRange.min)
+                                                            let ratio = overall > 0 ? (viewModel.samplePath[i].pedal_count_avg - overallPedalCountRange.min) / overall : 1/2
+                                                            let height = max(formHeight * ratio, 0) + 4
+                                                            
+                                                            RoundedRectangle(cornerRadius: 1)
+                                                                .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                                .frame(width: 2, height: height)
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
                                                 HStack {
-                                                    Text("测试踏频")
+                                                    Text("00:00")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 次/分", overallPedalCountRange.min, overallPedalCountRange.max))
-                                                }
-                                                .foregroundStyle(Color.pink)
-                                                .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    isPedalDetail.toggle()
-                                                }
-                                                Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].pedal_count_avg))
-                                                    .padding(.horizontal)
-                                                    .padding(.vertical, 10)
-                                                    .font(.caption2)
-                                                    .foregroundColor(.white)
-                                                    .background(Color.pink.opacity(0.8))
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                            }
-                                            ZStack {
-                                                HStack(alignment: .bottom, spacing: spacingWidth) {
-                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                        let overall = (overallPedalCountRange.max - overallPedalCountRange.min)
-                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].pedal_count_avg - overallPedalCountRange.min) / overall : 1/2
-                                                        let height = max(formHeight * ratio, 0) + 4
-                                                        
-                                                        RoundedRectangle(cornerRadius: 1)
-                                                            .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
-                                                            .frame(width: 2, height: height)
+                                                    if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                                     }
                                                 }
-                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
-                                            }
-                                            .frame(height: formHeight)
-                                            Rectangle()
+                                                .font(.caption)
                                                 .foregroundStyle(Color.gray)
-                                                .frame(height: 1)
-                                            HStack {
-                                                Text("00:00")
-                                                Spacer()
-                                                if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
-                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                }
                                             }
-                                            .font(.caption)
-                                            .foregroundStyle(Color.gray)
-                                        }
-                                    } else {
-                                        HStack {
-                                            Text("测试踏频")
-                                            Spacer()
-                                            Text(String(format: "平均 %.0f 次/分", pedalCountAvg))
-                                        }
-                                        .padding()
-                                        .foregroundStyle(Color.white)
-                                        .background(Color.pink.opacity(0.8))
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        .onTapGesture {
-                                            isPedalDetail.toggle()
+                                        } else {
+                                            HStack {
+                                                Text("测试踏频")
+                                                Spacer()
+                                                Text(String(format: "平均 %.0f 次/分", pedalCountAvg))
+                                            }
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.pink.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isPedalDetail.toggle()
+                                            }
                                         }
                                     }
 #endif
@@ -774,6 +777,7 @@ struct RunningRecordDetailView: View {
     }
     
 #if DEBUG
+    var showEstimateStepCount: Bool = true
     @State var isStepCountDetail: Bool = false
     var overallStepCountRange: (min: Double, max: Double) {
         let steps = viewModel.samplePath.compactMap { $0.estimate_step_count_avg }
@@ -1319,67 +1323,69 @@ struct RunningRecordDetailView: View {
                                         }
                                     }
 #if DEBUG
-                                    if isStepCountDetail {
-                                        VStack {
-                                            ZStack(alignment: .center) {
+                                    if showEstimateStepCount {
+                                        if isStepCountDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("测试步频")
+                                                        Spacer()
+                                                        Text(String(format: "%.0f - %.0f 步/分", overallStepCountRange.min, overallStepCountRange.max))
+                                                    }
+                                                    .foregroundStyle(Color.pink)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isStepCountDetail.toggle()
+                                                    }
+                                                    Text(String(format: "%.0f 步/分", viewModel.samplePath[progressIndex].estimate_step_count_avg))
+                                                        .padding(.horizontal)
+                                                        .padding(.vertical, 10)
+                                                        .font(.caption2)
+                                                        .foregroundColor(.white)
+                                                        .background(Color.pink.opacity(0.8))
+                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                }
+                                                ZStack {
+                                                    HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            let overall = (overallStepCountRange.max - overallStepCountRange.min)
+                                                            let ratio = overall > 0 ? (viewModel.samplePath[i].estimate_step_count_avg - overallStepCountRange.min) / overall : 1/2
+                                                            let height = max(formHeight * ratio, 0) + 4
+                                                            
+                                                            RoundedRectangle(cornerRadius: 1)
+                                                                .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                                .frame(width: 2, height: height)
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
                                                 HStack {
-                                                    Text("测试步频")
+                                                    Text("00:00")
                                                     Spacer()
-                                                    Text(String(format: "%.0f - %.0f 步/分", overallStepCountRange.min, overallStepCountRange.max))
-                                                }
-                                                .foregroundStyle(Color.pink)
-                                                .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    isStepCountDetail.toggle()
-                                                }
-                                                Text(String(format: "%.0f 步/分", viewModel.samplePath[progressIndex].estimate_step_count_avg))
-                                                    .padding(.horizontal)
-                                                    .padding(.vertical, 10)
-                                                    .font(.caption2)
-                                                    .foregroundColor(.white)
-                                                    .background(Color.pink.opacity(0.8))
-                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                            }
-                                            ZStack {
-                                                HStack(alignment: .bottom, spacing: spacingWidth) {
-                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                        let overall = (overallStepCountRange.max - overallStepCountRange.min)
-                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].estimate_step_count_avg - overallStepCountRange.min) / overall : 1/2
-                                                        let height = max(formHeight * ratio, 0) + 4
-                                                        
-                                                        RoundedRectangle(cornerRadius: 1)
-                                                            .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
-                                                            .frame(width: 2, height: height)
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                                     }
                                                 }
-                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
-                                            }
-                                            .frame(height: formHeight)
-                                            Rectangle()
+                                                .font(.caption)
                                                 .foregroundStyle(Color.gray)
-                                                .frame(height: 1)
-                                            HStack {
-                                                Text("00:00")
-                                                Spacer()
-                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                }
                                             }
-                                            .font(.caption)
-                                            .foregroundStyle(Color.gray)
-                                        }
-                                    } else {
-                                        HStack {
-                                            Text("测试步频")
-                                            Spacer()
-                                            Text(String(format: "平均 %.0f 步/分", stepCountAvg))
-                                        }
-                                        .padding()
-                                        .foregroundStyle(Color.white)
-                                        .background(Color.pink.opacity(0.8))
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        .onTapGesture {
-                                            isStepCountDetail.toggle()
+                                        } else {
+                                            HStack {
+                                                Text("测试步频")
+                                                Spacer()
+                                                Text(String(format: "平均 %.0f 步/分", stepCountAvg))
+                                            }
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.pink.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isStepCountDetail.toggle()
+                                            }
                                         }
                                     }
 #endif

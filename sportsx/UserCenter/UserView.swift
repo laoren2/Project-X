@@ -91,7 +91,7 @@ struct UserView: View {
                 .background(Color.defaultBackground)
             }
         }
-        .onValueChange(of: viewModel.sport) {
+        .onValueChange(of: viewModel.activeSport) {
             viewModel.queryHistoryCareers()
             viewModel.queryCurrentRecords()
         }
@@ -826,10 +826,10 @@ struct LocalUserView: View {
                 .frame(width: viewModel.sidebarWidth)
                 .offset(x: (viewModel.showSidebar ? 0 : -viewModel.sidebarWidth))
         }
-        .onValueChange(of: viewModel.sport) {
+        .onValueChange(of: viewModel.activeSport) {
             viewModel.queryHistoryCareers()
             viewModel.queryCurrentRecords()
-            DailyTaskManager.shared.queryDailyTask(sport: viewModel.sport)
+            DailyTaskManager.shared.queryDailyTask(sport: viewModel.activeSport)
         }
         .onValueChange(of: viewModel.selectedSeason) {
             viewModel.queryCareerData()
@@ -841,12 +841,13 @@ struct LocalUserView: View {
                     await userManager.fetchMeInfo()
                     await MainActor.run {
                         userManager.queryMailBox()
-                        if viewModel.sport == userManager.user.defaultSport {
+                        if viewModel.activeSport == userManager.user.defaultSport {
                             viewModel.queryHistoryCareers()
                             viewModel.queryCurrentRecords()
-                            DailyTaskManager.shared.queryDailyTask(sport: viewModel.sport)
+                            DailyTaskManager.shared.queryDailyTask(sport: viewModel.activeSport)
                         } else {
                             viewModel.sport = userManager.user.defaultSport
+                            viewModel.activeSport = viewModel.sport
                         }
                     }
                 }
@@ -1189,7 +1190,7 @@ struct LocalMainUserView: View {
                                                 .foregroundStyle(Color.orange.opacity(0.8))
                                                 .frame(width: 40, height: 40)
                                                 .overlay(
-                                                    Image(viewModel.sport.iconName)
+                                                    Image(viewModel.activeSport.iconName)
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(height: 25)
@@ -1218,7 +1219,7 @@ struct LocalMainUserView: View {
                                             }
                                             .onTapGesture {
                                                 if (!dailyTaskManager.reward1Loading) && task.reward_stage1_status == .available {
-                                                    dailyTaskManager.claimReward(stage: 1, sport: viewModel.sport, rewardImage: task.reward_stage1_type.iconName, rewardCount: task.reward_stage1)
+                                                    dailyTaskManager.claimReward(stage: 1, sport: viewModel.activeSport, rewardImage: task.reward_stage1_type.iconName, rewardCount: task.reward_stage1)
                                                 }
                                             }
                                             Spacer()
@@ -1245,7 +1246,7 @@ struct LocalMainUserView: View {
                                             }
                                             .onTapGesture {
                                                 if (!dailyTaskManager.reward2Loading) && task.reward_stage2_status == .available {
-                                                    dailyTaskManager.claimReward(stage: 2, sport: viewModel.sport, rewardImage: task.reward_stage2_type.iconName, rewardCount: task.reward_stage2)
+                                                    dailyTaskManager.claimReward(stage: 2, sport: viewModel.activeSport, rewardImage: task.reward_stage2_type.iconName, rewardCount: task.reward_stage2)
                                                 }
                                             }
                                             Spacer()
@@ -1270,7 +1271,7 @@ struct LocalMainUserView: View {
                                             }
                                             .onTapGesture {
                                                 if (!dailyTaskManager.reward3Loading) && task.reward_stage3_status == .available {
-                                                    dailyTaskManager.claimReward(stage: 3, sport: viewModel.sport, rewardCount: 1, rewardURL: task.reward_stage3_url)
+                                                    dailyTaskManager.claimReward(stage: 3, sport: viewModel.activeSport, rewardCount: 1, rewardURL: task.reward_stage3_url)
                                                 }
                                             }
                                         }
@@ -1285,7 +1286,7 @@ struct LocalMainUserView: View {
                                     .font(.subheadline)
                                     .offset(y: 40)
                                     .exclusiveTouchTapGesture {
-                                        appState.sport = viewModel.sport
+                                        appState.sport = viewModel.activeSport
                                         appState.navigationManager.selectedTab = .sportCenter
                                     }
                                 }
@@ -1507,8 +1508,6 @@ struct UserSportSelectedBar: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
     @State var isEditMode: Bool = false
-    @State var selectedSport: SportName = .Default
-    
     let isUserSelf: Bool
     
     var body: some View {
@@ -1562,17 +1561,19 @@ struct UserSportSelectedBar: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background((sport == selectedSport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
-                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.thirdText)
+                        .background((sport == viewModel.sport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                        .foregroundStyle((sport == viewModel.sport && (!isEditMode)) ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
                             if isEditMode {
                                 updateUserDefaultSport(with: sport)
                             } else {
-                                selectedSport = sport
+                                viewModel.sport = sport
                                 withAnimation(.easeIn(duration: 0.25)) {
                                     viewModel.showSidebar = false
-                                    viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                    viewModel.activeSport = sport
                                 }
                             }
                         }
@@ -1586,9 +1587,6 @@ struct UserSportSelectedBar: View {
             if !viewModel.showSidebar {
                 isEditMode = false
             }
-        }
-        .onFirstAppear {
-            selectedSport = viewModel.sport
         }
     }
     
@@ -1622,8 +1620,6 @@ struct LocalUserSportSelectedBar: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: LocalUserViewModel
     @State var isEditMode: Bool = false
-    
-    @State var selectedSport: SportName = .Default      // 用来让 btn 的点击效果反应更快速
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -1674,17 +1670,19 @@ struct LocalUserSportSelectedBar: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background((sport == selectedSport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
-                        .foregroundStyle((sport == selectedSport && (!isEditMode)) ? Color.white : Color.thirdText)
+                        .background((sport == viewModel.sport && (!isEditMode)) ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                        .foregroundStyle((sport == viewModel.sport && (!isEditMode)) ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
                             if isEditMode {
                                 updateUserDefaultSport(with: sport)
                             } else {
-                                selectedSport = sport
+                                viewModel.sport = sport
                                 withAnimation(.easeIn(duration: 0.25)) {
                                     viewModel.showSidebar = false
-                                    viewModel.sport = sport // 放在withAnimation中会导致拖影效果，但是拿出去会偶现主页opacity蒙层不更新问题
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                    viewModel.activeSport = sport
                                 }
                             }
                         }
@@ -1698,9 +1696,6 @@ struct LocalUserSportSelectedBar: View {
             if !viewModel.showSidebar {
                 isEditMode = false
             }
-        }
-        .onFirstAppear {
-            selectedSport = viewModel.sport
         }
     }
     
