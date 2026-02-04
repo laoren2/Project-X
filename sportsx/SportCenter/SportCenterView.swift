@@ -254,9 +254,10 @@ struct InfoItemView: View {
                     .frame(height: 20)
             }
             HStack(spacing: 2) {
-                (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)))
                 if let unit = unit {
-                    Text(LocalizedStringKey(unit))
+                    (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)) + Text(LocalizedStringKey(unit)))
+                } else {
+                    (Text(LocalizedStringKey(text)) + Text(": ") + Text(LocalizedStringKey(param)))
                 }
             }
             .font(.subheadline)

@@ -58,7 +58,7 @@
 "tab.incompleted" = "未完成";
 
 "action.search" = "搜索";
-"action.feedback" = "反饋";
+"action.feedback" = "回饋";
 "action.change" = "修改";
 "action.cancel" = "取消";
 "action.save" = "保存";
@@ -483,7 +483,7 @@
 "user.setup.toast.clean_cache.success" = "清理成功";
 "user.setup.toast.clean_cache.failed" = "清理失敗，請重識";
 "user.setup.aboutus" = "關於我們";
-"user.setup.feedback" = "我要反饋";
+"user.setup.feedback" = "我想要回饋";
 "user.setup.rate" = "我要評價";
 "user.setup.user_agreement" = "用戶協議";
 "user.setup.privacy" = "隱私政策";
@@ -607,10 +607,10 @@
 "iap.subscription.toast.help.query.success.title" = "查詢成功";
 "iap.subscription.toast.help.query.success.content" = "訂閱權益生效帳號：";
 "iap.subscription.toast.help.query.failed" = "未查詢到相關訂閱信息";
-"iap.subscription.action.help" = "幫助與反饋";
+"iap.subscription.action.help" = "幫助與回饋";
 "iap.subscription.action.vip_autorenewal_agreement" = "會員自動續費協議";
 "iap.subscription.toast.vip_autorenewal_agreement" = "請同意會員自動續費協議";
-"iap.subscription.help_prompts" = "    在iOS系統中進行訂閱時，如果出現付款後權益未到賬的情況，可能是您登陸App Store的appleID下有多個Sporreer帳號，可先切換各帳號查看是否購買在其他帳號，或點擊下方按鈕查詢當前appleID關聯的已訂閱帳號，也可以稍等片刻嘗試手動刷新訂閱狀態，如果仍有問題，可提交反饋並附上Apple支付賬單截圖，我們將盡快解決並給予回复，感謝您的支持！";
+"iap.subscription.help_prompts" = "    在iOS系統中進行訂閱時，如果出現付款後權益未到賬的情況，可能是您登陸App Store的appleID下有多個Sporreer帳號，可先切換各帳號查看是否購買在其他帳號，或點擊下方按鈕查詢當前appleID關聯的已訂閱帳號，也可以稍等片刻嘗試手動刷新訂閱狀態，如果仍有問題，可提交回饋並附上Apple支付賬單截圖，我們將盡快解決並給予回复，感謝您的支持！";
 
 "login.title" = "歡迎來到 Sporreer!";
 "login.subtitle" = "首次驗證登入後將自動註冊帳號";

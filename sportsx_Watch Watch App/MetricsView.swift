@@ -43,6 +43,9 @@ struct MetricsView: View {
                 .foregroundColor(Color.yellow)
                 Spacer()
                 Text("competition.realtime.heartrate")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .allowsTightening(true)
                 (Text(
                     workoutManager.heartRate
                         .formatted(

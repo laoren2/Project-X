@@ -11,18 +11,20 @@ struct ControlView: View {
     @EnvironmentObject var workoutManager: WatchDataManager
     
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             Text("competition.applewatch.control.info")
+                .minimumScaleFactor(0.6)
+                .allowsTightening(true)
                 .font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-            //Spacer()
+                //.fixedSize(horizontal: false, vertical: true)
+            Spacer()
             Button(action:{
                 workoutManager.stopCollecting()
             }) {
                 Text("competition.realtime.action.finish.2")
                     .foregroundStyle(Color.red)
             }
-            .padding(.top, 20)
+            //.padding(.top, 20)
         }
         .padding()
         //.border(.red)

@@ -53,7 +53,7 @@ struct SummaryView: View {
                     .accentColor(Color.yellow)
                     SummaryMetricView(
                         title: "competition.applewatch.total_distance",
-                        value: String(format: "%.5f", data.distance / 1000.0),
+                        value: String(format: "%.2f", data.distance / 1000.0),
                         unit: "distance.km"
                     )
                     .accentColor(Color.green)

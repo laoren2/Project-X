@@ -469,7 +469,8 @@ class SpeedEffect_B_00000002: MagicCardEffect {
     let level: Int
     let params: JSONValue
     
-    let speed: Double
+    let speed_from: Double
+    let speed_to: Double
     let bonus_ratio: Double
     let bonus_ratio_member: Double
     let speed_skill1: Double
@@ -481,7 +482,9 @@ class SpeedEffect_B_00000002: MagicCardEffect {
         self.level = level
         self.params = params
         
-        self.speed = params["static_values", "speed"]?.doubleValue ?? 0
+        self.speed_from = params["static_values", "speed_from"]?.doubleValue ?? 0
+        self.speed_to = params["static_values", "speed_to"]?.doubleValue ?? 0
+        
         self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
         self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
         self.speed_skill1 = params["static_values", "speed_skill1"]?.doubleValue ?? 0
@@ -494,14 +497,14 @@ class SpeedEffect_B_00000002: MagicCardEffect {
             CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
-            if context.speed >= self.speed {
+            if context.speed >= self.speed_from && context.speed <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
         }
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
-            if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 {
+            if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 && speedAvg_kmh <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
@@ -536,7 +539,9 @@ class SpeedEffect_A_00000002: MagicCardEffect {
     let level: Int
     let params: JSONValue
     
-    let speed: Double
+    let speed_from: Double
+    let speed_to: Double
+    
     let bonus_ratio: Double
     let bonus_ratio_member: Double
     let speed_skill1: Double
@@ -551,7 +556,9 @@ class SpeedEffect_A_00000002: MagicCardEffect {
         self.level = level
         self.params = params
         
-        self.speed = params["static_values", "speed"]?.doubleValue ?? 0
+        self.speed_from = params["static_values", "speed_from"]?.doubleValue ?? 0
+        self.speed_to = params["static_values", "speed_to"]?.doubleValue ?? 0
+        
         self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
         self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
         self.speed_skill1 = params["static_values", "speed_skill1"]?.doubleValue ?? 0
@@ -567,18 +574,18 @@ class SpeedEffect_A_00000002: MagicCardEffect {
             CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
-            if context.speed >= self.speed {
+            if context.speed >= self.speed_from && context.speed <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
         }
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
-            if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 {
+            if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 && speedAvg_kmh <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
-            if self.level >= 6 && speedAvg_kmh >= self.speed_skill2 {
+            if self.level >= 6 && speedAvg_kmh >= self.speed_skill2 && speedAvg_kmh <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill2)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill2)
             }
@@ -591,7 +598,8 @@ class SpeedEffect_B_00000001: MagicCardEffect {
     let level: Int
     let params: JSONValue
     
-    let speed: Double
+    let speed_from: Double
+    let speed_to: Double
     let bonus_ratio: Double
     let bonus_ratio_member: Double
     let speed_skill1: Double
@@ -603,9 +611,13 @@ class SpeedEffect_B_00000001: MagicCardEffect {
         self.level = level
         self.params = params
         
-        let speed_min = params["static_values", "speed_min"]?.doubleValue ?? 0
-        let speed_second = params["static_values", "speed_second"]?.doubleValue ?? 0
-        self.speed = speed_min + speed_second / 60
+        let speed_from_min = params["static_values", "speed_from_min"]?.doubleValue ?? 0
+        let speed_from_second = params["static_values", "speed_from_second"]?.doubleValue ?? 0
+        self.speed_from = speed_from_min + speed_from_second / 60
+        let speed_to_min = params["static_values", "speed_to_min"]?.doubleValue ?? 0
+        let speed_to_second = params["static_values", "speed_to_second"]?.doubleValue ?? 0
+        self.speed_to = speed_to_min + speed_to_second / 60
+        
         self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
         self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
         let speed_min_skill1 = params["static_values", "speed_min_skill1"]?.doubleValue ?? 0
@@ -621,7 +633,7 @@ class SpeedEffect_B_00000001: MagicCardEffect {
         }
         eventBus.on(.matchCycleUpdate) { context in
             let speed_minkm = 60.0 / context.speed
-            if speed_minkm <= self.speed {
+            if speed_minkm >= self.speed_from && speed_minkm <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
@@ -629,7 +641,7 @@ class SpeedEffect_B_00000001: MagicCardEffect {
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             let speedAvg_minkm = 60.0 / speedAvg_kmh
-            if self.level >= 3 && speedAvg_minkm <= self.speed_skill1 {
+            if self.level >= 3 && speedAvg_minkm >= self.speed_from && speedAvg_minkm <= self.speed_skill1 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
@@ -642,7 +654,9 @@ class SpeedEffect_A_00000001: MagicCardEffect {
     let level: Int
     let params: JSONValue
     
-    let speed: Double
+    let speed_from: Double
+    let speed_to: Double
+    
     let bonus_ratio: Double
     let bonus_ratio_member: Double
     let speed_skill1: Double
@@ -657,9 +671,13 @@ class SpeedEffect_A_00000001: MagicCardEffect {
         self.level = level
         self.params = params
         
-        let speed_min = params["static_values", "speed_min"]?.doubleValue ?? 0
-        let speed_second = params["static_values", "speed_second"]?.doubleValue ?? 0
-        self.speed = speed_min + speed_second / 60
+        let speed_from_min = params["static_values", "speed_from_min"]?.doubleValue ?? 0
+        let speed_from_second = params["static_values", "speed_from_second"]?.doubleValue ?? 0
+        self.speed_from = speed_from_min + speed_from_second / 60
+        let speed_to_min = params["static_values", "speed_to_min"]?.doubleValue ?? 0
+        let speed_to_second = params["static_values", "speed_to_second"]?.doubleValue ?? 0
+        self.speed_to = speed_to_min + speed_to_second / 60
+        
         self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
         self.bonus_ratio_member = params["compute_values", "bonus_ratio_member"]?.doubleValue ?? 0
         
@@ -682,7 +700,7 @@ class SpeedEffect_A_00000001: MagicCardEffect {
         }
         eventBus.on(.matchCycleUpdate) { context in
             let speed_minkm = 60.0 / context.speed
-            if speed_minkm <= self.speed {
+            if speed_minkm >= self.speed_from && speed_minkm <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
@@ -690,11 +708,11 @@ class SpeedEffect_A_00000001: MagicCardEffect {
         eventBus.on(.matchEnd) { context in
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             let speedAvg_minkm = 60.0 / speedAvg_kmh
-            if self.level >= 3 && speedAvg_minkm <= self.speed_skill1 {
+            if self.level >= 3 && speedAvg_minkm >= self.speed_from && speedAvg_minkm <= self.speed_skill1 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill1)
             }
-            if self.level >= 6 && speedAvg_minkm <= self.speed_skill2 {
+            if self.level >= 6 && speedAvg_minkm >= self.speed_from && speedAvg_minkm <= self.speed_skill2 {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill2)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_member_skill2)
             }
