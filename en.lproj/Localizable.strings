@@ -106,7 +106,7 @@
 "heartrate.unit" = "bpm";
 "energy.unit" = "kcal";
 "power.unit" = "W";
-"stepcadence.unit" = "spm";
+"stepCadence.unit" = "spm";
 
 "toast.placehold" = "toast";
 "toast.no_login" = "Please login in first";
@@ -321,7 +321,7 @@
 "competition.team.setup" = "Team Setup";
 "competition.team.create" = "Create team";
 "competition.team.create.toast.success" = "Team creation successful, team code copied.";
-"competition.team.member.count %lld" = "Team size: %lld人";
+"competition.team.member.count %lld" = "Team size: %lld";
 "competition.team.public" = "Public team information";
 "competition.team.toast.no_name" = "Please enter the team name";
 "competition.team.toast.invalid_time" = "The match time was illegal.";

@@ -21,7 +21,6 @@
 		A95721712D2FBCF300286592 /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95721702D2FBCE300286592 /* NavigationManager.swift */; };
 		A96640092D832DB700A94B73 /* AssetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96640082D832DB700A94B73 /* AssetManager.swift */; };
 		A966BA042E14B99D009BF4CB /* ShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966BA032E14B995009BF4CB /* ShopView.swift */; };
-		A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A9697C1F2D23CEC60053E4DC /* SDWebImageSwiftUI */; };
 		A969A7E22EDDCB07005070A2 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A969A7E12EDDCB07005070A2 /* StoreKit.framework */; };
 		A969A8B12EDF0210005070A2 /* IAPManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969A8B02EDF0206005070A2 /* IAPManager.swift */; };
 		A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */; };
@@ -151,7 +150,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A969A7E22EDDCB07005070A2 /* StoreKit.framework in Frameworks */,
-				A9697C202D23CEC60053E4DC /* SDWebImageSwiftUI in Frameworks */,
 				A9B919DF2E675A53001DB7A6 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -478,7 +476,6 @@
 			);
 			mainGroup = A911DB962C47024D0033D809;
 			packageReferences = (
-				A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			productRefGroup = A911DBA02C47024D0033D809 /* Products */;
@@ -789,7 +786,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
@@ -798,10 +795,12 @@
 				INFOPLIST_FILE = sportsx/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当比赛在后台进行期间会使用后台定位。";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "用于展示附近可参与的比赛与赛道信息。";
-				INFOPLIST_KEY_NSMotionUsageDescription = "用于读取设备运动传感器数据以记录和分析你的运动表现。";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于访问你的本地相册图片来更新你的个人信息，不会访问未被你选择的照片。";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Used to access your Health app to read exercise data such as heart rate and steps, and sync it to your iPhone via Apple Watch for recording and analysis.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Used to write your activity data recorded on your Apple Watch to the Health app, so you can easily view your activity history in the system's Health app.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -838,7 +837,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
@@ -847,10 +846,12 @@
 				INFOPLIST_FILE = sportsx/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当比赛在后台进行期间会使用后台定位。";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "用于展示附近可参与的比赛与赛道信息。";
-				INFOPLIST_KEY_NSMotionUsageDescription = "用于读取设备运动传感器数据以记录和分析你的运动表现。";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于访问你的本地相册图片来更新你的个人信息，不会访问未被你选择的照片。";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Used to access your Health app to read exercise data such as heart rate and steps, and sync it to your iPhone via Apple Watch for recording and analysis.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Used to write your activity data recorded on your Apple Watch to the Health app, so you can easily view your activity history in the system's Health app.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -956,7 +957,7 @@
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
@@ -964,8 +965,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "App 需要读取健康数据在运动中使用";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App 需要写入健康数据以记录运动";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "It is used to read your exercise and heart rate data to generate more accurate exercise records and performance analysis.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This is used to write your exercise records to the Health App, making it easy for you to view your exercise history in the system's Health app.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.valbara.sporreer;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -995,7 +996,7 @@
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
@@ -1003,8 +1004,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "sportsx-Watch-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Sporreer;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "App 需要读取健康数据在运动中使用";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App 需要写入健康数据以记录运动";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "It is used to read your exercise and heart rate data to generate more accurate exercise records and performance analysis.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This is used to write your exercise records to the Health App, making it easy for you to view your exercise history in the system's Health app.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.valbara.sporreer;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1168,14 +1169,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI";
-			requirement = {
-				kind = exactVersion;
-				version = 3.1.3;
-			};
-		};
 		A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
@@ -1187,11 +1180,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A9697C1F2D23CEC60053E4DC /* SDWebImageSwiftUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A9697C1E2D23CEC60053E4DC /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
-			productName = SDWebImageSwiftUI;
-		};
 		A9B919DE2E675A53001DB7A6 /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;

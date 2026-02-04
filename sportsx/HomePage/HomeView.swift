@@ -8,8 +8,6 @@
 import SwiftUI
 import MapKit
 import Combine
-import SDWebImage
-import SDWebImageSwiftUI
 import UIKit
 
 
