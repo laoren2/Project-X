@@ -1280,7 +1280,7 @@ struct RunningTeamPublicCard: View {
                     .foregroundColor(Color.thirdText)
                 Spacer()
                 // 详情按钮
-                CommonTextButton(text: "详情") {
+                CommonTextButton(text: "action.detail") {
                     viewModel.selectedDescription = team.description
                     viewModel.showDetailSheet = true
                 }
@@ -1293,7 +1293,7 @@ struct RunningTeamPublicCard: View {
                 .cornerRadius(8)
                 
                 // 申请加入按钮
-                CommonTextButton(text: "申请加入") {
+                CommonTextButton(text: "competition.team.action.applied") {
                     viewModel.selectedTeamID = team.team_id
                     viewModel.showIntroSheet = true
                 }

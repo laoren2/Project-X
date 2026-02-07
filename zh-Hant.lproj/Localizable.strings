@@ -197,6 +197,12 @@
 "competition.season.score.leaderboard" = "積分榜";
 "competition.season.no_current_matches" = "暫無進行中的比賽";
 
+"competition.location_select.title" = "選擇區域";
+"competition.location_select.action.relocation" = "重新定位";
+"competition.location_select.regions_with_events" = "僅顯示賽事​​區域";
+"competition.location_select.no_auth.popup.title" = "定位失敗";
+"competition.location_select.no_auth.popup.content" = "請檢查系統設定的定位權限";
+
 "competition.begin_date" = "開始時間";
 "competition.end_date" = "結束時間";
 "competition.match_date" = "比賽時間";
@@ -279,6 +285,8 @@
 "competition.realtime.card.no_cards" = "未選擇卡牌";
 "competition.realtime.card.benefit.my" = "卡牌收益（我的）";
 "competition.realtime.card.benefit.other" = "卡牌收益（其他）";
+"competition.realtime.precise_location.popup.title" = "需要精確定位";
+"competition.realtime.precise_location.popup.content" = "比賽需要開啟精確位置以確保成績有效，請前往系統設定開啟。";
 
 "competition.result.stepcadence" = "步頻";
 
@@ -475,7 +483,7 @@
 "user.setup.realname_auth.action.reauth" = "重新認證";
 "user.setup.realname_auth.upload" = "上傳身分證件正面照片";
 "user.setup.realname_auth.content" = "完成實名認證後的180天內不可重新認證，重新認證後會清除您在當前賽季已獲得的所有運動的生涯積分";
-"user.setup.realname_auth.popup" = "    對於不同的體育運動來說，男性和女性的運動能力有著明顯的區別，為了最大程度的保證每一項運動競技的公平性，以及給所有用戶帶來更好的使用體驗，我們需要您進行實名認證，我們將嚴格保護每個用戶的身份隱私，您上傳的所有證件原始圖片不會被進行任何形式的備份和存儲，我們只會提取其中必要的信息字段進行識別存儲，我們將始終保護您的信息，不會與除識別能力提供方以外的任何第三方機構分享。";
+"user.setup.realname_auth.popup" = "    對於不同的體育運動來說，男性和女性的運動能力有著明顯的區別，為了最大程度的保證每一項運動競技的公平性，以及給所有用戶帶來更好的使用體驗，我們需要您進行實名認證，我們將嚴格保護每個用戶的身份隱私，您上傳的所有證件原始圖片不會被進行任何形式的備份和存儲，我們只會提取其中必要的信息字段進行識別存儲，我們將始終保護您的信息，不會與除識別能力提供方以外的任何第三方機構分享。\n更多資訊可參考隱私權政策。";
 "user.setup.realname_auth.content.2" = "暫時只支持香港永久性居民身分證和香港居民身分證，上傳時請盡量保證證件填滿圖片且背景色單一";
 "user.setup.realname_auth.popup.no_auth" = "未完成實名認證時，您的運動競技數據只會被標記為男性​​進行展示，且不會進行積分和獎勵的結算，請盡快完成實名認證！";
 "user.setup.vip_center" = "會員訂閱中心";

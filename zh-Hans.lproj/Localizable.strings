@@ -197,6 +197,12 @@
 "competition.season.score.leaderboard" = "积分榜";
 "competition.season.no_current_matches" = "暂无进行中的比赛";
 
+"competition.location_select.title" = "选择区域";
+"competition.location_select.action.relocation" = "重新定位";
+"competition.location_select.regions_with_events" = "仅显示赛事区域";
+"competition.location_select.no_auth.popup.title" = "定位失败";
+"competition.location_select.no_auth.popup.content" = "请检查系统设置的定位权限";
+
 "competition.begin_date" = "开始时间";
 "competition.end_date" = "结束时间";
 "competition.match_date" = "比赛时间";
@@ -279,6 +285,8 @@
 "competition.realtime.card.no_cards" = "未选择卡牌";
 "competition.realtime.card.benefit.my" = "卡牌收益（我的）";
 "competition.realtime.card.benefit.other" = "卡牌收益（其他）";
+"competition.realtime.precise_location.popup.title" = "需要精确定位";
+"competition.realtime.precise_location.popup.content" = "比赛需要开启精确位置以保证成绩有效，请前往系统设置开启。";
 
 "competition.result.stepcadence" = "步频";
 
@@ -475,7 +483,7 @@
 "user.setup.realname_auth.action.reauth" = "重新认证";
 "user.setup.realname_auth.upload" = "上传身份证件正面照片";
 "user.setup.realname_auth.content" = "完成实名认证后的180天内不可重新认证，重新认证后会清除您在当前赛季已获得的所有运动的生涯积分";
-"user.setup.realname_auth.popup" = "    对于不同的体育运动来说，男性和女性的运动能力有着明显的区别，为了最大程度的保证每一项运动竞技的公平性，以及给所有用户带来更好的使用体验，我们需要您进行实名认证，我们将严格保护每个用户的身份隐私，您上传的所有证件原始图片不会被进行任何形式的备份和存储，我们只会提取其中必要的信息字段进行识别存储，我们将始终保护您的信息，不会与除识别能力提供方以外的任何第三方机构分享。";
+"user.setup.realname_auth.popup" = "    对于不同的体育运动来说，男性和女性的运动能力有着明显的区别，为了最大程度的保证每一项运动竞技的公平性，以及给所有用户带来更好的使用体验，我们需要您进行实名认证，我们将严格保护每个用户的身份隐私，您上传的所有证件原始图片不会被进行任何形式的备份和存储，我们只会提取其中必要的信息字段进行识别存储，我们将始终保护您的信息，不会与除识别能力提供方以外的任何第三方机构分享。\n更多信息可参考隐私政策。";
 "user.setup.realname_auth.content.2" = "暂时只支持香港永久性居民身份证和香港居民身份证，上传时请尽量保证证件填满图片且背景色单一";
 "user.setup.realname_auth.popup.no_auth" = "未完成实名认证时，您的运动竞技数据只会被标记为男性进行展示，且不会进行积分和奖励的结算，请尽快完成实名认证！";
 "user.setup.vip_center" = "会员订阅中心";

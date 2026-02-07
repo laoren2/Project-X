@@ -49,24 +49,24 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     func connect() -> Bool {
         // 先检查是否配对
         guard session.isPaired else {
-            Logger.competition.notice_public("[AppleWatchDevice] connect() failed: Apple Watch not paired.")
+            //Logger.competition.notice_public("[AppleWatchDevice] connect() failed: Apple Watch not paired.")
             return false
         }
         
         // 检查是否安装了 Watch App
         guard session.isWatchAppInstalled else {
-            Logger.competition.notice_public("[AppleWatchDevice] connect() failed: Watch App is not installed.")
+            //Logger.competition.notice_public("[AppleWatchDevice] connect() failed: Watch App is not installed.")
             return false
         }
         
         // 检查 activationState
         if session.activationState == .activated {
-            Logger.competition.notice_public("[AppleWatchDevice] connect() success.")
+            //Logger.competition.notice_public("[AppleWatchDevice] connect() success.")
             // 连接成功后切换代理
             session.delegate = self
             return true
         } else {
-            Logger.competition.notice_public("[AppleWatchDevice] connect() failed.")
+            //Logger.competition.notice_public("[AppleWatchDevice] connect() failed.")
             return false
         }
     }

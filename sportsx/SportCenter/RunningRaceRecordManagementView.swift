@@ -277,7 +277,7 @@ struct RunningCompetitionRecordCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "stopwatch")
                             .font(.system(size: 14))
-                        Text("用时: \(TimeDisplay.formattedTime(record.duration, showFraction: true))")
+                        (Text("competition.record.time") + Text(": ") + Text(TimeDisplay.formattedTime(record.duration, showFraction: true)))
                             .font(.subheadline)
                     }
                     .foregroundStyle(Color.secondText)
@@ -363,7 +363,7 @@ struct RunningCompetitionRecordCard: View {
                     Spacer()
                     
                     // 详情按钮
-                    CommonTextButton(text: "详情") {
+                    CommonTextButton(text: "action.detail") {
                         appState.navigationManager.append(.runningRecordDetailView(recordID: record.record_id))
                     }
                     .font(.subheadline)

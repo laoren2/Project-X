@@ -172,7 +172,7 @@
 "shop.tab.props" = "Props";
 "shop.tab.equip_card" = "EquipCards";
 "shop.action.buy" = "Buy";
-"shop.popup" = "Are you sure you want to spend {{MONEY}} to purchase {{ASSET}} * 1 ?";
+"shop.popup.buy.cpasset" = "Are you sure you want to spend {{MONEY}} to purchase {{ASSET}} * 1 ?";
 "shop.popup.buy.ccasset.coin" = "You can use {{MONEY1}} or {{MONEY2}} to purchase {{ASSET}}";
 "shop.popup.buy.ccasset.stone1" = "You can use {{MONEY}} to purchase {{ASSET}}";
 "shop.popup.buy.ccasset.confirm" = "Are you sure you want to spend {{MONEY}} * {{MONEYCOUNT}} to purchase {{ASSET}} * {{ASSETCOUNT}}?";
@@ -196,6 +196,12 @@
 "competition.season.event_records" = "Event points record";
 "competition.season.score.leaderboard" = "Scores leaderboard";
 "competition.season.no_current_matches" = "There are no matches currently in progress.";
+
+"competition.location_select.title" = "Select Area";
+"competition.location_select.action.relocation" = "Relocate";
+"competition.location_select.regions_with_events" = "Event area only";
+"competition.location_select.no_auth.popup.title" = "Location failed";
+"competition.location_select.no_auth.popup.content" = "Please check your system's location permissions.";
 
 "competition.begin_date" = "Start time";
 "competition.end_date" = "End time";
@@ -279,6 +285,8 @@
 "competition.realtime.card.no_cards" = "No card selected";
 "competition.realtime.card.benefit.my" = "Card rewards (my)";
 "competition.realtime.card.benefit.other" = "Card rewards（others）";
+"competition.realtime.precise_location.popup.title" = "Precise positioning required";
+"competition.realtime.precise_location.popup.content" = "To ensure valid scores, precise location settings are required for the competition. Please enable this feature in your system settings.";
 
 "competition.result.stepcadence" = "Step cadence";
 
@@ -475,7 +483,7 @@
 "user.setup.realname_auth.action.reauth" = "Re-authentication";
 "user.setup.realname_auth.upload" = "Upload a photo of the front of your ID card";
 "user.setup.realname_auth.content" = "You cannot re-authenticate within 180 days of completing real-name authentication. Re-authenticating will erase all career points you have earned in the current season.";
-"user.setup.realname_auth.popup" = "  There are significant differences in athletic ability between men and women in different sports. To ensure fairness in every sport and provide a better user experience, we require you to complete real-name authentication. We will strictly protect the privacy of each user's identity. All original images of your uploaded documents will not be backed up or stored in any form. We will only extract the necessary information fields for identification and storage. We will always protect your information and will not share it with any third-party organization other than the identification capability provider.";
+"user.setup.realname_auth.popup" = "  There are significant differences in athletic ability between men and women in different sports. To ensure fairness in every sport and provide a better user experience, we require you to complete real-name authentication. We will strictly protect the privacy of each user's identity. All original images of your uploaded documents will not be backed up or stored in any form. We will only extract the necessary information fields for identification and storage. We will always protect your information and will not share it with any third-party organization other than the identification capability provider.\nFor more information, please refer to the Privacy Policy.";
 "user.setup.realname_auth.content.2" = "Currently, only Hong Kong Permanent Identity Cards and Hong Kong Resident Identity Cards are supported. When uploading, please ensure that the document fills the entire image and that the background color is uniform.";
 "user.setup.realname_auth.popup.no_auth" = "If you do not complete real-name authentication, your sports data will only be displayed as male, and you will not receive points or rewards. Please complete real-name authentication as soon as possible!";
 "user.setup.vip_center" = "Member Subscription Center";
