@@ -75,9 +75,11 @@ struct MagicCardView: View {
                     HStack {
                         Text(card.name)
                             .font(nameFont)
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
                             .minimumScaleFactor(0.7)
-                        Spacer()
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
                     }
                     .padding(.horizontal, width * 0.05)
                     .padding(.bottom, width * 0.02)

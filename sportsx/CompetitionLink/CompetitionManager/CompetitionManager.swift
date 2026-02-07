@@ -363,6 +363,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             showAlert = true
             return
         }
+        // 检查精确位置权限
+        guard LocationManager.shared.checkPreciseLocation() else {
+            DispatchQueue.main.async {
+                PopupWindowManager.shared.presentPopup(
+                    title: "competition.realtime.precise_location.popup.title",
+                    message: "competition.realtime.precise_location.popup.content",
+                    bottomButtons: [.confirm()]
+                )
+            }
+            return
+        }
         // 检查麦克风权限
         //switch AVAudioApplication.shared.recordPermission {
         //case .granted:

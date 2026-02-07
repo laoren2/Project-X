@@ -76,7 +76,7 @@ struct SensorBindView: View {
                                 .cornerRadius(10)
                             }
                         } else {
-                            Text("暂无可连接的设备")
+                            Text("user.page.bind_device.no_device")
                                 .foregroundStyle(Color.thirdText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.top, 100)

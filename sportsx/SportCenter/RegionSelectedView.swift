@@ -50,7 +50,7 @@ struct RegionSelectedView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
                 Spacer()
-                Text("选择区域")
+                Text("competition.location_select.title")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -73,13 +73,13 @@ struct RegionSelectedView: View {
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
-                CommonTextButton(text: "重新定位") {
+                CommonTextButton(text: "competition.location_select.action.relocation") {
                     reposition()
                 }
                 .foregroundStyle(Color.thirdText)
                 Spacer()
                 Toggle(isOn: $onlyShowWithEvents) {
-                    Text("仅显示赛事区域")
+                    Text("competition.location_select.regions_with_events")
                         .font(.subheadline)
                         .foregroundStyle(Color.thirdText)
                 }
@@ -176,6 +176,11 @@ struct RegionSelectedView: View {
     func reposition() {
         guard let location = LocationManager.shared.getLocation() else {
             locationManager.regionID = nil
+            PopupWindowManager.shared.presentPopup(
+                title: "competition.location_select.no_auth.popup.title",
+                message: "competition.location_select.no_auth.popup.content",
+                bottomButtons: [.confirm()]
+            )
             // todo?: 可以考虑添加location代理重新请求一次位置更新
             return
         }
@@ -209,14 +214,14 @@ struct RegionSelectedView: View {
             lon = GlobalConfig.shared.location_debug.longitude
         }
 #endif
-        guard var components = URLComponents(string: "/competition/query_region_id") else { return }
+        guard var components = URLComponents(string: "/competition/query_region_id_force") else { return }
         components.queryItems = [
             URLQueryItem(name: "lat", value: "\(lat)"),
             URLQueryItem(name: "lon", value: "\(lon)")
         ]
         guard let urlPath = components.string else { return }
         
-        let request = APIRequest(path: urlPath, method: .get)
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
         NetworkService.sendRequest(with: request, decodingType: RegionResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {

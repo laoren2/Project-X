@@ -180,6 +180,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         $authorizationStatus.eraseToAnyPublisher()
     }
     
+    // 检查准确位置权限
+    func checkPreciseLocation() -> Bool {
+        return locationManager.accuracyAuthorization == .fullAccuracy
+    }
+    
     private func incrementSubscribers() {
         subscribersCountLock.lock()
         subscribersCount += 1
@@ -218,8 +223,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         } else {
             // Denied或Restricted时无法启动更新
             DispatchQueue.main.async {
-                let toast = Toast(message: "无位置信息权限")
-                ToastManager.shared.show(toast: toast)
+                PopupWindowManager.shared.presentPopup(
+                    title: "competition.location_select.no_auth.popup.title",
+                    message: "competition.location_select.no_auth.popup.content",
+                    bottomButtons: [.confirm()]
+                )
             }
         }
     }

@@ -261,15 +261,6 @@ struct CompetitionRealtimeView: View {
                                                 ]
                                             )
                                         }
-                                        //.gesture(longPress)
-                                    
-                                    // 长按时的进度环
-                                    //if isPressing {
-                                        //CapsuleProgressShape(progress: pressProgress)
-                                        //.stroke(Color.white, lineWidth: 4)
-                                        //    .frame(width: 100, height: 50)
-                                        //.animation(.linear(duration: 2), value: pressProgress)
-                                    //}
                                     Spacer()
                                 } else {
                                     Text("competition.realtime.action.start")
@@ -379,26 +370,6 @@ struct CompetitionRealtimeView: View {
             appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
             appState.competitionManager.deleteRealtimeViewLocationSubscription()
         }
-    }
-    
-    var longPress: some Gesture {
-        LongPressGesture(minimumDuration: 2)
-            .updating($isPressing) { currentState, gestureState, _ in
-                gestureState = currentState
-            }
-            .onChanged { _ in
-                pressProgress = 0.0
-                withAnimation(.linear(duration: 2)) {
-                    pressProgress = 1.0
-                }
-            }
-            .onEnded { finished in
-                if finished {
-                    appState.competitionManager.stopCompetition()
-                }
-                // 重置状态
-                pressProgress = 0.0
-            }
     }
     
     private func startCompetition() {
