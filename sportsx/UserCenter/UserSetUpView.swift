@@ -63,6 +63,10 @@ struct UserSetUpView: View {
                             NavigationManager.shared.append(.subscriptionDetailView)
                         }
                         
+                        SetUpItemView(icon: "healthkit", title: "user.setup.healthkit", isSysIcon: false) {
+                            NavigationManager.shared.append(.privacyPanelView)
+                        }
+                        
                         SetUpItemView(icon: "trash", title: "user.setup.clean_cache", showChevron: false) {
                             clearCache()
                         } trailingView: {
@@ -900,6 +904,45 @@ class AppleBindCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAutho
             default: break
             }
         }
+    }
+}
+
+struct PrivacyPanelView: View {
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                
+                Spacer()
+                
+                Text("user.setup.healthkit")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            Text("user.setup.healthkit.content")
+                .foregroundStyle(Color.secondText)
+                .font(.headline)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
     }
 }
 

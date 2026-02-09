@@ -127,6 +127,8 @@
 "home.sigin_in.toast.reminder_permission" = "Please enable reminder permissions in system settings first";
 "home.sign_in.popup.claim_reward_success.content" = "You have successfully claimed your sign-in reward:";
 "home.sign_in.popup.claim_reward_success.content_vip" = "You have successfully claimed your member-exclusive check-in reward:";
+"home.sign_in.timezone.popup.title" = "Sign-in Instructions";
+"home.sign_in.timezone.popup.content" = "Check-in refreshes daily at 00:00 (UTC+8).";
 "home.search_text" = "Enter username to search users";
 "home.search.toast" = "Cannot find user";
 "home.announcament.no_contents" = "No announcements yet";
@@ -287,6 +289,8 @@
 "competition.realtime.card.benefit.other" = "Card rewards（others）";
 "competition.realtime.precise_location.popup.title" = "Precise positioning required";
 "competition.realtime.precise_location.popup.content" = "To ensure valid scores, precise location settings are required for the competition. Please enable this feature in your system settings.";
+"competition.realtime.healthkit.title" = "Need to access health data";
+"competition.realtime.healthkit.content" = "This competition will use Apple Watch to help record your activity data to ensure the accuracy of your results. The data will only be used for competition recording and statistics and will not be used for advertising or shared with third parties. You can turn off permissions at any time in Apple Health App.";
 
 "competition.result.stepcadence" = "Step cadence";
 
@@ -534,6 +538,17 @@
 "user.setup.contact_us.wx" = "Official WeChat account";
 "user.setup.popup.logout.content" = "Are you sure you want to log out of your account?";
 "user.setup.toast.logout_failed" = "The game is in progress and you cannot quit";
+"user.setup.healthkit" = "Health permission";
+"user.setup.healthkit.content" = "When you participate in a race that requires an Apple Watch, Sporreer will request access to your health data, including but not limited to:
+
+- Heart rate
+- Steps
+- Activity energy
+- Distance traveled.
+
+This data is used solely for recording athletic performance, race verification, and statistical analysis, and will not be used for advertising, profiling, or sold to third parties.
+
+You can turn off data access at any time in 「Health App」-「Share」-「App」-「Sporreer」.";
 
 "user.intro.action.change_avatar" = "Select profile picture";
 "user.intro.action.change_background" = "Select cover picture";

@@ -289,6 +289,8 @@ struct RealNaviView: View {
                     UserCardDetailView(cardID: cardID)
                 case .shopCardDetailView(let defID):
                     ShopCardDetailView(defID: defID)
+                case .privacyPanelView:
+                    PrivacyPanelView()
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()

@@ -371,6 +371,16 @@ struct SignInSectionView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 28)
+                Image(systemName: "info.circle")
+                    .foregroundStyle(Color.secondText)
+                    .font(.subheadline)
+                    .exclusiveTouchTapGesture {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "home.sign_in.timezone.popup.title",
+                            message: "home.sign_in.timezone.popup.content",
+                            bottomButtons: [.confirm()]
+                        )
+                    }
                 Spacer()
                 HStack {
                     Image(systemName: "bell.badge")
@@ -501,12 +511,10 @@ struct SignInDayView: View {
     let day: SignInDay
 
     private var dayLabel: LocalizedStringKey {
-        if Calendar.current.isDateInToday(day.date) {
+        if day.isToday {
             return "time.today"
         } else {
-            let df = DateFormatter()
-            df.dateFormat = "MM/dd"
-            return LocalizedStringKey(df.string(from: day.date))
+            return LocalizedStringKey(day.date)
         }
     }
 
@@ -538,7 +546,7 @@ struct SignInDayView: View {
                 }
             }
             .onTapGesture {
-                if (!vm.isLoading) && day.state == .available && Calendar.current.isDateInToday(day.date) {
+                if (!vm.isLoading) && day.state == .available && day.isToday {
                     vm.signInToday(day: day)
                 }
             }
@@ -574,7 +582,7 @@ struct SignInDayView: View {
                 }
             }
             .onTapGesture {
-                if day.state_vip == .available && Calendar.current.isDateInToday(day.date) {
+                if (!vm.isLoadingVip) && day.state_vip == .available && day.isToday {
                     vm.signInTodayVip(day: day)
                 }
             }

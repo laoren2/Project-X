@@ -181,23 +181,31 @@ class HomeViewModel: ObservableObject {
         }
     }
     
+    private func displayDateString(from serverDate: String) -> String {
+        // 期望格式：yyyy-MM-dd
+        let parts = serverDate.split(separator: "-")
+        guard parts.count == 3 else { return serverDate }
+        
+        let month = parts[1]
+        let day = parts[2]
+        return "\(month)/\(day)"
+    }
+    
     private func makeItems(from statusDto: SignInStatusDTO) -> [SignInDay] {
         var days: [SignInDay] = []
         for dto in statusDto.items {
-            if let d = dateFormatter.date(from: dto.date) {
-                let isToday = Calendar.current.isDateInToday(d)
-                days.append(
-                    SignInDay(
-                        date: d,
-                        ccassetType: dto.ccasset_type,
-                        ccassetReward: dto.ccasset_reward,
-                        ccassetTypeVip: dto.ccasset_type_vip,
-                        ccassetRewardVip: dto.ccasset_reward_vip,
-                        state: isToday ? (statusDto.today_signed ? .claimed : .available) : .future,
-                        state_vip: isToday ? (statusDto.today_signed_vip ? .claimed : .available) : .future
-                    )
+            days.append(
+                SignInDay(
+                    date: displayDateString(from: dto.date),
+                    isToday: dto.is_today,
+                    ccassetType: dto.ccasset_type,
+                    ccassetReward: dto.ccasset_reward,
+                    ccassetTypeVip: dto.ccasset_type_vip,
+                    ccassetRewardVip: dto.ccasset_reward_vip,
+                    state: dto.is_today ? (statusDto.today_signed ? .claimed : .available) : .future,
+                    state_vip: dto.is_today ? (statusDto.today_signed_vip ? .claimed : .available) : .future
                 )
-            }
+            )
         }
         days.sort { $0.date < $1.date }
         return days
@@ -214,8 +222,8 @@ class HomeViewModel: ObservableObject {
                 switch result {
                 case .success(let data):
                     if let unwrappedData = data {
-                        let today = Calendar.current.startOfDay(for: Date())
-                        if let idx = self.items.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: today) }) {
+                        let dateString = self.displayDateString(from: unwrappedData.date)
+                        if let idx = self.items.firstIndex(where: { $0.date == dateString }) {
                             self.items[idx].state = .claimed
                             self.assetManager.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
                         } else {
@@ -261,8 +269,8 @@ class HomeViewModel: ObservableObject {
                 switch result {
                 case .success(let data):
                     if let unwrappedData = data {
-                        let today = Calendar.current.startOfDay(for: Date())
-                        if let idx = self.items.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: today) }) {
+                        let dateString = self.displayDateString(from: unwrappedData.date)
+                        if let idx = self.items.firstIndex(where: { $0.date == dateString }) {
                             self.items[idx].state_vip = .claimed
                             self.assetManager.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
                         } else {
@@ -525,7 +533,8 @@ enum RewardState: String, Codable {
 
 struct SignInDay: Identifiable {
     let id = UUID()
-    let date: Date
+    let date: String
+    let isToday: Bool
     let ccassetType: CCAssetType
     let ccassetReward: Int
     let ccassetTypeVip: CCAssetType
@@ -536,6 +545,7 @@ struct SignInDay: Identifiable {
 
 struct SignInItemDTO: Codable {
     let date: String                    // yyyy-MM-dd
+    let is_today: Bool                  // 统一使用服务端的 HK 时区（UTC+8）
     let ccasset_type: CCAssetType       // 非订阅奖励
     let ccasset_reward: Int             // 非订阅奖励
     let ccasset_type_vip: CCAssetType   // 订阅奖励
@@ -551,6 +561,7 @@ struct SignInStatusDTO: Codable {
 struct SignInResultDTO: Codable {
     let ccasset_type: CCAssetType
     let new_ccamount: Int
+    let date: String
 }
 
 struct AnnouncementInfo: Identifiable {

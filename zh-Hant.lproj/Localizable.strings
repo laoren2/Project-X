@@ -127,6 +127,8 @@
 "home.sigin_in.toast.reminder_permission" = "請先在系統設置裡打開提醒權限";
 "home.sign_in.popup.claim_reward_success.content" = "你已成功領取簽到獎勵：";
 "home.sign_in.popup.claim_reward_success.content_vip" = "你已成功領取會員專屬簽到獎勵：";
+"home.sign_in.timezone.popup.title" = "簽到說明";
+"home.sign_in.timezone.popup.content" = "簽到每日 00:00（UTC+8）刷新。";
 "home.search_text" = "輸入用戶名搜索用戶";
 "home.search.toast" = "搜索不到用戶";
 "home.announcament.no_contents" = "暫無公告";
@@ -287,6 +289,8 @@
 "competition.realtime.card.benefit.other" = "卡牌收益（其他）";
 "competition.realtime.precise_location.popup.title" = "需要精確定位";
 "competition.realtime.precise_location.popup.content" = "比賽需要開啟精確位置以確保成績有效，請前往系統設定開啟。";
+"competition.realtime.healthkit.title" = "需要存取健康數據";
+"competition.realtime.healthkit.content" = "本比賽將使用 Apple Watch 輔助記錄您的運動數據，以確保比賽成績的準確性，數據僅用於比賽記錄與統計，不會用於廣告或分享給第三方。您可以在系統健康設定中隨時關閉權限。";
 
 "competition.result.stepcadence" = "步頻";
 
@@ -534,6 +538,17 @@
 "user.setup.contact_us.wx" = "官方微信帳號";
 "user.setup.popup.logout.content" = "確定要退出帳號嗎？";
 "user.setup.toast.logout_failed" = "比賽進行中，無法退出";
+"user.setup.healthkit" = "健康權限";
+"user.setup.healthkit.content" = "Sporreer 在您參加需要 Apple Watch 的比賽時，會要求存取您的健康數據，包括但不限於：
+
+- 心率
+- 步數
+- 活動能量
+- 運動距離
+
+這些數據僅用於運動表現記錄、比賽驗證和數據統計，不會用於廣告、畫像或向第三方出售。
+
+您可以隨時在 iPhone 的「健康 App」-「分享」-「App」-「Sporreer」中關閉資料存取權限。";
 
 "user.intro.action.change_avatar" = "更換頭像";
 "user.intro.action.change_background" = "更換封面";
