@@ -62,137 +62,152 @@ struct CompetitionCardSelectView: View {
             }
             .padding(.horizontal)
             
-            // 组队模式显示区域
-            if appState.competitionManager.isTeam {
-                if appState.competitionManager.isTeamJoinWindowExpired {
-                    Text("competition.realtime.out_window")
-                        .foregroundColor(.red)
-                        .padding()
-                } else {
-                    Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .padding()
-                }
-            } else {
-                Spacer()
-            }
-            
-            HStack {
-                if userManager.user.isVip {
-                    Spacer()
-                }
-                Text("competition.cardselect.choose")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                Spacer()
-                if !userManager.user.isVip {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // 组队模式显示区域
+                    if appState.competitionManager.isTeam {
+                        if appState.competitionManager.isTeamJoinWindowExpired {
+                            Text("competition.realtime.out_window")
+                                .foregroundColor(.red)
+                                .padding()
+                        } else {
+                            Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                                .padding()
+                        }
+                    }
+                    
                     HStack {
-                        Image("vip_icon_on")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 18)
-                        Text("competition.cardselect.subscription")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondText)
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
-                    .background(Color.gray.opacity(0.8))
-                    .cornerRadius(10)
-                    .exclusiveTouchTapGesture {
-                        appState.navigationManager.append(.subscriptionDetailView)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 10)
-            
-            VStack {
-                // 卡牌位
-                if userManager.user.isVip {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(appState.competitionManager.selectedCards) { card in
-                                MagicCardView(card: card)
-                                    .frame(width: cardWidth)
+                        if userManager.user.isVip {
+                            Spacer()
+                        }
+                        Text("competition.cardselect.choose")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Spacer()
+                        if !userManager.user.isVip {
+                            HStack {
+                                Image("vip_icon_on")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 18)
+                                Text("competition.cardselect.subscription")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.secondText)
                             }
-                            ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
-                                if index == 3 {
-                                    EmptyCardVipSlot()
-                                        .frame(width: cardWidth)
-                                } else {
-                                    EmptyCardSlot()
-                                        .frame(width: cardWidth)
+                            .padding(.vertical, 5)
+                            .padding(.horizontal, 8)
+                            .background(Color.gray.opacity(0.8))
+                            .cornerRadius(10)
+                            .exclusiveTouchTapGesture {
+                                appState.navigationManager.append(.subscriptionDetailView)
+                            }
+                        }
+                    }
+                    .padding(.top, 50)
+                    .padding(.bottom, 10)
+                    
+                    VStack {
+                        // 卡牌位
+                        if userManager.user.isVip {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 20) {
+                                    ForEach(appState.competitionManager.selectedCards) { card in
+                                        MagicCardView(card: card)
+                                            .frame(width: cardWidth)
+                                    }
+                                    ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
+                                        if index == 3 {
+                                            EmptyCardVipSlot()
+                                                .frame(width: cardWidth)
+                                        } else {
+                                            EmptyCardSlot()
+                                                .frame(width: cardWidth)
+                                        }
+                                    }
                                 }
+                                .padding(2)
                             }
-                        }
-                        .padding(2)
-                    }
-                    .padding(.bottom)
-                } else {
-                    HStack(spacing: 20) {
-                        ForEach(appState.competitionManager.selectedCards) { card in
-                            MagicCardView(card: card)
-                                //.frame(width: cardWidth)
-                        }
-                        ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
-                            EmptyCardSlot()
-                        }
-                        /*let selected = appState.competitionManager.selectedCards
-                        let placeholders = Array(selected.count..<maxCards)
-                        let allViews: [AnyView] = selected.map { card in
-                            AnyView(
-                                MagicCardView(card: card)
-                                    .frame(width: cardWidth)
-                            )
-                        } + placeholders.map { _ in
-                            AnyView(
-                                EmptyCardSlot()
-                                    .frame(width: cardWidth)
-                            )
+                            .padding(.bottom)
+                        } else {
+                            HStack(spacing: 20) {
+                                ForEach(appState.competitionManager.selectedCards) { card in
+                                    MagicCardView(card: card)
+                                    //.frame(width: cardWidth)
+                                }
+                                ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
+                                    EmptyCardSlot()
+                                }
+                                /*let selected = appState.competitionManager.selectedCards
+                                 let placeholders = Array(selected.count..<maxCards)
+                                 let allViews: [AnyView] = selected.map { card in
+                                 AnyView(
+                                 MagicCardView(card: card)
+                                 .frame(width: cardWidth)
+                                 )
+                                 } + placeholders.map { _ in
+                                 AnyView(
+                                 EmptyCardSlot()
+                                 .frame(width: cardWidth)
+                                 )
+                                 }
+                                 
+                                 ForEach(0..<allViews.count, id: \.self) { i in
+                                 allViews[i]
+                                 if i < allViews.count - 1 {
+                                 Spacer()
+                                 }
+                                 }*/
+                            }
+                            .padding(.bottom)
                         }
                         
-                        ForEach(0..<allViews.count, id: \.self) { i in
-                            allViews[i]
-                            if i < allViews.count - 1 {
+                        Text("competition.cardselect.action.choose")
+                            .padding(.horizontal, 30)
+                            .padding(.vertical, 12)
+                            .foregroundColor(.white)
+                            .background(Color.white.opacity(0.5))
+                            .cornerRadius(12)
+                            .exclusiveTouchTapGesture {
+                                showCardSelection = true
+                            }
+                            .disabled(appState.competitionManager.isRecording)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(10)
+                    
+                    if appState.competitionManager.selectedCards.contains(where: { $0.sensorType.contains(.AW) }) {
+                        VStack(spacing: 4) {
+                            HStack {
+                                Text("competition.realtime.healthkit.title")
+                                    .foregroundStyle(Color.secondText)
+                                    .font(.headline)
                                 Spacer()
                             }
-                        }*/
+                            Text("competition.realtime.healthkit.content")
+                                .foregroundStyle(Color.thirdText)
+                                .font(.subheadline)
+                        }
                     }
-                    .padding(.bottom)
-                }
-                
-                Text("competition.cardselect.action.choose")
-                    .padding(.horizontal, 30)
-                    .padding(.vertical, 12)
+                    HStack {
+                        Text("competition.cardselect.action.next_step")
+                        Image(systemName: "arrowshape.right")
+                    }
                     .foregroundColor(.white)
-                    .background(Color.white.opacity(0.5))
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 15)
+                    .background(Color.green)
                     .cornerRadius(12)
+                    .padding(.top, 50)
                     .exclusiveTouchTapGesture {
-                        showCardSelection = true
+                        appState.competitionManager.loadMatchEnv()
                     }
                     .disabled(appState.competitionManager.isRecording)
+                }
+                .padding()
             }
-            .padding()
-            .background(Color.white.opacity(0.2))
-            .cornerRadius(10)
-            .padding(.horizontal)
-            Spacer()
-            HStack {
-                Text("competition.cardselect.action.next_step")
-                Image(systemName: "arrowshape.right")
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 15)
-            .background(Color.green)
-            .cornerRadius(12)
-            .exclusiveTouchTapGesture {
-                appState.competitionManager.loadMatchEnv()
-            }
-            .disabled(appState.competitionManager.isRecording)
-            Spacer()
         }
         .ignoresSafeArea(.keyboard)
         .background(Color.defaultBackground)

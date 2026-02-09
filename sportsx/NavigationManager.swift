@@ -63,6 +63,7 @@ enum AppRoute: Hashable {
     case userCardDetailView(cardID: String)
     case shopCardDetailView(defID: String)
     case regionSelectedView
+    case privacyPanelView
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -185,6 +186,8 @@ enum AppRoute: Hashable {
             return "shopCardDetailView"
         case .regionSelectedView:
             return "regionSelectedView"
+        case .privacyPanelView:
+            return "privacyPanelView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"
