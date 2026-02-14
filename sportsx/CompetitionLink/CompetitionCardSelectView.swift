@@ -181,12 +181,12 @@ struct CompetitionCardSelectView: View {
                     if appState.competitionManager.selectedCards.contains(where: { $0.sensorType.contains(.AW) }) {
                         VStack(spacing: 4) {
                             HStack {
-                                Text("competition.realtime.healthkit.title")
+                                Text("competition.cardselect.healthkit.title")
                                     .foregroundStyle(Color.secondText)
                                     .font(.headline)
                                 Spacer()
                             }
-                            Text("competition.realtime.healthkit.content")
+                            Text("competition.cardselect.healthkit.content")
                                 .foregroundStyle(Color.thirdText)
                                 .font(.subheadline)
                         }

@@ -1295,10 +1295,13 @@ struct LocalDebugPanelView: View {
     
     @State var lat: Double = GlobalConfig.shared.location_debug.latitude
     @State var lon: Double = GlobalConfig.shared.location_debug.longitude
-    @State var isDevEnv: Bool
+    @State var selectedEnv: String
+    @State var localServerIP: String
     
     init() {
-        _isDevEnv = State(initialValue: UserDefaults.standard.bool(forKey: "debug.isDevEnv"))
+        let savedEnv = UserDefaults.standard.string(forKey: "debug.serverEnv") ?? "prod"
+        _selectedEnv = State(initialValue: savedEnv)
+        _localServerIP = State(initialValue: UserDefaults.standard.string(forKey: "debug.localServerIP") ?? "192.168.1.5:8000")
     }
     
     var body: some View {
@@ -1353,13 +1356,35 @@ struct LocalDebugPanelView: View {
                         Text("server env (切换后重启生效)")
                             .bold()
                             .padding(.bottom, 20)
+                        
                         HStack {
                             Text("当前连接的服务环境:")
                             Spacer()
-                            Text(isDevEnv ? "dev" : "prod")
-                            Button("切换") {
-                                isDevEnv.toggle()
-                                UserDefaults.standard.set(isDevEnv, forKey: "debug.isDevEnv")
+                            Text(selectedEnv)
+                        }
+                        
+                        Picker("环境", selection: $selectedEnv) {
+                            Text("prod").tag("prod")
+                            Text("dev").tag("dev")
+                            Text("local").tag("local")
+                        }
+                        .pickerStyle(.segmented)
+                        .onValueChange(of: selectedEnv) {
+                            UserDefaults.standard.set(selectedEnv, forKey: "debug.serverEnv")
+                        }
+                        
+                        if selectedEnv == "local" {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("本地服务器地址 (IP:Port)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                HStack {
+                                    TextField("例如 192.168.1.10:8000", text: $localServerIP)
+                                        .textFieldStyle(.roundedBorder)
+                                    Button("save") {
+                                        UserDefaults.standard.set(localServerIP, forKey: "debug.localServerIP")
+                                    }
+                                }
                             }
                         }
                     }

@@ -23,6 +23,34 @@
 "sport.bike" = "Bike";
 "sport.running" = "Running";
 
+"region.tw.beiqu" = "North District";
+"region.tw.taibei" = "Taipei City";
+"region.tw.xinbei" = "New Taipei City";
+"region.tw.jilong" = "Keelung City";
+"region.tw.taoyuan" = "Taoyuan City";
+"region.tw.xinzhushi" = "Hsinchu City";
+"region.tw.xinzhu" = "Hsinchu County";
+"region.tw.yilan" = "Yilan County";
+"region.tw.zhongqu" = "Central District";
+"region.tw.miaoli" = "Miaoli City";
+"region.tw.taizhong" = "Taichung City";
+"region.tw.zhanghua" = "Changhua County";
+"region.tw.nantou" = "Nantou County";
+"region.tw.yunlin" = "Yunlin County";
+"region.tw.nanqu" = "South District";
+"region.tw.jiayishi" = "Chiayi City";
+"region.tw.jiayi" = "Chiayi County";
+"region.tw.tainan" = "Tainan City";
+"region.tw.gaoxiong" = "Kaohsiung City";
+"region.tw.pingdong" = "Pingtung County";
+"region.tw.penghu" = "Penghu County";
+"region.tw.dongqu" = "East District";
+"region.tw.taidong" = "Taitung County";
+"region.tw.hualian" = "Hualien County";
+"region.tw.waidao" = "Outer islands";
+"region.tw.jinmen" = "Kinmen County";
+"region.tw.mazu" = "Lianjiang County";
+
 "region.hk.xianggangdao" = "Hong Kong Island";
 "region.hk.nanqu" = "Southern";
 "region.hk.zhongxiqu" = "Central & Western";
@@ -91,7 +119,7 @@
 "error.network_error" = "Network connection failed, please try again later.";
 
 "time.today" = "today";
-"time.per_day %@" = "%@/day";
+"time.per_day %@" = "≈ %@/day";
 "time.year_old %lld" = "%lld year-old";
 "time.minute.a/b %lf %lf" = "%.0lf/%.0lf ";
 "time.hour" = "h";
@@ -259,6 +287,8 @@
 "competition.cardselect.magiccard.vipslot" = "Exclusive slot";
 "competition.cardselect.popup.content.bike" = "Throughout the bike competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
 "competition.cardselect.popup.content.running" = "Throughout the running competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
+"competition.cardselect.healthkit.title" = "Need to access health data";
+"competition.cardselect.healthkit.content" = "This competition will use Apple Watch to help record your activity data to ensure the accuracy of your results. The data will only be used for competition recording and statistics and will not be used for advertising or shared with third parties. You can turn off permissions at any time in Apple Health App.";
 
 "competition.realtime.action.finish" = "End";
 "competition.realtime.action.finish.2" = "End";
@@ -289,8 +319,7 @@
 "competition.realtime.card.benefit.other" = "Card rewards（others）";
 "competition.realtime.precise_location.popup.title" = "Precise positioning required";
 "competition.realtime.precise_location.popup.content" = "To ensure valid scores, precise location settings are required for the competition. Please enable this feature in your system settings.";
-"competition.realtime.healthkit.title" = "Need to access health data";
-"competition.realtime.healthkit.content" = "This competition will use Apple Watch to help record your activity data to ensure the accuracy of your results. The data will only be used for competition recording and statistics and will not be used for advertising or shared with third parties. You can turn off permissions at any time in Apple Health App.";
+"competition.realtime.popup.familiar_route" = "Before the official start of the race, it is recommended to do at least one full practice session on the track to familiarize yourself with the route.";
 
 "competition.result.stepcadence" = "Step cadence";
 
@@ -606,6 +635,8 @@ You can turn off data access at any time in 「Health App」-「Share」-「App�
 "iap.coupon.success" = "Purchase successful";
 "iap.coupon.cancel" = "Purchase cancelled";
 "iap.coupon.pendding" = "Purchase has been suspended";
+"iap.coupon.feedback" = "Having payment issues? Get feedback here";
+"iap.coupon.popup.content" = "Points are in-app virtual assets that can only be used to participate in online virtual competitions and purchase related virtual items within the app. They cannot be withdrawn or exchanged for cash.";
 "iap.subscription.failed" = "Subscription failed";
 "iap.subscription.success" = "Subscription successful";
 "iap.subscription.cancel" = "Subscription cancelled";
@@ -634,6 +665,8 @@ You can turn off data access at any time in 「Health App」-「Share」-「App�
 "iap.subscription.action.vip_autorenewal_agreement" = "Membership Automatic Renewal Agreement";
 "iap.subscription.toast.vip_autorenewal_agreement" = "Please agree to the automatic membership renewal agreement";
 "iap.subscription.help_prompts" = "    If you encounter a situation where your subscription benefits haven't been credited after payment when subscribing on iOS, it might be because you have multiple Sporreer accounts under your Apple ID logged into the App Store. Try switching between accounts to see if the purchase was made on another account, or click the button below to check the subscribed accounts associated with your current Apple ID, you can also try manually refreshing your subscription status after a short while. If the problem persists, please submit feedback along with a screenshot of your Apple payment bill. We will resolve the issue and respond as soon as possible. Thank you for your support!";
+"iap.subscription.bottom_title" = "Your subscription will automatically renew at least 24 hours before the end of the current period, and can be canceled at any time in your App Store account settings.\nPurchased subscriptions cannot be refunded directly by this app. Please contact Apple Support for a refund.";
+"iap.subscription.update" = "After renew subscription, your new plan will take effect when your current subscription expires.";
 
 "login.title" = "Welcome to Sporreer!";
 "login.subtitle" = "An account will be automatically registered after the first login verification";
@@ -671,8 +704,8 @@ You can turn off data access at any time in 「Health App」-「Share」-「App�
 "magiccard.detail.sensor.pos.popup" = "The card can only be used properly if the sensor device needs to be bound to a specified location. The sensor location list shows the required binding points for the card.";
 
 "ccasset.coin" = "Coin";
-"ccasset.coupon" = "Point";
-"ccasset.voucher" = "Gold Point";
+"ccasset.coupon" = "Points";
+"ccasset.voucher" = "Gold Points";
 "ccasset.stone" = "Stone";
 "ccasset.stone1" = "Primary Stone";
 "ccasset.stone2" = "Intermediate Stone";

@@ -61,10 +61,6 @@ struct NetworkService {
     static var baseUrl: String { "\(baseDomain)/api/v1" }
     static var baseUrl_internal: String { "\(baseDomain)/api/internal" }
     
-    //static let baseDomain: String = "https://192.168.1.5:8000"
-    //static let baseUrl: String = "https://192.168.1.5:8000/api/v1"
-    //static let baseUrl_internal: String = "https://192.168.1.5:8000/api/internal"
-    
     static func sendRequest<T: Decodable>(
         with apiRequest: APIRequest,
         decodingType: T.Type,

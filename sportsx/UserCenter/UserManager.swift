@@ -34,12 +34,17 @@ class UserManager: ObservableObject {
     var originTransactionID: String? = nil
     
     var userRegion: LocalizedStringKey? {
+        for (_, cities) in regionTable_TW {
+            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
         for (_, cities) in regionTable_HK {
             if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
                 return LocalizedStringKey(cities[index].regionName)
             }
         }
-        for (_, cities) in regionTable {
+        for (_, cities) in regionTable_CN {
             if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
                 return LocalizedStringKey(cities[index].regionName)
             }
