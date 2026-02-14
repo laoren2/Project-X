@@ -19,7 +19,17 @@ class UserIntroEditViewModel: ObservableObject {
     @Published var backgroundColor: Color = .defaultBackground  // 背景色
     
     var regionName: String? {
-        for (_, cities) in regionTable {
+        for (_, cities) in regionTable_TW {
+            if let index = cities.firstIndex(where: { $0.regionID == currentUser.location }) {
+                return cities[index].regionName
+            }
+        }
+        for (_, cities) in regionTable_HK {
+            if let index = cities.firstIndex(where: { $0.regionID == currentUser.location }) {
+                return cities[index].regionName
+            }
+        }
+        for (_, cities) in regionTable_CN {
             if let index = cities.firstIndex(where: { $0.regionID == currentUser.location }) {
                 return cities[index].regionName
             }

@@ -358,6 +358,16 @@ struct CompetitionRealtimeView: View {
                 dismissButton: .default(Text("action.confirm"))
             )
         }
+        .onFirstAppear {
+            PopupWindowManager.shared.presentPopup(
+                title: "competition.event.precautions",
+                message: "competition.realtime.popup.familiar_route",
+                doNotShowAgainKey: "CompetitionRealtimeView.familiar_route",
+                bottomButtons: [
+                    .confirm()
+                ]
+            )
+        }
         .onStableAppear() {
             appState.competitionManager.isShowWidget = false
             appState.competitionManager.requestLocationAlwaysAuthorization()

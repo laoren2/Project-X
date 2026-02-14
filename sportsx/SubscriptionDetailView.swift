@@ -112,6 +112,12 @@ struct SubscriptionDetailView: View {
                         
                         subscriptionCards
                         
+                        if isSubscribed {
+                            Text("iap.subscription.update")
+                                .foregroundStyle(Color.thirdText)
+                                .font(.system(size: 15))
+                        }
+                        
                         VStack(alignment: .leading) {
                             Text("iap.subscription.benefits")
                                 .font(.title3.bold())
@@ -146,6 +152,9 @@ struct SubscriptionDetailView: View {
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(10)
                         }
+                        Text("iap.subscription.bottom_title")
+                            .foregroundStyle(Color.thirdText)
+                            .font(.system(size: 15))
                     }
                     .padding(.horizontal)
                     .padding(.top, 10)
@@ -353,28 +362,65 @@ struct SubscriptionCardView: View {
                 .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(currencySymbol)
+                    .font(isSelected ? .system(size: 20, weight: .bold) : .system(size: 18, weight: .semibold))
+                Text(priceNumberString)
+                    .font(isSelected ? .system(size: 35, weight: .bold) : .system(size: 30, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isSelected ? Color.white : Color.thirdText)
+            .minimumScaleFactor(0.7)
             // 显示平均到每天的价格
             if let dailyPriceText = dailyPriceText {
                 Text(dailyPriceText)
-                    .font(.subheadline)
-                    .foregroundStyle(isSelected ? Color.white : Color.thirdText)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .background(isSelected ? Color.orange.opacity(0.8) : Color.orange.opacity(0.2))
-                    .cornerRadius(8)
+                    .font(.system(size: 15))
+                    .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
             }
-            Text(product.displayPrice)
-                .font(isSelected ? .headline: .subheadline)
-                .foregroundStyle(isSelected ? Color.white : Color.thirdText)
         }
         .frame(width: 160, height: 240)
         .padding()
-        .background(isSelected ? Color.orange.opacity(0.2) : Color.gray.opacity(0.2))
+        .background(isSelected ? LinearGradient(
+            gradient: Gradient(colors: [
+                Color(hex: "#CD6600"),
+                Color(hex: "#8B4500")
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        ) : LinearGradient(
+            gradient: Gradient(colors: [
+                Color.gray.opacity(0.2),
+                Color.gray.opacity(0.2)
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        ))
         .cornerRadius(14)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(isSelected ? Color.orange : Color.clear, lineWidth: 2)
         )
+    }
+    
+    private var currencySymbol: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = product.priceFormatStyle.currencyCode
+        return formatter.currencySymbol ?? ""
+    }
+
+    private var priceNumberString: String {
+        let currencyFormatter = NumberFormatter()
+        currencyFormatter.numberStyle = .currency
+        currencyFormatter.currencyCode = product.priceFormatStyle.currencyCode
+        let fractionDigits = currencyFormatter.maximumFractionDigits
+
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        numberFormatter.minimumFractionDigits = fractionDigits
+        numberFormatter.maximumFractionDigits = fractionDigits
+
+        return numberFormatter.string(from: product.price as NSDecimalNumber) ?? ""
     }
 
     // 计算每天的价格文本，例如："¥1.23 / 天"
@@ -466,5 +512,5 @@ struct IAPHelpView: View {
 }
 
 #Preview {
-    return IAPHelpView()
+    return SubscriptionDetailView()
 }

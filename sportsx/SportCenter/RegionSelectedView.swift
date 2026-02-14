@@ -19,11 +19,13 @@ struct RegionSelectedView: View {
     var regions: [String: [Region]] {
         let base: [String: [Region]]
         if locationManager.countryCode == "CN" {
-            base = regionTable
+            base = regionTable_CN
         } else if locationManager.countryCode == "HK" {
             base = regionTable_HK
+        } else if locationManager.countryCode == "TW" {
+            base = regionTable_TW
         } else {
-            base = regionTable_HK   // 暂时只支持 HK 地区所以使用 HK 兜底，未来完善 Map boundry 后可删除
+            base = regionTable_HK   // 未来删除
         }
         
         if onlyShowWithEvents {
@@ -250,7 +252,7 @@ struct RegionSelectedView: View {
         guard var components = URLComponents(string: "/competition/query_regions_with_events") else { return }
         components.queryItems = [
             URLQueryItem(name: "sport_type", value: appState.sport.rawValue),
-            URLQueryItem(name: "country_code", value: "HK")  // 暂时只支持 HK 地区所以使用 HK 兜底，待完善 Map boundry 后可删去
+            URLQueryItem(name: "country_code", value: "HK")     // 未来删除
         ]
         guard let urlPath = components.string else { return }
             

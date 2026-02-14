@@ -23,6 +23,34 @@
 "sport.bike" = "自行車";
 "sport.running" = "跑步";
 
+"region.tw.beiqu" = "北區";
+"region.tw.taibei" = "臺北市";
+"region.tw.xinbei" = "新北市";
+"region.tw.jilong" = "基隆市";
+"region.tw.taoyuan" = "桃園市";
+"region.tw.xinzhushi" = "新竹市";
+"region.tw.xinzhu" = "新竹縣";
+"region.tw.yilan" = "宜蘭縣";
+"region.tw.zhongqu" = "中區";
+"region.tw.miaoli" = "苗栗市";
+"region.tw.taizhong" = "臺中市";
+"region.tw.zhanghua" = "彰化縣";
+"region.tw.nantou" = "南投縣";
+"region.tw.yunlin" = "雲林縣";
+"region.tw.nanqu" = "南區";
+"region.tw.jiayishi" = "嘉義市";
+"region.tw.jiayi" = "嘉義縣";
+"region.tw.tainan" = "臺南市";
+"region.tw.gaoxiong" = "高雄市";
+"region.tw.pingdong" = "屏東縣";
+"region.tw.penghu" = "澎湖縣";
+"region.tw.dongqu" = "東區";
+"region.tw.taidong" = "臺東縣";
+"region.tw.hualian" = "花蓮縣";
+"region.tw.waidao" = "外島";
+"region.tw.jinmen" = "金門縣";
+"region.tw.mazu" = "連江縣";
+
 "region.hk.xianggangdao" = "香港島";
 "region.hk.nanqu" = "南區";
 "region.hk.zhongxiqu" = "中西區";
@@ -91,7 +119,7 @@
 "error.network_error" = "網路連線失敗，請稍後重試";
 
 "time.today" = "今天";
-"time.per_day %@" = "%@/天";
+"time.per_day %@" = "≈ %@/天";
 "time.year_old %lld" = "%lld 歲";
 "time.minute.a/b %lf %lf" = "%.0lf/%.0lf ";
 "time.hour" = "小時";
@@ -259,6 +287,8 @@
 "competition.cardselect.magiccard.vipslot" = "專屬卡槽";
 "competition.cardselect.popup.content.bike" = "進行自行車比賽時，需要全程將手機固定在大腿位置進行數據校驗，運動中頻繁移動手機可能導致比賽數據校驗失敗。 \n比賽中不誠實的作弊行為可能會導致帳號封鎖。";
 "competition.cardselect.popup.content.running" = "進行跑步比賽時，需要全程將手機固定在大腿位置進行數據校驗，運動中頻繁移動手機可能導致比賽數據校驗失敗。 \n比賽中不誠實的作弊行為可能會導致帳號封鎖。";
+"competition.cardselect.healthkit.title" = "需要存取健康數據";
+"competition.cardselect.healthkit.content" = "本比賽將使用 Apple Watch 輔助記錄您的運動數據，以確保比賽成績的準確性，數據僅用於比賽記錄與統計，不會用於廣告或分享給第三方。您可以在系統健康設定中隨時關閉權限。";
 
 "competition.realtime.action.finish" = "結束比賽";
 "competition.realtime.action.finish.2" = "結束";
@@ -289,8 +319,7 @@
 "competition.realtime.card.benefit.other" = "卡牌收益（其他）";
 "competition.realtime.precise_location.popup.title" = "需要精確定位";
 "competition.realtime.precise_location.popup.content" = "比賽需要開啟精確位置以確保成績有效，請前往系統設定開啟。";
-"competition.realtime.healthkit.title" = "需要存取健康數據";
-"competition.realtime.healthkit.content" = "本比賽將使用 Apple Watch 輔助記錄您的運動數據，以確保比賽成績的準確性，數據僅用於比賽記錄與統計，不會用於廣告或分享給第三方。您可以在系統健康設定中隨時關閉權限。";
+"competition.realtime.popup.familiar_route" = "在正式開始比賽前，建議至少進行一次完整的賽道練習以熟悉路線。";
 
 "competition.result.stepcadence" = "步頻";
 
@@ -606,6 +635,8 @@
 "iap.coupon.success" = "購買成功";
 "iap.coupon.cancel" = "購買已取消";
 "iap.coupon.pendding" = "購買已掛起";
+"iap.coupon.feedback" = "支付遇到問題？立即回饋";
+"iap.coupon.popup.content" = "點券為應用程式內虛擬資產，僅可用於應用程式內參與線上虛擬競賽及購買相關虛擬道具，不可提現或兌換現金。";
 "iap.subscription.failed" = "訂閱失敗";
 "iap.subscription.success" = "訂閱成功";
 "iap.subscription.cancel" = "訂閱已取消";
@@ -634,6 +665,8 @@
 "iap.subscription.action.vip_autorenewal_agreement" = "會員自動續費協議";
 "iap.subscription.toast.vip_autorenewal_agreement" = "請同意會員自動續費協議";
 "iap.subscription.help_prompts" = "    在iOS系統中進行訂閱時，如果出現付款後權益未到賬的情況，可能是您登陸App Store的appleID下有多個Sporreer帳號，可先切換各帳號查看是否購買在其他帳號，或點擊下方按鈕查詢當前appleID關聯的已訂閱帳號，也可以稍等片刻嘗試手動刷新訂閱狀態，如果仍有問題，可提交回饋並附上Apple支付賬單截圖，我們將盡快解決並給予回复，感謝您的支持！";
+"iap.subscription.bottom_title" = "訂閱將在當前週期結束前至少24小時自動續訂，且可隨時在 App Store 帳戶設定中取消。\n已購買的訂閱不支援由本應用程式直接退款，如需退款請聯絡 Apple 支援。";
+"iap.subscription.update" = "更新訂閱後，您的新套餐將在您目前的訂閱項目到期後生效。";
 
 "login.title" = "歡迎來到 Sporreer!";
 "login.subtitle" = "首次驗證登入後將自動註冊帳號";

@@ -107,8 +107,15 @@ final class BootstrapManager: ObservableObject {
     
 #if DEBUG
     func prepareDebugEnv() {
-        if UserDefaults.standard.bool(forKey: "debug.isDevEnv") {
+        let env = UserDefaults.standard.string(forKey: "debug.serverEnv") ?? "prod"
+        switch env {
+        case "dev":
             NetworkService.baseDomain = "https://dev.valbara.top"
+        case "local":
+            let ip = UserDefaults.standard.string(forKey: "debug.localServerIP") ?? "192.168.1.5:8000"
+            NetworkService.baseDomain = "https://\(ip)"
+        default:
+            NetworkService.baseDomain = "https://app.valbara.top"
         }
     }
 #endif

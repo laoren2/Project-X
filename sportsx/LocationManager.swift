@@ -51,7 +51,8 @@ struct Region: Identifiable, Equatable {
     }
 }
 
-let regionTable: [String: [Region]] = [
+// todo: 考虑统一放到服务端管理regions
+let regionTable_CN: [String: [Region]] = [
     "region.cn.shanghai": [Region(regionID: "CN-SH-SH", regionName: "region.cn.shanghai")],
     "region.cn.beijing": [Region(regionID: "CN-BJ-BJ", regionName: "region.cn.beijing")],
     "region.cn.guangdong": [
@@ -102,6 +103,41 @@ let regionTable_HK: [String: [Region]] = [
     ]
 ]
 
+let regionTable_TW: [String: [Region]] = [
+    "region.tw.beiqu": [
+        Region(regionID: "TW-TAI-PEI-CITY", regionName: "region.tw.taibei"),
+        Region(regionID: "TW-NEW-TAI-PEI-CITY", regionName: "region.tw.xinbei"),
+        Region(regionID: "TW-KEE-LUNG-CITY", regionName: "region.tw.jilong"),
+        Region(regionID: "TW-TAO-YUAN", regionName: "region.tw.taoyuan"),
+        Region(regionID: "TW-HSIN-CHU-CITY", regionName: "region.tw.xinzhushi"),
+        Region(regionID: "TW-HSIN-CHU", regionName: "region.tw.xinzhu"),
+        Region(regionID: "TW-YI-LAN", regionName: "region.tw.yilan")
+    ],
+    "region.tw.zhongqu": [
+        Region(regionID: "TW-MIAO-LI", regionName: "region.tw.miaoli"),
+        Region(regionID: "TW-TAI-CHUNG", regionName: "region.tw.taizhong"),
+        Region(regionID: "TW-CHANG-HUA", regionName: "region.tw.zhanghua"),
+        Region(regionID: "TW-NAN-TOU", regionName: "region.tw.nantou"),
+        Region(regionID: "TW-YUN-LIN", regionName: "region.tw.yunlin")
+    ],
+    "region.tw.nanqu": [
+        Region(regionID: "TW-CHIA-YI-CITY", regionName: "region.tw.jiayishi"),
+        Region(regionID: "TW-CHIA-YI", regionName: "region.tw.jiayi"),
+        Region(regionID: "TW-TAI-NAN-CITY", regionName: "region.tw.tainan"),
+        Region(regionID: "TW-KAOH-SIUNG-CITY", regionName: "region.tw.gaoxiong"),
+        Region(regionID: "TW-PING-TUNG", regionName: "region.tw.pingdong"),
+        Region(regionID: "TW-PENG-HU", regionName: "region.tw.penghu")
+    ],
+    "region.tw.dongqu": [
+        Region(regionID: "TW-TAI-TUNG", regionName: "region.tw.taidong"),
+        Region(regionID: "TW-HUA-LIEN", regionName: "region.tw.hualian")
+    ],
+    "region.tw.waidao": [
+        Region(regionID: "TW-KIN-MEN", regionName: "region.tw.jinmen"),
+        Region(regionID: "TW-MATSU-ISLANDS", regionName: "region.tw.mazu")
+    ]
+]
+
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = LocationManager()
     
@@ -123,7 +159,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 return LocalizedStringKey(cities[index].regionName)
             }
         }
-        for (_, cities) in regionTable {
+        for (_, cities) in regionTable_CN {
+            if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
+                return LocalizedStringKey(cities[index].regionName)
+            }
+        }
+        for (_, cities) in regionTable_TW {
             if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
                 return LocalizedStringKey(cities[index].regionName)
             }

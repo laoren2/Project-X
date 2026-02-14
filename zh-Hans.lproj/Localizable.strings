@@ -23,6 +23,34 @@
 "sport.bike" = "自行车";
 "sport.running" = "跑步";
 
+"region.tw.beiqu" = "北区";
+"region.tw.taibei" = "台北市";
+"region.tw.xinbei" = "新北市";
+"region.tw.jilong" = "基隆市";
+"region.tw.taoyuan" = "桃园市";
+"region.tw.xinzhushi" = "新竹市";
+"region.tw.xinzhu" = "新竹县";
+"region.tw.yilan" = "宜兰县";
+"region.tw.zhongqu" = "中区";
+"region.tw.miaoli" = "苗栗市";
+"region.tw.taizhong" = "台中市";
+"region.tw.zhanghua" = "彰化县";
+"region.tw.nantou" = "南投县";
+"region.tw.yunlin" = "云林县";
+"region.tw.nanqu" = "南区";
+"region.tw.jiayishi" = "嘉义市";
+"region.tw.jiayi" = "嘉义县";
+"region.tw.tainan" = "台南市";
+"region.tw.gaoxiong" = "高雄市";
+"region.tw.pingdong" = "屏东县";
+"region.tw.penghu" = "澎湖县";
+"region.tw.dongqu" = "东区";
+"region.tw.taidong" = "台东县";
+"region.tw.hualian" = "花莲县";
+"region.tw.waidao" = "外岛";
+"region.tw.jinmen" = "金门县";
+"region.tw.mazu" = "连江县";
+
 "region.hk.xianggangdao" = "香港岛";
 "region.hk.nanqu" = "南区";
 "region.hk.zhongxiqu" = "中西区";
@@ -91,7 +119,7 @@
 "error.network_error" = "网络连接失败，请稍后重试";
 
 "time.today" = "今天";
-"time.per_day %@" = "%@/天";
+"time.per_day %@" = "≈ %@/天";
 "time.year_old %lld" = "%lld 岁";
 "time.minute.a/b %lf %lf" = "%.0lf/%.0lf ";
 "time.hour" = "小时";
@@ -259,6 +287,8 @@
 "competition.cardselect.magiccard.vipslot" = "专属卡槽";
 "competition.cardselect.popup.content.bike" = "进行自行车比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
 "competition.cardselect.popup.content.running" = "进行跑步比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
+"competition.cardselect.healthkit.title" = "需要访问健康数据";
+"competition.cardselect.healthkit.content" = "本次比赛将使用 Apple Watch 辅助记录您的运动数据，以确保比赛成绩的准确性，数据仅用于比赛记录与统计，不会用于广告或分享给第三方。您可以在系统健康设置中随时关闭权限。";
 
 "competition.realtime.action.finish" = "结束比赛";
 "competition.realtime.action.finish.2" = "结束";
@@ -289,8 +319,7 @@
 "competition.realtime.card.benefit.other" = "卡牌收益（其他）";
 "competition.realtime.precise_location.popup.title" = "需要精确定位";
 "competition.realtime.precise_location.popup.content" = "比赛需要开启精确位置以保证成绩有效，请前往系统设置开启。";
-"competition.realtime.healthkit.title" = "需要访问健康数据";
-"competition.realtime.healthkit.content" = "本次比赛将使用 Apple Watch 辅助记录您的运动数据，以确保比赛成绩的准确性，数据仅用于比赛记录与统计，不会用于广告或分享给第三方。您可以在系统健康设置中随时关闭权限。";
+"competition.realtime.popup.familiar_route" = "在正式开始比赛前，建议至少进行一次完整的赛道练习以熟悉路线。";
 
 "competition.result.stepcadence" = "步频";
 
@@ -606,6 +635,8 @@
 "iap.coupon.success" = "购买成功";
 "iap.coupon.cancel" = "购买已取消";
 "iap.coupon.pendding" = "购买已挂起";
+"iap.coupon.feedback" = "支付遇到问题？立即反馈";
+"iap.coupon.popup.content" = "点券为应用内虚拟资产，仅可用于应用内参与线上虚拟竞赛及购买相关虚拟道具，不可提现或兑换现金。";
 "iap.subscription.failed" = "订阅失败";
 "iap.subscription.success" = "订阅成功";
 "iap.subscription.cancel" = "订阅已取消";
@@ -634,6 +665,8 @@
 "iap.subscription.action.vip_autorenewal_agreement" = "会员自动续费协议";
 "iap.subscription.toast.vip_autorenewal_agreement" = "请同意会员自动续费协议";
 "iap.subscription.help_prompts" = "    在iOS系统中进行订阅时，如果出现付款后权益未到账的情况，可能是您登陆App Store的appleID下有多个Sporreer账号，可先切换各账号查看是否购买在其他账号，或点击下方按钮查询当前appleID关联的已订阅账号，也可以稍等片刻尝试手动刷新一下订阅状态，如果仍有问题，可提交反馈并附上Apple支付账单截图，我们会尽快解决并给予回复，感谢您的支持！";
+"iap.subscription.bottom_title" = "订阅将在当前周期结束前至少24小时自动续订，且可随时在 App Store 账户设置中取消。\n已购买的订阅不支持由本应用直接退款，如需退款请联系 Apple 支持。";
+"iap.subscription.update" = "更新订阅后，您的新套餐将在您当前的订阅项目到期后生效。";
 
 "login.title" = "欢迎来到 Sporreer!";
 "login.subtitle" = "首次验证登录后将自动注册账号";

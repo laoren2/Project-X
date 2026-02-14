@@ -512,10 +512,22 @@ struct IAPCouponView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            VStack {
+            VStack(spacing: 20) {
                 HStack(alignment: .bottom) {
-                    Text("iap.coupon.title")
-                        .font(.title)
+                    HStack(spacing: 4) {
+                        Text("iap.coupon.title")
+                            .font(.title)
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(Color.secondText)
+                            .font(.subheadline)
+                            .exclusiveTouchTapGesture {
+                                PopupWindowManager.shared.presentPopup(
+                                    title: "ccasset.coupon",
+                                    message: "iap.coupon.popup.content",
+                                    bottomButtons: [.confirm()]
+                                )
+                            }
+                    }
                     Spacer()
                     HStack(spacing: 0) {
                         Image("coupon")
@@ -550,6 +562,16 @@ struct IAPCouponView: View {
                                 }
                             }
                     }
+                }
+                HStack {
+                    Spacer()
+                    Text("iap.coupon.feedback")
+                        .underline()
+                        .foregroundStyle(Color.thirdText)
+                        .font(.system(size: 15))
+                        .exclusiveTouchTapGesture {
+                            navigationManager.append(.feedbackView(mailType: .iap))
+                        }
                 }
                 Spacer()
             }
