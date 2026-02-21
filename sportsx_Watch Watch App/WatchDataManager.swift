@@ -76,11 +76,11 @@ class WatchDataManager: NSObject, ObservableObject {
         }
     }
     
-    func syncStatus() {
+    func syncStatus() -> (result: Bool, msg: String) {
         let context = session.receivedApplicationContext
         guard !context.isEmpty else {
             //print("syncStatus: no context received yet.")
-            return
+            return (false, "competition.applewatch.sync.failed.no_context")
         }
         
         if let command = context["command"] as? String, command == "startCollection" {
@@ -88,7 +88,7 @@ class WatchDataManager: NSObject, ObservableObject {
                 let now = Date().timeIntervalSince1970
                 if abs(now - ts) > 30 {
                     //print("syncStatus: context expired (timestamp \(ts), now \(now)), skipping startCollection.")
-                    return
+                    return (false, "competition.applewatch.sync.failed.expired")
                 }
             }
             let activityType = context["activityType"] as? String ?? "bike"
@@ -109,8 +109,10 @@ class WatchDataManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.tryStartWorkout(config: configuration)
             }
+            return (true, "")
         } else {
-            print("syncStatus: no startCollection command in context.")
+            //print("syncStatus: no startCollection command in context.")
+            return (false, "competition.applewatch.sync.failed.no_context")
         }
     }
     

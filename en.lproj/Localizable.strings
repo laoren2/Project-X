@@ -17,6 +17,7 @@
 "common.user" = "User";
 "common.average" = "Average";
 "common.speed" = "Speed";
+"common.empty" = "Empty";
 
 "app.slogan" = "Play for Passion";
 
@@ -288,7 +289,7 @@
 "competition.cardselect.popup.content.bike" = "Throughout the bike competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
 "competition.cardselect.popup.content.running" = "Throughout the running competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
 "competition.cardselect.healthkit.title" = "Need to access health data";
-"competition.cardselect.healthkit.content" = "This competition will use Apple Watch to help record your activity data to ensure the accuracy of your results. The data will only be used for competition recording and statistics and will not be used for advertising or shared with third parties. You can turn off permissions at any time in Apple Health App.";
+"competition.cardselect.healthkit.content" = "When using your Apple Watch or other external sensors to help record your game, we may access your Apple Health data (HealthKit) to sync your exercise performance. You can turn off permission at any time in Apple Health App.";
 
 "competition.realtime.action.finish" = "End";
 "competition.realtime.action.finish.2" = "End";
@@ -448,6 +449,8 @@
 
 "competition.applewatch.control.info" = "Clicking 'End' will not end the game, it will only stop data collection on the watch. To end the game, please do so on your mobile device.";
 "competition.applewatch.sync" = "Synchronize";
+"competition.applewatch.sync.failed.expired" = "Synchronization expired.";
+"competition.applewatch.sync.failed.no_context" = "Please start on your mobile device.";
 "competition.applewatch.data_processing" = "Data processing";
 "competition.applewatch.auth.preparing" = "In preparation";
 "competition.applewatch.auth.toast" = "Please enable health permissions first in Health - Sharing - App";
@@ -492,7 +495,9 @@
 "user.page.bind_device.body.rf" = "Right foot";
 "user.page.bind_device.body.wst" = "Chest";
 "user.page.bind_device.no_device" = "No devices can be connected at the moment";
-"user.page.bind_device.popup.applewatch" = "Once you bind your Apple Watch with the relevant cards, the Apple Watch app will automatically open to assist with recording when you start a game on your phone. If it doesn't open automatically, you can manually open the Apple Watch app and tap the sync button within 30 seconds to synchronize your status.";
+"user.page.bind_device.popup.applewatch" = "When using Apple Watch, the Apple Watch app will automatically open to assist with recording when you start a game on your phone. If it doesn't open automatically, you can manually open the Apple Watch app and tap the sync button within 30 seconds to synchronize your status.";
+"user.page.bind_device.popup.default.title" = "Default data source device";
+"user.page.bind_device.popup.default.content" = "Even without any sensor-required cards, you can still assist in recording the game by binding supported sensor devices. The default data source device will continuously collect your motion data during the game.";
 "user.page.features.institute" = "Institute";
 "user.page.features.email_box" = "Mailbox";
 "user.page.tab.career" = "Career";
@@ -568,16 +573,27 @@
 "user.setup.popup.logout.content" = "Are you sure you want to log out of your account?";
 "user.setup.toast.logout_failed" = "The game is in progress and you cannot quit";
 "user.setup.healthkit" = "Health permission";
-"user.setup.healthkit.content" = "When you participate in a race that requires an Apple Watch, Sporreer will request access to your health data, including but not limited to:
+"user.setup.healthkit.content" = "When you use your Apple Watch or other external sensors to help record your activity, we access your Apple Health data (HealthKit) to track and analyze your performance. This data includes, but is not limited to:
 
 - Heart rate
+
 - Steps
+
+- Running and cycling distance
+
 - Activity energy
-- Distance traveled.
 
-This data is used solely for recording athletic performance, race verification, and statistical analysis, and will not be used for advertising, profiling, or sold to third parties.
+- Running power
 
-You can turn off data access at any time in 「Health App」-「Share」-「App」-「Sporreer」.";
+- Cycling power
+
+- Cycling cadence
+
+In addition, we write activity data to Fitness Training so you can view it in the Health app.
+
+This data is used solely for recording performance, verifying race results, and statistical analysis. It will not be used for advertising, profiling, or sold to third parties.
+
+You can turn off data access at any time in 「Apple Health App」-「Share」-「App」-「Sporreer」.";
 
 "user.intro.action.change_avatar" = "Select profile picture";
 "user.intro.action.change_background" = "Select cover picture";
@@ -675,9 +691,9 @@ You can turn off data access at any time in 「Health App」-「Share」-「App�
 "login.sms.code.placeholder" = "Enter verification code";
 "login.sms.action.verify_and_login" = "Verify and log in";
 "login.sms.action.send_again" = "Resend";
-"login.sms.send_result.1 %lld" = "Verification code has been sent, you can resend in %lld seconds.";
+"login.sms.send_result.1 %lld" = "Verification code has been sent, you can resend in %lld s.";
 "login.sms.send_result.2" = "Didn't receive the verification code? Click to resend.";
-"login.email.send_result.1 %lld" = "Email has been sent, you can resend it in %lld seconds.";
+"login.email.send_result.1 %lld" = "Email has been sent, you can resend it in %lld s.";
 "login.email.send_result.2" = "Didn't receive the email? Click to resend.";
 "login.apple.action" = "Sign in with Apple";
 "login.toast.privacy_and_user_agreement" = "Please agree to the User Agreement and Privacy Policy";

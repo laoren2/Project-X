@@ -178,19 +178,30 @@ struct CompetitionCardSelectView: View {
                     .background(Color.white.opacity(0.2))
                     .cornerRadius(10)
                     
-                    if appState.competitionManager.selectedCards.contains(where: { $0.sensorType.contains(.AW) }) {
-                        VStack(spacing: 4) {
-                            HStack {
-                                Text("competition.cardselect.healthkit.title")
-                                    .foregroundStyle(Color.secondText)
-                                    .font(.headline)
-                                Spacer()
+                    HStack(spacing: 4) {
+                        Image("healthkit")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                        Text("competition.cardselect.healthkit.title")
+                        Image(systemName: "info.circle")
+                            .exclusiveTouchTapGesture {
+                                PopupWindowManager.shared.presentPopup(
+                                    title: "competition.cardselect.healthkit.title",
+                                    message: "competition.cardselect.healthkit.content",
+                                    bottomButtons: [
+                                        .confirm(),
+                                        .confirm("action.detail") {
+                                            appState.navigationManager.append(.privacyPanelView)
+                                        }
+                                    ]
+                                )
                             }
-                            Text("competition.cardselect.healthkit.content")
-                                .foregroundStyle(Color.thirdText)
-                                .font(.subheadline)
-                        }
+                        Spacer()
                     }
+                    .foregroundStyle(Color.thirdText)
+                    .font(.subheadline)
+                    
                     HStack {
                         Text("competition.cardselect.action.next_step")
                         Image(systemName: "arrowshape.right")
@@ -198,7 +209,7 @@ struct CompetitionCardSelectView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 15)
-                    .background(Color.green)
+                    .background(Color.orange)
                     .cornerRadius(12)
                     .padding(.top, 50)
                     .exclusiveTouchTapGesture {
