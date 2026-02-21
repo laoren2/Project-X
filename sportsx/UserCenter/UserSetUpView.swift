@@ -934,12 +934,17 @@ struct PrivacyPanelView: View {
                         .foregroundColor(.clear)
                 }
             }
-            Text("user.setup.healthkit.content")
-                .foregroundStyle(Color.secondText)
-                .font(.headline)
-            Spacer()
+            .padding(.horizontal)
+            
+            ScrollView {
+                VStack {
+                    Text("user.setup.healthkit.content")
+                        .foregroundStyle(Color.secondText)
+                        .font(.headline)
+                }
+                .padding()
+            }
         }
-        .padding(.horizontal)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()

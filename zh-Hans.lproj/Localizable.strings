@@ -17,6 +17,7 @@
 "common.user" = "用户";
 "common.average" = "平均";
 "common.speed" = "速度";
+"common.empty" = "空";
 
 "app.slogan" = "随时随地  即刻开赛";
 
@@ -288,7 +289,7 @@
 "competition.cardselect.popup.content.bike" = "进行自行车比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
 "competition.cardselect.popup.content.running" = "进行跑步比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
 "competition.cardselect.healthkit.title" = "需要访问健康数据";
-"competition.cardselect.healthkit.content" = "本次比赛将使用 Apple Watch 辅助记录您的运动数据，以确保比赛成绩的准确性，数据仅用于比赛记录与统计，不会用于广告或分享给第三方。您可以在系统健康设置中随时关闭权限。";
+"competition.cardselect.healthkit.content" = "使用 Apple Watch 或其他外部传感器辅助记录比赛时，我们可能会访问您的 Apple 健康数据（HealthKit）来同步您的运动表现，您可以随时在系统的「健康」App中关闭权限。";
 
 "competition.realtime.action.finish" = "结束比赛";
 "competition.realtime.action.finish.2" = "结束";
@@ -448,6 +449,8 @@
 
 "competition.applewatch.control.info" = "点击结束并不会结束比赛，只会停止手表端的数据收集，想要结束比赛请在手机端操作";
 "competition.applewatch.sync" = "同步";
+"competition.applewatch.sync.failed.expired" = "同步已过期";
+"competition.applewatch.sync.failed.no_context" = "请在手机端开始运动";
 "competition.applewatch.data_processing" = "数据处理中...";
 "competition.applewatch.auth.preparing" = "准备中";
 "competition.applewatch.auth.toast" = "请先在健康-共享-App里打开健康权限";
@@ -492,7 +495,9 @@
 "user.page.bind_device.body.rf" = "右脚";
 "user.page.bind_device.body.wst" = "胸前";
 "user.page.bind_device.no_device" = "暂无可连接的设备";
-"user.page.bind_device.popup.applewatch" = "当绑定AppleWatch并装备相关卡牌后，在手机端开始比赛会自动打开watch端app进行辅助记录，如果没有自动打开可以手动打开watch端app，并在30s内点击同步按钮进行状态同步。";
+"user.page.bind_device.popup.applewatch" = "当使用Apple Watch时，在手机端开始比赛会自动打开watch端App同步记录，如果没有自动打开可以手动打开watch端App，并在30s内点击同步按钮进行状态同步。";
+"user.page.bind_device.popup.default.title" = "默认数据源设备";
+"user.page.bind_device.popup.default.content" = "在未装备任何传感器需求的卡牌时，您仍可以通过绑定受支持的传感器设备辅助记录比赛，默认数据源设备会在比赛过程中持续收集您的运动数据。";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "邮箱";
 "user.page.tab.career" = "生涯";
@@ -568,12 +573,23 @@
 "user.setup.popup.logout.content" = "确定要退出账号吗？";
 "user.setup.toast.logout_failed" = "比赛进行中,无法退出";
 "user.setup.healthkit" = "健康权限";
-"user.setup.healthkit.content" = "Sporreer 在您参加需要 Apple Watch 的比赛时，会请求访问您的健康数据，包括但不限于：
+"user.setup.healthkit.content" = "当您使用 Apple Watch 或其他外部传感器辅助记录运动时，我们会访问您的 Apple 健康数据（HealthKit）来统计和分析您的运动表现，我们读取的数据包括但不限于：
 
--    心率
--    运动时长
--    活动能量
--    运动距离
+- 心率
+
+- 步数
+
+- 跑步和骑行距离
+
+- 活动能量
+
+- 跑步功率
+
+- 骑行功率
+
+- 骑行踏频
+
+除此之外，我们会将运动数据写入体能训练，以方便您在 「健康」App中查看。
 
 这些数据仅用于运动成绩记录、比赛验证和数据统计，不会用于广告、画像或向第三方出售。
 

@@ -35,6 +35,27 @@ struct SensorBindView: View {
                 }
             }
             .padding(.horizontal)
+            
+            HStack(spacing: 4) {
+                Text("user.page.bind_device.popup.default.title")
+                    .foregroundStyle(Color.white)
+                Image(systemName: "info.circle")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondText)
+                    .exclusiveTouchTapGesture {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "user.page.bind_device.popup.default.title",
+                            message: "user.page.bind_device.popup.default.content",
+                            bottomButtons: [.confirm()]
+                        )
+                    }
+                Spacer()
+                Text(deviceManager.defaultSensorName)
+                    .foregroundStyle(Color.white)
+            }
+            .font(.headline)
+            .padding(.horizontal)
+            
             ScrollView {
                 VStack(spacing: 20) {
                     //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posWST)

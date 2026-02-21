@@ -61,10 +61,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     @Published var selectedCards: [MagicCard] = []
     var activeCardEffects: [MagicCardEffect] = []
+    
+    // 当前比赛需要绑定的传感器
     // | 00   +   +   +   +   +    +  |
     //        |   |   |   |   |    |
     //       WST  RF  LF  RH  LH  PHONE
     var sensorRequest: Int = 0
+    
     //@Published var isEffectsFinishPrepare = true        // 所有cardeffects是否完成准备工作
     //var expectedStatsWatchCount: Int = 0              // 需要等待接收最后统计数据的外设个数
     
@@ -1211,7 +1214,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 base: basePoint,
                 power: matchContext.latestPower,
                 pedal_cadence: matchContext.pedalCadence,
-                estimate_pedal_count: matchContext.estimatePedal
+                estimate_pedal_count: matchContext.estimatePedal,
+                card_bonus: matchContext.bonusEachCards
             )
             bikePathData.append(pathPoint)
         }
@@ -1223,7 +1227,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 vertical_amplitude: nil,
                 touchdown_time: nil,
                 step_size: nil,
-                estimate_step_count: matchContext.estimateStep
+                estimate_step_count: matchContext.estimateStep,
+                card_bonus: matchContext.bonusEachCards
             )
             runningPathData.append(pathPoint)
         }
@@ -1365,6 +1370,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     return
                 }
             }
+            // 支持脱离卡牌单独使用传感器设备辅助记录比赛数据
+            addDefaultDevice()
             //let isAllPrepared = allPrepared
             await MainActor.run {
                 //isEffectsFinishPrepare = isAllPrepared
@@ -1372,6 +1379,12 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 ToastManager.shared.finish()
             }
         }
+    }
+    
+    func addDefaultDevice() {
+        let sensorReq = sensorRequest >> 1
+        guard sensorReq == 0, let defaultPos = deviceManager.defaultSensorPos else { return }
+        sensorRequest |= (1 << (defaultPos.rawValue + 1))
     }
     
     func resetCompetitionProperties() {
@@ -1761,6 +1774,8 @@ struct BikePathPoint: Codable {
     let power: Double?
     let pedal_cadence: Double?
     let estimate_pedal_count: Double    // 预测的踏频用于校验
+    
+    let card_bonus: [CardBonusItem]
 }
 
 struct RunningPathPoint: Codable {
@@ -1772,6 +1787,8 @@ struct RunningPathPoint: Codable {
     let touchdown_time: Double?
     let step_size: Double?
     let estimate_step_count: Double     // 预测的步频用于校验
+    
+    let card_bonus: [CardBonusItem]
 }
 
 struct CardBonusItem: Codable {

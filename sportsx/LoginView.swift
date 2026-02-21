@@ -76,6 +76,8 @@ struct SmsLoginView: View {
                 if alreadySendSMSCode {
                     Text(countdown == 0 ? "login.sms.send_result.2" : "login.sms.send_result.1 \(countdown)")
                         .foregroundStyle(Color.secondText)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                     HStack {
                         TextField(text: $smsCode) {
                             Text("login.sms.code.placeholder")
@@ -343,6 +345,8 @@ struct LoginView: View {
                     if alreadySendEmailCode {
                         Text(countdown == 0 ? "login.email.send_result.2" : "login.email.send_result.1 \(countdown)")
                             .foregroundStyle(Color.secondText)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
                         HStack {
                             TextField(text: $emailCode) {
                                 Text("login.sms.code.placeholder")

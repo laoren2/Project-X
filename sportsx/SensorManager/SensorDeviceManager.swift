@@ -8,6 +8,7 @@
 import Foundation
 import WatchConnectivity
 import os
+import SwiftUI
 
 
 enum BodyPosition: Int, CaseIterable, Identifiable {
@@ -92,10 +93,24 @@ class DeviceManager: NSObject, ObservableObject {
     /// bit0 对应 position0, bit1 对应 position1, ...
     @Published private(set) var bindingState: Int = 0
     
+    // 当前默认采集使用的传感器设备 (低5位)
+    @Published var defaultSensorPos: BodyPosition? = nil
+    var defaultSensorName: LocalizedStringKey {
+        if let pos = defaultSensorPos, let device = getDevice(at: pos) {
+            return LocalizedStringKey(device.deviceName)
+        } else {
+            return "common.empty"
+        }
+    }
+    
     private override init() {}
     
     // 绑定设备
     func bindDevice(_ device: SensorDeviceProtocol, at position: BodyPosition) {
+        // 设置默认的采集传感器
+        if bindingState == 0 {
+            defaultSensorPos = position
+        }
         deviceMap[position] = device
         // 设置对应 bit
         bindingState |= (1 << position.rawValue)
@@ -110,6 +125,10 @@ class DeviceManager: NSObject, ObservableObject {
         deviceMap[position] = nil
         // 清除对应 bit
         bindingState &= ~(1 << position.rawValue)
+        // 重置默认的采集传感器
+        if bindingState == 0 {
+            defaultSensorPos = nil
+        }
     }
     
     // 判断某个位置是否已绑定

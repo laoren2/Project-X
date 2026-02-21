@@ -9,6 +9,7 @@ import SwiftUI
 
 struct StartView: View {
     @EnvironmentObject var workoutManager: WatchDataManager
+    @State var toast: String = ""
     
     var body: some View {
         VStack(spacing: 20) {
@@ -18,8 +19,18 @@ struct StartView: View {
                 .scaledToFit()
                 .frame(width: 50)
                 .foregroundStyle(Color.orange)
+            if !toast.isEmpty {
+                Text(LocalizedStringKey(toast))
+                    .font(.caption)
+                    .foregroundStyle(Color.red.opacity(0.8))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Button(action:{
-                workoutManager.syncStatus()
+                let syncStatus = workoutManager.syncStatus()
+                if !syncStatus.result {
+                    toast = syncStatus.msg
+                }
             }){
                 Text("competition.applewatch.sync")
                     .foregroundStyle(Color.green)
