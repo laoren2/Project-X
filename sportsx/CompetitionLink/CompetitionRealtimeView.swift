@@ -16,11 +16,8 @@ struct CompetitionRealtimeView: View {
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
     @State private var assertInfo: Bool = false
-    @State private var assertInfo2: Bool = false
     @State private var mapMode: MapViewMode = .followUser
     
-    @GestureState private var isPressing = false
-    @State private var pressProgress: CGFloat = 0.0
     
     // 定义两列布局
     let columns: [GridItem] = [
@@ -60,7 +57,7 @@ struct CompetitionRealtimeView: View {
         // 显示实时比赛数据
         ZStack(alignment: .bottom) {
             ZStack {
-                RealtimeMapView(
+                RaceRealtimeMapView(
                     fromCoordinate: appState.competitionManager.startCoordinate,
                     toCoordinate: appState.competitionManager.endCoordinate,
                     startRadius: appState.competitionManager.startRadius,
@@ -85,7 +82,6 @@ struct CompetitionRealtimeView: View {
                         }
                         Spacer()
                         Button(action: {
-                            assertInfo2.toggle()
                             withAnimation(.easeIn(duration: 0.2)) {
                                 assertInfo.toggle()
                             }
@@ -153,19 +149,33 @@ struct CompetitionRealtimeView: View {
                 .padding(.horizontal)
             }
             VStack {
-                HStack {
-                    HStack(spacing: 2) {
-                        Image(appState.competitionManager.sport.iconName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 20)
-                        Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
+                ZStack {
+                    HStack {
+                        if let sport = appState.competitionManager.sport {
+                            Image(sport.iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 20)
+                                .padding(6)
+                                .background(Color.black.opacity(0.3))
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        Spacer()
+                        HStack(spacing: 2) {
+                            if let feature = appState.competitionManager.sportFeature {
+                                Image(feature.icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 20)
+                            }
+                            Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
+                        }
+                        .foregroundStyle(Color.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
-                    .foregroundStyle(Color.white)
-                    .padding(6)
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    Spacer()
+                    
                     HStack(alignment: .top, spacing: 5) {
                         Text("GPS")
                             .foregroundStyle(Color.white)
@@ -180,16 +190,6 @@ struct CompetitionRealtimeView: View {
                     .padding(6)
                     .background(Color.black.opacity(0.3))
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                    Spacer()
-                    HStack(spacing: 2) {
-                        Image(appState.competitionManager.sport.iconName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 20)
-                        Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
-                    }
-                    .padding(6)
-                    .hidden()
                 }
                 .padding(.horizontal)
                 VStack {
@@ -230,8 +230,8 @@ struct CompetitionRealtimeView: View {
                             HStack {
                                 let isDisabledInTeamMode = appState.competitionManager.isTeam && appState.competitionManager.isTeamJoinWindowExpired
                                 let isGray = (!appState.competitionManager.isInValidArea) || isDisabledInTeamMode || locationManager.signalStrength.bars < 2
+                                Spacer()
                                 if appState.competitionManager.isRecording {
-                                    Spacer()
                                     VStack {
                                         (Text("user.page.tab.current_record") + Text(":"))
                                             .font(.subheadline)
@@ -261,7 +261,6 @@ struct CompetitionRealtimeView: View {
                                                 ]
                                             )
                                         }
-                                    Spacer()
                                 } else {
                                     Text("competition.realtime.action.start")
                                         .font(.title)
@@ -273,6 +272,7 @@ struct CompetitionRealtimeView: View {
                                             startCompetition()
                                         }
                                 }
+                                Spacer()
                             }
                             if appState.competitionManager.isRecording {
                                 LazyVGrid(columns: columns, spacing: 16) {
@@ -314,7 +314,7 @@ struct CompetitionRealtimeView: View {
                                                         .foregroundStyle(Color.secondText)
                                                     Spacer()
                                                     if let index = appState.competitionManager.matchContext.bonusEachCards.firstIndex(where: { $0.card_id == card.cardID }) {
-                                                        (Text("competition.realtime.card.time") + Text(TimeDisplay.formattedTime( appState.competitionManager.matchContext.bonusEachCards[index].bonus_time, showFraction: true)))
+                                                        (Text("competition.realtime.card.time") + Text(": ") + Text(TimeDisplay.formattedTime( appState.competitionManager.matchContext.bonusEachCards[index].bonus_time, showFraction: true)))
                                                             .font(.subheadline)
                                                             .foregroundStyle(Color.white)
                                                         Spacer()
@@ -359,26 +359,30 @@ struct CompetitionRealtimeView: View {
             )
         }
         .onFirstAppear {
-            PopupWindowManager.shared.presentPopup(
-                title: "competition.event.precautions",
-                message: "competition.realtime.popup.familiar_route",
-                doNotShowAgainKey: "CompetitionRealtimeView.familiar_route",
-                bottomButtons: [
-                    .confirm()
-                ]
-            )
+            if !appState.competitionManager.isRecording {
+                PopupWindowManager.shared.presentPopup(
+                    title: "competition.event.precautions",
+                    message: "competition.realtime.popup.familiar_route",
+                    doNotShowAgainKey: "CompetitionRealtimeView.familiar_route",
+                    bottomButtons: [
+                        .confirm()
+                    ]
+                )
+            }
         }
         .onStableAppear() {
             appState.competitionManager.isShowWidget = false
             appState.competitionManager.requestLocationAlwaysAuthorization()
             if !appState.competitionManager.isRecording {
                 LocationManager.shared.changeToMediumUpdate()
-                appState.competitionManager.setupRealtimeViewLocationSubscription()
+                appState.competitionManager.setupCompetitionLocationSubscription()
             }
         }
         .onStableDisappear() {
             appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
-            appState.competitionManager.deleteRealtimeViewLocationSubscription()
+            if !appState.competitionManager.isRecording {
+                appState.competitionManager.deleteCompetitionLocationSubscription()
+            }
         }
     }
     
@@ -411,16 +415,25 @@ struct CompetitionRealtimeView: View {
             return
         }
         
+        // 检查精确位置权限
+        guard locationManager.checkPreciseLocation() else {
+            DispatchQueue.main.async {
+                PopupWindowManager.shared.presentPopup(
+                    title: "competition.realtime.precise_location.popup.title",
+                    message: "competition.realtime.precise_location.popup.content",
+                    bottomButtons: [.confirm()]
+                )
+            }
+            return
+        }
+        
+        // 检查是否在出发区域内
         guard appState.competitionManager.isInValidArea else {
             let toast = Toast(message: "competition.realtime.start.out_of_area")
             ToastManager.shared.show(toast: toast)
             return
         }
-        //guard appState.competitionManager.isEffectsFinishPrepare else {
-        //    let toast = Toast(message: "competition.realtime.start.toast.card_loading")
-        //    ToastManager.shared.show(toast: toast)
-        //    return
-        //}
+        
         for (pos, dev) in DeviceManager.shared.deviceMap {
             if let device = dev, (appState.competitionManager.sensorRequest & (1 << (pos.rawValue + 1))) != 0 {
                 if !device.connect() {
@@ -430,11 +443,7 @@ struct CompetitionRealtimeView: View {
                 }
             }
         }
-        guard locationManager.signalStrength.bars > 1 else {
-            let toast = Toast(message: "competition.realtime.start.toast.gps")
-            ToastManager.shared.show(toast: toast)
-            return
-        }
+        
         if !appState.competitionManager.isRecording {
             appState.competitionManager.startCompetition()
         }

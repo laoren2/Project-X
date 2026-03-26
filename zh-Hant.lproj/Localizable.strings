@@ -12,17 +12,29 @@
 "common.loading" = "載入中";
 "common.member.a/b %lld %lld" = "%lld/%lld 人";
 "common.me" = "我";
+"common.my" = "我的";
 "common.male" = "男";
 "common.female" = "女";
 "common.user" = "用戶";
 "common.average" = "平均";
 "common.speed" = "速度";
 "common.empty" = "空";
+"common.history" = "歷史";
+"common.duration" = "時間";
 
 "app.slogan" = "隨時隨地  即刻開賽";
 
 "sport.bike" = "自行車";
 "sport.running" = "跑步";
+
+"sport.feature.race" = "競技場";
+"sport.feature.free_training" = "自由訓練";
+
+"tier.bronze" = "青銅";
+"tier.silver" = "白銀";
+"tier.gold" = "黃金";
+"tier.diamond" = "鑽石";
+"tier.master" = "大師";
 
 "region.tw.beiqu" = "北區";
 "region.tw.taibei" = "臺北市";
@@ -74,10 +86,41 @@
 "region.hk.tunmenqu" = "屯門區";
 "region.hk.yuanlangqu" = "元朗區";
 
+"region.kr.gongwan" = "江原";
+"region.kr.gyeonggi" = "京畿";
+"region.kr.southchungcheong" = "忠清北";
+"region.kr.incheon" = "仁川";
+"region.kr.northjeolla" = "全羅北";
+"region.kr.southjeolla" = "全羅南";
+"region.kr.southgyeongsang" = "慶尚南";
+"region.kr.busan" = "釜山市";
+"region.kr.ulsan" = "蔚山";
+"region.kr.northgyeongsang" = "慶尚北";
+"region.kr.jeju" = "濟州";
+"region.kr.seoul" = "首爾";
+"region.kr.daejeon" = "大田";
+"region.kr.sejong" = "世宗";
+"region.kr.northchungcheong" = "忠清北";
+"region.kr.gwangju" = "光州";
+"region.kr.daegu" = "大邱";
+
 "region.cn.shanghai" = "上海";
 "region.cn.beijing" = "北京";
+"region.cn.guangdong" = "廣東";
 "region.cn.guangzhou" = "廣州";
 "region.cn.shenzhen" = "深圳";
+"region.cn.foshan" = "佛山";
+"region.cn.zhejiang" = "浙江";
+"region.cn.hangzhou" = "杭州";
+"region.cn.wenzhou" = "溫州";
+"region.cn.ningbo" = "寧波";
+"region.cn.jiangsu" = "江蘇";
+"region.cn.nanjing" = "南京";
+"region.cn.suzhou" = "蘇州";
+"region.cn.wuxi" = "無錫";
+"region.cn.anhui" = "安徽";
+"region.cn.hefei" = "合肥";
+"region.cn.huangshan" = "黃山";
 
 "tab.home" = "首頁";
 "tab.shop" = "商店";
@@ -153,7 +196,7 @@
 "home.sign_in.reminder_time %@" = "提醒時間：%@";
 "home.sign_in.reminder_time" = "提醒時間";
 "home.sign_in.reminder.content" = "簽到領取每日獎勵，今天也要記得運動哦";
-"home.sigin_in.toast.reminder_permission" = "請先在系統設置裡打開提醒權限";
+"home.sign_in.toast.reminder_permission" = "請先在系統設置裡打開提醒權限";
 "home.sign_in.popup.claim_reward_success.content" = "你已成功領取簽到獎勵：";
 "home.sign_in.popup.claim_reward_success.content_vip" = "你已成功領取會員專屬簽到獎勵：";
 "home.sign_in.timezone.popup.title" = "簽到說明";
@@ -217,6 +260,21 @@
 "warehouse.equipcard.unavailable" = "不可用";
 "warehouse.equipcard.unavailable.detail" = "客戶端版本過低，暫時無法使用";
 
+"training.sport_state" = "活躍度";
+"training.sport_state.description" = "運動活躍度描述了當前的運動訓練狀態，可以影響你在競技中的表現，超過7天不進行訓練會持續損失活躍度哦。";
+"training.sport_state.limit" = "每日上限 20";
+"training.exploration" = "探索度";
+"training.exploration.description" = "探索度描述了您在當前賽季的訓練中對所在區域的探索情況。";
+"training.exploration.region.not_supported" = "目前區域不支援";
+"training.error.no_login" = "登入查看運動狀態和探索區域";
+"training.action.ready" = "準備就緒";
+"training.action.ready.no_login" = "登入以繼續";
+
+"training.history.no_record" = "無訓練記錄";
+
+"training.result.record" = "訓練記錄";
+"training.result.complete" = "訓練結束";
+
 "competition.season.info" = "賽季資訊";
 "competition.season.data" = "賽季數據";
 "competition.season.score" = "賽季積分";
@@ -227,6 +285,8 @@
 "competition.season.event_records" = "賽事積分紀錄";
 "competition.season.score.leaderboard" = "積分榜";
 "competition.season.no_current_matches" = "暫無進行中的比賽";
+"competition.season.tier" = "賽季段位";
+"competition.season.tier.current" = "當前段位";
 
 "competition.location_select.title" = "選擇區域";
 "competition.location_select.action.relocation" = "重新定位";
@@ -234,8 +294,8 @@
 "competition.location_select.no_auth.popup.title" = "定位失敗";
 "competition.location_select.no_auth.popup.content" = "請檢查系統設定的定位權限";
 
-"competition.begin_date" = "開始時間";
-"competition.end_date" = "結束時間";
+"competition.begin_date" = "開始日期";
+"competition.end_date" = "結束日期";
 "competition.match_date" = "比賽時間";
 "competition.complete_date" = "完成時間";
 "competition.register_date" = "報名時間";
@@ -265,21 +325,22 @@
 "competition.record.original_time" = "原始成績";
 "competition.record.valid_time" = "有效成績";
 "competition.record.valid_time.popup.content" = "有效成績是指在原始成績上應用所有已裝備卡牌或關聯卡牌收益後的成績，此成績會在比賽完成後寫入排行榜並統計進你的運動生涯。";
-"competition.record.time_and_data" = "成績與數據";
+"competition.record.settlement_rewards" = "結算資訊";
+"competition.record.time_and_data" = "數據統計";
 "competition.record.result" = "比賽結算";
 "competition.record.title" = "參賽記錄";
 "competition.record.detail" = "記錄詳情";
 "competition.record.popup.cancel_register" = "你確定要取消報名嗎？";
 "competition.record.complete" = "比賽結束";
-"competition.record.result.track_best" = "恭喜！你剛剛成功刷新了賽道最佳成績，成為賽道記錄的保持者，請收下你的獎勵！";
-"competition.record.result.person_best" = "恭喜！你剛剛成功刷新了自己的最佳成績，請收下你的獎勵，再接再厲！";
+"competition.record.result.track_best" = "恭喜！你剛剛成功刷新了賽道最佳成績，成為賽道記錄的保持者！";
+"competition.record.result.person_best" = "恭喜！你剛剛成功刷新了自己的最佳成績，再接再厲！";
 "competition.record.result.normal" = "距離自己的最好成績只差一點點了，期待你的下一個挑戰！";
 "competition.record.time" = "成績";
 "competition.record.no_data" = "無記錄數據";
 "competition.record.incompleted.no_data" = "暫無報名紀錄";
 "competition.record.completed.no_data" = "暫無已完成紀錄";
 
-"competition.cardselect.choose" = "請選擇你的裝備卡";
+"competition.cardselect.choose" = "選擇你的裝備卡";
 "competition.cardselect.subscription" = "訂閱獲得額外卡牌槽";
 "competition.cardselect.action.choose" = "選擇卡片";
 "competition.cardselect.action.next_step" = "下一步";
@@ -290,6 +351,9 @@
 "competition.cardselect.popup.content.running" = "進行跑步比賽時，需要全程將手機固定在大腿位置進行數據校驗，運動中頻繁移動手機可能導致比賽數據校驗失敗。 \n比賽中不誠實的作弊行為可能會導致帳號封鎖。";
 "competition.cardselect.healthkit.title" = "需要存取健康數據";
 "competition.cardselect.healthkit.content" = "使用 Apple Watch 或其他外部感測器輔助記錄比賽時，我們可能會存取您的 Apple 健康數據（HealthKit）來同步您的運動表現，您可以隨時在系統的「健康」App中關閉權限。";
+"competition.cardselect.familiarity_buff" = "熟悉度加成";
+"competition.cardselect.familiarity_buff.description" = "對賽道的熟悉程度會影響你在比賽中的表現，你可以在賽道周圍進行訓練來提升熟悉度。";
+"competition.cardselect.sport_state_buff" = "活躍度加成";
 
 "competition.realtime.action.finish" = "結束比賽";
 "competition.realtime.action.finish.2" = "結束";
@@ -306,7 +370,7 @@
 "competition.realtime.remaining_time %lld" = "剩餘加入時間: %lld 秒";
 "competition.realtime.start.out_of_area" = "您不在出發點，無法開始比賽";
 "competition.realtime.start.popup.no_auth" = "無法開始比賽";
-"competition.realtime.start.popup.no_auth.content" = "需要後台定位權限，請將定位權限調整為始終允許以進行持續的比賽記錄。";
+"competition.realtime.start.popup.no_auth.content" = "需要後台定位權限，請將定位權限調整為始終允許以進行持續的運動記錄。";
 "competition.realtime.start.toast.record_error" = "報名資料錯誤，請重試";
 "competition.realtime.start.toast.out_window" = "您不在隊伍比賽窗口期內";
 "competition.realtime.start.toast.sport_not_support" = "暫不支持當前運動";
@@ -323,6 +387,9 @@
 "competition.realtime.popup.familiar_route" = "在正式開始比賽前，建議至少進行一次完整的賽道練習以熟悉路線。";
 
 "competition.result.stepcadence" = "步頻";
+"competition.result.bonus_time.magiccard" = "總卡牌獎勵";
+"competition.result.bonus_time.familiarity" = "熟悉度獎勵";
+"competition.result.bonus_time.training_state" = "活躍度獎勵";
 
 "competition.event" = "賽事";
 "competition.event.detail" = "賽事詳情";
@@ -355,6 +422,7 @@
 "competition.track.leaderboard.no_data" = "暫無排行榜數據";
 "competition.track.leaderboard.user_and_time" = "用戶和成績";
 "competition.track.altitude.2" = "海拔";
+"competition.track.familiarity" = "熟悉度";
 
 "competition.team.basic_info" = "基本訊息";
 "competition.team.info" = "隊伍資訊";
@@ -464,7 +532,8 @@
 "competition.applewatch.error.sync" = "請在watch端點選同步手動開始比賽";
 "competition.applewatch.error.finish" = "watch連線失敗，請手動結束watch上的運動";
 
-"competition.slidebar.subtitle" = "查看最新的運動賽事";
+"competition.slidebar.title" = "運動中心";
+"competition.slidebar.subtitle" = "發現更多玩法";
 
 "user.page.friend" = "好友";
 "user.page.following" = "關注";
@@ -519,10 +588,10 @@
 "user.setup.realname_auth.undone.2" = "未實名";
 "user.setup.realname_auth.action.auth" = "認證";
 "user.setup.realname_auth.action.reauth" = "重新認證";
-"user.setup.realname_auth.upload" = "上傳身分證件正面照片";
+"user.setup.realname_auth.upload" = "上傳證件正面圖片";
 "user.setup.realname_auth.content" = "完成實名認證後的180天內不可重新認證，重新認證後會清除您在當前賽季已獲得的所有運動的生涯積分";
 "user.setup.realname_auth.popup" = "    對於不同的體育運動來說，男性和女性的運動能力有著明顯的區別，為了最大程度的保證每一項運動競技的公平性，以及給所有用戶帶來更好的使用體驗，我們需要您進行實名認證，我們將嚴格保護每個用戶的身份隱私，您上傳的所有證件原始圖片不會被進行任何形式的備份和存儲，我們只會提取其中必要的信息字段進行識別存儲，我們將始終保護您的信息，不會與除識別能力提供方以外的任何第三方機構分享。\n更多資訊可參考隱私權政策。";
-"user.setup.realname_auth.content.2" = "暫時只支持香港永久性居民身分證和香港居民身分證，上傳時請盡量保證證件填滿圖片且背景色單一";
+"user.setup.realname_auth.content.2" = "上傳時請盡量保證證件完整填滿圖片且沒有反光、傾斜和扭曲";
 "user.setup.realname_auth.popup.no_auth" = "未完成實名認證時，您的運動競技數據只會被標記為男性​​進行展示，且不會進行積分和獎勵的結算，請盡快完成實名認證！";
 "user.setup.vip_center" = "會員訂閱中心";
 "user.setup.clean_cache" = "清理緩存";
@@ -618,8 +687,6 @@
 "user.intro.current_location" = "當前位置";
 "user.intro.identity" = "身份信息";
 "user.intro.identity.no_support" = "暫不支持職業認證";
-
-"asset.coupon.name" = "點券";
 
 "institute.upgrade.upgradeway" = "升級方式";
 "institute.upgrade.upgradeway.mat" = "材料升級";
@@ -722,7 +789,7 @@
 "ccasset.coin" = "金幣";
 "ccasset.coupon" = "點券";
 "ccasset.voucher" = "金券";
-"ccasset.stone" = "升級石";
-"ccasset.stone1" = "初級升級石";
-"ccasset.stone2" = "中級升級石";
-"ccasset.stone3" = "高級升級石";
+"ccasset.stone" = "升級材料";
+"ccasset.stone1" = "初級升級材料";
+"ccasset.stone2" = "中級升級材料";
+"ccasset.stone3" = "高級升級材料";

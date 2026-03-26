@@ -31,7 +31,7 @@ struct CoordinateConverter {
         let lat = coordinate.latitude
         let lon = coordinate.longitude
         //let isCoorInCN = lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55
-        let isInCN = LocationManager.shared.countryCode == "CN"
+        let isInCN = LocationManager.shared.country == .cn
         return !isInCN
     }
 
@@ -189,13 +189,11 @@ struct TimeDisplay {
 struct AgeDisplay {
     static func calculateAge(from birthDateString: String) -> Int? {
         let dateFormatter = DateFormatter()
-        //dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.dateFormat = "dd-MM-yyyy"
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        //dateFormatter.dateFormat = "dd-MM-yyyy"
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
 
-        guard let birthDate = dateFormatter.date(from: birthDateString) else {
-            return nil // 解析失败
-        }
+        guard let birthDate = dateFormatter.date(from: birthDateString) else { return nil }
 
         let calendar = Calendar.current
         let now = Date()
@@ -352,6 +350,11 @@ extension JSONValue {
             print("JSONValue 转字符串失败: \(error)")
             return nil
         }
+    }
+    
+    func toData() -> Data? {
+        let encoder = JSONEncoder()
+        return try? encoder.encode(self)
     }
 }
 

@@ -75,35 +75,33 @@ struct StoreHouseView: View {
                         let columnCount = 5
                         let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
                         let itemWidth = (geo.size.width - totalSpacing - 20) / CGFloat(columnCount) // 20为ScrollView两侧padding
-
-                        ZStack(alignment: .bottom) {
-                            ScrollView {
-                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                    ForEach(assetManager.cpassets) { asset in
-                                        CPAssetUserCardView(asset: asset)
-                                            .frame(width: itemWidth)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
-                                            )
-                                            .onTapGesture {
-                                                if selectedAsset?.id == asset.id {
-                                                    selectedAsset = nil
-                                                } else {
-                                                    selectedAsset = CommonAssetUserInfo(from: asset)
-                                                }
+                        
+                        ScrollView {
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
+                                ForEach(assetManager.cpassets) { asset in
+                                    CPAssetUserCardView(asset: asset)
+                                        .frame(width: itemWidth)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                        )
+                                        .onTapGesture {
+                                            if selectedAsset?.id == asset.id {
+                                                selectedAsset = nil
+                                            } else {
+                                                selectedAsset = CommonAssetUserInfo(from: asset)
                                             }
-                                    }
+                                        }
                                 }
-                                .padding(.top, 10)
-                                .padding(.bottom, 100)
                             }
-                            .refreshable {
-                                await MainActor.run {
-                                    selectedAsset = nil
-                                }
-                                await assetManager.queryCPAssets(withLoadingToast: false)
+                            .padding(.top, 10)
+                            .padding(.bottom, 100)
+                        }
+                        .refreshable {
+                            await MainActor.run {
+                                selectedAsset = nil
                             }
+                            await assetManager.queryCPAssets(withLoadingToast: false)
                         }
                     }
                     .tag(0)
@@ -113,45 +111,43 @@ struct StoreHouseView: View {
                         let columnCount = 3
                         let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
                         let itemWidth = (geo.size.width - totalSpacing - 40) / CGFloat(columnCount) // 40为ScrollView两侧padding
-
-                        ZStack(alignment: .bottom) {
-                            ScrollView {
-                                LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                    ForEach(assetManager.magicCards) { card in
-                                        ZStack {
-                                            MagicCardView(card: card)
-                                                .frame(width: itemWidth)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
-                                                )
-                                            if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                                Text("warehouse.equipcard.unavailable")
-                                                    .font(.system(size: itemWidth * 0.2, weight: .bold))
-                                                    .foregroundColor(.white)
-                                                    .padding(itemWidth * 0.04)
-                                                    .background(Color.red.opacity(0.5))
-                                                    .cornerRadius(itemWidth * 0.04)
-                                            }
+                        
+                        ScrollView {
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
+                                ForEach(assetManager.magicCards) { card in
+                                    ZStack {
+                                        MagicCardView(card: card)
+                                            .frame(width: itemWidth)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
+                                            )
+                                        if !AppVersionManager.shared.checkMinimumVersion(card.version) {
+                                            Text("warehouse.equipcard.unavailable")
+                                                .font(.system(size: itemWidth * 0.2, weight: .bold))
+                                                .foregroundColor(.white)
+                                                .padding(itemWidth * 0.04)
+                                                .background(Color.red.opacity(0.5))
+                                                .cornerRadius(itemWidth * 0.04)
                                         }
-                                        .onTapGesture {
-                                            if selectedAsset?.id == card.id {
-                                                selectedAsset = nil
-                                            } else {
-                                                selectedAsset = CommonAssetUserInfo(from: card)
-                                            }
+                                    }
+                                    .onTapGesture {
+                                        if selectedAsset?.id == card.id {
+                                            selectedAsset = nil
+                                        } else {
+                                            selectedAsset = CommonAssetUserInfo(from: card)
                                         }
                                     }
                                 }
-                                .padding(.top, 20)
-                                .padding(.bottom, 100)
                             }
-                            .refreshable {
-                                await MainActor.run {
-                                    selectedAsset = nil
-                                }
-                                await assetManager.queryMagicCards(withLoadingToast: false)
+                            .padding(.top, 20)
+                            .padding(.bottom, 100)
+                        }
+                        .refreshable {
+                            await MainActor.run {
+                                selectedAsset = nil
                             }
+                            await assetManager.queryMagicCards(withLoadingToast: false)
                         }
                     }
                     .tag(1)

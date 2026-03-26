@@ -89,6 +89,7 @@ struct SeasonBackendView: View {
                 }
             }
         }
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
     }

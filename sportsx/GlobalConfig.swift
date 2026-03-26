@@ -47,6 +47,10 @@ class GlobalConfig: ObservableObject {
     // 比赛页刷新时机
     var refreshCompetitionView: Bool = false
     var refreshRankInfo: Bool = false
+    var refreshFamiliarity: Bool = false
+    
+    // 自由训练页刷新时机
+    var refreshFreeTrainingView: Bool = false
     
     // 用户页刷新时机
     var refreshUserView: Bool = false

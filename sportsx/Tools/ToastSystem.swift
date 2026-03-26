@@ -7,6 +7,7 @@
 import SwiftUI
 import Foundation
 
+
 struct Toast: Identifiable, Equatable {
     let id = UUID()
     var message: String
@@ -30,6 +31,7 @@ struct LoadingToast: Identifiable, Equatable {
     }
 }
 
+// todo: 统一改成 @MainActor
 class ToastManager: ObservableObject {
     static let shared = ToastManager()
 
@@ -38,6 +40,7 @@ class ToastManager: ObservableObject {
     @Published var currentToast: Toast?
     @Published var currentLoadingToast: LoadingToast?
     
+    private var loadingCount: Int = 0
     private var currentTask: Task<Void, Never>?
 
     func show(toast: Toast) {
@@ -56,12 +59,15 @@ class ToastManager: ObservableObject {
 
     func start(toast: LoadingToast) {
         //currentTask?.cancel()
+        loadingCount += 1
         currentLoadingToast = toast
     }
 
     func finish() {
-        //currentTask?.cancel()
-        currentLoadingToast = nil
+        loadingCount = max(loadingCount - 1, 0)
+        if loadingCount == 0 {
+            currentLoadingToast = nil
+        }
     }
 }
 

@@ -12,17 +12,29 @@
 "common.loading" = "Loading";
 "common.member.a/b %lld %lld" = "%lld/%lld members";
 "common.me" = "Me";
+"common.my" = "My";
 "common.male" = "Male";
 "common.female" = "Female";
 "common.user" = "User";
 "common.average" = "Average";
 "common.speed" = "Speed";
 "common.empty" = "Empty";
+"common.history" = "History";
+"common.duration" = "Duration";
 
 "app.slogan" = "Play for Passion";
 
 "sport.bike" = "Bike";
 "sport.running" = "Running";
+
+"sport.feature.race" = "Arena";
+"sport.feature.free_training" = "Free training";
+
+"tier.bronze" = "Bronze";
+"tier.silver" = "Silver";
+"tier.gold" = "Gold";
+"tier.diamond" = "Diamond";
+"tier.master" = "Master";
 
 "region.tw.beiqu" = "North District";
 "region.tw.taibei" = "Taipei City";
@@ -74,10 +86,41 @@
 "region.hk.tunmenqu" = "Tuen Mun";
 "region.hk.yuanlangqu" = "Yuen Long";
 
+"region.kr.gongwan" = "Gongwan";
+"region.kr.gyeonggi" = "Gyeonggi";
+"region.kr.southchungcheong" = "South Chungcheong";
+"region.kr.incheon" = "Incheon";
+"region.kr.northjeolla" = "North Jeolla";
+"region.kr.southjeolla" = "South Jeolla";
+"region.kr.southgyeongsang" = "South Gyeongsang";
+"region.kr.busan" = "Busan";
+"region.kr.ulsan" = "Ulsan";
+"region.kr.northgyeongsang" = "North Gyeongsang";
+"region.kr.jeju" = "Jeju";
+"region.kr.seoul" = "Seoul";
+"region.kr.daejeon" = "Daejeon";
+"region.kr.sejong" = "Sejong";
+"region.kr.northchungcheong" = "North Chungcheong";
+"region.kr.gwangju" = "Gwangju";
+"region.kr.daegu" = "Daegu";
+
 "region.cn.shanghai" = "Shanghai";
 "region.cn.beijing" = "Beijing";
+"region.cn.guangdong" = "Guangdong";
 "region.cn.guangzhou" = "Guangzhou";
 "region.cn.shenzhen" = "Shenzhen";
+"region.cn.foshan" = "Foshan";
+"region.cn.zhejiang" = "Zhejiang";
+"region.cn.hangzhou" = "Hangzhou";
+"region.cn.wenzhou" = "Wenzhou";
+"region.cn.ningbo" = "Ningbo";
+"region.cn.jiangsu" = "Jiangsu";
+"region.cn.nanjing" = "Nanjing";
+"region.cn.suzhou" = "Suzhou";
+"region.cn.wuxi" = "Wuxi";
+"region.cn.anhui" = "Anhui";
+"region.cn.hefei" = "Heifei";
+"region.cn.huangshan" = "Huangshan";
 
 "tab.home" = "Home";
 "tab.shop" = "Shop";
@@ -107,7 +150,7 @@
 "action.received" = "Received";
 "action.receive" = "Claim";
 "action.register" = "Register";
-"action.cancel_register" = "Cancel register";
+"action.cancel_register" = "Cancel";
 "action.create" = "Create";
 "action.detail" = "Detail";
 
@@ -150,10 +193,10 @@
 "home.sign_in.tile" = "Daily Check-in";
 "home.sign_in.subtile" = "More rewards for consecutive check-ins!";
 "home.sign_in.vip_tile" = "Subscribe now to receive more sign-in rewards";
-"home.sign_in.reminder_time %@" = "reminder time: %@";
+"home.sign_in.reminder_time %@" = "reminder at: %@";
 "home.sign_in.reminder_time" = "reminder time";
-"home.sign_in.reminder.content" = "Sign in to claim your daily rewards, and remember to exercise today too!";
-"home.sigin_in.toast.reminder_permission" = "Please enable reminder permissions in system settings first";
+"home.sign_in.reminder.content" = "Open to claim your daily rewards, don't forget to keep exercising!";
+"home.sign_in.toast.reminder_permission" = "Please enable reminder permissions in system settings first";
 "home.sign_in.popup.claim_reward_success.content" = "You have successfully claimed your sign-in reward:";
 "home.sign_in.popup.claim_reward_success.content_vip" = "You have successfully claimed your member-exclusive check-in reward:";
 "home.sign_in.timezone.popup.title" = "Sign-in Instructions";
@@ -217,25 +260,42 @@
 "warehouse.equipcard.unavailable" = "Unavailable";
 "warehouse.equipcard.unavailable.detail" = "Client version is too low, cannot be used at this time";
 
+"training.sport_state" = "Momentum";
+"training.sport_state.description" = "Momentum level describes your current training status and can affect your performance in competitions. You will continue to lose momentum level if you do not train for more than 7 days.";
+"training.sport_state.limit" = "Daily limit 20";
+"training.exploration" = "Exploration";
+"training.exploration.description" = "Exploration level describes how much you explore your area during training this season.";
+"training.exploration.region.not_supported" = "Not supported in the current region";
+"training.error.no_login" = "Log in to view your activity status and exploration area.";
+"training.action.ready" = "Ready";
+"training.action.ready.no_login" = "Login to continue";
+
+"training.history.no_record" = "No training records";
+
+"training.result.record" = "Training records";
+"training.result.complete" = "Training ended";
+
 "competition.season.info" = "Season Information";
 "competition.season.data" = "Season Data";
-"competition.season.score" = "Season Score";
+"competition.season.score" = "Season Points";
 "competition.season.ranking" = "Season Ranking";
 "competition.season.total_time" = "Participation time";
 "competition.season.total_distance" = "Total distance";
 "competition.season.total_rewards" = "Rewards received";
-"competition.season.event_records" = "Event points record";
+"competition.season.event_records" = "Records history";
 "competition.season.score.leaderboard" = "Scores leaderboard";
 "competition.season.no_current_matches" = "There are no matches currently in progress.";
+"competition.season.tier" = "Season Tier";
+"competition.season.tier.current" = "Current tier";
 
 "competition.location_select.title" = "Select Area";
 "competition.location_select.action.relocation" = "Relocate";
-"competition.location_select.regions_with_events" = "Event area only";
+"competition.location_select.regions_with_events" = "only with events";
 "competition.location_select.no_auth.popup.title" = "Location failed";
 "competition.location_select.no_auth.popup.content" = "Please check your system's location permissions.";
 
-"competition.begin_date" = "Start time";
-"competition.end_date" = "End time";
+"competition.begin_date" = "Start date";
+"competition.end_date" = "End date";
 "competition.match_date" = "Match time";
 "competition.complete_date" = "Completion time";
 "competition.register_date" = "Registration period";
@@ -254,7 +314,7 @@
 "competition.register.team.3" = "Team";
 "competition.register.team.content" = "Use your team code to register for the competition your team belongs to";
 "competition.register.team.placeholder" = "Enter your 8-digit team code";
-"competition.start" = "Start game";
+"competition.start" = "Start";
 "competition.record" = "Record";
 "competition.record.status.not_started" = "Not started";
 "competition.record.status.completed" = "Completed";
@@ -265,21 +325,22 @@
 "competition.record.original_time" = "Original scores";
 "competition.record.valid_time" = "Valid scores";
 "competition.record.valid_time.popup.content" = "A valid score refers to the score achieved after applying the benefits of all equipped or associated cards to the original score. This score will be written into the leaderboard and counted in your athletic career after the match is completed.";
-"competition.record.time_and_data" = "Results and Data";
+"competition.record.settlement_rewards" = "Settlement Info";
+"competition.record.time_and_data" = "Data statistics";
 "competition.record.result" = "Match Results";
 "competition.record.title" = "Match Records";
 "competition.record.detail" = "Record detail";
 "competition.record.popup.cancel_register" = "Are you sure you want to cancel your registration?";
 "competition.record.complete" = "Match ended";
-"competition.record.result.track_best" = "Congratulations! You have just broken the track record and become the new track record holder. Please accept your reward!";
-"competition.record.result.person_best" = "Congratulations! You have just broken your personal best, please accept your reward and keep up the good work!";
+"competition.record.result.track_best" = "Congratulations! You have just broken the track record and become the new track record holder!";
+"competition.record.result.person_best" = "Congratulations! You have just broken your personal best, keep up the good work!";
 "competition.record.result.normal" = "You're just a little bit away from your best score, we look forward to your next challenge!";
 "competition.record.time" = "Results";
 "competition.record.no_data" = "No record data";
 "competition.record.incompleted.no_data" = "No registration records yet.";
 "competition.record.completed.no_data" = "No completed records yet.";
 
-"competition.cardselect.choose" = "Please select your equipment card";
+"competition.cardselect.choose" = "Choose your equipment card";
 "competition.cardselect.subscription" = "Subscribe to get extra card slots";
 "competition.cardselect.action.choose" = "Select Card";
 "competition.cardselect.action.next_step" = "Next step";
@@ -290,6 +351,9 @@
 "competition.cardselect.popup.content.running" = "Throughout the running competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
 "competition.cardselect.healthkit.title" = "Need to access health data";
 "competition.cardselect.healthkit.content" = "When using your Apple Watch or other external sensors to help record your game, we may access your Apple Health data (HealthKit) to sync your exercise performance. You can turn off permission at any time in Apple Health App.";
+"competition.cardselect.familiarity_buff" = "Familiarity buff";
+"competition.cardselect.familiarity_buff.description" = "Your familiarity with the track will affect your performance in the race, and you can train around the track to improve your familiarity.";
+"competition.cardselect.sport_state_buff" = "Momentum buff";
 
 "competition.realtime.action.finish" = "End";
 "competition.realtime.action.finish.2" = "End";
@@ -298,7 +362,7 @@
 "competition.realtime.distance" = "Distance";
 "competition.realtime.avgspeed" = "Average speed";
 "competition.realtime.heartrate" = "Heart rate";
-"competition.realtime.energy" = "Energy consumption";
+"competition.realtime.energy" = "Total Energy";
 "competition.realtime.power" = "Power";
 "competition.realtime.switch" = "Switch";
 "competition.realtime.switch_info" = "If you encounter a display area error, please manually switch the coordinate system.";
@@ -306,7 +370,7 @@
 "competition.realtime.remaining_time %lld" = "Remaining joining time: %lld seconds";
 "competition.realtime.start.out_of_area" = "You are not at the starting point and cannot start the race.";
 "competition.realtime.start.popup.no_auth" = "Unable to start the game";
-"competition.realtime.start.popup.no_auth.content" = "Background location permissions are required, please adjust the location permissions to always allow for continuous match recording.";
+"competition.realtime.start.popup.no_auth.content" = "Background location permissions are required, please adjust the location permissions to always allow for continuous exercise recording.";
 "competition.realtime.start.toast.record_error" = "Registration data error, please try again.";
 "competition.realtime.start.toast.out_window" = "You are not in the team competition window.";
 "competition.realtime.start.toast.sport_not_support" = "The current activity is not supported.";
@@ -323,6 +387,9 @@
 "competition.realtime.popup.familiar_route" = "Before the official start of the race, it is recommended to do at least one full practice session on the track to familiarize yourself with the route.";
 
 "competition.result.stepcadence" = "Step cadence";
+"competition.result.bonus_time.magiccard" = "Total card rewards";
+"competition.result.bonus_time.familiarity" = "Familiarity rewards";
+"competition.result.bonus_time.training_state" = "Momentum rewards";
 
 "competition.event" = "Event";
 "competition.event.detail" = "Event Details";
@@ -338,13 +405,13 @@
 "competition.track.info" = "Track Info";
 "competition.track.error.no_tracks" = "There are currently no available tracks for this event.\nPlease switch regions or events to try again.";
 "competition.track.error.closed" = "The track is closed.";
-"competition.track.total_number %lld" = "Total number of people: %lld";
+"competition.track.total_number %lld" = "Total participation: %lld";
 "competition.track.terrain" = "terrain";
-"competition.track.altitude" = "altitude difference";
-"competition.track.prize_pool" = "Prize pool";
-"competition.track.sub_region" = "Location";
+"competition.track.altitude" = "altitude diff";
+"competition.track.prize_pool" = "prize pool";
+"competition.track.sub_region" = "subregion";
 "competition.track.score" = "Track points";
-"competition.track.distance" = "Total distance";
+"competition.track.distance" = "total distance";
 "competition.track.my_score" = "My grades";
 "competition.track.leaderboard" = "Leaderboard";
 "competition.track.leaderboard.ranking" = "Ranking";
@@ -355,6 +422,7 @@
 "competition.track.leaderboard.no_data" = "No ranking data available.";
 "competition.track.leaderboard.user_and_time" = "User and Time";
 "competition.track.altitude.2" = "Altitude";
+"competition.track.familiarity" = "Familiarity";
 
 "competition.team.basic_info" = "Basic Information";
 "competition.team.info" = "Team Info";
@@ -367,7 +435,7 @@
 "competition.team.public" = "Public team information";
 "competition.team.toast.no_name" = "Please enter the team name";
 "competition.team.toast.invalid_time" = "The match time was illegal.";
-"competition.team.join" = "Join the team";
+"competition.team.join" = "Join team";
 "competition.team.join.toast.success" = "Joined successfully";
 "competition.team.join.placeholder" = "Enter the 8-digit team code to join directly";
 "competition.team.join.action" = "Join with one click";
@@ -437,7 +505,7 @@
 "competition.terrain.downHill" = "downHill";
 "competition.terrain.other" = "Other";
 
-"competition.magiccard.select" = "Select Equipment Card";
+"competition.magiccard.select" = "Select Card";
 "competition.magiccard.selected" = "Selected";
 "competition.magiccard.search" = "Search Cards";
 "competition.magiccard.error.sporttype" = "Sports type mismatch";
@@ -464,7 +532,8 @@
 "competition.applewatch.error.sync" = "Please click 'Synchronize' on your watch app to manually start the match";
 "competition.applewatch.error.finish" = "Watch connection failed, please manually end the exercise on your watch.";
 
-"competition.slidebar.subtitle" = "View the latest sports events";
+"competition.slidebar.title" = "Sport Center";
+"competition.slidebar.subtitle" = "Discover more ways to play";
 
 "user.page.friend" = "Friend";
 "user.page.following" = "Following";
@@ -489,10 +558,10 @@
 "user.page.bind_device.result.success" = "Binding successful";
 "user.page.bind_device.result.failed" = "Binding failed";
 "user.page.unbind_device.result.success" = "Unbound successful";
-"user.page.bind_device.body.lh" = "Left hand";
-"user.page.bind_device.body.rh" = "Right hand";
-"user.page.bind_device.body.lf" = "Left foot";
-"user.page.bind_device.body.rf" = "Right foot";
+"user.page.bind_device.body.lh" = "L hand";
+"user.page.bind_device.body.rh" = "R hand";
+"user.page.bind_device.body.lf" = "L foot";
+"user.page.bind_device.body.rf" = "R foot";
 "user.page.bind_device.body.wst" = "Chest";
 "user.page.bind_device.no_device" = "No devices can be connected at the moment";
 "user.page.bind_device.popup.applewatch" = "When using Apple Watch, the Apple Watch app will automatically open to assist with recording when you start a game on your phone. If it doesn't open automatically, you can manually open the Apple Watch app and tap the sync button within 30 seconds to synchronize your status.";
@@ -508,21 +577,21 @@
 "user.page.dailytask.distance" = "Cumulative distance during the race:";
 "user.page.dailytask.time" = "Cumulative time during the race:";
 "user.page.dailytask.go_complete" = "Go and complete";
-"user.sidebar.select_sport" = "Choose A Sport";
+"user.sidebar.select_sport" = "Choose Sport";
 "user.sidebar.default_sport" = "Sport displayed by default on the profile page: ";
 
 "user.setup.account_and_security" = "Account and Security";
 "user.setup.realname_auth" = "Real-name Authentication";
 "user.setup.realname_auth.toast.success" = "Authentication successful";
-"user.setup.realname_auth.done" = "Real-name authentication completed";
-"user.setup.realname_auth.undone" = "Real-name authentication not completed";
+"user.setup.realname_auth.done" = "Authentication completed";
+"user.setup.realname_auth.undone" = "Authentication not completed";
 "user.setup.realname_auth.undone.2" = "Unverified";
 "user.setup.realname_auth.action.auth" = "Authentication";
 "user.setup.realname_auth.action.reauth" = "Re-authentication";
-"user.setup.realname_auth.upload" = "Upload a photo of the front of your ID card";
+"user.setup.realname_auth.upload" = "Upload front image of your ID document";
 "user.setup.realname_auth.content" = "You cannot re-authenticate within 180 days of completing real-name authentication. Re-authenticating will erase all career points you have earned in the current season.";
 "user.setup.realname_auth.popup" = "  There are significant differences in athletic ability between men and women in different sports. To ensure fairness in every sport and provide a better user experience, we require you to complete real-name authentication. We will strictly protect the privacy of each user's identity. All original images of your uploaded documents will not be backed up or stored in any form. We will only extract the necessary information fields for identification and storage. We will always protect your information and will not share it with any third-party organization other than the identification capability provider.\nFor more information, please refer to the Privacy Policy.";
-"user.setup.realname_auth.content.2" = "Currently, only Hong Kong Permanent Identity Cards and Hong Kong Resident Identity Cards are supported. When uploading, please ensure that the document fills the entire image and that the background color is uniform.";
+"user.setup.realname_auth.content.2" = "When uploading, please ensure that the document is completely filled in the image and that there are no reflections, tilts, or distortions.";
 "user.setup.realname_auth.popup.no_auth" = "If you do not complete real-name authentication, your sports data will only be displayed as male, and you will not receive points or rewards. Please complete real-name authentication as soon as possible!";
 "user.setup.vip_center" = "Member Subscription Center";
 "user.setup.clean_cache" = "Clear Cache";
@@ -568,8 +637,8 @@
 "user.setup.feedback.screenshot.placeholder" = "Upload relevant screenshots";
 "user.setup.feedback.toast.success" = "Submission successful";
 "user.setup.contact_us" = "Contact Us";
-"user.setup.contact_us.email" = "Official email address";
-"user.setup.contact_us.wx" = "Official WeChat account";
+"user.setup.contact_us.email" = "Email";
+"user.setup.contact_us.wx" = "WeChat";
 "user.setup.popup.logout.content" = "Are you sure you want to log out of your account?";
 "user.setup.toast.logout_failed" = "The game is in progress and you cannot quit";
 "user.setup.healthkit" = "Health permission";
@@ -602,7 +671,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "user.intro.title.gender" = "Gender";
 "user.intro.title.birthday" = "Birthday";
 "user.intro.title.location" = "Location";
-"user.intro.title.identity_auth" = "Professional Certification";
+"user.intro.title.identity_auth" = "Pro Identifier";
 "user.intro.words_entered %lld %lld" = "entered %lld/%lld characters";
 "user.intro.edit_intro" = "Edit Profile";
 "user.intro.edit_name" = "Edit Name";
@@ -618,8 +687,6 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "user.intro.current_location" = "Current location";
 "user.intro.identity" = "Identity information";
 "user.intro.identity.no_support" = "Professional certification is not currently supported";
-
-"asset.coupon.name" = "points";
 
 "institute.upgrade.upgradeway" = "Upgrade Method";
 "institute.upgrade.upgradeway.mat" = "Material upgrade";
@@ -721,8 +788,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 
 "ccasset.coin" = "Coin";
 "ccasset.coupon" = "Points";
-"ccasset.voucher" = "Gold Points";
-"ccasset.stone" = "Stone";
-"ccasset.stone1" = "Primary Stone";
-"ccasset.stone2" = "Intermediate Stone";
-"ccasset.stone3" = "Advanced Stone";
+"ccasset.voucher" = "Golden Points";
+"ccasset.stone" = "Upgrade Material";
+"ccasset.stone1" = "Primary Material";
+"ccasset.stone2" = "Intermediate Material";
+"ccasset.stone3" = "Advanced Material";

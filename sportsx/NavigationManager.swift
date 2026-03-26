@@ -13,13 +13,13 @@ import Combine
 
 
 enum AppRoute: Hashable {
-    case bikeRecordDetailView(recordID: String)
-    case runningRecordDetailView(recordID: String)
+    case bikeRaceRecordDetailView(recordID: String)
+    case runningRaceRecordDetailView(recordID: String)
     case bikeEventDetailView(eventID: String)
     case runningEventDetailView(eventID: String)
     case competitionCardSelectView
     case competitionRealtimeView
-    case sportTrainingView(sport: SportName)
+    case freeTrainingRealtimeView
     case sensorBindView
     case skillView
     case activityView
@@ -64,6 +64,10 @@ enum AppRoute: Hashable {
     case shopCardDetailView(defID: String)
     case regionSelectedView
     case privacyPanelView
+    case bikeTrainingRecordHistoryView
+    case runningTrainingRecordHistoryView
+    case bikeFreeTrainingRecordDetailView(recordID: String)
+    case runningFreeTrainingRecordDetailView(recordID: String)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -86,10 +90,10 @@ enum AppRoute: Hashable {
     
     var string: String {
         switch self {
-        case .bikeRecordDetailView:
-            return "bikeRecordDetailView"
-        case .runningRecordDetailView:
-            return "runningRecordDetailView"
+        case .bikeRaceRecordDetailView:
+            return "bikeRaceRecordDetailView"
+        case .runningRaceRecordDetailView:
+            return "runningRaceRecordDetailView"
         case .bikeEventDetailView:
             return "bikeEventDetailView"
         case .runningEventDetailView:
@@ -98,8 +102,8 @@ enum AppRoute: Hashable {
             return "competitionCardSelectView"
         case .competitionRealtimeView:
             return "competitionRealtimeView"
-        case .sportTrainingView:
-            return "sportTrainingView"
+        case .freeTrainingRealtimeView:
+            return "freeTrainingRealtimeView"
         case .sensorBindView:
             return "sensorBindView"
         case .skillView:
@@ -188,6 +192,14 @@ enum AppRoute: Hashable {
             return "regionSelectedView"
         case .privacyPanelView:
             return "privacyPanelView"
+        case .bikeTrainingRecordHistoryView:
+            return "bikeTrainingRecordHistoryView"
+        case .runningTrainingRecordHistoryView:
+            return "runningTrainingRecordHistoryView"
+        case .bikeFreeTrainingRecordDetailView:
+            return "bikeFreeTrainingRecordDetailView"
+        case .runningFreeTrainingRecordDetailView:
+            return "runningFreeTrainingRecordDetailView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"
@@ -274,7 +286,7 @@ class NavigationManager: ObservableObject {
 
     func removeLast(_ count: Int = 1) {
         //print("path removeLast")
-        guard count >= 0 else { return }
+        guard count > 0 else { return }
         
         lock.lock()
         if path.count >= count {

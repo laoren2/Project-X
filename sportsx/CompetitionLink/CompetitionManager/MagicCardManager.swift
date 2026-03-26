@@ -933,10 +933,12 @@ class XposeTestEffect: MagicCardEffect {
         if let sensorLocation = params["sensor_location"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation >> 1, in: sensorTypes) {
             sensor_location = sensorLocation
             CompetitionManager.shared.sensorRequest |= sensorLocation
+            DataFusionManager.shared.deviceNeedToWork |= sensorLocation
         } else {
             if let sensorLocation2 = params["sensor_location2"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation2 >> 1, in: sensorTypes) {
                 sensor_location = sensorLocation2
                 CompetitionManager.shared.sensorRequest |= sensorLocation2
+                DataFusionManager.shared.deviceNeedToWork |= sensorLocation2
             } else {
                 return false
             }

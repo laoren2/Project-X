@@ -21,10 +21,19 @@ struct SmsLoginView: View {
     @State private var agreed = false
     @State private var countdown: Int = 60
     @State private var alreadySendSMSCode = false
+    @State var selectedCountry: Country = .hk
+    @State var showCountrySheet: Bool = false
     
     @State private var timer: Timer?
     
-
+    init() {
+        if let country = LocationManager.shared.country {
+            selectedCountry = country
+        } else {
+            selectedCountry = .hk
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
             HStack {
@@ -55,11 +64,19 @@ struct SmsLoginView: View {
                     .foregroundStyle(Color.white)
                     .font(.title2)
                 HStack {
-                    Text("+852")
-                        .padding()
-                        .foregroundStyle(Color.black)
-                        .background(Color.white)
-                        .cornerRadius(10)
+                    HStack {
+                        Text("+\(selectedCountry.phoneCode)")
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.gray)
+                    }
+                    .padding()
+                    .foregroundStyle(Color.black)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .exclusiveTouchTapGesture {
+                        showCountrySheet = true
+                    }
                     
                     TextField(text: $phoneNumber) {
                         Text("login.sms.phone.placeholder")
@@ -160,6 +177,10 @@ struct SmsLoginView: View {
         .enableSwipeBackGesture()
         .ignoresSafeArea(.keyboard)
         .hideKeyboardOnTap()
+        .sheet(isPresented: $showCountrySheet) {
+            CountryPickerView(selectedCountry: $selectedCountry)
+                .presentationDetents([.fraction(0.4)])
+        }
     }
     
     func loginWithSMS() {
@@ -167,7 +188,7 @@ struct SmsLoginView: View {
             ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
             return
         }
-        guard phoneNumber.count == 8 else {
+        guard selectedCountry.phoneNumberLength.contains(phoneNumber.count) else {
             ToastManager.shared.show(toast: Toast(message: "login.toast.error_number"))
             return
         }
@@ -176,10 +197,13 @@ struct SmsLoginView: View {
             return
         }
         
-        let body = ["phone_number": phoneNumber, "code": smsCode]
-        guard let encodedBody = try? JSONEncoder().encode(body) else {
-            return
-        }
+        let timezone = TimeZone.current.identifier
+        let body = [
+            "phone_number": selectedCountry.phoneCode + phoneNumber,
+            "code": smsCode,
+            "timezone": timezone
+        ]
+        guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
@@ -235,14 +259,14 @@ struct SmsLoginView: View {
             ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
             return
         }
-        guard phoneNumber.count == 8 else {
+        guard selectedCountry.phoneNumberLength.contains(phoneNumber.count) else {
             ToastManager.shared.show(toast: Toast(message: "login.toast.error_number"))
             return
         }
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
-        let body = ["phone_number": phoneNumber]
+        let body = ["phone_number": selectedCountry.phoneCode + phoneNumber]
         guard let encodedBody = try? JSONEncoder().encode(body) else {
             return
         }
@@ -275,6 +299,49 @@ struct SmsLoginView: View {
             } else {
                 timer?.invalidate()
                 timer = nil
+            }
+        }
+    }
+}
+
+struct CountryPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedCountry: Country
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(Country.allCases.filter({ $0.supported }), id: \.self) { country in
+                    Button {
+                        selectedCountry = country
+                        dismiss()
+                    } label: {
+                        HStack {
+                            HStack(alignment: .center, spacing: 4) {
+                                Text(country.displayName)
+                                    .foregroundColor(.primary)
+                                Text("+\(country.phoneCode)")
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            if selectedCountry == country {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                    }
+                }
+            }
+            .navigationTitle("Select Region")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .foregroundColor(.secondary)
+                }
             }
         }
     }
@@ -599,7 +666,12 @@ struct LoginView: View {
             return
         }
         
-        let body = ["email_address": emailAddress, "code": emailCode]
+        let timezone = TimeZone.current.identifier
+        let body = [
+            "email_address": emailAddress,
+            "code": emailCode,
+            "timezone": timezone
+        ]
         guard let encodedBody = try? JSONEncoder().encode(body) else {
             return
         }
@@ -730,8 +802,10 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
+        let timezone = TimeZone.current.identifier
         let body: [String: String] = [
-            "jws": token
+            "jws": token,
+            "timezone": timezone
         ]
         guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
@@ -794,5 +868,5 @@ struct LoginResponse: Codable {
 }
 
 #Preview {
-    LoginView()
+    SmsLoginView()
 }

@@ -7,9 +7,9 @@
 
 import Foundation
 
-class BikeRecordDetailViewModel: ObservableObject {
+class BikeRaceRecordDetailViewModel: ObservableObject {
     let recordID: String
-    @Published var recordDetailInfo: BikeRecordDetailInfo?
+    @Published var recordDetailInfo: BikeRaceRecordDetailInfo?
     
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [BikePathPoint] = []
@@ -33,15 +33,15 @@ class BikeRecordDetailViewModel: ObservableObject {
         
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
         
-        NetworkService.sendRequest(with: request, decodingType: BikeRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: BikeRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        self.recordDetailInfo = BikeRecordDetailInfo(from: unwrappedData)
+                        self.recordDetailInfo = BikeRaceRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
-                        self.samplePath = BikePathPointTool.computeSamplePoints(pathData: self.pathData)
+                        self.samplePath = BikePathPointTool.computeRaceSamplePoints(pathData: self.pathData)
                     }
                 }
             default: break
@@ -50,9 +50,9 @@ class BikeRecordDetailViewModel: ObservableObject {
     }
 }
 
-class RunningRecordDetailViewModel: ObservableObject {
+class RunningRaceRecordDetailViewModel: ObservableObject {
     let recordID: String
-    @Published var recordDetailInfo: RunningRecordDetailInfo?
+    @Published var recordDetailInfo: RunningRaceRecordDetailInfo?
     
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [RunningPathPoint] = []
@@ -75,15 +75,15 @@ class RunningRecordDetailViewModel: ObservableObject {
         
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
         
-        NetworkService.sendRequest(with: request, decodingType: RunningRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
-                        self.recordDetailInfo = RunningRecordDetailInfo(from: unwrappedData)
+                        self.recordDetailInfo = RunningRaceRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
-                        self.samplePath = RunningPathPointTool.computeSamplePoints(pathData: self.pathData)
+                        self.samplePath = RunningPathPointTool.computeRaceSamplePoints(pathData: self.pathData)
                     }
                 }
             default: break
@@ -92,7 +92,12 @@ class RunningRecordDetailViewModel: ObservableObject {
     }
 }
 
-struct BikeRecordDetailInfo {
+struct RaceSettlementsInfo {
+    let xp: Int
+    let ccassets: [CCUpdateResponse]
+}
+
+struct BikeRaceRecordDetailInfo {
     let status: CompetitionStatus
     let originalTime: Double            // 原始成绩
     let finalTime: Double               // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
@@ -100,8 +105,12 @@ struct BikeRecordDetailInfo {
     let cardBonus: [CardBonusInfo]      // 我的卡牌奖励
     let extraCardBonus: [CardBonusInfo]      // 其他卡牌奖励
     let teamMemberScores: [MemberScoreInfo]     // 组队模式下的队友成绩
+    let settlements: RaceSettlementsInfo            // 结算数据
+    let familiarityTime: Double         // 熟悉度收益时间
+    let trainingStateTime: Double       // 训练状态收益时间
+    let totalCardTime: Double           // 总卡牌时间收益
     
-    init(from detail: BikeRecordDetailResponse) {
+    init(from detail: BikeRaceRecordDetailResponse) {
         self.status = detail.status
         self.originalTime = detail.original_time
         self.finalTime = detail.final_time
@@ -126,10 +135,31 @@ struct BikeRecordDetailInfo {
             scores.append(MemberScoreInfo(from: score))
         }
         self.teamMemberScores = scores
+        
+        var temp_assets: [CCUpdateResponse] = []
+        var xp: Int = 0
+        if let settlements = detail.settlements {
+            for type in CCAssetType.allCases {
+                if let amount = settlements["\(type.rawValue)"]?.intValue {
+                    temp_assets.append(CCUpdateResponse(ccasset_type: type, new_ccamount: amount))
+                }
+            }
+            if let amount = settlements["xp"]?.intValue {
+                xp = amount
+            }
+        }
+        self.settlements = RaceSettlementsInfo(xp: xp, ccassets: temp_assets)
+        self.familiarityTime = detail.familiarity_time
+        self.trainingStateTime = detail.training_state_time
+        var cardTime: Double = 0
+        for card_bonus in detail.card_bonus {
+            cardTime += card_bonus.bonus_time
+        }
+        self.totalCardTime = cardTime
     }
 }
 
-struct RunningRecordDetailInfo {
+struct RunningRaceRecordDetailInfo {
     let status: CompetitionStatus
     let originalTime: Double            // 原始成绩
     let finalTime: Double               // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
@@ -137,8 +167,12 @@ struct RunningRecordDetailInfo {
     let cardBonus: [CardBonusInfo]      // 我的卡牌奖励
     let extraCardBonus: [CardBonusInfo]      // 其他卡牌奖励
     let teamMemberScores: [MemberScoreInfo]     // 组队模式下的队友成绩
+    let settlements: RaceSettlementsInfo            // 结算数据
+    let familiarityTime: Double         // 熟悉度收益时间
+    let trainingStateTime: Double       // 训练状态收益时间
+    let totalCardTime: Double
     
-    init(from detail: RunningRecordDetailResponse) {
+    init(from detail: RunningRaceRecordDetailResponse) {
         self.status = detail.status
         self.originalTime = detail.original_time
         self.finalTime = detail.final_time
@@ -163,6 +197,27 @@ struct RunningRecordDetailInfo {
             scores.append(MemberScoreInfo(from: score))
         }
         self.teamMemberScores = scores
+        
+        var temp_assets: [CCUpdateResponse] = []
+        var xp: Int = 0
+        if let settlements = detail.settlements {
+            for type in CCAssetType.allCases {
+                if let amount = settlements["\(type.rawValue)"]?.intValue {
+                    temp_assets.append(CCUpdateResponse(ccasset_type: type, new_ccamount: amount))
+                }
+            }
+            if let amount = settlements["xp"]?.intValue {
+                xp = amount
+            }
+        }
+        self.settlements = RaceSettlementsInfo(xp: xp, ccassets: temp_assets)
+        self.familiarityTime = detail.familiarity_time
+        self.trainingStateTime = detail.training_state_time
+        var cardTime: Double = 0
+        for card_bonus in detail.card_bonus {
+            cardTime += card_bonus.bonus_time
+        }
+        self.totalCardTime = cardTime
     }
 }
 
@@ -197,7 +252,7 @@ struct MemberScoreDTO: Codable {
     let final_time: Double?
 }
 
-struct BikeRecordDetailResponse: Codable {
+struct BikeRaceRecordDetailResponse: Codable {
     let status: CompetitionStatus
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
@@ -205,9 +260,12 @@ struct BikeRecordDetailResponse: Codable {
     let path: [BikePathPoint]           // 比赛路径记录
     let card_bonus: [CardBonusDTO]      // 所有卡牌的奖励时间
     let team_member_scores: [MemberScoreDTO]    // 队友成绩
+    let settlements: JSONValue?         // 比赛结算
+    let familiarity_time: Double        // 熟悉度收益时间
+    let training_state_time: Double     // 训练状态收益时间
 }
 
-struct RunningRecordDetailResponse: Codable {
+struct RunningRaceRecordDetailResponse: Codable {
     let status: CompetitionStatus
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 - 所有卡牌的奖励时间 ）
@@ -215,6 +273,9 @@ struct RunningRecordDetailResponse: Codable {
     let path: [RunningPathPoint]        // 比赛路径记录
     let card_bonus: [CardBonusDTO]      // 所有卡牌的奖励时间
     let team_member_scores: [MemberScoreDTO]    // 队友成绩
+    let settlements: JSONValue?         // 比赛结算
+    let familiarity_time: Double        // 熟悉度收益时间
+    let training_state_time: Double     // 训练状态收益时间
 }
 
 struct BikeSamplePathPoint {

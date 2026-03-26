@@ -65,6 +65,24 @@
       "idiom" : "universal",
       "locale" : "zh-Hant",
       "scale" : "3x"
+    },
+    {
+      "filename" : "usage_ad_ko.png",
+      "idiom" : "universal",
+      "locale" : "ko",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "usage_ad_ko 1.png",
+      "idiom" : "universal",
+      "locale" : "ko",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "usage_ad_ko 2.png",
+      "idiom" : "universal",
+      "locale" : "ko",
+      "scale" : "3x"
     }
   ],
   "info" : {

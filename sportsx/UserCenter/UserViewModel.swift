@@ -51,6 +51,9 @@ class UserViewModel: ObservableObject {
     let userID: String
     let sidebarWidth: CGFloat = 300 // 侧边栏宽度
     
+    @Published var isCareerDataLoading: Bool = false
+    @Published var isCareerRecordsLoading: Bool = false
+    @Published var isCurrentRecordsLoading: Bool = false
     
     init(id: String) {
         userID = id
@@ -92,11 +95,11 @@ class UserViewModel: ObservableObject {
     func queryHistoryCareers() {
         seasons = [SeasonSelectableInfo(seasonID: "未知", seasonName: "error.unknown")]
         selectedSeason = nil
-        guard var components = URLComponents(string: "/competition/\(activeSport.rawValue)/query_history_seasons") else { return }
+        guard let components = URLComponents(string: "/competition/\(activeSport.rawValue)/query_history_seasons") else { return }
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
-        NetworkService.sendRequest(with: request, decodingType: SeasonSelectableResponse.self, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: SeasonSelectableResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -131,7 +134,8 @@ class UserViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
-        NetworkService.sendRequest(with: request, decodingType: CareerDataDTO.self, showErrorToast: true) { result in
+        isCareerDataLoading = true
+        NetworkService.sendRequest(with: request, decodingType: CareerDataDTO.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -144,6 +148,9 @@ class UserViewModel: ObservableObject {
                     }
                 }
             default: break
+            }
+            DispatchQueue.main.async {
+                self.isCareerDataLoading = false
             }
         }
     }
@@ -161,7 +168,8 @@ class UserViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
-        NetworkService.sendRequest(with: request, decodingType: CareerRecordResponse.self, showErrorToast: true) { result in
+        isCareerRecordsLoading = true
+        NetworkService.sendRequest(with: request, decodingType: CareerRecordResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -171,6 +179,9 @@ class UserViewModel: ObservableObject {
                     }
                 }
             default: break
+            }
+            DispatchQueue.main.async {
+                self.isCareerRecordsLoading = false
             }
         }
     }
@@ -185,7 +196,8 @@ class UserViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get)
         
-        NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showErrorToast: true) { result in
+        self.isCurrentRecordsLoading = true
+        NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -195,6 +207,9 @@ class UserViewModel: ObservableObject {
                     }
                 }
             default: break
+            }
+            DispatchQueue.main.async {
+                self.isCurrentRecordsLoading = false
             }
         }
     }
@@ -304,6 +319,8 @@ class LocalUserViewModel: ObservableObject {
     @Published var activeSport: SportName = .Default        // 负责网络请求任务
     @Published var showSidebar = false  // 侧边栏是否显示
     
+    // 赛季 XP
+    @Published var totalXP: Int = 0
     // 赛季总积分
     @Published var totalScore: Int = 0
     // 赛季总积分排名
@@ -326,6 +343,9 @@ class LocalUserViewModel: ObservableObject {
     @Published var seasons: [SeasonSelectableInfo] = []
     let sidebarWidth: CGFloat = 300 // 侧边栏宽度
     
+    @Published var isCareerDataLoading: Bool = false
+    @Published var isCareerRecordsLoading: Bool = false
+    @Published var isCurrentRecordsLoading: Bool = false
     
     init() {
         self.sport = userManager.user.defaultSport
@@ -377,6 +397,7 @@ class LocalUserViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
+        isCareerDataLoading = true
         NetworkService.sendRequest(with: request, decodingType: CareerDataDTO.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
@@ -387,9 +408,13 @@ class LocalUserViewModel: ObservableObject {
                         self.totalBonus = unwrappedData.total_voucher
                         self.totalDistance = unwrappedData.total_distance
                         self.totalTime = unwrappedData.total_time
+                        self.totalXP = unwrappedData.total_xp
                     }
                 }
             default: break
+            }
+            DispatchQueue.main.async {
+                self.isCareerDataLoading = false
             }
         }
     }
@@ -406,6 +431,7 @@ class LocalUserViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
+        isCareerRecordsLoading = true
         NetworkService.sendRequest(with: request, decodingType: CareerRecordResponse.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
@@ -417,16 +443,20 @@ class LocalUserViewModel: ObservableObject {
                 }
             default: break
             }
+            DispatchQueue.main.async {
+                self.isCareerRecordsLoading = false
+            }
         }
     }
     
     func queryCurrentRecords() {
-        guard var components = URLComponents(
+        guard let components = URLComponents(
             string: "/competition/\(activeSport.rawValue)/" + "query_me_current_best_records"
         ) else { return }
         guard let urlPath = components.string else { return }
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
+        isCurrentRecordsLoading = true
         NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
@@ -437,6 +467,9 @@ class LocalUserViewModel: ObservableObject {
                     }
                 }
             default: break
+            }
+            DispatchQueue.main.async {
+                self.isCurrentRecordsLoading = false
             }
         }
     }
@@ -488,6 +521,7 @@ struct CareerDataDTO: Codable {
     let total_voucher: Int
     let total_distance: Double
     let total_time: Double
+    let total_xp: Int
 }
 
 enum CupLevel {

@@ -57,6 +57,7 @@ struct BikeTrack: Identifiable, Equatable {
     let totalParticipants: Int          // 总参与人数
     let distance: Double
     let currentParticipants: Int = 0        // 当前参与人数
+    var familiarity: Double? = nil          // 用户熟悉度
     
     var rankInfo: BikeUserRankCard? = nil
     

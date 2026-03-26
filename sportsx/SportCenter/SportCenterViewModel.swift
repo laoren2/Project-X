@@ -125,7 +125,11 @@ class CompetitionCenterViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.locationManager.regionID = unwrappedData.region_id
                         GlobalConfig.shared.locationID = unwrappedData.region_id
-                        self.locationManager.countryCode = unwrappedData.country_code
+                        if let code = unwrappedData.country_code {
+                            self.locationManager.country = Country(rawValue: code)
+                        } else {
+                            self.locationManager.country = nil
+                        }
                         if let regionID = unwrappedData.region_id, let _ = unwrappedData.country_code {
                             let userManager = UserManager.shared
                             if userManager.isLoggedIn && userManager.user.enableAutoLocation && userManager.user.location != regionID {

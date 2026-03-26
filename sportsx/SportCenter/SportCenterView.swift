@@ -9,27 +9,22 @@ import SwiftUI
 import MapKit
 
 
-struct SportCenterView: View {
+/*struct SportCenterView: View {
     @ObservedObject var viewModel: CompetitionCenterViewModel
     
     var body: some View {
-        // todo: 实现训练中心
         ZStack(alignment: .topLeading) {
-            //TrainingCenterView()
             CompetitionCenterView(viewModel: viewModel)
-                //.opacity(appState.navigationManager.isTrainingView ? 0 : 1)
         }
     }
-}
+}*/
 
-struct CompetitionCenterView: View {
+struct SportCenterView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: CompetitionCenterViewModel
     @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject var locationManager = LocationManager.shared
     
-    @State private var showSportPicker = false
-    @State private var showingCitySelection = false
     @State private var isDragging: Bool = false     // 是否处于拖动中
     
     var body: some View {
@@ -59,18 +54,20 @@ struct CompetitionCenterView: View {
                                 //.foregroundStyle(Color.orange)
                                 .frame(width: 20, height: 20)
                             
-                            //Text(appState.sport.name)
-                            //    .font(.headline)
-                            
                             Image(appState.sport.iconName)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 20)
+                            Text(appState.sportFeature.title)
+                                .font(.system(size: 20))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                         }
-                        .foregroundStyle(.white)
+                        .frame(maxWidth: 150, alignment: .leading)
+                        .foregroundStyle(Color.white)
                         .exclusiveTouchTapGesture {
                             if !isDragging {
-                                withAnimation(.easeIn(duration: 0.25)) {
+                                withAnimation(.easeIn(duration: 0.2)) {
                                     appState.navigationManager.showSideBar = true
                                 }
                             }
@@ -79,19 +76,25 @@ struct CompetitionCenterView: View {
                         Spacer()
                         
                         // 定位
-                        HStack(spacing: 2) {
-                            Image("location")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                            Text(locationManager.regionName ?? "error.unknown")
-                                .foregroundColor(.white)
-                        }
-                        .exclusiveTouchTapGesture {
-                            appState.navigationManager.append(.regionSelectedView)
-                        }
+                        //if appState.sportFeature == .bikeRace || appState.sportFeature == .runningRace {
+                            HStack(spacing: 2) {
+                                Image("location")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                Text(locationManager.regionName ?? "error.unknown")
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
+                            .frame(maxWidth: 150, alignment: .trailing)
+                            .exclusiveTouchTapGesture {
+                                appState.navigationManager.append(.regionSelectedView)
+                            }
+                        //}
                     }
                     .padding(.horizontal, 10)
+                    .foregroundStyle(Color.white)
                     
                     // 居中图案
                     HStack(spacing: 4) {
@@ -110,8 +113,8 @@ struct CompetitionCenterView: View {
                                         ]
                                     ) {
                                         VStack {
-                                            Text("competition.begin_date") + Text(LocalizedStringKey(DateDisplay.formattedDate(season.startDate)))
-                                            Text("competition.end_date") + Text(LocalizedStringKey(DateDisplay.formattedDate(season.endDate)))
+                                            Text("competition.begin_date") + Text("：") + Text(LocalizedStringKey(DateDisplay.formattedDate(season.startDate)))
+                                            Text("competition.end_date") + Text("：") + Text(LocalizedStringKey(DateDisplay.formattedDate(season.endDate)))
                                         }
                                         .font(.subheadline)
                                         .foregroundStyle(Color.secondText)
@@ -126,10 +129,15 @@ struct CompetitionCenterView: View {
                 }
                 .padding(.bottom, 5)
                 
-                if appState.sport == .Bike {
+                switch appState.sportFeature {
+                case .bikeRace:
                     BikeCompetitionView(centerViewModel: viewModel, isDragging: $isDragging)
-                } else if appState.sport == .Running {
+                case .bikeFreeTraining:
+                    BikeFreeTrainingView()
+                case .runningRace:
                     RunningCompetitionView(centerViewModel: viewModel, isDragging: $isDragging)
+                case .runningFreeTraining:
+                    RunningFreeTrainingView()
                 }
             }
         }
@@ -623,6 +631,75 @@ struct FullScreenMapRepresentable: UIViewRepresentable {
             }
             return MKOverlayRenderer(overlay: overlay)
         }
+    }
+}
+
+struct CalendarDayCell: View {
+    let day: CalendarDay
+    let isSelected: Bool
+
+    var body: some View {
+        ZStack {
+            // 背景
+            Circle()
+                .fill(isSelected ? Color.orange.opacity(0.5) : day.backgroundColor)
+            
+            // 圆环
+            Circle()
+                .trim(from: day.delta >= 0 ? 0 : 1 - progress,
+                      to: day.delta >= 0 ? progress : 1)
+                .stroke(day.foregroundColor, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                //.animation(.easeInOut(duration: 3), value: day.delta)
+            
+            // 日期
+            Text("\(day.dayNumber)")
+                .font(.subheadline)
+                .foregroundStyle(isSelected ? Color.clear : Color.secondText)
+            
+            // 选中时显示 delta 数值
+            if isSelected {
+                Text(day.deltaText)
+                    .font(.system(.headline, weight: .bold))
+                    .foregroundStyle(day.foregroundColor)
+            }
+        }
+        .frame(width: 50, height: 50)
+    }
+    
+    private var progress: CGFloat {
+        let maxValue: CGFloat = 20      // 每日上限为 20
+        let value = min(abs(CGFloat(day.delta)) / maxValue, 1.0)
+        return value
+    }
+}
+
+struct CalendarHeaderView: View {
+    var monthText: String
+    var onPrev: () -> Void
+    var onNext: () -> Void
+
+    var body: some View {
+        HStack {
+            Button(action: onPrev) {
+                Image(systemName: "chevron.left")
+                    .padding(10)
+                    .background(Color.gray.opacity(0.5))
+                    .clipShape(Circle())
+            }
+            Spacer()
+            Text(monthText)
+                .font(.headline)
+            Spacer()
+            Button(action: onNext) {
+                Image(systemName: "chevron.right")
+                    .padding(10)
+                    .background(Color.gray.opacity(0.5))
+                    .clipShape(Circle())
+            }
+        }
+        .padding()
+        .foregroundStyle(Color.white)
     }
 }
 

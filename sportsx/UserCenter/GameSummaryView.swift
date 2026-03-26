@@ -14,23 +14,30 @@ struct GameSummaryView: View {
     
     var body: some View {
         VStack {
-            if !viewModel.gameSummaryCards.isEmpty {
-                LazyVStack(spacing: 15) {
-                    ForEach(viewModel.gameSummaryCards) { card in
-                        GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top)
+            if viewModel.isCurrentRecordsLoading {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.5))
+                    .frame(height: 300)
+                    .padding(.horizontal)
             } else {
-                Spacer()
-                VStack(spacing: 20) {
-                    Image(systemName: "doc.text.magnifyingglass")
-                        .font(.system(size: 60))
-                    Text("competition.season.no_current_matches")
-                        .font(.headline)
+                if !viewModel.gameSummaryCards.isEmpty {
+                    LazyVStack(spacing: 15) {
+                        ForEach(viewModel.gameSummaryCards) { card in
+                            GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                } else {
+                    Spacer()
+                    VStack(spacing: 20) {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 60))
+                        Text("competition.season.no_current_matches")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(Color.white.opacity(0.3))
                 }
-                .foregroundStyle(Color.white.opacity(0.3))
             }
             Spacer()
         }
@@ -51,23 +58,30 @@ struct LocalGameSummaryView: View {
                     .foregroundStyle(Color.secondText)
                     .padding(.top, 100)
             } else {
-                if !viewModel.gameSummaryCards.isEmpty {
-                    LazyVStack(spacing: 15) {
-                        ForEach(viewModel.gameSummaryCards) { card in
-                            GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
+                if viewModel.isCurrentRecordsLoading {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.5))
+                        .frame(height: 300)
+                        .padding(.horizontal)
                 } else {
-                    Spacer()
-                    VStack(spacing: 20) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 60))
-                        Text("competition.season.no_current_matches")
-                            .font(.headline)
+                    if !viewModel.gameSummaryCards.isEmpty {
+                        LazyVStack(spacing: 15) {
+                            ForEach(viewModel.gameSummaryCards) { card in
+                                GameSummaryCardView(sport: viewModel.sport, gameSummaryCard: card)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top)
+                    } else {
+                        Spacer()
+                        VStack(spacing: 20) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 60))
+                            Text("competition.season.no_current_matches")
+                                .font(.headline)
+                        }
+                        .foregroundStyle(Color.white.opacity(0.3))
                     }
-                    .foregroundStyle(Color.white.opacity(0.3))
                 }
             }
             Spacer()
@@ -126,9 +140,9 @@ struct GameSummaryCardView: View {
                 }
                 .exclusiveTouchTapGesture {
                     if sport == .Bike {
-                        appState.navigationManager.append(.bikeRecordDetailView(recordID: gameSummaryCard.record_id))
+                        appState.navigationManager.append(.bikeRaceRecordDetailView(recordID: gameSummaryCard.record_id))
                     } else if sport == .Running {
-                        appState.navigationManager.append(.runningRecordDetailView(recordID: gameSummaryCard.record_id))
+                        appState.navigationManager.append(.runningRaceRecordDetailView(recordID: gameSummaryCard.record_id))
                     }
                 }
             }

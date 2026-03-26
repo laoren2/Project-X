@@ -47,7 +47,7 @@ struct UserView: View {
                         .ignoresSafeArea()
                         .allowsHitTesting(viewModel.showSidebar)
                         .exclusiveTouchTapGesture {
-                            withAnimation(.easeIn(duration: 0.25)) {
+                            withAnimation(.easeIn(duration: 0.2)) {
                                 viewModel.showSidebar = false
                             }
                         }
@@ -206,22 +206,8 @@ struct MainUserView: View {
     //}
     
     var userRegion: LocalizedStringKey? {
-        for (_, cities) in regionTable_TW {
-            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        for (_, cities) in regionTable_HK {
-            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        for (_, cities) in regionTable_CN {
-            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        return nil
+        guard let regionID = user.location, let region = RegionStore.index[regionID] else { return nil }
+        return LocalizedStringKey(region.regionName)
     }
     
     var body: some View {
@@ -671,7 +657,7 @@ struct MainUserView: View {
                                     .foregroundColor(.white)
                                     .exclusiveTouchTapGesture {
                                         if !isDragging {
-                                            withAnimation(.easeIn(duration: 0.25)) {
+                                            withAnimation(.easeIn(duration: 0.2)) {
                                                 viewModel.showSidebar = true
                                             }
                                         }
@@ -737,6 +723,7 @@ struct MainUserView: View {
                 }
             }
         }
+        .environment(\.colorScheme, .light)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .sheet(isPresented: $showMoreSheet) {
@@ -820,7 +807,7 @@ struct LocalUserView: View {
                     .ignoresSafeArea()
                     .allowsHitTesting(viewModel.showSidebar)
                     .exclusiveTouchTapGesture {
-                        withAnimation(.easeIn(duration: 0.25)) {
+                        withAnimation(.easeIn(duration: 0.2)) {
                             viewModel.showSidebar = false
                         }
                     }
@@ -1291,7 +1278,13 @@ struct LocalMainUserView: View {
                                     .font(.subheadline)
                                     .offset(y: 40)
                                     .exclusiveTouchTapGesture {
-                                        appState.sport = viewModel.activeSport
+                                        switch viewModel.activeSport {
+                                        case .Bike:
+                                            appState.sportFeature = .bikeRace
+                                        case .Running:
+                                            appState.sportFeature = .runningRace
+                                        default: break
+                                        }
                                         appState.navigationManager.selectedTab = .sportCenter
                                     }
                                 }
@@ -1307,8 +1300,14 @@ struct LocalMainUserView: View {
                             }
                             .padding(.horizontal)
                             .padding(.bottom, 10)
+                        } else {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.gray.opacity(0.5))
+                                .frame(height: 200)
+                                .padding(.horizontal)
+                                .padding(.bottom, 10)
                         }
-                        
+                                                
                         // 选项卡栏
                         ZStack(alignment: .top) {
                             HStack(spacing: 0) {
@@ -1393,7 +1392,7 @@ struct LocalMainUserView: View {
                                     .foregroundColor(.white)
                                     .exclusiveTouchTapGesture {
                                         if !isDragging {
-                                            withAnimation(.easeIn(duration: 0.25)) {
+                                            withAnimation(.easeIn(duration: 0.2)) {
                                                 viewModel.showSidebar = true
                                             }
                                         }
@@ -1494,6 +1493,7 @@ struct LocalMainUserView: View {
                 }
             }
         }
+        .environment(\.colorScheme, .light)
     }
     
     func updateOffset(_ geo: GeometryProxy) {
@@ -1574,7 +1574,7 @@ struct UserSportSelectedBar: View {
                                 updateUserDefaultSport(with: sport)
                             } else {
                                 viewModel.sport = sport
-                                withAnimation(.easeIn(duration: 0.25)) {
+                                withAnimation(.easeIn(duration: 0.2)) {
                                     viewModel.showSidebar = false
                                 }
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -1683,7 +1683,7 @@ struct LocalUserSportSelectedBar: View {
                                 updateUserDefaultSport(with: sport)
                             } else {
                                 viewModel.sport = sport
-                                withAnimation(.easeIn(duration: 0.25)) {
+                                withAnimation(.easeIn(duration: 0.2)) {
                                     viewModel.showSidebar = false
                                 }
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {

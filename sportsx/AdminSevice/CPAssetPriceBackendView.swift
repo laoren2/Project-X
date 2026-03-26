@@ -114,6 +114,7 @@ struct CPAssetPriceBackendView: View {
             .padding()
         }
         .padding(.horizontal)
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .sheet(isPresented: $viewModel.showCreateSheet) {

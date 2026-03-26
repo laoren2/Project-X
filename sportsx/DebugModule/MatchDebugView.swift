@@ -21,13 +21,13 @@ struct BikeMatchDebugView: View {
             HStack {
                 Button("begin"){
                     isRecording = true
-                    appState.competitionManager.startRecordingSession_debug(with: .Bike)
+                    appState.competitionManager.startCompetitionSession_debug(with: .bikeRace)
                 }
                 Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
                     .font(.largeTitle)
                 Button("stop"){
                     appState.competitionManager.stopCompetition_debug()
-                    viewModel.samplePath = BikePathPointTool.computeSamplePoints(pathData: appState.competitionManager.bikePathData_debug)
+                    viewModel.samplePath = BikePathPointTool.computeRaceSamplePoints(pathData: appState.competitionManager.bikePathData_debug)
                     isRecording = false
                 }
             }

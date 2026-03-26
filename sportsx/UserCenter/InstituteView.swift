@@ -669,7 +669,7 @@ struct Stone1PurchaseView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            (Text("shop.action.buy") + Text("ccasset.stone"))
+            (Text("shop.action.buy") + Text(" ") + Text("ccasset.stone"))
                 .font(.title3.bold())
                 .foregroundColor(.white)
             RichTextLabel(
@@ -764,7 +764,7 @@ struct Stone23PurchaseView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            (Text("shop.action.buy") + Text("ccasset.stone"))
+            (Text("shop.action.buy") + Text(" ") + Text("ccasset.stone"))
                 .font(.title3.bold())
                 .foregroundColor(.white)
             RichTextLabel(

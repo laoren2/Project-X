@@ -12,6 +12,7 @@ import WatchKit
 import CoreMotion
 import WatchConnectivity
 import os
+import CoreLocation
 
 
 enum SportType: String {
@@ -27,9 +28,9 @@ class WatchDataManager: NSObject, ObservableObject {
     @Published var heartRate: Double = 0
     private var avgHeartRate: Double = 0
     private var totalEnergy: Double = 0
-    private var avgPower: Double = 0
+    private var avgPower: Double? = nil
     private var latestHeartRate: Double = 0
-    private var latestPower: Double = 0
+    private var latestPower: Double? = nil
     
     private var lastStepDate: Date? = nil
     private var lastStepSnapshot: Double? = nil
@@ -65,6 +66,8 @@ class WatchDataManager: NSObject, ObservableObject {
     let healthStore = HKHealthStore()
     private var WKsession: HKWorkoutSession?
     var builder: HKLiveWorkoutBuilder?
+    private let locationManager = CLLocationManager()
+    private var routeBuilder: HKWorkoutRouteBuilder?
     
     private override init() {
         super.init()
@@ -74,6 +77,11 @@ class WatchDataManager: NSObject, ObservableObject {
             session.delegate = self
             session.activate()
         }
+        
+        locationManager.delegate = self
+        locationManager.activityType = .fitness
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 5
     }
     
     func syncStatus() -> (result: Bool, msg: String) {
@@ -119,7 +127,8 @@ class WatchDataManager: NSObject, ObservableObject {
     // check and request authorization to access HealthKit.
     func checkHealthAuthorization(completion: @escaping (Bool) -> Void) {
         let typesToShare: Set<HKSampleType> = [
-            HKQuantityType.workoutType()
+            HKQuantityType.workoutType(),
+            HKSeriesType.workoutRoute()
         ]
 
         let typesToRead: Set<HKObjectType> = [
@@ -130,18 +139,20 @@ class WatchDataManager: NSObject, ObservableObject {
             HKQuantityType(.cyclingCadence),
             HKQuantityType(.stepCount),
             HKQuantityType(.distanceWalkingRunning),
-            HKQuantityType(.distanceCycling)
+            HKQuantityType(.distanceCycling),
+            HKQuantityType.workoutType(),
+            HKSeriesType.workoutRoute()
         ]
         
         // 合并需要检查的类型
-        let allTypes: [HKObjectType] = Array(typesToShare) + Array(typesToRead)
+        //let allTypes: [HKObjectType] = Array(typesToShare) + Array(typesToRead)
 
         // 是否有未申请过的
-        let needRequest = allTypes.contains {
-            healthStore.authorizationStatus(for: $0) == .notDetermined
-        }
+        //let needRequest = allTypes.contains {
+        //    healthStore.authorizationStatus(for: $0) == .notDetermined
+        //}
 
-        if needRequest {
+        //if needRequest {
             // 只要有一个没申请过，就触发系统弹窗
             healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { success, error in
                 guard success, error == nil else {
@@ -172,13 +183,13 @@ class WatchDataManager: NSObject, ObservableObject {
                 }
                 checkWriteAuthorization(attempt: 1)
             }
-        } else {
-            // 已经弹过了 → 判断是否都授权
-            let writeAuthorized = typesToShare.allSatisfy {
-                healthStore.authorizationStatus(for: $0) == .sharingAuthorized
-            }
-            completion(writeAuthorized)
-        }
+        //} else {
+        //    // 已经弹过了 → 判断是否都授权
+        //    let writeAuthorized = typesToShare.allSatisfy {
+        //        healthStore.authorizationStatus(for: $0) == .sharingAuthorized
+        //    }
+        //    completion(writeAuthorized)
+        //}
     }
     
     func tryStartWorkout(config: HKWorkoutConfiguration) {
@@ -204,6 +215,7 @@ class WatchDataManager: NSObject, ObservableObject {
         do {
             WKsession = try HKWorkoutSession(healthStore: healthStore, configuration: config)
             builder = WKsession?.associatedWorkoutBuilder()
+            routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: .local())
         } catch {
             // Handle any exceptions.
             print("WKsession create error")
@@ -233,6 +245,9 @@ class WatchDataManager: NSObject, ObservableObject {
         }
         
         builder?.dataSource = dataSource
+        
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
         
         // Start the workout session and begin data collection.
         let startDate = Date()
@@ -336,13 +351,13 @@ class WatchDataManager: NSObject, ObservableObject {
         if abs(newSummary.totalEnergy - last.totalEnergy) > energyThreshold {
             return true
         }
-        if abs(newSummary.avgPower - last.avgPower) > powerThreshold {
+        if let newAvgPower = newSummary.avgPower, let lastAvgPower = last.avgPower, abs(newAvgPower - lastAvgPower) > powerThreshold {
             return true
         }
         if abs(newSummary.latestHeartRate - last.latestHeartRate) > latestHrThreshold {
             return true
         }
-        if abs(newSummary.latestPower - last.latestPower) > latestPowerThreshold {
+        if let newPower = newSummary.latestPower, let lastPower = last.latestPower, abs(newPower - lastPower) > latestPowerThreshold {
             return true
         }
         return false
@@ -357,10 +372,16 @@ class WatchDataManager: NSObject, ObservableObject {
         var summaryDict: [String: Any] = [
             "avgHeartRate": summary.avgHeartRate,
             "totalEnergy": summary.totalEnergy,
-            "avgPower": summary.avgPower,
-            "latestHeartRate": summary.latestHeartRate,
-            "latestPower": summary.latestPower
+            "latestHeartRate": summary.latestHeartRate
         ]
+        
+        if let avgPower = summary.avgPower {
+            summaryDict["avgPower"] = avgPower
+        }
+        
+        if let power = summary.latestPower {
+            summaryDict["latestPower"] = power
+        }
         
         if let stepCadence = summary.stepCadence {
             summaryDict["stepCadence"] = stepCadence
@@ -394,6 +415,7 @@ class WatchDataManager: NSObject, ObservableObject {
             )
         }*/
         WKsession?.end()
+        locationManager.stopUpdatingLocation()
         showingSummaryView = true
         //resetWorkout()
     }
@@ -442,12 +464,12 @@ class WatchDataManager: NSObject, ObservableObject {
                 self.totalEnergy = statistics.sumQuantity()?.doubleValue(for: unit) ?? 0
             case HKQuantityType(.runningPower):
                 let unit = HKUnit.watt()
-                self.latestPower = statistics.mostRecentQuantity()?.doubleValue(for: unit) ?? 0
-                self.avgPower = statistics.averageQuantity()?.doubleValue(for: unit) ?? 0
+                self.latestPower = statistics.mostRecentQuantity()?.doubleValue(for: unit)
+                self.avgPower = statistics.averageQuantity()?.doubleValue(for: unit)
             case HKQuantityType(.cyclingPower):
                 let unit = HKUnit.watt()
-                self.latestPower = statistics.mostRecentQuantity()?.doubleValue(for: unit) ?? 0
-                self.avgPower = statistics.averageQuantity()?.doubleValue(for: unit) ?? 0
+                self.latestPower = statistics.mostRecentQuantity()?.doubleValue(for: unit)
+                self.avgPower = statistics.averageQuantity()?.doubleValue(for: unit)
             case HKQuantityType(.stepCount):
                 if let step = statistics.sumQuantity()?.doubleValue(for: .count()) {
                     if let last = self.lastStepSnapshot, let lastDate = self.lastStepDate {
@@ -470,15 +492,16 @@ class WatchDataManager: NSObject, ObservableObject {
     }
     
     func resetWorkout() {
+        routeBuilder = nil
         builder = nil
         WKsession = nil
         //workout = nil
         heartRate = 0
         avgHeartRate = 0
         totalEnergy = 0
-        avgPower = 0
+        avgPower = nil
         latestHeartRate = 0
-        latestPower = 0
+        latestPower = nil
         enableIMU = false
         stepCadence = nil
         cycleCadence = nil
@@ -572,6 +595,11 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                     guard error == nil, let workout = workout else {
                         print("finishWorkout error: \(String(describing: error))")
                         return
+                    }
+                    self.routeBuilder?.finishRoute(with: workout, metadata: nil) { _, error in
+                        if let error = error {
+                            print("finishRoute error: \(error.localizedDescription)")
+                        }
                     }
                     DispatchQueue.main.async {
                         // 从 workout 中获取系统统计
@@ -678,6 +706,28 @@ extension WatchDataManager: HKLiveWorkoutBuilderDelegate {
     }
 }
 
+// MARK: - CLLocationManagerDelegate
+extension WatchDataManager: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let routeBuilder = routeBuilder else { return }
+        // Filter the raw data.
+        let filteredLocations = locations.filter { (location: CLLocation) -> Bool in
+            location.horizontalAccuracy <= 50.0
+        }
+        guard !filteredLocations.isEmpty else { return }
+        
+        routeBuilder.insertRouteData(filteredLocations) { success, error in
+            if let error = error {
+                print("Route insert error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Location error: \(error.localizedDescription)")
+    }
+}
+
 // 一个简单的传感器数据 item
 struct SensorDataItem {
     let timestamp: Date
@@ -692,7 +742,7 @@ struct SensorDataItem {
 struct SummaryViewData {
     let avgHeartRate: Double
     let totalEnergy: Double
-    let avgPower: Double
+    let avgPower: Double?
     var distance: Double
     let totalTime: TimeInterval
     var stepCadence: Double?
@@ -702,9 +752,9 @@ struct SummaryViewData {
 struct SummaryData {
     let avgHeartRate: Double
     let totalEnergy: Double
-    let avgPower: Double
+    let avgPower: Double?
     let latestHeartRate: Double
-    let latestPower: Double
+    let latestPower: Double?
     let stepCadence: Double?
     let cycleCadence: Double?
 }

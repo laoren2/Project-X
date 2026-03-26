@@ -156,6 +156,7 @@ struct MailboxBackendView: View {
             }
         }
         .padding(.horizontal)
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
     }
