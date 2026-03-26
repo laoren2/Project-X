@@ -72,6 +72,7 @@ struct FeedbackMailBackendView: View {
             .cornerRadius(10)
         }
         .padding(.horizontal)
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .bottomSheet(isPresented: $viewModel.showMailDetail, size: .large, destroyOnDismiss: true) {

@@ -45,7 +45,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     let matchContext = MatchContext()   // 比赛进行中的上下文信息
     
     // 当前进行中的运动和记录
-    var sport: SportName = .Default
+    var sport: SportName? { return sportFeature?.sportType }//= .Default
+    var sportFeature: SportFeature? = nil
     var currentBikeRecord: BikeRaceRecord?
     var currentRunningRecord: RunningRaceRecord?
     var isTeam: Bool {
@@ -67,9 +68,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     //        |   |   |   |   |    |
     //       WST  RF  LF  RH  LH  PHONE
     var sensorRequest: Int = 0
-    
-    //@Published var isEffectsFinishPrepare = true        // 所有cardeffects是否完成准备工作
-    //var expectedStatsWatchCount: Int = 0              // 需要等待接收最后统计数据的外设个数
     
     @Published var isRecording: Bool = false // 当前比赛状态
     @Published var isShowWidget: Bool = false // 是否显示Widget
@@ -102,18 +100,21 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     var validationScore_debug: Double = 0
 #endif
     
-    @Published var basePathData: [PathPoint] = []               // 基本轨迹数据
-    @Published var bikePathData: [BikePathPoint] = []           // 轨迹数据
-    @Published var runningPathData: [RunningPathPoint] = []     // 轨迹数据
-    private var pathPointInEndSafetyRadius: [PathPoint] = []    // 在终点的安全范围内记录的点
-    @Published var realtimeStatisticData: StatisticData = .empty      // 比赛时 realtimeView 展示的实时统计数据
+    @Published var basePathData: [PathPoint] = []                             // 基本轨迹数据
+    @Published var bikePathData: [BikePathPoint] = []                         // bike竞赛轨迹数据
+    @Published var runningPathData: [RunningPathPoint] = []                   // running竞赛轨迹数据
+    private var pathPointInEndSafetyRadius: [PathPoint] = []                  // 在终点的安全范围内记录的点
+    @Published var realtimeStatisticData: StatisticData = .empty              // 比赛时 realtimeView 展示的实时统计数据
+    
+    @Published var bikeTrainingPathData: [BikeTrainingPathPoint] = []           // bike训练轨迹数据
+    @Published var runningTrainingPathData: [RunningTrainingPathPoint] = []     // running训练轨迹数据
     
     private var timer: DispatchSourceTimer? //定时器
     private var collectionTimer: Timer?
 
     private var teamJoinTimerA: Timer?  // 用于获取比赛剩余可加入时间的计时器
     private var teamJoinTimerB: Timer?  // 用于剩余可加入时间倒计时的计时器
-    var teamJoinTimeWindow: Int = 180   // 组队模式下的可加入时间窗口
+    let teamJoinTimeWindow: Int = 180   // 组队模式下的可加入时间窗口
     
     // todo: 将频繁更新的属性移出competitionManager，否则会影响某些系统ui交互（如alert button）
     @Published var teamJoinRemainingTime: Int = 180         // 剩余可加入时间，频繁更新，暂时无交互受影响，先放在这里
@@ -168,13 +169,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func queryTeamExpiredDate() {
+        guard let sport else { return }
+        
         var recordID: String? = nil
         if sport == .Bike {
             recordID = currentBikeRecord?.record_id
         } else if sport == .Running {
             recordID = currentRunningRecord?.record_id
-        } else {
-            return
         }
         guard let record_id = recordID else { return }
         
@@ -218,6 +219,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     // Combine
     private var locationSelectedViewCancellable: AnyCancellable?
     private var locationDetailViewCancellable: AnyCancellable?
+    private var locationTrainingCancellable: AnyCancellable?
     private var dataCancellables = Set<AnyCancellable>()
 
 
@@ -233,20 +235,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     // 设置 Combine 订阅
-    func setupRealtimeViewLocationSubscription() {
-        // 订阅位置更新
-        locationSelectedViewCancellable = LocationManager.shared.locationPublisher()
-            .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理数据发送
-            .receive(on: DispatchQueue.main) // 主线程更新UI或快速响应
-            .sink { location in
-                self.handleLocationUpdate(location)
-            }
-    }
-    
-    func deleteRealtimeViewLocationSubscription() {
-        locationSelectedViewCancellable?.cancel()
-    }
-    
     func setupCompetitionLocationSubscription() {
         // 订阅位置更新
         locationDetailViewCancellable = LocationManager.shared.locationPublisher()
@@ -312,17 +300,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
     }
     
-    // Request microphone access
-    /*private func requestMicrophoneAccess() {
-        AVAudioApplication.requestRecordPermission(completionHandler: { [weak self] granted in
-            if granted {
-                self?.setupAudioRecorder()
-            } else {
-                Logger.competition.notice_public("Microphone access denied.")
-            }
-        })
-    }*/
-    
     func requestLocationAlwaysAuthorization() {
         let status = LocationManager.shared.authorizationStatus
         if status == .authorizedAlways {
@@ -366,50 +343,26 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             showAlert = true
             return
         }
-        // 检查精确位置权限
-        guard LocationManager.shared.checkPreciseLocation() else {
-            DispatchQueue.main.async {
-                PopupWindowManager.shared.presentPopup(
-                    title: "competition.realtime.precise_location.popup.title",
-                    message: "competition.realtime.precise_location.popup.content",
-                    bottomButtons: [.confirm()]
-                )
-            }
+        
+        // 检查 GPS 强度
+        guard LocationManager.shared.signalStrength.bars > 1 else {
+            let toast = Toast(message: "competition.realtime.start.toast.gps")
+            ToastManager.shared.show(toast: toast)
             return
         }
-        // 检查麦克风权限
-        //switch AVAudioApplication.shared.recordPermission {
-        //case .granted:
-            // 权限已授予，开始比赛
-            Task {
-                let result = await startCompetition_server()
-                await MainActor.run {
-                    if result {
-                        globalConfig.refreshRecordManageView = true
-                        startRecordingSession()
-                    } else {
-                        return
-                    }
-                }
+        
+        Task {
+            guard await startCompetition_server() else { return }
+            await MainActor.run {
+                globalConfig.refreshRecordManageView = true
+                startCompetitionSession()
             }
-        /*case .denied:
-            // 提示权限被拒绝
-            alertTitle = "无法开始比赛"
-            alertMessage = "请先打开麦克风权限以进行比赛记录。"
-            showAlert = true
-        case .undetermined:
-            // 权限状态未确定，重新请求
-            requestMicrophoneAccess()
-        @unknown default:
-            // 提示未知情况
-            alertTitle = "无法开始比赛"
-            alertMessage = "麦克风状态错误，请检查麦克风权限。"
-            showAlert = true
-        }*/
+        }
     }
     
     func stopCompetition() {
         isRecording = false
+        isShowWidget = false
         // Stop location updates
         deleteCompetitionLocationSubscription()
         LocationManager.shared.backToLastSet()
@@ -587,7 +540,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             
             // 如果速度没有下降 → 可疑
             if speedDrop < minSpeedDrop {
-                score -= (5 + minSpeedDrop - speedDrop)
+                score -= (3 + minSpeedDrop - speedDrop)
             }
         }
         let cnt = max((abnormalCounts - bikePathData.count / 2), 0)
@@ -738,7 +691,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                     }
                 } else {
                     // 若 totalSteps == 0 且有明显移动（例如 > 8m）可适当扣分（防止零步计但有移动）
-                    if totalDist > 8.0 {
+                    if totalDist > 10.0 {
                         // 这里扣较小分，以免过度惩罚
                         score -= 1.0
                     }
@@ -896,6 +849,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                                     } else {
                                         Text("competition.record.result.normal")
                                     }
+                                    XPProgressView(beforeXP: matchResult.xp_before, deltaXP: matchResult.xp_delta)
                                     HStack(spacing: 10) {
                                         ForEach(matchResult.rewards) { reward in
                                             HStack(spacing: 4) {
@@ -903,7 +857,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: 20)
-                                                Text("* \(reward.reward_amount)")
+                                                Text("+ \(reward.reward_amount)")
                                                     .font(.system(size: 15))
                                                     .fontWeight(.semibold)
                                             }
@@ -913,10 +867,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                                 .foregroundStyle(Color.white)
                             }
                         }
-                        self.navigationManager.append(.bikeRecordDetailView(recordID: record.record_id))
+                        self.navigationManager.append(.bikeRaceRecordDetailView(recordID: record.record_id))
                         self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
                     }
-                default: break
+                case .failure:
+                    DispatchQueue.main.async {
+                        var cardSelectViewIndex = 0
+                        var realtimeViewIndex = 0
+                        if let index = self.navigationManager.path.firstIndex(where: { $0.string == "competitionCardSelectView" }) {
+                            cardSelectViewIndex = self.navigationManager.path.count - index
+                        }
+                        if let index = self.navigationManager.path.firstIndex(where: { $0.string == "competitionRealtimeView" }) {
+                            realtimeViewIndex = self.navigationManager.path.count - index
+                        }
+                        let lastToRemove = max(cardSelectViewIndex, realtimeViewIndex)
+                        self.navigationManager.removeLast(lastToRemove)
+                    }
                 }
             }
         }
@@ -971,6 +937,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                                     } else {
                                         Text("competition.record.result.normal")
                                     }
+                                    XPProgressView(beforeXP: matchResult.xp_before, deltaXP: matchResult.xp_delta)
                                     HStack(spacing: 10) {
                                         ForEach(matchResult.rewards) { reward in
                                             HStack(spacing: 4) {
@@ -978,7 +945,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: 20)
-                                                Text("* \(reward.reward_amount)")
+                                                Text("+ \(reward.reward_amount)")
                                                     .font(.system(size: 15))
                                                     .fontWeight(.semibold)
                                             }
@@ -988,10 +955,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                                 .foregroundStyle(Color.white)
                             }
                         }
-                        self.navigationManager.append(.runningRecordDetailView(recordID: record.record_id))
+                        self.navigationManager.append(.runningRaceRecordDetailView(recordID: record.record_id))
                         self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
                     }
-                default: break
+                case .failure:
+                    DispatchQueue.main.async {
+                        var cardSelectViewIndex = 0
+                        var realtimeViewIndex = 0
+                        if let index = self.navigationManager.path.firstIndex(where: { $0.string == "competitionCardSelectView" }) {
+                            cardSelectViewIndex = self.navigationManager.path.count - index
+                        }
+                        if let index = self.navigationManager.path.firstIndex(where: { $0.string == "competitionRealtimeView" }) {
+                            realtimeViewIndex = self.navigationManager.path.count - index
+                        }
+                        let lastToRemove = max(cardSelectViewIndex, realtimeViewIndex)
+                        self.navigationManager.removeLast(lastToRemove)
+                    }
                 }
             }
         }
@@ -1043,14 +1022,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 return false
             }
         }
-        let toast = Toast(message: "暂不支持此运动")
-        ToastManager.shared.show(toast: toast)
+        await MainActor.run() {
+            ToastManager.shared.show(toast: Toast(message: "competition.realtime.start.toast.sport_not_support"))
+        }
         return false
     }
     
     // 组队比赛开始时使用队伍奖励卡牌的逻辑
     func startCompetitionWithTeamBonusCard(cardID: String) {
-        guard isTeam else { return }
+        guard isTeam, let sport else { return }
         guard var components = URLComponents(string: "/competition/\(sport.rawValue)/start_competition_with_team_bonus_card") else { return }
         if let record = currentBikeRecord, sport == .Bike {
             components.queryItems = [
@@ -1071,7 +1051,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showErrorToast: true) { _ in }
     }
     
-    func startRecordingSession() {
+    func startCompetitionSession() {
+        guard let sport else { return }
         // 清理定时器任务可能残留的数据
         realtimeStatisticData = .empty
         basePathData = []
@@ -1100,22 +1081,17 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         
         // Start location updates
         LocationManager.shared.changeToHighUpdate()
-        setupCompetitionLocationSubscription()
-        deleteRealtimeViewLocationSubscription()
+        //setupCompetitionLocationSubscription()
 
         // Start accelerometer/gyro/magnet updates
         motionManager.startAccelerometerUpdates()
         motionManager.startGyroUpdates()
         motionManager.startMagnetometerUpdates()
         
-        // 开始音频录制
-        //startRecordingAudio()
-        
         // 使用定时器每0.05秒记录一次数据
-        self.startTimer()
+        self.startCompetitionTimer()
         let isNeedPhoneData = sensorRequest & 0b000001 != 0
         let sensorRequest = sensorRequest >> 1
-        //dataFusionManager.setPredictWindow(maxWindow: modelManager.maxInputWindow)
         
         // 所有设备开始收集数据
         if isNeedPhoneData {
@@ -1134,7 +1110,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     // 启动定时器
     // todo: 使用定时 Task 代替 GCD 定时器，彻底解决残留定时任务与清理任务的竞态问题
-    private func startTimer() {
+    private func startCompetitionTimer() {
         // 在比赛开始时已记录下 startTime = Date()
         let timer = DispatchSource.makeTimerSource(queue: timerQueue)
         timer.schedule(deadline: .now(), repeating: 0.05) // 每0.05秒触发一次
@@ -1296,7 +1272,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     // 设置运动和记录，准备开始比赛
     func resetBikeRaceRecord(record: BikeRaceRecord) {
-        sport = .Bike
+        sportFeature = .bikeRace
         currentBikeRecord = record
         startCoordinate = record.trackStart
         startRadius = CLLocationDistance(record.trackStartRadius)
@@ -1305,7 +1281,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func resetRunningRaceRecord(record: RunningRaceRecord) {
-        sport = .Running
+        sportFeature = .runningRace
         currentRunningRecord = record
         startCoordinate = record.trackStart
         startRadius = CLLocationDistance(record.trackStartRadius)
@@ -1314,7 +1290,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func loadMatchEnv() {
-        //isEffectsFinishPrepare = false
         guard selectedCards.count <= 4 else {
             ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.count"))
             return
@@ -1355,7 +1330,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
         eventBus.reset()
         Task {
-            //var allPrepared = true
             await MainActor.run {
                 ToastManager.shared.start(toast: LoadingToast())
             }
@@ -1363,7 +1337,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 effect.register(eventBus: eventBus)
                 let prepared = await effect.load()
                 if !prepared {
-                    //allPrepared = false
                     await MainActor.run {
                         ToastManager.shared.show(toast: Toast(message: "competition.realtime.start.toast.card_loading_failed"))
                     }
@@ -1372,9 +1345,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
             // 支持脱离卡牌单独使用传感器设备辅助记录比赛数据
             addDefaultDevice()
-            //let isAllPrepared = allPrepared
             await MainActor.run {
-                //isEffectsFinishPrepare = isAllPrepared
                 self.navigationManager.append(.competitionRealtimeView)
                 ToastManager.shared.finish()
             }
@@ -1405,16 +1376,304 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         endCoordinate = CLLocationCoordinate2D(latitude: 1, longitude: 1)
         endRadius = 0.0
         startTime = nil
-        sport = .Default
+        sportFeature = nil
+        userLocation = nil
         
         basePathData = []
         bikePathData = []
         runningPathData = []
-        //expectedStatsWatchCount = 0
+        bikeTrainingPathData = []
+        runningTrainingPathData = []
         
         isInValidArea = false
-        //isEffectsFinishPrepare = true
         pathPointInEndSafetyRadius = []
+    }
+}
+
+// 自由训练功能
+extension CompetitionManager {
+    func setupTrainingLocationSubscription() {
+        // 订阅位置更新
+        locationTrainingCancellable = LocationManager.shared.locationPublisher()
+            .subscribe(on: DispatchQueue.global(qos: .background)) // 在后台处理订阅成功后的逻辑
+            .receive(on: DispatchQueue.main) // 在主线程响应位置更新
+            .sink { location in
+                self.handleTrainingLocationUpdate(location)
+            }
+    }
+    
+    func deleteTrainingLocationSubscription() {
+        locationTrainingCancellable?.cancel()
+    }
+    
+    private func handleTrainingLocationUpdate(_ location: CLLocation) {
+        userLocation = location
+    }
+    
+    func startFreeTraining() {
+        Logger.competition.notice_public("free training start")
+        // 检查 Always Location 权限
+        let status = LocationManager.shared.authorizationStatus
+        if status != .authorizedAlways {
+            alertTitle = "competition.realtime.start.popup.no_auth"
+            alertMessage = "competition.realtime.start.popup.no_auth.content"
+            showAlert = true
+            return
+        }
+        
+        // 检查 GPS 强度
+        guard LocationManager.shared.signalStrength.bars > 1 else {
+            let toast = Toast(message: "competition.realtime.start.toast.gps")
+            ToastManager.shared.show(toast: toast)
+            return
+        }
+        startFreeTrainingSession()
+    }
+    
+    func startFreeTrainingSession() {
+        guard let sport else { return }
+        startTime = Date()
+        
+        // 清理定时器任务可能残留的数据
+        realtimeStatisticData = .empty
+        basePathData = []
+        bikeTrainingPathData = []
+        runningTrainingPathData = []
+        dataFusionManager.elapsedTime = 0
+        
+        isRecording = true
+        
+        // Start location updates
+        LocationManager.shared.changeToHighUpdate()
+        //setupTrainingLocationSubscription()
+
+        // Start accelerometer/gyro/magnet updates
+        motionManager.startAccelerometerUpdates()
+        motionManager.startGyroUpdates()
+        motionManager.startMagnetometerUpdates()
+        
+        addDefaultDevice()
+        
+        // 使用定时器每1秒记录一次数据
+        self.startTrainingTimer()
+        let sensorRequest = sensorRequest >> 1
+        
+        // 默认设备开始收集数据
+        for (pos, dev) in deviceManager.deviceMap {
+            if let device = dev, (sensorRequest & (1 << pos.rawValue)) != 0 {
+                Logger.competition.notice_public("\(pos.name) watch data start collecting")
+                device.startCollection(activityType: sport, locationType: "outdoor")  // 开始数据收集
+            }
+        }
+    }
+    
+    private func startTrainingTimer() {
+        // 在比赛开始时已记录下 startTime = Date()
+        let timer = DispatchSource.makeTimerSource(queue: timerQueue)
+        timer.schedule(deadline: .now(), repeating: 1.0) // 每1秒触发一次
+        var tickCounter = 0 // 用于计数，每次事件触发加1
+        
+        timer.setEventHandler { [weak self] in
+            guard let self = self, self.isRecording, let start = self.startTime else { return }
+            
+            // 更新计数器
+            tickCounter += 1
+            
+            // 更新 elapsedTime
+            let newElapsedTime = Date().timeIntervalSince(start)
+            DispatchQueue.main.async {
+                // 再次检查比赛状态，避免比赛结束时计时器闭包延迟更新重置elapsedTime
+                if self.isRecording {
+                    self.dataFusionManager.elapsedTime = newElapsedTime
+                }
+            }
+            
+            // 每3秒记录一次 path 数据 & 发出 matchCycleUpdate 信号
+            if tickCounter % 3 == 0 && self.isRecording {
+                // 当前支持的最大训练时间为 2h
+                if self.dataFusionManager.elapsedTime > 7200 {
+                    DispatchQueue.main.async {
+                        self.stopFreeTraining()
+                    }
+                }
+                self.recordTrainingPath()
+                tickCounter = 0 // 重置计数器
+            }
+        }
+        self.timer = timer
+        timer.resume()
+        Logger.competition.notice_public("start phone training timer.")
+    }
+    
+    private func recordTrainingPath() {
+        guard let location = LocationManager.shared.getLocation() else { return }
+        let basePoint = PathPoint(
+            lat: location.coordinate.latitude,
+            lon: location.coordinate.longitude,
+            speed: location.speed,
+            altitude: location.altitude,
+            heart_rate: matchContext.latestHeartRate,
+            timestamp: Date().timeIntervalSince1970
+        )
+        if let lastPoint = basePathData.last {
+            let distance = horizontalDistance(from: lastPoint, to: basePoint)
+            matchContext.altitude = location.altitude
+            matchContext.speed = 3.6 * distance / 3.0
+            matchContext.distance += distance
+            DispatchQueue.main.async {
+                self.realtimeStatisticData.distance += distance
+                self.realtimeStatisticData.avgSpeed = 3.6 * self.realtimeStatisticData.distance / self.dataFusionManager.elapsedTime
+            }
+        }
+        basePathData.append(basePoint)
+        if sport == .Bike {
+            let pathPoint = BikeTrainingPathPoint(
+                base: basePoint,
+                power: matchContext.latestPower,
+                pedal_cadence: matchContext.pedalCadence
+            )
+            bikeTrainingPathData.append(pathPoint)
+        } else if sport == .Running {
+            let pathPoint = RunningTrainingPathPoint(
+                base: basePoint,
+                power: matchContext.latestPower,
+                step_cadence: matchContext.stepCadence,
+                vertical_amplitude: nil,
+                touchdown_time: nil,
+                step_size: nil
+            )
+            runningTrainingPathData.append(pathPoint)
+        }
+    }
+    
+    private func stopTrainingTimer() {
+        collectionTimer?.invalidate()
+        collectionTimer = nil
+        timer?.cancel()
+        timer = nil
+        recordTrainingPath()
+        Logger.competition.notice_public("stop phone training timer.")
+    }
+    
+    func stopFreeTraining() {
+        isRecording = false
+        isShowWidget = false
+        // Stop location updates
+        deleteTrainingLocationSubscription()
+        LocationManager.shared.backToLastSet()
+        motionManager.stopAccelerometerUpdates()
+        motionManager.stopGyroUpdates()
+        motionManager.stopMagnetometerUpdates()
+        
+        // 停止手机和传感器设备的数据收集
+        self.stopTrainingTimer()
+        for (pos, dev) in deviceManager.deviceMap {
+            if let device = dev, (sensorRequest & (1 << (pos.rawValue + 1))) != 0 {
+                Logger.competition.notice_public("\(pos.name) watch stop collecting")
+                device.stopCollection()
+            }
+        }
+        
+        finishFreeTraining_server()
+        
+        resetCompetitionProperties()
+        Logger.competition.notice_public("free training stop")
+    }
+    
+    func finishFreeTraining_server() {
+        guard let startTime else { return }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        if sport == .Bike {
+            var headers: [String: String] = [:]
+            headers["Content-Type"] = "application/json"
+            let requestData = BikeFinishFreeTrainingRequest(
+                start_time: formatter.string(from: startTime),
+                end_time: formatter.string(from: Date()),
+                path: bikeTrainingPathData
+            )
+            guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
+            
+            let request = APIRequest(path: "/training/bike/finish_free_training", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+            
+            NetworkService.sendRequest(with: request, decodingType: FreeTrainingFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    DispatchQueue.main.async {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "training.result.complete",
+                            bottomButtons: [
+                                .confirm()
+                            ]
+                        ) {
+                            VStack {
+                                XPProgressView(beforeXP: unwrappedData.xp_before, deltaXP: unwrappedData.xp_delta)
+                                TrainingStateProgressView(beforeState: unwrappedData.training_state_before, deltaState: unwrappedData.training_state_delta)
+                            }
+                            .foregroundStyle(Color.white)
+                        }
+                        self.navigationManager.append(.bikeFreeTrainingRecordDetailView(recordID: unwrappedData.record_id))
+                    }
+                    GlobalConfig.shared.refreshFamiliarity = true
+                    GlobalConfig.shared.refreshFreeTrainingView = true
+                case .failure:
+                    DispatchQueue.main.async {
+                        if let index = self.navigationManager.path.firstIndex(where: { $0.string == "freeTrainingRealtimeView" }) {
+                            let lastToRemove = self.navigationManager.path.count - index
+                            self.navigationManager.removeLast(lastToRemove)
+                        } else {
+                            return
+                        }
+                    }
+                }
+            }
+        } else if sport == .Running {
+            var headers: [String: String] = [:]
+            headers["Content-Type"] = "application/json"
+            let requestData = RunningFinishFreeTrainingRequest(
+                start_time: formatter.string(from: startTime),
+                end_time: formatter.string(from: Date()),
+                path: runningTrainingPathData
+            )
+            guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
+            
+            let request = APIRequest(path: "/training/running/finish_free_training", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+            
+            NetworkService.sendRequest(with: request, decodingType: FreeTrainingFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    DispatchQueue.main.async {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "training.result.complete",
+                            bottomButtons: [
+                                .confirm()
+                            ]
+                        ) {
+                            VStack {
+                                XPProgressView(beforeXP: unwrappedData.xp_before, deltaXP: unwrappedData.xp_delta)
+                                TrainingStateProgressView(beforeState: unwrappedData.training_state_before, deltaState: unwrappedData.training_state_delta)
+                            }
+                            .foregroundStyle(Color.white)
+                        }
+                        self.navigationManager.append(.runningFreeTrainingRecordDetailView(recordID: unwrappedData.record_id))
+                    }
+                    GlobalConfig.shared.refreshFamiliarity = true
+                    GlobalConfig.shared.refreshFreeTrainingView = true
+                case .failure:
+                    DispatchQueue.main.async {
+                        if let index = self.navigationManager.path.firstIndex(where: { $0.string == "freeTrainingRealtimeView" }) {
+                            let lastToRemove = self.navigationManager.path.count - index
+                            self.navigationManager.removeLast(lastToRemove)
+                        } else {
+                            return
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1427,6 +1686,7 @@ extension CompetitionManager {
     }
 }
 
+// 运动数据处理
 extension CompetitionManager {
     // 计算两点之间的距离（包含高度差），单位 m
     func horizontalDistance(from p1: PathPoint, to p2: PathPoint) -> Double {
@@ -1478,6 +1738,7 @@ extension CompetitionManager {
         let maxSlope: Double  // 最大坡度 (绝对值)
         let avgSlope: Double
     }
+    
     func computeSlopeStats(path: [PathPoint]) -> SlopeStats {
         let n = path.count
         guard n >= 2 else {
@@ -1538,16 +1799,19 @@ extension CompetitionManager {
 //        let minimalExpectedPower = kmh * 2.0  // 经验系数（kmh × 2）
 //        return power >= minimalExpectedPower
 //    }
-    
-// 本地快速调试比赛链路
+}
+
+// 本地调试链路(未完成)
 #if DEBUG
-    func startRecordingSession_debug(with sportName: SportName) {
-        sport = sportName
+extension CompetitionManager {
+    func startCompetitionSession_debug(with feature: SportFeature) {
+        //guard let sport else { return }
+        sportFeature = feature
         let testDTO = BikeRaceRecordDTO(record_id: "", region_name: "", event_name: "", track_name: "", track_start_lat: 0, track_start_lng: 0, track_start_radius: 0, track_end_lat: 0, track_end_lng: 0, track_end_radius: 0, track_end_date: "", status: .notStarted, start_date: nil, end_date: nil, duration_seconds: nil, is_team: false, team_title: nil, team_competition_date: nil, created_at: "")
         currentBikeRecord = BikeRaceRecord(from: testDTO)
         loadMatchEnv()
         startTime = Date()
-        startRecordingSession()
+        startCompetitionSession()
     }
     
     func stopCompetition_debug() {
@@ -1650,8 +1914,8 @@ extension CompetitionManager {
         saveBatchAsCSV(dataBatch: batch)
         Logger.competition.notice_public("phone data finalized.")
     }
-#endif
 }
+#endif
 
 class MatchEventBus {
     typealias EventHandler = (MatchContext) -> Void
@@ -1791,6 +2055,23 @@ struct RunningPathPoint: Codable {
     let card_bonus: [CardBonusItem]
 }
 
+struct BikeTrainingPathPoint: Codable {
+    let base: PathPoint
+    
+    let power: Double?
+    let pedal_cadence: Double?
+}
+
+struct RunningTrainingPathPoint: Codable {
+    let base: PathPoint
+    
+    let power: Double?
+    let step_cadence: Double?
+    let vertical_amplitude: Double?
+    let touchdown_time: Double?
+    let step_size: Double?
+}
+
 struct CardBonusItem: Codable {
     let card_id: String
     var bonus_time: Double
@@ -1824,11 +2105,34 @@ struct MatchFinishDTO: Codable {
     let is_user_best: Bool
     let is_track_best: Bool
     let rewards: [CCRewardResponse]
+    let xp_before: Int      // 原 XP
+    let xp_delta: Int       // 变化的 XP
 }
 
 struct MatchFinishResponse: Codable {
     let match_result: MatchFinishDTO?
 }
+
+struct BikeFinishFreeTrainingRequest: Codable {
+    let start_time: String
+    let end_time: String
+    let path: [BikeTrainingPathPoint]
+}
+
+struct RunningFinishFreeTrainingRequest: Codable {
+    let start_time: String
+    let end_time: String
+    let path: [RunningTrainingPathPoint]
+}
+
+struct FreeTrainingFinishResponse: Codable {
+    let record_id: String
+    let xp_before: Int
+    let xp_delta: Int
+    let training_state_before: Int
+    let training_state_delta: Int
+}
+
 
 // todo: 拆分不同运动的统计数据
 struct StatisticData {

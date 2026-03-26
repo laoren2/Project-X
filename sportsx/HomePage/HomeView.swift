@@ -14,8 +14,6 @@ import UIKit
 struct HomeView: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: HomeViewModel
-    @State private var showSportPicker = false
-    //@State private var isDragging: Bool = false     // 是否处于拖动中
     @State private var searchText: String = ""
     @State private var filteredPersonInfos: [PersonInfoCard] = []
 
@@ -105,6 +103,7 @@ struct HomeView: View {
                             }
                             .padding(.horizontal)
                             .padding(.top)
+                            .padding(.bottom, 85)
                         }
                         .background(.ultraThinMaterial)
                     }
@@ -130,7 +129,7 @@ struct HomeView: View {
     
     func searchAnyPersonInfoCard(reset: Bool) {
         if reset {
-            filteredPersonInfos.removeAll()
+            filteredPersonInfos = []
             viewModel.page = 1
         }
         guard var components = URLComponents(string: "/user/user_card/nick_name") else { return }
@@ -147,13 +146,19 @@ struct HomeView: View {
             case .success(let data):
                 DispatchQueue.main.async {
                     if let unwrappedData = data {
+                        var tempUsers: [PersonInfoCard] = []
                         for user in unwrappedData.users {
-                            filteredPersonInfos.append(
+                            tempUsers.append(
                                 PersonInfoCard(
                                     userID: user.user_id,
                                     avatarUrl: user.avatar_image_url,
                                     name: user.nickname)
                             )
+                        }
+                        if reset {
+                            filteredPersonInfos = tempUsers
+                        } else {
+                            filteredPersonInfos.append(contentsOf: tempUsers)
                         }
                         if unwrappedData.users.count < viewModel.size {
                             viewModel.hasMoreUsers = false
@@ -255,7 +260,10 @@ struct SquareView: View {
     @ObservedObject var viewModel: HomeViewModel
     @State private var adHeight: CGFloat = 200.0
     @State private var businessHeight: CGFloat = 150.0
-    //@Binding var isDragging: Bool
+    
+    let rewards: [CCRewardResponse] = [
+        CCRewardResponse(ccasset_type: .coin, new_ccamount: 100, reward_amount: 20)
+    ]
     
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -339,12 +347,27 @@ struct SquareView: View {
                 //}
                 //.padding(.top, 20)
                 
+                // 进度条动画测试
+                /*Button("test") {
+                    PopupWindowManager.shared.presentPopup(
+                        title: "training.result.complete",
+                        bottomButtons: [
+                            .confirm()
+                        ]
+                    ) {
+                        VStack {
+                            XPProgressView(beforeXP: 112, deltaXP: 205)
+                            TrainingStateProgressView(beforeState: 20, deltaState: 30)
+                        }
+                        .foregroundStyle(Color.white)
+                    }
+                }*/
+                
                 Spacer()
             }
             .padding(.top, 10)
             .padding(.bottom, 100)
             .hideKeyboardOnScroll()
-            //.onScrollDragChanged($isDragging)
         }
     }
 }
@@ -416,7 +439,7 @@ struct SignInSectionView: View {
                     .cornerRadius(4)
                     .exclusiveTouchTapGesture {
                         guard userManager.isLoggedIn else {
-                            UserManager.shared.showingLogin = true
+                            userManager.showingLogin = true
                             return
                         }
                         navigationManager.append(.subscriptionDetailView)
@@ -438,6 +461,7 @@ struct SignInSectionView: View {
                     .foregroundColor(.secondText)
                 }
             }
+            .environment(\.colorScheme, .light)
             if userManager.isLoggedIn {
                 if !vm.items.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -501,7 +525,6 @@ struct SignInSectionView: View {
             .onStableAppear {
                 tempDate = vm.reminderTime
             }
-            .preferredColorScheme(.dark)
         }
     }
 }
@@ -541,7 +564,7 @@ struct SignInDayView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(day.state == .future ? Color.secondText : Color.white)
                 }
-                if vm.isLoading {
+                if vm.isLoading && day.state != .future {
                     ProgressView()
                 }
             }
@@ -575,9 +598,9 @@ struct SignInDayView: View {
                     }
                     .font(.system(size: 12))
                     .fontWeight(.semibold)
-                    .foregroundStyle(day.state == .future ? Color.secondText : Color.white)
+                    .foregroundStyle(day.state_vip == .future ? Color.secondText : Color.white)
                 }
-                if vm.isLoadingVip {
+                if vm.isLoadingVip && day.state_vip != .future {
                     ProgressView()
                 }
             }
@@ -712,9 +735,7 @@ struct AnnouncementView: View {
     }
 }
 
-/*#Preview {
+#Preview {
     let appState = AppState.shared
-    return HomeView()
-        .environmentObject(appState)
-        .preferredColorScheme(.dark)
-}*/
+    HomeView(viewModel: HomeViewModel())
+}

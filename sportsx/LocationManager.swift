@@ -138,6 +138,145 @@ let regionTable_TW: [String: [Region]] = [
     ]
 ]
 
+let regionTable_KR: [String: [Region]] = [
+    "region.kr.gongwan": [
+        Region(regionID: "KR-GONG-WAN", regionName: "region.kr.gongwan")
+    ],
+    "region.kr.gyeonggi": [
+        Region(regionID: "KR-GYEONG-GI", regionName: "region.kr.gyeonggi")
+    ],
+    "region.kr.southchungcheong": [
+        Region(regionID: "KR-SOUTH-CHUNG-CHEONG", regionName: "region.kr.southchungcheong")
+    ],
+    "region.kr.incheon": [
+        Region(regionID: "KR-IN-CHEON", regionName: "region.kr.incheon")
+    ],
+    "region.kr.northjeolla": [
+        Region(regionID: "KR-NORTH-JEOLLA", regionName: "region.kr.northjeolla")
+    ],
+    "region.kr.southjeolla": [
+        Region(regionID: "KR-SOUTH-JEOLLA", regionName: "region.kr.southjeolla")
+    ],
+    "region.kr.southgyeongsang": [
+        Region(regionID: "KR-SOUTH-GYEONG-SANG", regionName: "region.kr.southgyeongsang")
+    ],
+    "region.kr.busan": [
+        Region(regionID: "KR-BU-SAN", regionName: "region.kr.busan")
+    ],
+    "region.kr.ulsan": [
+        Region(regionID: "KR-UL-SAN", regionName: "region.kr.ulsan")
+    ],
+    "region.kr.northgyeongsang": [
+        Region(regionID: "KR-NORTH-GYEONG-SANG", regionName: "region.kr.northgyeongsang")
+    ],
+    "region.kr.jeju": [
+        Region(regionID: "KR-JE-JU", regionName: "region.kr.jeju")
+    ],
+    "region.kr.seoul": [
+        Region(regionID: "KR-SEO-UL", regionName: "region.kr.seoul")
+    ],
+    "region.kr.daejeon": [
+        Region(regionID: "KR-DAE-JEON", regionName: "region.kr.daejeon")
+    ],
+    "region.kr.sejong": [
+        Region(regionID: "KR-SE-JONG", regionName: "region.kr.sejong")
+    ],
+    "region.kr.northchungcheong": [
+        Region(regionID: "KR-NORTH-CHUNG-CHEONG", regionName: "region.kr.northchungcheong")
+    ],
+    "region.kr.gwangju": [
+        Region(regionID: "KR-GWANG-JU", regionName: "region.kr.gwangju")
+    ],
+    "region.kr.daegu": [
+        Region(regionID: "KR-DAE-GU", regionName: "region.kr.daegu")
+    ]
+]
+
+struct RegionStore {
+    static let tables: [String: [String: [Region]]] = [
+        "CN": regionTable_CN,
+        "HK": regionTable_HK,
+        "TW": regionTable_TW,
+        "KR": regionTable_KR
+    ]
+    
+    static let index: [String: Region] = {
+        var dict: [String: Region] = [:]
+        for (_, country) in tables {
+            for (_, regions) in country {
+                for r in regions {
+                    dict[r.regionID] = r
+                }
+            }
+        }
+        return dict
+    }()
+}
+
+enum RealNameMethod: String {
+    case idcard = "idcard"
+    case passport = "passport"
+    case drivingLicense = "drivingLicense"
+    
+    var displayName: String {
+        switch self {
+        case .idcard: return "身份证"
+        case .passport: return "护照"
+        case .drivingLicense: return "驾照"
+        }
+    }
+}
+
+enum Country: String, CaseIterable {
+    case hk = "HK"
+    case tw = "TW"
+    case kr = "KR"
+    case cn = "CN"
+    
+    var supported: Bool {
+        switch self {
+        case .hk ,.tw, .kr: return true
+        case .cn: return false
+        }
+    }
+    
+    var phoneCode: String {
+        switch self {
+        case .hk: return "852"
+        case .tw: return "886"
+        case .kr: return "82"
+        case .cn: return "86"
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .hk: return "HongKong"
+        case .tw: return "Taiwan"
+        case .kr: return "Korea"
+        case .cn: return "China"
+        }
+    }
+    
+    var phoneNumberLength: ClosedRange<Int> {
+        switch self {
+        case .hk: return 8...8
+        case .tw: return 9...9
+        case .kr: return 10...11
+        case .cn: return 11...11
+        }
+    }
+    
+    var realnameMethod: [RealNameMethod] {
+        switch self {
+        case .hk: return [.idcard, .passport]
+        case .tw: return [.idcard, .passport]
+        case .kr: return [.idcard, .passport]
+        case .cn: return  [.idcard]
+        }
+    }
+}
+
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     static let shared = LocationManager()
     
@@ -150,26 +289,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     // GPS信号强度
     @Published var signalStrength: GPSStrength = .unknown
     // 设备国家定位
-    @Published var countryCode: String? = nil
+    @Published var country: Country? = nil
     // 运动中心已选择的地区
     @Published var regionID: String? = nil
     var regionName: LocalizedStringKey? {
-        for (_, cities) in regionTable_HK {
-            if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        for (_, cities) in regionTable_CN {
-            if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        for (_, cities) in regionTable_TW {
-            if let index = cities.firstIndex(where: { $0.regionID == regionID }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        return nil
+        guard let regionID = regionID, let region = RegionStore.index[regionID] else { return nil }
+        return LocalizedStringKey(region.regionName)
     }
     
     // 使用 @Published 来发布授权状态变化

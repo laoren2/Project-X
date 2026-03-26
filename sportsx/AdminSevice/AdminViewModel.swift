@@ -304,7 +304,7 @@ struct RunningUnverifiedRecordInfo: Identifiable, Equatable {
         validation_score = record.validation_score
         path = record.path
         basePath = record.path.map { $0.base }
-        samplePath = RunningPathPointTool.computeSamplePoints(pathData: record.path)
+        samplePath = RunningPathPointTool.computeRaceSamplePoints(pathData: record.path)
         if let finishedTime = record.finished_at {
             finished_at = formatter.date(from: finishedTime)
         } else {
@@ -625,7 +625,7 @@ struct BikeUnverifiedRecordInfo: Identifiable, Equatable {
         validation_score = record.validation_score
         path = record.path
         basePath = record.path.map { $0.base }
-        samplePath = BikePathPointTool.computeSamplePoints(pathData: record.path)
+        samplePath = BikePathPointTool.computeRaceSamplePoints(pathData: record.path)
         if let finishedTime = record.finished_at {
             finished_at = formatter.date(from: finishedTime)
         } else {

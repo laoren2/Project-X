@@ -72,6 +72,7 @@ struct RunningRecordBackendView: View {
             .cornerRadius(10)
         }
         .padding(.horizontal)
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .sheet(item: $viewModel.selectedRecord) { record in

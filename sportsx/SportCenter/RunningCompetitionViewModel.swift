@@ -103,6 +103,7 @@ class RunningCompetitionViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.tracks = newTracks
                     self.selectedTrack = newTracks.first
+                    self.selectedRankInfo = self.selectedTrack?.rankInfo
                     if !newTracks.isEmpty {
                         if let index = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }) {
                             self.events[index].tracks = self.tracks
@@ -140,7 +141,40 @@ class RunningCompetitionViewModel: ObservableObject {
                             self.tracks[index].rankInfo = rankInfo
                             self.events[eventIndex].tracks[trackIndex].rankInfo = rankInfo
                         }
-                        self.selectedRankInfo = rankInfo
+                        if let track = self.selectedTrack, trackID == track.trackID {
+                            self.selectedRankInfo = rankInfo
+                        }
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryTrackFamiliarity(trackID: String) {
+        guard userManager.isLoggedIn else { return }
+        guard var components = URLComponents(string: "/competition/running/query_track_familiarity") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "track_id", value: trackID)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: Double.self, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        if let eventIndex = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }),
+                           let trackIndex = self.events[eventIndex].tracks.firstIndex(where: { $0.trackID == trackID }),
+                           let index = self.tracks.firstIndex(where: { $0.trackID == trackID }) {
+                            self.tracks[index].familiarity = unwrappedData
+                            self.events[eventIndex].tracks[trackIndex].familiarity = unwrappedData
+                        }
+                        if let track = self.selectedTrack, trackID == track.trackID {
+                            self.selectedTrack?.familiarity = unwrappedData
+                        }
                     }
                 }
             default: break

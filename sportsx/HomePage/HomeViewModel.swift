@@ -99,7 +99,7 @@ class HomeViewModel: ObservableObject {
                 self.reminderManager.scheduleDailyReminder(at: self.reminderTime)
             } else {
                 DispatchQueue.main.async {
-                    ToastManager.shared.show(toast: Toast(message: "home.sigin_in.toast.reminder_permission"))
+                    ToastManager.shared.show(toast: Toast(message: "home.sign_in.toast.reminder_permission"))
                     self.reminderEnabled = false
                 }
             }

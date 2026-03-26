@@ -58,15 +58,17 @@ struct CompetitionWidget: View {
                         .frame(width: 70, height: 70)
                     
                     // 内圈
-                    Circle()
-                        .fill(Color.black.opacity(0.6))
-                        .frame(width: 60, height: 60)
-                        .overlay(
-                            Image(appState.competitionManager.sport.iconName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 30)
-                        )
+                    if let sport = appState.competitionManager.sport {
+                        Circle()
+                            .fill(Color.black.opacity(0.6))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(sport.iconName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 30)
+                            )
+                    }
                 }
                 .position(
                     x: geo.size.width - 70 + dragOffset.width + lastPosition.width,
@@ -93,7 +95,11 @@ struct CompetitionWidget: View {
                         }
                 )
                 .onTapGesture {
-                    appState.navigationManager.append(.competitionRealtimeView)
+                    if appState.competitionManager.sportFeature == .bikeRace || appState.competitionManager.sportFeature == .runningRace {
+                        appState.navigationManager.append(.competitionRealtimeView)
+                    } else if appState.competitionManager.sportFeature == .bikeFreeTraining || appState.competitionManager.sportFeature == .runningFreeTraining {
+                        appState.navigationManager.append(.freeTrainingRealtimeView)
+                    }
                 }
             }
         }

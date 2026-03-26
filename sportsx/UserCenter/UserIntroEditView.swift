@@ -173,6 +173,7 @@ struct UserIntroEditView: View {
             .frame(height: 40)
             //.border(.red)
         }
+        .environment(\.colorScheme, .light)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .sheet(isPresented: $showIntroEditor) {
@@ -340,6 +341,7 @@ struct IntroEditorView: View {
             .padding(.horizontal)
             //.border(.red)
         }
+        .environment(\.colorScheme, .light)
         .onAppear {
             tempIntro = viewModel.currentUser.introduction ?? ""
         }
@@ -411,6 +413,7 @@ struct NameEditorView: View {
             }
             .padding(.horizontal)
         }
+        .environment(\.colorScheme, .light)
         .onAppear {
             tempName = viewModel.currentUser.nickname
         }

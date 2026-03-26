@@ -9,9 +9,9 @@ import SwiftUI
 import MapKit
 
 
-struct BikeRecordDetailView: View {
+struct BikeRaceRecordDetailView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject var viewModel: BikeRecordDetailViewModel
+    @StateObject var viewModel: BikeRaceRecordDetailViewModel
     
     @State private var progressIndex: Int = 0
     @State var isHeartDetail: Bool = false
@@ -105,7 +105,7 @@ struct BikeRecordDetailView: View {
     }
     
     init(recordID: String) {
-        _viewModel = StateObject(wrappedValue: BikeRecordDetailViewModel(recordID: recordID))
+        _viewModel = StateObject(wrappedValue: BikeRaceRecordDetailViewModel(recordID: recordID))
     }
     
     var body: some View {
@@ -162,6 +162,45 @@ struct BikeRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            // 结算信息
+                            HStack {
+                                Text("competition.record.settlement_rewards")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundStyle(Color.secondText)
+                                Spacer()
+                            }
+                            .padding(.top, 10)
+                            
+                            HStack {
+                                HStack(spacing: 4) {
+                                    Image("experience_points")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
+                                        .font(.system(.body, design: .rounded, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                }
+                                Spacer()
+                                HStack {
+                                    ForEach(detailInfo.settlements.ccassets) { ccasset in
+                                        HStack(spacing: 4) {
+                                            Image(ccasset.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 25)
+                                            Text("+\(ccasset.new_ccamount)")
+                                                .font(.system(.body, design: .rounded, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            Divider()
+                                .environment(\.colorScheme, .dark)
+                            
                             HStack {
                                 Text("competition.record.time_and_data")
                                     .font(.title2)
@@ -169,9 +208,27 @@ struct BikeRecordDetailView: View {
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
                             }
-                            .padding(.top, 10)
+                            
                             // 成绩总览
                             VStack(spacing: 8) {
+                                HStack {
+                                    Text("common.status")
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    if detailInfo.status == .completed {
+                                        if detailInfo.isFinishComputed == false {
+                                            Text("competition.record.status.computing")
+                                                .foregroundColor(.orange)
+                                        } else {
+                                            Text("competition.record.status.completed")
+                                                .foregroundColor(.green)
+                                        }
+                                    } else {
+                                        Text(LocalizedStringKey(detailInfo.status.displayName))
+                                            .foregroundStyle(detailInfo.status.backgroundColor)
+                                    }
+                                }
+                                .bold()
                                 HStack {
                                     Text("competition.track.distance")
                                         .bold()
@@ -213,23 +270,29 @@ struct BikeRecordDetailView: View {
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    Text("common.status")
-                                        .foregroundStyle(Color.secondText)
+                                    (Text("  ") + Text("competition.result.bonus_time.magiccard"))
+                                        .font(.system(size: 15))
                                     Spacer()
-                                    if detailInfo.status == .completed {
-                                        if detailInfo.isFinishComputed == false {
-                                            Text("competition.record.status.computing")
-                                                .foregroundColor(.orange)
-                                        } else {
-                                            Text("competition.record.status.completed")
-                                                .foregroundColor(.green)
-                                        }
-                                    } else {
-                                        Text(LocalizedStringKey(detailInfo.status.displayName))
-                                            .foregroundStyle(detailInfo.status.backgroundColor)
-                                    }
+                                    Text("- \(TimeDisplay.formattedTime(detailInfo.totalCardTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 }
-                                .bold()
+                                .foregroundStyle(Color.secondText)
+                                HStack {
+                                    (Text("  ") + Text("competition.result.bonus_time.familiarity"))
+                                        .font(.system(size: 15))
+                                    Spacer()
+                                    Text("- \(TimeDisplay.formattedTime(detailInfo.familiarityTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(Color.secondText)
+                                HStack {
+                                    (Text("  ") + Text("competition.result.bonus_time.training_state"))
+                                        .font(.system(size: 15))
+                                    Spacer()
+                                    Text("- \(TimeDisplay.formattedTime(detailInfo.trainingStateTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(Color.secondText)
                             }
                             Divider()
                                 .environment(\.colorScheme, .dark)
@@ -678,9 +741,9 @@ struct BikeRecordDetailView: View {
     }
 }
 
-struct RunningRecordDetailView: View {
+struct RunningRaceRecordDetailView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject var viewModel: RunningRecordDetailViewModel
+    @StateObject var viewModel: RunningRaceRecordDetailViewModel
     
     @State private var progressIndex: Int = 0
     @State var isHeartDetail: Bool = false
@@ -808,7 +871,7 @@ struct RunningRecordDetailView: View {
     }
     
     init(recordID: String) {
-        _viewModel = StateObject(wrappedValue: RunningRecordDetailViewModel(recordID: recordID))
+        _viewModel = StateObject(wrappedValue: RunningRaceRecordDetailViewModel(recordID: recordID))
     }
     
     var body: some View {
@@ -865,6 +928,45 @@ struct RunningRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            // 结算信息
+                            HStack {
+                                Text("competition.record.settlement_rewards")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundStyle(Color.secondText)
+                                Spacer()
+                            }
+                            .padding(.top, 10)
+                            
+                            HStack {
+                                HStack(spacing: 4) {
+                                    Image("experience_points")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
+                                        .font(.system(.body, design: .rounded, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                }
+                                Spacer()
+                                HStack {
+                                    ForEach(detailInfo.settlements.ccassets) { ccasset in
+                                        HStack(spacing: 4) {
+                                            Image(ccasset.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
+                                            Text("+\(ccasset.new_ccamount)")
+                                                .font(.system(.body, design: .rounded, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            Divider()
+                                .environment(\.colorScheme, .dark)
+                            
                             HStack {
                                 Text("competition.record.time_and_data")
                                     .font(.title2)
@@ -872,9 +974,27 @@ struct RunningRecordDetailView: View {
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
                             }
-                            .padding(.top, 10)
+                            
                             // 成绩总览
                             VStack(spacing: 8) {
+                                HStack {
+                                    Text("common.status")
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    if detailInfo.status == .completed {
+                                        if detailInfo.isFinishComputed == false {
+                                            Text("competition.record.status.computing")
+                                                .foregroundColor(.orange)
+                                        } else {
+                                            Text("competition.record.status.completed")
+                                                .foregroundColor(.green)
+                                        }
+                                    } else {
+                                        Text(LocalizedStringKey(detailInfo.status.displayName))
+                                            .foregroundStyle(detailInfo.status.backgroundColor)
+                                    }
+                                }
+                                .bold()
                                 HStack {
                                     Text("competition.track.distance")
                                         .bold()
@@ -916,23 +1036,29 @@ struct RunningRecordDetailView: View {
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    Text("common.status")
-                                        .foregroundStyle(Color.secondText)
+                                    (Text("  ") + Text("competition.result.bonus_time.magiccard"))
+                                        .font(.system(size: 15))
                                     Spacer()
-                                    if detailInfo.status == .completed {
-                                        if detailInfo.isFinishComputed == false {
-                                            Text("competition.record.status.computing")
-                                                .foregroundColor(.orange)
-                                        } else {
-                                            Text("competition.record.status.completed")
-                                                .foregroundColor(.green)
-                                        }
-                                    } else {
-                                        Text(LocalizedStringKey(detailInfo.status.displayName))
-                                            .foregroundStyle(detailInfo.status.backgroundColor)
-                                    }
+                                    Text("- \(TimeDisplay.formattedTime(detailInfo.totalCardTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 }
-                                .bold()
+                                .foregroundStyle(Color.secondText)
+                                HStack {
+                                    (Text("  ") + Text("competition.result.bonus_time.familiarity"))
+                                        .font(.system(size: 15))
+                                    Spacer()
+                                    Text("- \(TimeDisplay.formattedTime(detailInfo.familiarityTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(Color.secondText)
+                                HStack {
+                                    (Text("  ") + Text("competition.result.bonus_time.training_state"))
+                                        .font(.system(size: 15))
+                                    Spacer()
+                                    Text("- \(TimeDisplay.formattedTime(detailInfo.trainingStateTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(Color.secondText)
                             }
                             Divider()
                                 .environment(\.colorScheme, .dark)
@@ -1596,6 +1722,6 @@ struct GestureOverlayView: View {
 
 #Preview {
     let appState = AppState.shared
-    return BikeRecordDetailView(recordID: "test")
+    return BikeRaceRecordDetailView(recordID: "test")
         .environmentObject(appState)
 }

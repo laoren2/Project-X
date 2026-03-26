@@ -79,8 +79,8 @@ class SpeedPolylineRenderer: MKOverlayRenderer {
     }
 }
 
-// MARK: - 进行时的路径 Map 视图
-struct RealtimeMapView: UIViewRepresentable {
+// MARK: - 比赛进行时的路径 Map 视图
+struct RaceRealtimeMapView: UIViewRepresentable {
     let fromCoordinate: CLLocationCoordinate2D
     let toCoordinate: CLLocationCoordinate2D
     let startRadius: CLLocationDistance
@@ -208,7 +208,7 @@ struct RealtimeMapView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var parent: RealtimeMapView
+        var parent: RaceRealtimeMapView
         let fromAnnotation = TrackPointAnnotation(type: .start)
         let toAnnotation = TrackPointAnnotation(type: .end)
         // 缓存
@@ -218,7 +218,7 @@ struct RealtimeMapView: UIViewRepresentable {
         // 识别 Map 视角变化的来源
         var isProgrammaticChange = true
         
-        init(_ parent: RealtimeMapView) {
+        init(_ parent: RaceRealtimeMapView) {
             self.parent = parent
             self.fromAnnotation.title = "From"
             self.toAnnotation.title = "To"
@@ -404,6 +404,149 @@ struct GradientPathMapView: UIViewRepresentable {
                 return view
             }
             return nil
+        }
+    }
+}
+
+// MARK: - 训练进行时的路径 Map 视图
+struct TrainingRealtimeMapView: UIViewRepresentable {
+    let path: [PathPoint]
+    let isReverse: Bool
+    @Binding var mapMode: MapViewMode       // 新增
+    @Binding var userLocation: CLLocation?  // 用于跟随模式
+    
+    let radius = 20.0     // 自动跟随的视角半径
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.isZoomEnabled = true
+        mapView.isScrollEnabled = true
+        mapView.isRotateEnabled = true
+        mapView.showsUserLocation = true
+        mapView.delegate = context.coordinator
+        
+        context.coordinator.lastPointCount = 0
+        
+        return mapView
+    }
+
+    func updateUIView(_ mapView: MKMapView, context: Context) {
+        if context.coordinator.lastIsReverse != isReverse {
+            mapView.removeOverlays(mapView.overlays)
+            context.coordinator.lastPointCount = 0
+            context.coordinator.lastIsReverse = isReverse
+        }
+        switch mapMode {
+        case .followUser:
+            //print("switch to followuser")
+            if let userLocation = userLocation {
+                let location = isReverse ? CoordinateConverter.reverseParseCoordinate(coordinate: userLocation.coordinate) : CoordinateConverter.parseCoordinate(coordinate: userLocation.coordinate)
+                let region = MKCoordinateRegion(center: location,
+                                                latitudinalMeters: 3 * radius,
+                                                longitudinalMeters: 3 * radius)
+                    .centerOffset(byLatitudeMeters: -radius / 2)
+                context.coordinator.isProgrammaticChange = true
+                mapView.setRegion(region, animated: context.coordinator.lastMode != .followUser ? true : false)
+                DispatchQueue.main.async {
+                    context.coordinator.isProgrammaticChange = false
+                }
+            }
+        default:
+            // 不自动更新region
+            //print("switch to manual")
+            break
+        }
+        if context.coordinator.lastMode != mapMode {
+            context.coordinator.lastMode = mapMode
+        }
+        
+        guard path.count > 1 else { return }
+        // 检查是否有新点添加
+        let lastCount = context.coordinator.lastPointCount
+        if path.count > lastCount + 1 {
+            // 多个新点：批量更新
+            let newPoints = Array(path[lastCount...])
+            addPolylineSegment(to: mapView, from: newPoints)
+        } else if path.count == lastCount + 1 {
+            // 单个新点：增量更新
+            let segment = Array(path.suffix(2))
+            addPolylineSegment(to: mapView, from: segment)
+        } else if path.count < lastCount {
+            // 如果路径被重置，清除所有overlay
+            mapView.removeOverlays(mapView.overlays)
+            if let firstPolyline = makePolyline(from: path) {
+                mapView.addOverlay(firstPolyline)
+                mapView.setVisibleMapRect(firstPolyline.boundingMapRect, edgePadding: .init(top: 40, left: 40, bottom: 40, right: 40), animated: false)
+            }
+        }
+        context.coordinator.lastPointCount = path.count
+    }
+    
+    private func addPolylineSegment(to mapView: MKMapView, from segment: [PathPoint]) {
+        guard segment.count >= 2 else { return }
+        
+        var coords = segment.map {
+            isReverse ? CoordinateConverter.reverseParseCoordinate(coordinate: CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon)) : CoordinateConverter.parseCoordinate(coordinate: CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon))
+        }
+        let polyline = SpeedPolyline(coordinates: &coords, count: coords.count)
+        polyline.speeds = segment.map { $0.speed }
+        mapView.addOverlay(polyline)
+    }
+    
+    private func makePolyline(from path: [PathPoint]) -> SpeedPolyline? {
+        guard !path.isEmpty else { return nil }
+        var coords = path.map {
+            isReverse ? CoordinateConverter.reverseParseCoordinate(coordinate: CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon)) : CoordinateConverter.parseCoordinate(coordinate: CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon))
+        }
+        let polyline = SpeedPolyline(coordinates: &coords, count: coords.count)
+        polyline.speeds = path.map { $0.speed }
+        return polyline
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, MKMapViewDelegate {
+        var parent: TrainingRealtimeMapView
+        // 缓存
+        var lastPointCount: Int = 0
+        var lastIsReverse: Bool = false
+        var lastMode: MapViewMode = .followUser
+        // 识别 Map 视角变化的来源
+        var isProgrammaticChange = true
+        
+        init(_ parent: TrainingRealtimeMapView) {
+            self.parent = parent
+        }
+        
+        func setRegionProgrammatically(_ mapView: MKMapView, region: MKCoordinateRegion, animated: Bool) {
+            isProgrammaticChange = true
+            mapView.setRegion(region, animated: animated)
+            DispatchQueue.main.async {
+                self.isProgrammaticChange = false
+            }
+        }
+        
+        func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+            //print("regionWillChangeAnimated: \(isProgrammaticChange)")
+            if !isProgrammaticChange {
+                DispatchQueue.main.async {
+                    self.parent.mapMode = .manual
+                }
+            }
+        }
+
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let circle = overlay as? MKCircle {
+                let renderer = MKCircleRenderer(circle: circle)
+                renderer.fillColor = UIColor.orange.withAlphaComponent(0.2)
+                renderer.strokeColor = UIColor.orange.withAlphaComponent(0.6)
+                renderer.lineWidth = 2
+                return renderer
+            }
+            if let polyline = overlay as? SpeedPolyline {
+                return SpeedPolylineRenderer(polyline: polyline)
+            }
+            return MKOverlayRenderer(overlay: overlay)
         }
     }
 }

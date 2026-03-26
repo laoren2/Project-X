@@ -17,15 +17,9 @@ struct RegionSelectedView: View {
     @State var regionIDsWithEvents: [String] = []
 
     var regions: [String: [Region]] {
-        let base: [String: [Region]]
-        if locationManager.countryCode == "CN" {
-            base = regionTable_CN
-        } else if locationManager.countryCode == "HK" {
-            base = regionTable_HK
-        } else if locationManager.countryCode == "TW" {
-            base = regionTable_TW
-        } else {
-            base = regionTable_HK   // 未来删除
+        var base: [String: [Region]] = [:]
+        if let country = locationManager.country {
+            base = RegionStore.tables[country.rawValue] ?? [:]
         }
         
         if onlyShowWithEvents {
@@ -170,7 +164,7 @@ struct RegionSelectedView: View {
             }
             selectedProvince = regions.keys.sorted().first ?? "error.unknown"
         }
-        .onValueChange(of: locationManager.countryCode) {
+        .onValueChange(of: locationManager.country) {
             fetchRegionsWithEvents()
         }
     }
@@ -232,7 +226,11 @@ struct RegionSelectedView: View {
                     DispatchQueue.main.async {
                         self.locationManager.regionID = unwrappedData.region_id
                         GlobalConfig.shared.locationID = unwrappedData.region_id
-                        locationManager.countryCode = unwrappedData.country_code
+                        if let code = unwrappedData.country_code {
+                            locationManager.country = Country(rawValue: code)
+                        } else {
+                            locationManager.country = nil
+                        }
                         if let regionID = unwrappedData.region_id, let _ = unwrappedData.country_code {
                             let userManager = UserManager.shared
                             if userManager.isLoggedIn && userManager.user.enableAutoLocation && userManager.user.location != regionID {
@@ -248,11 +246,11 @@ struct RegionSelectedView: View {
     }
     
     func fetchRegionsWithEvents() {
-        //guard let code = locationManager.countryCode else { return }
+        guard let country = locationManager.country else { return }
         guard var components = URLComponents(string: "/competition/query_regions_with_events") else { return }
         components.queryItems = [
             URLQueryItem(name: "sport_type", value: appState.sport.rawValue),
-            URLQueryItem(name: "country_code", value: "HK")     // 未来删除
+            URLQueryItem(name: "country_code", value: country.rawValue)
         ]
         guard let urlPath = components.string else { return }
             

@@ -87,6 +87,7 @@ struct AdminPanelView: View {
                 .padding()
             }
         }
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
     }

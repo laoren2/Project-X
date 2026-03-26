@@ -14,6 +14,9 @@ struct CompetitionCardSelectView: View {
     @ObservedObject var userManager = UserManager.shared
     @State private var showCardSelection = false
     
+    @State var stateValue: Int = 0
+    @State var familiarityValue: Double = 0
+    
     // 卡牌容器的常量
     private let cardWidth: CGFloat = 100
     //private let cardHeight: CGFloat = 140
@@ -37,10 +40,12 @@ struct CompetitionCardSelectView: View {
                         }
                     }
                 Spacer()
-                Image(appState.competitionManager.sport.iconName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 20)
+                if let sport = appState.competitionManager.sport {
+                    Image(sport.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 20)
+                }
                 Text(appState.competitionManager.isTeam ? "competition.register.team" : "competition.register.single")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.secondText)
@@ -73,17 +78,47 @@ struct CompetitionCardSelectView: View {
                         } else {
                             Text("competition.realtime.remaining_time \(appState.competitionManager.teamJoinRemainingTime)")
                                 .font(.headline)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color.white)
                                 .padding()
                         }
                     }
+                    
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("competition.cardselect.familiarity_buff")
+                                .font(.headline)
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(Color.thirdText)
+                                .font(.subheadline)
+                                .exclusiveTouchTapGesture {
+                                    PopupWindowManager.shared.presentPopup(
+                                        title: "competition.cardselect.familiarity_buff",
+                                        message: "competition.cardselect.familiarity_buff.description",
+                                        bottomButtons: [.confirm()]
+                                    )
+                                }
+                        }
+                        Spacer()
+                        Text(String(format: "%.2f %%", Double(stateValue) * 2 / 100))
+                            .font(.system(.body, design: .rounded, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
+                    
+                    HStack {
+                        Text("competition.cardselect.sport_state_buff")
+                            .font(.headline)
+                        Spacer()
+                        Text(String(format: "%.2f %%", Double(familiarityValue) * 2))
+                            .font(.system(.body, design: .rounded, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
                     
                     HStack {
                         if userManager.user.isVip {
                             Spacer()
                         }
                         Text("competition.cardselect.choose")
-                            .font(.headline)
+                            .font(.system(size: 25))
                             .foregroundStyle(.white)
                         Spacer()
                         if !userManager.user.isVip {
@@ -139,26 +174,6 @@ struct CompetitionCardSelectView: View {
                                 ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
                                     EmptyCardSlot()
                                 }
-                                /*let selected = appState.competitionManager.selectedCards
-                                 let placeholders = Array(selected.count..<maxCards)
-                                 let allViews: [AnyView] = selected.map { card in
-                                 AnyView(
-                                 MagicCardView(card: card)
-                                 .frame(width: cardWidth)
-                                 )
-                                 } + placeholders.map { _ in
-                                 AnyView(
-                                 EmptyCardSlot()
-                                 .frame(width: cardWidth)
-                                 )
-                                 }
-                                 
-                                 ForEach(0..<allViews.count, id: \.self) { i in
-                                 allViews[i]
-                                 if i < allViews.count - 1 {
-                                 Spacer()
-                                 }
-                                 }*/
                             }
                             .padding(.bottom)
                         }
@@ -248,9 +263,65 @@ struct CompetitionCardSelectView: View {
                     ]
                 )
             }
+            queryTrackFamiliarity()
+            queryTrainingState()
         }
         .bottomSheet(isPresented: $showCardSelection, size: .large, destroyOnDismiss: true) {
             CardSelectionView(showCardSelection: $showCardSelection)
+        }
+    }
+    
+    func queryTrackFamiliarity() {
+        guard let sport = appState.competitionManager.sport else { return }
+        var recordID: String = ""
+        
+        if sport == .Bike, let record = appState.competitionManager.currentBikeRecord {
+            recordID = record.record_id
+        } else if sport == .Running, let record = appState.competitionManager.currentRunningRecord {
+            recordID = record.record_id
+        } else {
+            return
+        }
+        
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_record_familiarity") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "record_id", value: recordID)
+        ]
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: Double.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        familiarityValue = unwrappedData
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func queryTrainingState() {
+        guard let sport = appState.competitionManager.sport else { return }
+        
+        guard let components = URLComponents(string: "/training/\(sport.rawValue)/training_states/me") else { return }
+        guard let urlPath = components.url?.absoluteString else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        
+        NetworkService.sendRequest(with: request, decodingType: Int.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let unwrappedData = data {
+                    DispatchQueue.main.async {
+                        stateValue = unwrappedData
+                    }
+                }
+            default: break
+            }
         }
     }
 }

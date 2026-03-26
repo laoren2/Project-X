@@ -121,16 +121,24 @@ struct RunningCompetitionView: View {
                                 
                                 Divider()
                                 
-                                (Text("competition.begin_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.startDate))))
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondText)
+                                HStack {
+                                    Text("competition.begin_date") + Text(": ")
+                                    Spacer()
+                                    Text(LocalizedStringKey(DateDisplay.formattedDate(event.startDate)))
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.secondText)
                                 
-                                (Text("competition.end_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(event.endDate))))
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondText)
+                                HStack {
+                                    Text("competition.end_date") + Text(": ")
+                                    Spacer()
+                                    Text(LocalizedStringKey(DateDisplay.formattedDate(event.endDate)))
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.secondText)
                             }
                             .padding()
-                            .background(.ultraThinMaterial)
+                            .background(Color.black.opacity(0.2))
                             .cornerRadius(20)
                         }
                     }
@@ -243,14 +251,18 @@ struct RunningCompetitionView: View {
                                     
                                     HStack(spacing: 4) {
                                         Image(systemName: "calendar")
-                                        Text("competition.begin_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(track.startDate)))
+                                        Text("competition.begin_date") + Text(": ")
+                                        Spacer()
+                                        Text(LocalizedStringKey(DateDisplay.formattedDate(track.startDate)))
                                     }
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
                                     
                                     HStack(spacing: 4) {
                                         Image(systemName: "flag.checkered")
-                                        Text("competition.end_date") + Text(": ") + Text(LocalizedStringKey(DateDisplay.formattedDate(track.endDate)))
+                                        Text("competition.end_date") + Text(": ")
+                                        Spacer()
+                                        Text(LocalizedStringKey(DateDisplay.formattedDate(track.endDate)))
                                     }
                                     .font(.subheadline)
                                     .foregroundColor(.secondText)
@@ -264,7 +276,7 @@ struct RunningCompetitionView: View {
                                         ("total_distance", "competition.track.distance", "\(track.distance)", "distance.km", false),
                                         ("voucher", "competition.track.prize_pool", "\(track.prizePool)", nil, false),
                                         ("sub_region", "competition.track.sub_region", track.regionName, nil, false),
-                                        ("season_score", "competition.track.score", "\(track.score)", nil, false)
+                                        ("season_points", "competition.track.score", "\(track.score)", nil, false)
                                     ]
                                     HStack(alignment: .top) {
                                         Spacer()
@@ -301,7 +313,32 @@ struct RunningCompetitionView: View {
                                     .padding(.vertical, 6)
                                 }
                                 .padding()
-                                .background(.ultraThinMaterial)
+                                .background(Color.black.opacity(0.2))
+                                .cornerRadius(20)
+                                
+                                VStack(spacing: 10) {
+                                    HStack {
+                                        Text("competition.track.familiarity")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                        Spacer()
+                                    }
+                                    if let familiarity = track.familiarity {
+                                        ZStack {
+                                            ProgressBar(progress: familiarity)
+                                            Text(String(format: "%.1f %%", familiarity * 100))
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondText)
+                                        }
+                                    } else {
+                                        Text("toast.no_login.2")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondText)
+                                    }
+                                }
+                                .padding()
+                                .background(Color.black.opacity(0.2))
                                 .cornerRadius(20)
                                 
                                 VStack(alignment: .leading, spacing: 10) {
@@ -315,7 +352,7 @@ struct RunningCompetitionView: View {
                                         Spacer()
                                         
                                         HStack {
-                                            Text("tab.my")
+                                            Text("common.my")
                                             Image(systemName: "chevron.right")
                                         }
                                         .font(.subheadline)
@@ -372,7 +409,7 @@ struct RunningCompetitionView: View {
                                     .foregroundStyle(Color.white)
                                 }
                                 .padding()
-                                .background(.ultraThinMaterial)
+                                .background(Color.black.opacity(0.2))
                                 .cornerRadius(20)
                                 
                                 if let rankInfo = viewModel.selectedRankInfo {
@@ -421,7 +458,7 @@ struct RunningCompetitionView: View {
                                                     Image(systemName: "chevron.right")
                                                 }
                                                 .exclusiveTouchTapGesture {
-                                                    appState.navigationManager.append(.runningRecordDetailView(recordID: recordID))
+                                                    appState.navigationManager.append(.runningRaceRecordDetailView(recordID: recordID))
                                                 }
                                             } else {
                                                 Text("competition.record.no_data")
@@ -432,7 +469,7 @@ struct RunningCompetitionView: View {
                                         .padding(.vertical, 4)
                                     }
                                     .padding()
-                                    .background(.ultraThinMaterial)
+                                    .background(Color.black.opacity(0.2))
                                     .cornerRadius(20)
                                 } else {
                                     HStack(alignment: .top) {
@@ -454,7 +491,7 @@ struct RunningCompetitionView: View {
                                     }
                                     .foregroundColor(.white)
                                     .padding()
-                                    .background(.ultraThinMaterial)
+                                    .background(Color.black.opacity(0.2))
                                     .cornerRadius(20)
                                 }
                             }
@@ -564,13 +601,15 @@ struct RunningCompetitionView: View {
                 if track.rankInfo == nil {
                     viewModel.queryRankInfo(trackID: track.trackID)
                 }
+                if track.familiarity == nil {
+                    viewModel.queryTrackFamiliarity(trackID: track.trackID)
+                }
             }
         }
         .onValueChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn {
-                if let track = viewModel.selectedTrack {
-                    viewModel.queryRankInfo(trackID: track.trackID)
-                }
+            if userManager.isLoggedIn, let track = viewModel.selectedTrack {
+                viewModel.queryRankInfo(trackID: track.trackID)
+                viewModel.queryTrackFamiliarity(trackID: track.trackID)
             }
         }
         .onStableAppear {
@@ -580,9 +619,13 @@ struct RunningCompetitionView: View {
                 }
                 globalConfig.refreshCompetitionView  = false
                 globalConfig.refreshRankInfo  = false
+                globalConfig.refreshFamiliarity  = false
             } else if globalConfig.refreshRankInfo, let trackID = viewModel.selectedTrack?.trackID {
                 viewModel.queryRankInfo(trackID: trackID)
                 globalConfig.refreshRankInfo  = false
+            } else if globalConfig.refreshFamiliarity, let trackID = viewModel.selectedTrack?.trackID {
+                viewModel.queryTrackFamiliarity(trackID: trackID)
+                globalConfig.refreshFamiliarity  = false
             }
             DispatchQueue.main.async {
                 viewModel.didLoad = true

@@ -995,3 +995,12 @@ extension Int {
         }
     }
 }
+
+// 白色背景
+extension View {
+    func lightPage() -> some View {
+        self
+            .environment(\.colorScheme, .light)
+            .background(Color.white)
+    }
+}

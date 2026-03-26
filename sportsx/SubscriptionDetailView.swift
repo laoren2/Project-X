@@ -292,7 +292,9 @@ extension SubscriptionDetailView {
     private var subscribeButton: some View {
         Button {
             guard agreed else {
-                ToastManager.shared.show(toast: Toast(message: "iap.subscription.toast.vip_autorenewal_agreement"))
+                Task {
+                    ToastManager.shared.show(toast: Toast(message: "iap.subscription.toast.vip_autorenewal_agreement"))
+                }
                 return
             }
             Task {

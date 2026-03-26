@@ -153,6 +153,7 @@ struct SensorBindView: View {
 }
 
 struct BodyBindView: View {
+    @EnvironmentObject var appState: AppState
     @ObservedObject var deviceManager = DeviceManager.shared
     @Binding var selectedPosition: BodyPosition?
     @Binding var isLoading: BodyPosition?
@@ -192,14 +193,16 @@ struct BodyBindView: View {
                 Text("user.setup.action.phone.unbind")
                     .padding(.vertical, 8)
                     .padding(.horizontal, 15)
-                    .foregroundColor(.red.opacity(0.8))
+                    .foregroundStyle(appState.competitionManager.isRecording ? Color.gray.opacity(0.8) : Color.red.opacity(0.8))
                     .overlay(
                         RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color.red.opacity(0.5), lineWidth: 2)
+                            .stroke(appState.competitionManager.isRecording ? Color.gray.opacity(0.5) : Color.red.opacity(0.5), lineWidth: 2)
                     )
                     .exclusiveTouchTapGesture {
-                        deviceManager.unbindDevice(at: position)
-                        ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
+                        if !appState.competitionManager.isRecording {
+                            deviceManager.unbindDevice(at: position)
+                            ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
+                        }
                     }
             } else {
                 // 未绑定状态

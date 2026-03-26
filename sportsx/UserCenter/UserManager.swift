@@ -34,22 +34,8 @@ class UserManager: ObservableObject {
     var originTransactionID: String? = nil
     
     var userRegion: LocalizedStringKey? {
-        for (_, cities) in regionTable_TW {
-            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        for (_, cities) in regionTable_HK {
-            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        for (_, cities) in regionTable_CN {
-            if let index = cities.firstIndex(where: { $0.regionID == user.location }) {
-                return LocalizedStringKey(cities[index].regionName)
-            }
-        }
-        return nil
+        guard let regionID = user.location, let region = RegionStore.index[regionID] else { return nil }
+        return LocalizedStringKey(region.regionName)
     }
     
     private init() {}
@@ -135,7 +121,13 @@ class UserManager: ObservableObject {
     }
     
     func fetchMeInfo() async {
-        let request = APIRequest(path: "/user/me", method: .get, requiresAuth: true)
+        let timezone = TimeZone.current.identifier
+        guard var components = URLComponents(string: "/user/me") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "timezone", value: timezone)
+        ]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
         let result = await NetworkService.sendAsyncRequest(with: request, decodingType: FetchMeUserResponse.self, showErrorToast: true)
         

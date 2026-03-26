@@ -18,7 +18,6 @@ struct CareerView: View {
         VStack(spacing: 20) {
             // 暂时为适配 iOS16+ 的写法
             // todo: 替换为更稳定的自定义menu
-            
             HStack {
                 if let seasonName = viewModel.selectedSeason?.seasonName {
                     Menu {
@@ -119,238 +118,26 @@ struct CareerView: View {
              .padding(.horizontal)*/
             
             // 参与数据区域
-            VStack(spacing: 15) {
-                HStack {
-                    Text("competition.season.data")
-                    Spacer()
-                }
-                .font(.headline)
-                .foregroundStyle(.white)
-                
-                VStack {
-                    HStack {
-                        Text("competition.season.score")
-                        Spacer()
-                        Text("\(viewModel.totalScore)")
-                    }
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.white)
-                    Divider()
-                    HStack {
-                        Text("competition.season.ranking")
-                        Spacer()
-                        if let rank = viewModel.totalRank {
-                            Text("\(rank)")
-                        } else {
-                            Text("error.no_data")
-                        }
-                    }
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.white)
-                    Divider()
-                    HStack(alignment: .bottom, spacing: 15) {
-                        VStack(spacing: 5) {
-                            Image("total_time")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 25)
-                            (Text(String(format: "%.2f", viewModel.totalTime / 3600)) + Text("time.hour"))
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.white)
-                            Text("competition.season.total_time")
-                                .font(.caption)
-                                .foregroundStyle(Color.secondText)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        
-                        VStack(spacing: 5) {
-                            Image("total_distance")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 25)
-                            (Text(String(format: "%.2f", viewModel.totalDistance)) + Text("distance.km"))
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.white)
-                            Text("competition.season.total_distance")
-                                .font(.caption)
-                                .foregroundStyle(Color.secondText)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        
-                        VStack(spacing: 5) {
-                            Image("voucher")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 25)
-                            Text("\(viewModel.totalBonus)")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.white)
-                            Text("competition.season.total_rewards")
-                                .font(.caption)
-                                .foregroundStyle(Color.secondText)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                    }
-                }
-                .padding()
-                .background(.white.opacity(0.3))
-                .cornerRadius(12)
-            }
-            .padding(.horizontal)
-            
-            // 赛事积分记录
-            VStack(spacing: 10) {
-                HStack {
-                    Text("competition.season.event_records")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Spacer()
-                }
-                if viewModel.competitionScoreRecords.isEmpty {
-                    Spacer()
-                    VStack(spacing: 20) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 60))
-                        Text("error.no_data")
-                            .font(.headline)
-                    }
-                    .foregroundStyle(Color.white.opacity(0.3))
-                    Spacer()
-                } else {
-                    LazyVStack(spacing: 15) {
-                        ForEach(viewModel.competitionScoreRecords) { record in
-                            CompetitionScoreCard(sport: viewModel.sport, trackRecord: record)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal)
-            Spacer()
-        }
-        .frame(minHeight: 700)
-    }
-    
-    // 能力条
-    private func abilityBar(ability: String, value: Float) -> some View {
-        HStack {
-            Text(ability)
-                .font(.caption)
-                .frame(width: 30, alignment: .leading)
-                .foregroundColor(.white)
-                //.border(.green)
-            
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .frame(width: geometry.size.width, height: 6)
-                        .opacity(0.2)
-                        .foregroundColor(.gray)
-                    
-                    Rectangle()
-                        .frame(width: geometry.size.width * CGFloat(value) / 100, height: 6)
-                        .foregroundColor(.blue)
-                }
-            }
-            .frame(height: 6)
-            
-            Text(String(format: "%.1f", value))
-                .font(.caption)
-                .frame(width: 30)
-                .foregroundColor(.white)
-                //.border(.red)
-        }
-    }
-}
-
-
-struct LocalCareerView: View {
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var userManager = UserManager.shared
-    @ObservedObject var viewModel: LocalUserViewModel
-    
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            if !userManager.isLoggedIn {
-                Spacer()
-                Text("toast.no_login.2")
-                    .foregroundStyle(Color.secondText)
-                    .padding(.top, 100)
+            if viewModel.isCareerDataLoading {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.5))
+                    .frame(height: 200)
+                    .padding(.horizontal)
             } else {
-                HStack {
-                    // todo: 替换为更稳定的自定义menu
-                    if let seasonName = viewModel.selectedSeason?.seasonName {
-                        Menu {
-                            ForEach(viewModel.seasons) { season in
-                                Button(action: {
-                                    viewModel.selectedSeason = season
-                                }) {
-                                    Text(LocalizedStringKey(season.seasonName))
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Text(LocalizedStringKey(seasonName))
-                                    .font(.subheadline)
-                                    .foregroundColor(.white)
-                                
-                                Image(systemName: "chevron.down")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 10)
-                            .background(Color.white.opacity(0.4))
-                            .cornerRadius(8)
-                        }
-                    } else {
-                        Text("error.unknown")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondText)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 10)
-                            .background(Color.white.opacity(0.4))
-                            .cornerRadius(8)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.top, 10)
-                
-                // 参与数据区域
                 VStack(spacing: 15) {
                     HStack {
                         Text("competition.season.data")
-                            .font(.headline)
-                            .foregroundStyle(.white)
                         Spacer()
-                        HStack {
-                            Text("competition.season.score.leaderboard")
-                            Image(systemName: "chevron.right")
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(Color.secondText)
-                        .exclusiveTouchTapGesture {
-                            if let season = viewModel.selectedSeason {
-                                if viewModel.sport == .Bike {
-                                    appState.navigationManager.append(.bikeScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
-                                } else if viewModel.sport == .Running {
-                                    appState.navigationManager.append(.runningScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
-                                }
-                            }
-                        }
                     }
+                    .font(.headline)
+                    .foregroundStyle(.white)
                     
                     VStack {
                         HStack {
+                            Image("season_points")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 30)
                             Text("competition.season.score")
                             Spacer()
                             Text("\(viewModel.totalScore)")
@@ -427,8 +214,15 @@ struct LocalCareerView: View {
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
-                
-                // 赛事积分记录
+            }
+            
+            // 赛事积分记录
+            if viewModel.isCareerRecordsLoading {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.5))
+                    .frame(height: 300)
+                    .padding(.horizontal)
+            } else {
                 VStack(spacing: 10) {
                     HStack {
                         Text("competition.season.event_records")
@@ -455,6 +249,288 @@ struct LocalCareerView: View {
                     }
                 }
                 .padding(.horizontal)
+            }
+            Spacer()
+        }
+        .frame(minHeight: 700)
+    }
+    
+    // 能力条
+    private func abilityBar(ability: String, value: Float) -> some View {
+        HStack {
+            Text(ability)
+                .font(.caption)
+                .frame(width: 30, alignment: .leading)
+                .foregroundColor(.white)
+                //.border(.green)
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .frame(width: geometry.size.width, height: 6)
+                        .opacity(0.2)
+                        .foregroundColor(.gray)
+                    
+                    Rectangle()
+                        .frame(width: geometry.size.width * CGFloat(value) / 100, height: 6)
+                        .foregroundColor(.blue)
+                }
+            }
+            .frame(height: 6)
+            
+            Text(String(format: "%.1f", value))
+                .font(.caption)
+                .frame(width: 30)
+                .foregroundColor(.white)
+                //.border(.red)
+        }
+    }
+}
+
+
+struct LocalCareerView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var userManager = UserManager.shared
+    @ObservedObject var viewModel: LocalUserViewModel
+    @State private var showTierDetail = false
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            if !userManager.isLoggedIn {
+                Spacer()
+                Text("toast.no_login.2")
+                    .foregroundStyle(Color.secondText)
+                    .padding(.top, 100)
+            } else {
+                HStack {
+                    // todo: 替换为更稳定的自定义menu
+                    if let seasonName = viewModel.selectedSeason?.seasonName {
+                        Menu {
+                            ForEach(viewModel.seasons) { season in
+                                Button(action: {
+                                    viewModel.selectedSeason = season
+                                }) {
+                                    Text(LocalizedStringKey(season.seasonName))
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text(LocalizedStringKey(seasonName))
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                                
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 10)
+                            .background(Color.white.opacity(0.4))
+                            .cornerRadius(8)
+                        }
+                    } else {
+                        Text("error.unknown")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 10)
+                            .background(Color.white.opacity(0.4))
+                            .cornerRadius(8)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
+                // XP段位展示
+                let xp = viewModel.totalXP
+                let level = min(xp / 100 + 1, 25)
+                let tierProgress = Double(xp % 100) / 100.0
+                let tier = Tier(level: level)
+
+                if viewModel.isCareerDataLoading {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.5))
+                        .frame(height: 200)
+                        .padding(.horizontal)
+                } else {
+                    HStack(spacing: 10) {
+                        Image("xp_logo_\(level)")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                            .exclusiveTouchTapGesture {
+                                PopupWindowManager.shared.presentPopup(
+                                    title: "competition.season.tier",
+                                    bottomButtons: [.confirm()]
+                                ) {
+                                    TierDetailView(currentLevel: level)
+                                }
+                            }
+                        VStack {
+                            HStack(spacing: 10) {
+                                Text(tier.baseKey) + Text(" ") + Text(tier.suffix)
+                                Spacer()
+                                Image("experience_points")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30)
+                                Text("\(xp)")
+                            }
+                            .foregroundStyle(.white)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            ProgressBar(progress: tierProgress)
+                                .frame(height: 8)
+                        }
+                    }
+                    .padding()
+                    .background(.white.opacity(0.3))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    
+                    // 参与数据区域
+                    VStack(spacing: 15) {
+                        HStack {
+                            Text("competition.season.data")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                            Spacer()
+                            HStack {
+                                Text("competition.season.score.leaderboard")
+                                Image(systemName: "chevron.right")
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                            .exclusiveTouchTapGesture {
+                                if let season = viewModel.selectedSeason {
+                                    if viewModel.sport == .Bike {
+                                        appState.navigationManager.append(.bikeScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
+                                    } else if viewModel.sport == .Running {
+                                        appState.navigationManager.append(.runningScoreRankingView(seasonName: season.seasonName, seasonID: season.seasonID, gender: UserManager.shared.user.gender ?? .male))
+                                    }
+                                }
+                            }
+                        }
+                        
+                        VStack {
+                            HStack {
+                                Image("season_points")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30)
+                                Text("competition.season.score")
+                                Spacer()
+                                Text("\(viewModel.totalScore)")
+                            }
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.white)
+                            Divider()
+                            HStack {
+                                Text("competition.season.ranking")
+                                Spacer()
+                                if let rank = viewModel.totalRank {
+                                    Text("\(rank)")
+                                } else {
+                                    Text("error.no_data")
+                                }
+                            }
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color.white)
+                            Divider()
+                            HStack(alignment: .bottom, spacing: 15) {
+                                VStack(spacing: 5) {
+                                    Image("total_time")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    (Text(String(format: "%.2f", viewModel.totalTime / 3600)) + Text("time.hour"))
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(Color.white)
+                                    Text("competition.season.total_time")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.secondText)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                
+                                VStack(spacing: 5) {
+                                    Image("total_distance")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    (Text(String(format: "%.2f", viewModel.totalDistance)) + Text("distance.km"))
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(Color.white)
+                                    Text("competition.season.total_distance")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.secondText)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                
+                                VStack(spacing: 5) {
+                                    Image("voucher")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    Text("\(viewModel.totalBonus)")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(Color.white)
+                                    Text("competition.season.total_rewards")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.secondText)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                            }
+                        }
+                        .padding()
+                        .background(.white.opacity(0.3))
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                }
+                
+                // 赛事积分记录
+                if viewModel.isCareerRecordsLoading {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.5))
+                        .frame(height: 300)
+                        .padding(.horizontal)
+                } else {
+                    VStack(spacing: 10) {
+                        HStack {
+                            Text("competition.season.event_records")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                            Spacer()
+                        }
+                        if viewModel.competitionScoreRecords.isEmpty {
+                            Spacer()
+                            VStack(spacing: 20) {
+                                Image(systemName: "doc.text.magnifyingglass")
+                                    .font(.system(size: 60))
+                                Text("error.no_data")
+                                    .font(.headline)
+                            }
+                            .foregroundStyle(Color.white.opacity(0.3))
+                            Spacer()
+                        } else {
+                            LazyVStack(spacing: 15) {
+                                ForEach(viewModel.competitionScoreRecords) { record in
+                                    CompetitionScoreCard(sport: viewModel.sport, trackRecord: record)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
             }
             Spacer()
         }
@@ -604,9 +680,9 @@ struct CompetitionScoreCard: View {
                 }
                 .exclusiveTouchTapGesture {
                     if sport == .Bike {
-                        appState.navigationManager.append(.bikeRecordDetailView(recordID: trackRecord.recordID))
+                        appState.navigationManager.append(.bikeRaceRecordDetailView(recordID: trackRecord.recordID))
                     } else if sport == .Running {
-                        appState.navigationManager.append(.runningRecordDetailView(recordID: trackRecord.recordID))
+                        appState.navigationManager.append(.runningRaceRecordDetailView(recordID: trackRecord.recordID))
                     }
                 }
                 Spacer()
@@ -633,9 +709,142 @@ struct CompetitionScoreCard: View {
     }
 }
 
+struct Tier: Identifiable {
+    let id = UUID()
+    let level: Int
+    
+    var baseKey: LocalizedStringKey {
+        let baseKeys = [
+            "tier.bronze",
+            "tier.silver",
+            "tier.gold",
+            "tier.diamond",
+            "tier.master"
+        ]
+        let groupIndex = (level - 1) / 5
+        return LocalizedStringKey(baseKeys[groupIndex])
+    }
+    
+    var suffix: String {
+        let suffixes = ["V", "IV", "III", "II", "I"]
+        let suffixIndex = (level - 1) % 5
+        return suffixes[suffixIndex]
+    }
+    
+    var range: String {
+        if level == 25 {
+            return "2400 XP +"
+        }
+        return "\((level - 1) * 100) - \(level * 100 - 1) XP"
+    }
+    
+    var color: Color {
+        switch level {
+        case 1...5: return .brown
+        case 6...10: return .gray
+        case 11...15: return .yellow
+        case 16...20: return .purple
+        case 21...25: return .green
+        default: return .white
+        }
+    }
+}
+
+struct TierDetailView: View {
+    let currentLevel: Int
+    
+    private var tiers: [Tier] {
+        (1...25).map { Tier(level: $0) }
+    }
+    
+    @State private var selectedIndex: Int = 0
+    
+    private var offsetX: CGFloat {
+        let spaceCnt = CGFloat(12 - selectedIndex)
+        return CGFloat(spaceCnt * 10 + spaceCnt * 4)
+    }
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // 上方：可滑动段位展示
+            VStack (spacing: 10) {
+                TabView(selection: $selectedIndex) {
+                    ForEach(Array(tiers.enumerated()), id: \.offset) { index, tier in
+                        VStack(spacing: 10) {
+                            Image("xp_logo_\(tier.level)")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 150, height: 150)
+                                .scaleEffect(selectedIndex == index ? 1.0 : 0.8)
+                                .opacity(selectedIndex == index ? 1.0 : 0.5)
+                        }
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 150)
+
+                // Custom indicator
+                let dotSpacing: CGFloat = 10
+                let visibleCount: Int = 5
+                let dotCount = tiers.count
+                let containerWidth = CGFloat(visibleCount - 1) * dotSpacing + 28
+
+                ZStack {
+                    HStack(spacing: dotSpacing) {
+                        ForEach(0..<dotCount, id: \.self) { index in
+                            let distance = abs(index - selectedIndex)
+                            Circle()
+                                .frame(
+                                    width: distance == 0 ? 8 : (distance == 1 ? 6 : 4),
+                                    height: distance == 0 ? 8 : (distance == 1 ? 6 : 4)
+                                )
+                                .opacity(distance == 0 ? 1 : 0.3)
+                        }
+                    }
+                    .offset(x: offsetX)
+                }
+                .frame(width: containerWidth, height: 12)
+                .clipped()
+                .animation(.easeInOut(duration: 0.25), value: selectedIndex)
+            }
+            
+            // 下方：名称 + 说明
+            if tiers.indices.contains(selectedIndex) {
+                let tier = tiers[selectedIndex]
+                VStack(spacing: 8) {
+                    HStack {
+                        (Text(tier.baseKey) + Text(" ") + Text(tier.suffix))
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.vertical, 4)
+                        if tier.level == currentLevel {
+                            Text("competition.season.tier.current")
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 10)
+                                .background(Color.orange)
+                                .cornerRadius(5)
+                        }
+                    }
+                    Text(tier.range)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondText)
+                }
+                .foregroundStyle(Color.white)
+            }
+        }
+        .padding()
+        .onAppear {
+            selectedIndex = max(0, min(currentLevel - 1, tiers.count - 1))
+        }
+    }
+}
+
+
 #Preview {
-    let appState = AppState.shared
-    let vm = UserViewModel(id: "123321")
-    CareerView(viewModel: vm)
-        .environmentObject(appState)
+    //let appState = AppState.shared
+    //let vm = UserViewModel(id: "123321")
+    //CareerView(viewModel: vm)
+    //    .environmentObject(appState)
+    TierDetailView(currentLevel: 1)
 }

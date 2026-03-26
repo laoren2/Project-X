@@ -11,10 +11,20 @@ import PhotosUI
 
 struct RealNameAuthView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var userManager = UserManager.shared
+    
     @State var cardImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
-    let userManager = UserManager.shared
+    @State var selectedCountry: Country? = nil
+    @State var selectedAuthMethod: RealNameMethod? = nil
+    @State var showCountrySheet: Bool = false
+    @State var showMethodSheet: Bool = false
+    
+    
+    init() {
+        selectedCountry = LocationManager.shared.country
+    }
     
     var body: some View {
         VStack(spacing: 20) {
@@ -65,28 +75,67 @@ struct RealNameAuthView: View {
                     }
                 Spacer()
             }
+            
             Text("user.setup.realname_auth.content")
                 .font(.caption)
                 .foregroundStyle(Color.thirdText)
-                .padding(.bottom, 100)
-            if let image = cardImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 150)
-                    .onTapGesture {
-                        showImagePicker = true
+                .padding(.bottom, 50)
+            
+            VStack(spacing: 0) {
+                SetUpItemView(icon: "person.text.rectangle", title: "国家/地区", showChevron: true) {
+                    showCountrySheet = true
+                } trailingView: {
+                    HStack(spacing: 4) {
+                        if let country = selectedCountry {
+                            Text(country.displayName)
+                        } else {
+                            Text("选择")
+                        }
                     }
-            } else {
-                EmptyCardSlot(text: "user.setup.realname_auth.upload", ratio: 7/5)
-                    .frame(height: 150)
-                    .onTapGesture {
-                        showImagePicker = true
+                    .foregroundStyle(Color.thirdText)
+                    .font(.subheadline)
+                }
+                
+                SetUpItemView(icon: "person.text.rectangle", title: "认证方式", showChevron: true, showDivider: false) {
+                    if selectedCountry != nil {
+                        showMethodSheet = true
                     }
+                } trailingView: {
+                    HStack(spacing: 4) {
+                        if let method = selectedAuthMethod {
+                            Text(method.displayName)
+                        } else {
+                            Text("选择")
+                        }
+                    }
+                    .foregroundStyle(Color.thirdText)
+                    .font(.subheadline)
+                }
             }
+            .cornerRadius(20)
+            
+            if selectedCountry != nil && selectedAuthMethod != nil {
+                if let image = cardImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 150)
+                        .onTapGesture {
+                            showImagePicker = true
+                        }
+                } else {
+                    EmptyCardSlot(text: "user.setup.realname_auth.upload", ratio: 7/5)
+                        .frame(height: 150)
+                        .onTapGesture {
+                            showImagePicker = true
+                        }
+                }
+            }
+            
             Text("user.setup.realname_auth.content.2")
                 .font(.caption)
                 .foregroundStyle(Color.thirdText)
+            
             Text(userManager.user.isRealnameAuth ? "user.setup.realname_auth.action.reauth" : "user.setup.realname_auth.action.auth")
                 .font(.headline)
                 .foregroundStyle(Color.white)
@@ -116,18 +165,42 @@ struct RealNameAuthView: View {
                 }
             }
         }
+        .sheet(isPresented: $showCountrySheet) {
+            CountryAuthView(selectedCountry: $selectedCountry)
+                .presentationDetents([.fraction(0.4)])
+        }
+        .sheet(isPresented: $showMethodSheet) {
+            if let country = selectedCountry {
+                RealnameMethodView(selectedMethod: $selectedAuthMethod, country: country)
+                    .presentationDetents([.fraction(0.4)])
+            }
+        }
     }
     
     func appliedOCR() {
-        guard cardImage != nil else { return }
+        guard cardImage != nil, let country = selectedCountry, let method = selectedAuthMethod else { return }
         
         let boundary = "Boundary-\(UUID().uuidString)"
         var headers: [String: String] = [:]
         headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
         var body = Data()
+        
+        // 文字字段
+        let textFields: [String: String?] = [
+            "country_code": country.rawValue,
+            "method": method.rawValue
+        ]
+        for (key, value) in textFields {
+            if let unwrapped = value {
+                body.append("--\(boundary)\r\n")
+                body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+                body.append("\(unwrapped)\r\n")
+            }
+        }
+        
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("front_image", cardImage, "hk_id_card.jpg")
+            ("front_image", cardImage, "id_card.jpg")
         ]
         for (name, image, filename) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
@@ -141,7 +214,7 @@ struct RealNameAuthView: View {
         
         body.append("--\(boundary)--\r\n")
         
-        let request = APIRequest(path: "/user/realname_hk", method: .post, headers: headers, body: body, requiresAuth: true)
+        let request = APIRequest(path: "/user/realname", method: .post, headers: headers, body: body, requiresAuth: true)
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
@@ -156,4 +229,93 @@ struct RealNameAuthView: View {
             }
         }
     }
+}
+
+struct CountryAuthView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedCountry: Country?
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(Country.allCases.filter({ $0.supported }), id: \.self) { country in
+                    Button {
+                        selectedCountry = country
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Text(country.displayName)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if selectedCountry == country {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                    }
+                }
+            }
+            .navigationTitle("Select Region")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+}
+
+struct RealnameMethodView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedMethod: RealNameMethod?
+    
+    let country: Country
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(country.realnameMethod, id: \.self) { method in
+                    Button {
+                        selectedMethod = method
+                        dismiss()
+                    } label: {
+                        HStack {
+                            HStack(alignment: .center, spacing: 4) {
+                                Text(method.displayName)
+                                    .foregroundColor(.primary)
+                            }
+                            Spacer()
+                            if selectedMethod == method {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                    }
+                }
+            }
+            .navigationTitle("Select Method")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+}
+
+
+#Preview {
+    let appState = AppState.shared
+    RealNameAuthView()
+        .environmentObject(appState)
 }

@@ -15,6 +15,7 @@ struct HomepageBackendView: View {
     @State private var announcement_en: String = ""
     @State private var announcement_hans: String = ""
     @State private var announcement_hant: String = ""
+    @State private var announcement_ko: String = ""
     @State private var image_url: String = ""
     @State private var web_url: String = ""
     @State private var is_displayed: Bool = false
@@ -29,6 +30,9 @@ struct HomepageBackendView: View {
     @State var adImage_en: UIImage? = nil
     @State var showImagePicker_en: Bool = false
     @State var selectedImageItem_en: PhotosPickerItem?
+    @State var adImage_ko: UIImage? = nil
+    @State var showImagePicker_ko: Bool = false
+    @State var selectedImageItem_ko: PhotosPickerItem?
     
     var body: some View {
         VStack {
@@ -84,11 +88,19 @@ struct HomepageBackendView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.gray.opacity(0.3))
                             )
+                        Text("更新公告ko")
+                        TextEditor(text: $announcement_ko)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
                         Button("更新") {
                             updateAnnouncement()
                         }
-                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty) ? Color.gray : Color.green)
-                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty)
+                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty) ? Color.gray : Color.green)
+                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty)
                     }
                     VStack(spacing: 20) {
                         Text("管理轮播广告页")
@@ -97,16 +109,19 @@ struct HomepageBackendView: View {
                                 showImagePicker_hans = true
                             }
                         }
-                        
                         GroupBox("图片 hant") {
                             imagePickerView(image: adImage_hant) {
                                 showImagePicker_hant = true
                             }
                         }
-                        
                         GroupBox("图片 en") {
                             imagePickerView(image: adImage_en) {
                                 showImagePicker_en = true
+                            }
+                        }
+                        GroupBox("图片 ko") {
+                            imagePickerView(image: adImage_ko) {
+                                showImagePicker_ko = true
                             }
                         }
                         Section {
@@ -120,18 +135,20 @@ struct HomepageBackendView: View {
                             Button("添加Ad") {
                                 createBannerAds()
                             }
-                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil)
+                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil || adImage_ko == nil)
                         }
                     }
                 }
                 .padding(.horizontal)
             }
         }
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .photosPicker(isPresented: $showImagePicker_hans, selection: $selectedImageItem_hans, matching: .images)
         .photosPicker(isPresented: $showImagePicker_hant, selection: $selectedImageItem_hant, matching: .images)
         .photosPicker(isPresented: $showImagePicker_en, selection: $selectedImageItem_en, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_ko, selection: $selectedImageItem_ko, matching: .images)
         .onValueChange(of: selectedImageItem_hans) {
             Task {
                 if let data = try? await selectedImageItem_hans?.loadTransferable(type: Data.self),
@@ -159,6 +176,16 @@ struct HomepageBackendView: View {
                     adImage_en = uiImage
                 } else {
                     adImage_en = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_ko) {
+            Task {
+                if let data = try? await selectedImageItem_ko?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_ko = uiImage
+                } else {
+                    adImage_ko = nil
                 }
             }
         }
@@ -203,6 +230,7 @@ struct HomepageBackendView: View {
         if !announcement_hans.isEmpty { announcement_i18n["zh-Hans"] = announcement_hans }
         if !announcement_hant.isEmpty { announcement_i18n["zh-Hant"] = announcement_hant }
         if !announcement_en.isEmpty { announcement_i18n["en"] = announcement_en }
+        if !announcement_ko.isEmpty { announcement_i18n["ko"] = announcement_ko }
         
         let body: [String: Any] = [
             "content": announcement_i18n
@@ -241,7 +269,8 @@ struct HomepageBackendView: View {
         let images: [(name: String, image: UIImage?, filename: String)] = [
             ("image_hans", adImage_hans, "ad_hans.jpg"),
             ("image_hant", adImage_hant, "ad_hant.jpg"),
-            ("image_en", adImage_en, "ad_en.jpg")
+            ("image_en", adImage_en, "ad_en.jpg"),
+            ("image_ko", adImage_en, "ad_ko.jpg")
         ]
         for (name, image, filename) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {

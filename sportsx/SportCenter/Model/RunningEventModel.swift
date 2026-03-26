@@ -53,6 +53,7 @@ struct RunningTrack: Identifiable, Equatable {
     let currentParticipants: Int = 0    // 当前参与人数
     
     var rankInfo: RunningUserRankCard? = nil
+    var familiarity: Double? = nil          // 用户熟悉度
     
     init(from track: RunningTrackInfoDTO) {
         self.trackID = track.track_id

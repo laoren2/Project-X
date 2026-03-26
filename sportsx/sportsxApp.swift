@@ -23,6 +23,7 @@ final class BootstrapManager: ObservableObject {
     static let shared = BootstrapManager()
 
     @Published var state: AppLaunchState = .launching
+    @Published var progress: Double = 0.0
 
     let isFreshInstall: Bool
     
@@ -39,9 +40,19 @@ final class BootstrapManager: ObservableObject {
     private init() {
         self.isFreshInstall = !UserDefaults.standard.bool(forKey: "hasInstalledApp")
     }
+    
+    private func advanceProgress(by weight: Double) {
+        let target = progress + weight / 100.0
+        
+        // 平滑动画
+        withAnimation(.easeInOut(duration: 0.3)) {
+            progress = min(target, 1.0)
+        }
+    }
 
     // todo: 剩下的任务整理迁移进来
     func start() async {
+        progress = 0
         // 新安装时等待网络权限
         if isFreshInstall {
             print("Fresh install detected, waiting for network...")
@@ -58,12 +69,15 @@ final class BootstrapManager: ObservableObject {
                 return
             }
         }
+        advanceProgress(by: 10)
         
         // 1. 用户系统（Token / UserInfo）
         await UserManager.shared.bootstrap()
+        advanceProgress(by: 10)
         
         // 2. 设备 ID
         await KeychainHelper.standard.loadDeviceID()
+        advanceProgress(by: 5)
         
         // 3. 检查版本
         let versionOK = await checkVersion()
@@ -78,29 +92,36 @@ final class BootstrapManager: ObservableObject {
             state = .failed("error.client_version")
             return
         }
+        advanceProgress(by: 5)
         
         // 4. 用户信息（依赖 token）
 #if DEBUG
         UserManager.shared.fetchMeRole()
 #endif
         await UserManager.shared.fetchMeInfo()
+        advanceProgress(by: 10)
         
         // 5. 资产系统（依赖 token）
         await AssetManager.shared.queryCCAssets()
         await AssetManager.shared.queryCPAssets(withLoadingToast: false)
         await AssetManager.shared.queryMagicCards(withLoadingToast: false)
+        advanceProgress(by: 20)
         
         // 6. IAP（依赖 token）
         await IAPManager.shared.loadCouponProducts()
         await IAPManager.shared.loadSubscriptionProducts()
+        advanceProgress(by: 20)
         
         // 7. 查询邮件未读状态（依赖 token）
         UserManager.shared.queryMailBox()
+        advanceProgress(by: 5)
         
         // 8. 商店信息加载
         await ShopManager.shared.queryCPAssets(withLoadingToast: true)
         await ShopManager.shared.queryMagicCards(withLoadingToast: true)
+        advanceProgress(by: 15)
         
+        try? await Task.sleep(nanoseconds: 300_000_000)
         // 启动完成
         state = .ready
     }
@@ -306,8 +327,12 @@ final class BootstrapManager: ObservableObject {
 
 class AppState: ObservableObject {
     static let shared = AppState()
-    
-    @Published var sport: SportName = .Bike // 默认运动
+    // 运动中心功能入口
+    @Published var sportFeature: SportFeature = .bikeRace
+    // 运动中心展示运动
+    var sport: SportName {
+        return sportFeature.sportType
+    }
     @Published var competitionManager = CompetitionManager.shared // 管理比赛进程
     @Published var navigationManager = NavigationManager.shared // 管理一级导航
     
@@ -346,8 +371,10 @@ class AppStateTest: ObservableObject {
 }*/
 
 struct TestLaunchView: View {
+    @ObservedObject var bootstrap = BootstrapManager.shared
+    
     var body: some View {
-        VStack(spacing: 50) {
+        VStack(spacing: 20) {
             Spacer()
             Image("single_app_icon")
                 .renderingMode(.template)
@@ -355,12 +382,16 @@ struct TestLaunchView: View {
                 .scaledToFit()
                 .frame(width: 100)
                 .foregroundStyle(Color.orange.opacity(0.8))
+            ProgressBar(progress: bootstrap.progress)
+                .frame(height: 10)
             Text("app.slogan")
                 .font(.system(.title, design: .rounded, weight: .heavy))
                 .foregroundStyle(Color.secondText)
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
             Spacer()
         }
+        .padding()
         .ignoresSafeArea(.all)
         .background(Color.defaultBackground)
     }
@@ -405,7 +436,7 @@ struct sportsxApp: App {
             case .ready:
                 NaviView()
                     .environmentObject(appState)
-                    .preferredColorScheme(.light)
+                    .preferredColorScheme(.dark)    // 暂时解决 NavigationStack 导致的页面边缘白线问题
                 //TestView()
             case .failed(let msg):
                 TestErrorView(message: msg)

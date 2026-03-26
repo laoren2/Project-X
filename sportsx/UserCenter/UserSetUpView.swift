@@ -88,7 +88,7 @@ struct UserSetUpView: View {
                         }
                         
                         SetUpItemView(icon: "appstore", title: "user.setup.rate", isSysIcon: false) {
-                            if let url = URL(string: "https://apps.apple.com/app/idYOUR_APP_ID?action=write-review") {
+                            if let url = URL(string: "https://apps.apple.com/app/6755963833?action=write-review") {
                                 openURL(url)
                             }
                         }
@@ -110,12 +110,14 @@ struct UserSetUpView: View {
                             }
                         }
                         .cornerRadius(20)
+                        .environment(\.colorScheme, .light)
                     }
                     VStack(spacing: 0) {
                         SetUpItemView(icon: "pc", title: "debug调试", showDivider: false, isDarkScheme: false) {
                             NavigationManager.shared.append(.localDebugView)
                         }
                         .cornerRadius(20)
+                        .environment(\.colorScheme, .light)
                     }
 #endif
                     SetUpItemView(icon: "logout", title: "user.setup.logout", showChevron: false, showDivider: false, isSysIcon: false) {
@@ -338,6 +340,18 @@ struct PhoneBindView: View {
     
     @State private var timer: Timer?
     
+    @State var selectedCountry: Country = .hk
+    @State var showCountrySheet: Bool = false
+    
+    init() {
+        // 根据 LocationManager.shared.countryCode 来初始化地区号码前缀(如+852/+886等)
+        if let country = LocationManager.shared.country {
+            selectedCountry = country
+        } else {
+            selectedCountry = .hk
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
             HStack {
@@ -362,10 +376,11 @@ struct PhoneBindView: View {
                         .foregroundColor(.clear)
                 }
             }
-            Spacer()
+            
             if let number = userManager.user.phoneNumber {
                 Text("user.setup.phone.bind_info \(number.maskedPhone())")
                     .foregroundStyle(.white)
+                    .padding(.top, 100)
                 Button(action: {
                     unbindPhone()
                 }) {
@@ -382,12 +397,21 @@ struct PhoneBindView: View {
                 Text("user.setup.phone.bind")
                     .font(.title2)
                     .foregroundStyle(Color.white)
+                    .padding(.top, 100)
                 HStack {
-                    Text("+852")
-                        .padding()
-                        .foregroundStyle(Color.black)
-                        .background(Color.white)
-                        .cornerRadius(10)
+                    HStack {
+                        Text("+\(selectedCountry.phoneCode)")
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.gray)
+                    }
+                    .padding()
+                    .foregroundStyle(Color.black)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .exclusiveTouchTapGesture {
+                        showCountrySheet = true
+                    }
                     
                     TextField(text: $phoneNumber) {
                         Text("login.sms.phone.placeholder")
@@ -453,17 +477,21 @@ struct PhoneBindView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .hideKeyboardOnTap()
+        .sheet(isPresented: $showCountrySheet) {
+            CountryPickerView(selectedCountry: $selectedCountry)
+                .presentationDetents([.fraction(0.4)])
+        }
     }
     
     func sendSmsCode() {
-        guard phoneNumber.count == 8 else {
+        guard selectedCountry.phoneNumberLength.contains(phoneNumber.count) else {
             ToastManager.shared.show(toast: Toast(message: "login.toast.error_number"))
             return
         }
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
-        let body = ["phone_number": phoneNumber]
+        let body = ["phone_number": selectedCountry.phoneCode + phoneNumber]
         guard let encodedBody = try? JSONEncoder().encode(body) else {
             return
         }
@@ -498,7 +526,7 @@ struct PhoneBindView: View {
     }
     
     func bindPhone() {
-        guard phoneNumber.count == 8 else {
+        guard selectedCountry.phoneNumberLength.contains(phoneNumber.count) else {
             ToastManager.shared.show(toast: Toast(message: "login.toast.error_number"))
             return
         }
@@ -510,7 +538,7 @@ struct PhoneBindView: View {
         var headers: [String: String] = [:]
         headers["Content-Type"] = "application/json"
         
-        let body = ["phone_number": phoneNumber, "code": verificationCode]
+        let body = ["phone_number": selectedCountry.phoneCode + phoneNumber, "code": verificationCode]
         guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
         let request = APIRequest(path: "/user/account/bind_phone", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
@@ -673,10 +701,11 @@ struct EmailBindView: View {
                         .foregroundColor(.clear)
                 }
             }
-            Spacer()
+            
             if let email = userManager.user.email {
                 Text("user.setup.email.bind_info \(email.maskedEmail())")
                     .foregroundStyle(.white)
+                    .padding(.top, 100)
                 Button(action: {
                     unbindEmail()
                 }) {
@@ -693,7 +722,7 @@ struct EmailBindView: View {
                 Text("user.setup.email.bind")
                     .font(.title2)
                     .foregroundStyle(Color.white)
-                
+                    .padding(.top, 100)
                 TextField(text: $emailAddress) {
                     Text("login.email.placeholder")
                         .foregroundStyle(Color.gray)
@@ -1402,6 +1431,7 @@ struct LocalDebugPanelView: View {
                 .padding()
             }
         }
+        .lightPage()
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
     }
@@ -1410,6 +1440,6 @@ struct LocalDebugPanelView: View {
 
 #Preview {
     let appState = AppState.shared
-    UserSetUpAccountView()
+    PhoneBindView()
         .environmentObject(appState)
 }

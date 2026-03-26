@@ -64,6 +64,66 @@ enum SportName: String, Identifiable, CaseIterable, Codable {
     }
 }
 
+enum SportFeature: String, CaseIterable, Identifiable {
+    
+    // Bike
+    case bikeRace
+    case bikeFreeTraining
+    //case bikeRouteTraining
+    
+    // Running
+    case runningRace
+    case runningFreeTraining
+    //case runningRouteTraining
+    
+    var id: String { rawValue }
+    
+    var sportType: SportName {
+        switch self {
+        case .bikeRace, .bikeFreeTraining:
+            return .Bike
+            
+        case .runningRace, .runningFreeTraining:
+            return .Running
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .bikeRace: return "bike_race"
+        case .bikeFreeTraining: return "bike_free_training"
+        //case .bikeRouteTraining: return "路线训练"
+            
+        case .runningRace: return "bike_race"
+        case .runningFreeTraining: return "bike_free_training"
+        //case .runningRouteTraining: return "路线训练"
+        }
+    }
+    
+    var title: LocalizedStringKey {
+        switch self {
+        case .bikeRace: return "sport.feature.race"
+        case .bikeFreeTraining: return "sport.feature.free_training"
+        //case .bikeRouteTraining: return "路线训练"
+            
+        case .runningRace: return "sport.feature.race"
+        case .runningFreeTraining: return "sport.feature.free_training"
+        //case .runningRouteTraining: return "路线训练"
+        }
+    }
+    
+    static func features(for sport: SportName) -> [SportFeature] {
+        Self.allCases.filter { $0.sportType == sport }
+    }
+}
+
+/*enum SportFeatureRoute: String {
+    case bikeCompetition = "bikeCompetition"
+    case bikeFreeTraining = "bikeFreeTraining"
+    case runningCompetition = "runningCompetition"
+    case runningFreeTraining = "runningFreeTraining"
+}*/
+
 enum Tab: Int, CaseIterable {
     case home, shop, sportCenter, wareHouse, user
 
@@ -155,7 +215,7 @@ struct RealNaviView: View {
                     .ignoresSafeArea()
                     .allowsHitTesting(navigationManager.showSideBar)
                     .exclusiveTouchTapGesture {
-                        withAnimation(.easeIn(duration: 0.25)) {
+                        withAnimation(.easeIn(duration: 0.2)) {
                             navigationManager.showSideBar = false
                         }
                     }
@@ -189,10 +249,10 @@ struct RealNaviView: View {
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
-                case .bikeRecordDetailView(let rid):
-                    BikeRecordDetailView(recordID: rid)
-                case .runningRecordDetailView(let rid):
-                    RunningRecordDetailView(recordID: rid)
+                case .bikeRaceRecordDetailView(let rid):
+                    BikeRaceRecordDetailView(recordID: rid)
+                case .runningRaceRecordDetailView(let rid):
+                    RunningRaceRecordDetailView(recordID: rid)
                 case .bikeEventDetailView(let eid):
                     BikeEventDetailView(eventID: eid)
                 case .runningEventDetailView(let eid):
@@ -201,8 +261,8 @@ struct RealNaviView: View {
                     CompetitionCardSelectView()
                 case .competitionRealtimeView:
                     CompetitionRealtimeView()
-                case .sportTrainingView(let sport):
-                    SportTrainingView(sport: sport)
+                case .freeTrainingRealtimeView:
+                    FreeTrainingRealtimeView()
                 case .sensorBindView:
                     SensorBindView()
                 case .skillView:
@@ -291,6 +351,14 @@ struct RealNaviView: View {
                     ShopCardDetailView(defID: defID)
                 case .privacyPanelView:
                     PrivacyPanelView()
+                case .bikeTrainingRecordHistoryView:
+                    BikeTrainingRecordHistoryView()
+                case .runningTrainingRecordHistoryView:
+                    RunningTrainingRecordHistoryView()
+                case .bikeFreeTrainingRecordDetailView(let rid):
+                    BikeFreeTrainingRecordDetailView(recordID: rid)
+                case .runningFreeTrainingRecordDetailView(let rid):
+                    RunningFreeTrainingRecordDetailView(recordID: rid)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
@@ -378,13 +446,14 @@ struct CustomTabBar: View {
 
 struct SportSelectionSidebar: View {
     @EnvironmentObject var appState: AppState
-    @State var selectedSport: SportName = .Default
+    //@State var selectedSport: SportName = .Default
+    @State var selectedFeature: SportFeature = .bikeRace
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题区域
             VStack(alignment: .leading, spacing: 0) {
-                Text("user.sidebar.select_sport")
+                Text("competition.slidebar.title")
                     .font(.title2)
                     .bold()
                     .foregroundStyle(.white)
@@ -398,45 +467,80 @@ struct SportSelectionSidebar: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
                 
-                Divider()
-                    .padding(.bottom, 10)
+                //Rectangle()
+                //    .foregroundStyle(Color.thirdText)
+                //    .frame(height: 1)
             }
             
             // 选项列表
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 15) {
+                VStack(alignment: .leading, spacing: 10) {
                     ForEach(SportName.allCases.filter({ $0.isSupported })) { sport in
-                        HStack {
-                            Image(sport.iconName)
-                                .renderingMode(.template)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 30)
-                            Text(LocalizedStringKey(sport.name))
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(sport == selectedSport ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
-                        .foregroundStyle(sport == selectedSport ? Color.white : Color.thirdText)
-                        .cornerRadius(10)
-                        .exclusiveTouchTapGesture {
-                            selectedSport = sport
-                            withAnimation(.easeIn(duration: 0.25)) {
-                                appState.navigationManager.showSideBar = false
-                                appState.sport = sport
+                        VStack {
+                            HStack(spacing: 5) {
+                                Image(sport.iconName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 20)
+                                Text(LocalizedStringKey(sport.name))
+                                    .font(.system(size: 15))
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(Color.white)
+                            }
+                            .padding(.vertical, 10)
+                            
+                            let columns = Array(
+                                repeating: GridItem(.flexible(), spacing: 10),
+                                count: 3
+                            )
+                            
+                            LazyVGrid(columns: columns, spacing: 10) {
+                                ForEach(SportFeature.features(for: sport)) { feature in
+                                    VStack(spacing: 10) {
+                                        Image(feature.icon)
+                                            .renderingMode(.template)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 30)
+                                        Text(feature.title)
+                                            .font(.system(size: 18))
+                                            .lineLimit(2)
+                                            .minimumScaleFactor(0.7)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 80)
+                                    .padding(.vertical, 10)
+                                    .foregroundStyle(feature == selectedFeature ? Color.white : Color.thirdText)
+                                    .background(feature == selectedFeature ? Color.white.opacity(0.4) : Color.clear)
+                                    .cornerRadius(10)
+                                    .exclusiveTouchTapGesture {
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        selectedFeature = feature
+                                        withAnimation(.easeIn(duration: 0.2)) {
+                                            appState.navigationManager.showSideBar = false
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                            appState.sportFeature = feature
+                                        }
+                                    }
+                                }
                             }
                         }
+                        .padding(10)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
                     }
                 }
-                .padding(20)
+                .padding(10)
             }
         }
         .background(Color.defaultBackground)
         .onFirstAppear {
-            selectedSport = appState.sport
+            selectedFeature = appState.sportFeature
         }
-        .onValueChange(of: appState.sport) {
-            selectedSport = appState.sport
+        .onValueChange(of: appState.sportFeature) {
+            selectedFeature = appState.sportFeature
         }
     }
 }

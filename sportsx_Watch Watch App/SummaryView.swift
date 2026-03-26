@@ -69,12 +69,14 @@ struct SummaryView: View {
                         unit: "energy.unit"
                     )
                     .accentColor(Color.orange)
-                    SummaryMetricView(
-                        title: "competition.applewatch.avg_power",
-                        value: String(format: "%.1f", data.avgPower),
-                        unit: "power.unit"
-                    )
-                    .accentColor(Color.blue)
+                    if let avgPower = data.avgPower {
+                        SummaryMetricView(
+                            title: "competition.applewatch.avg_power",
+                            value: String(format: "%.1f", avgPower),
+                            unit: "power.unit"
+                        )
+                        .accentColor(Color.blue)
+                    }
                     if let stepCadence = data.stepCadence {
                         SummaryMetricView(
                             title: "competition.applewatch.stepCadance",
