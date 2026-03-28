@@ -76,121 +76,100 @@ struct ShopView: View {
                 }
                 .padding(15)
                 
-                HStack(spacing: 0) {
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 10) {
-                            Text("shop.tab.props")
-                                .font(.system(size: 16, weight: selectedTab == 0 ? .semibold : .regular))
-                                .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
-                            Rectangle()
-                                .fill(selectedTab == 0 ? Color.white : Color.clear)
-                                .frame(width: 40, height: 2)
-                        }
-                        Spacer()
+                HStack {
+                    Spacer()
+                    VStack(spacing: 10) {
+                        Text("shop.tab.props")
+                            .font(.system(size: 16, weight: selectedTab == 0 ? .semibold : .regular))
+                            .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
+                        Rectangle()
+                            .fill(selectedTab == 0 ? Color.white : Color.clear)
+                            .frame(width: 40, height: 2)
                     }
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             selectedTab = 0
                         }
                     }
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 10) {
-                            Text("shop.tab.equip_card")
-                                .font(.system(size: 16, weight: selectedTab == 1 ? .semibold : .regular))
-                                .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
-                            Rectangle()
-                                .fill(selectedTab == 1 ? Color.white : Color.clear)
-                                .frame(width: 40, height: 2)
-                        }
-                        Spacer()
+                    Spacer()
+                    VStack(spacing: 10) {
+                        Text("shop.tab.equip_card")
+                            .font(.system(size: 16, weight: selectedTab == 1 ? .semibold : .regular))
+                            .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
+                        Rectangle()
+                            .fill(selectedTab == 1 ? Color.white : Color.clear)
+                            .frame(width: 40, height: 2)
                     }
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             selectedTab = 1
                         }
                     }
+                    Spacer()
                 }
                 
                 Divider()
                 
                 TabView(selection: $selectedTab) {
-                    GeometryReader { geo in
-                        let itemSpacing: CGFloat = 10
-                        let columnCount = 4
-                        let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
-                        let itemWidth = (geo.size.width - totalSpacing - 20) / CGFloat(columnCount) // 20为ScrollView两侧padding
-                        
-                        ScrollView {
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                ForEach(shopManager.cpassets) { asset in
-                                    CPAssetShopCardView(asset: asset)
-                                        .frame(width: itemWidth)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(shopManager.selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
-                                        )
-                                        .onTapGesture {
-                                            if shopManager.selectedAsset?.id == asset.id {
-                                                shopManager.selectedAsset = nil
-                                            } else {
-                                                shopManager.selectedAsset = CommonAssetShopInfo(from: asset)
-                                            }
+                    let cpSpacing: CGFloat = 10
+                    let cpCount = 4
+                    
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
+                            ForEach(shopManager.cpassets) { asset in
+                                CPAssetShopCardView(asset: asset)
+                                //.frame(width: itemWidth)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(shopManager.selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                    )
+                                    .onTapGesture {
+                                        if shopManager.selectedAsset?.id == asset.id {
+                                            shopManager.selectedAsset = nil
+                                        } else {
+                                            shopManager.selectedAsset = CommonAssetShopInfo(from: asset)
                                         }
-                                }
+                                    }
                             }
-                            .padding(.top, 10)
-                            .padding(.bottom, 100)
                         }
-                        .refreshable {
-                            await shopManager.queryCPAssets(withLoadingToast: false)
-                        }
+                        .padding(.horizontal, 10)
+                        .padding(.top, 10)
+                        .padding(.bottom, 100)
+                    }
+                    .refreshable {
+                        await shopManager.queryCPAssets(withLoadingToast: false)
                     }
                     .tag(0)
                     
-                    GeometryReader { geo in
-                        let itemSpacing: CGFloat = 20
-                        let columnCount = 3
-                        let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
-                        let itemWidth = (geo.size.width - totalSpacing - 40) / CGFloat(columnCount) // 40为ScrollView两侧padding
-                        
-                        ScrollView {
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                ForEach(shopManager.magicCards) { card in
-                                    ZStack {
-                                        MagicCardShopCardView(card: card)
-                                            .frame(width: itemWidth)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .stroke(shopManager.selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
-                                            )
-                                        /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                         GeometryReader { geometry in
-                                         Text("warehouse.equipcard.unavailable")
-                                         .font(.system(size: geometry.size.width * 0.2, weight: .bold))
-                                         .foregroundColor(.white)
-                                         .padding(geometry.size.width * 0.04)
-                                         .background(Color.red.opacity(0.5))
-                                         .cornerRadius(geometry.size.width * 0.04)
-                                         }
-                                         }*/
-                                    }
-                                    .onTapGesture {
-                                        if shopManager.selectedAsset?.id == card.id {
-                                            shopManager.selectedAsset = nil
-                                        } else {
-                                            shopManager.selectedAsset = CommonAssetShopInfo(from: card)
-                                        }
+                    let cardSpacing: CGFloat = 20
+                    let cardCount = 3
+                    
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
+                            ForEach(shopManager.magicCards) { card in
+                                ZStack {
+                                    MagicCardShopCardView(card: card)
+                                    //.frame(width: itemWidth)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(shopManager.selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
+                                        )
+                                }
+                                .onTapGesture {
+                                    if shopManager.selectedAsset?.id == card.id {
+                                        shopManager.selectedAsset = nil
+                                    } else {
+                                        shopManager.selectedAsset = CommonAssetShopInfo(from: card)
                                     }
                                 }
                             }
-                            .padding(.top, 20)
-                            .padding(.bottom, 100)
                         }
-                        .refreshable {
-                            await shopManager.queryMagicCards(withLoadingToast: false)
-                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 100)
+                    }
+                    .refreshable {
+                        await shopManager.queryMagicCards(withLoadingToast: false)
                     }
                     .tag(1)
                 }
@@ -269,8 +248,10 @@ struct ShopView: View {
                 .padding(.bottom, 85)
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(edges: .bottom)
+        .onStableAppear {
+            // empty, for fix TabView + ScrollView offset sync issue
+        }
     }
 }
 

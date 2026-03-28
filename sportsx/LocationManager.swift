@@ -218,11 +218,11 @@ enum RealNameMethod: String {
     case passport = "passport"
     case drivingLicense = "drivingLicense"
     
-    var displayName: String {
+    var displayName: LocalizedStringKey {
         switch self {
-        case .idcard: return "身份证"
-        case .passport: return "护照"
-        case .drivingLicense: return "驾照"
+        case .idcard: return "user.setup.realname_auth.method.idcard"
+        case .passport: return "user.setup.realname_auth.method.passport"
+        case .drivingLicense: return "user.setup.realname_auth.method.driving_license"
         }
     }
 }
@@ -249,12 +249,12 @@ enum Country: String, CaseIterable {
         }
     }
     
-    var displayName: String {
+    var displayName: LocalizedStringKey {
         switch self {
-        case .hk: return "HongKong"
-        case .tw: return "Taiwan"
-        case .kr: return "Korea"
-        case .cn: return "China"
+        case .hk: return "region.hk"
+        case .tw: return "region.tw"
+        case .kr: return "region.kr"
+        case .cn: return "region.cn"
         }
     }
     

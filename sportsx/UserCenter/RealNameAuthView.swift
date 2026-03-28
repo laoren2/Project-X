@@ -82,21 +82,21 @@ struct RealNameAuthView: View {
                 .padding(.bottom, 50)
             
             VStack(spacing: 0) {
-                SetUpItemView(icon: "person.text.rectangle", title: "国家/地区", showChevron: true) {
+                SetUpItemView(icon: "person.text.rectangle", title: "user.setup.realname_auth.region", showChevron: true) {
                     showCountrySheet = true
                 } trailingView: {
                     HStack(spacing: 4) {
                         if let country = selectedCountry {
                             Text(country.displayName)
                         } else {
-                            Text("选择")
+                            Text("action.select")
                         }
                     }
                     .foregroundStyle(Color.thirdText)
                     .font(.subheadline)
                 }
                 
-                SetUpItemView(icon: "person.text.rectangle", title: "认证方式", showChevron: true, showDivider: false) {
+                SetUpItemView(icon: "person.text.rectangle", title: "user.setup.realname_auth.method", showChevron: true, showDivider: false) {
                     if selectedCountry != nil {
                         showMethodSheet = true
                     }
@@ -105,7 +105,7 @@ struct RealNameAuthView: View {
                         if let method = selectedAuthMethod {
                             Text(method.displayName)
                         } else {
-                            Text("选择")
+                            Text("action.select")
                         }
                     }
                     .foregroundStyle(Color.thirdText)
@@ -256,11 +256,11 @@ struct CountryAuthView: View {
                     }
                 }
             }
-            .navigationTitle("Select Region")
+            .navigationTitle("user.setup.realname_auth.region")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Close") {
+                    Button("action.close") {
                         dismiss()
                     }
                     .foregroundColor(.secondary)
@@ -299,11 +299,11 @@ struct RealnameMethodView: View {
                     }
                 }
             }
-            .navigationTitle("Select Method")
+            .navigationTitle("user.setup.realname_auth.method")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Close") {
+                    Button("action.close") {
                         dismiss()
                     }
                     .foregroundColor(.secondary)

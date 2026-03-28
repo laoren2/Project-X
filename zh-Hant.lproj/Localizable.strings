@@ -36,6 +36,7 @@
 "tier.diamond" = "鑽石";
 "tier.master" = "大師";
 
+"region.tw" = "台灣";
 "region.tw.beiqu" = "北區";
 "region.tw.taibei" = "臺北市";
 "region.tw.xinbei" = "新北市";
@@ -64,6 +65,7 @@
 "region.tw.jinmen" = "金門縣";
 "region.tw.mazu" = "連江縣";
 
+"region.hk" = "香港";
 "region.hk.xianggangdao" = "香港島";
 "region.hk.nanqu" = "南區";
 "region.hk.zhongxiqu" = "中西區";
@@ -86,6 +88,7 @@
 "region.hk.tunmenqu" = "屯門區";
 "region.hk.yuanlangqu" = "元朗區";
 
+"region.kr" = "韓國";
 "region.kr.gongwan" = "江原";
 "region.kr.gyeonggi" = "京畿";
 "region.kr.southchungcheong" = "忠清北";
@@ -104,6 +107,7 @@
 "region.kr.gwangju" = "光州";
 "region.kr.daegu" = "大邱";
 
+"region.cn" = "中國大陸";
 "region.cn.shanghai" = "上海";
 "region.cn.beijing" = "北京";
 "region.cn.guangdong" = "廣東";
@@ -153,6 +157,7 @@
 "action.cancel_register" = "取消報名";
 "action.create" = "創建";
 "action.detail" = "詳情";
+"action.select" = "選擇";
 
 "error.unknown" = "未知";
 "error.unknown.2" = "未知錯誤";
@@ -593,6 +598,11 @@
 "user.setup.realname_auth.popup" = "    對於不同的體育運動來說，男性和女性的運動能力有著明顯的區別，為了最大程度的保證每一項運動競技的公平性，以及給所有用戶帶來更好的使用體驗，我們需要您進行實名認證，我們將嚴格保護每個用戶的身份隱私，您上傳的所有證件原始圖片不會被進行任何形式的備份和存儲，我們只會提取其中必要的信息字段進行識別存儲，我們將始終保護您的信息，不會與除識別能力提供方以外的任何第三方機構分享。\n更多資訊可參考隱私權政策。";
 "user.setup.realname_auth.content.2" = "上傳時請盡量保證證件完整填滿圖片且沒有反光、傾斜和扭曲";
 "user.setup.realname_auth.popup.no_auth" = "未完成實名認證時，您的運動競技數據只會被標記為男性​​進行展示，且不會進行積分和獎勵的結算，請盡快完成實名認證！";
+"user.setup.realname_auth.region" = "國家/地區";
+"user.setup.realname_auth.method" = "認證方式";
+"user.setup.realname_auth.method.idcard" = "身份證";
+"user.setup.realname_auth.method.passport" = "護照";
+"user.setup.realname_auth.method.driving_license" = "駕照";
 "user.setup.vip_center" = "會員訂閱中心";
 "user.setup.clean_cache" = "清理緩存";
 "user.setup.toast.clean_cache.success" = "清理成功";
