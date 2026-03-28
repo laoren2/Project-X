@@ -36,6 +36,7 @@
 "tier.diamond" = "Diamond";
 "tier.master" = "Master";
 
+"region.tw" = "Taiwan";
 "region.tw.beiqu" = "North District";
 "region.tw.taibei" = "Taipei City";
 "region.tw.xinbei" = "New Taipei City";
@@ -64,6 +65,7 @@
 "region.tw.jinmen" = "Kinmen County";
 "region.tw.mazu" = "Lianjiang County";
 
+"region.hk" = "Hongkong";
 "region.hk.xianggangdao" = "Hong Kong Island";
 "region.hk.nanqu" = "Southern";
 "region.hk.zhongxiqu" = "Central & Western";
@@ -86,6 +88,7 @@
 "region.hk.tunmenqu" = "Tuen Mun";
 "region.hk.yuanlangqu" = "Yuen Long";
 
+"region.kr" = "South Korea";
 "region.kr.gongwan" = "Gongwan";
 "region.kr.gyeonggi" = "Gyeonggi";
 "region.kr.southchungcheong" = "South Chungcheong";
@@ -104,6 +107,7 @@
 "region.kr.gwangju" = "Gwangju";
 "region.kr.daegu" = "Daegu";
 
+"region.cn" = "Mainland China";
 "region.cn.shanghai" = "Shanghai";
 "region.cn.beijing" = "Beijing";
 "region.cn.guangdong" = "Guangdong";
@@ -153,6 +157,7 @@
 "action.cancel_register" = "Cancel";
 "action.create" = "Create";
 "action.detail" = "Detail";
+"action.select" = "Choose";
 
 "error.unknown" = "Unknown";
 "error.unknown.2" = "Unknown error";
@@ -593,6 +598,11 @@
 "user.setup.realname_auth.popup" = "  There are significant differences in athletic ability between men and women in different sports. To ensure fairness in every sport and provide a better user experience, we require you to complete real-name authentication. We will strictly protect the privacy of each user's identity. All original images of your uploaded documents will not be backed up or stored in any form. We will only extract the necessary information fields for identification and storage. We will always protect your information and will not share it with any third-party organization other than the identification capability provider.\nFor more information, please refer to the Privacy Policy.";
 "user.setup.realname_auth.content.2" = "When uploading, please ensure that the document is completely filled in the image and that there are no reflections, tilts, or distortions.";
 "user.setup.realname_auth.popup.no_auth" = "If you do not complete real-name authentication, your sports data will only be displayed as male, and you will not receive points or rewards. Please complete real-name authentication as soon as possible!";
+"user.setup.realname_auth.region" = "Country/Region";
+"user.setup.realname_auth.method" = "Auth method";
+"user.setup.realname_auth.method.idcard" = "ID card";
+"user.setup.realname_auth.method.passport" = "Passport";
+"user.setup.realname_auth.method.driving_license" = "Drving license";
 "user.setup.vip_center" = "Member Subscription Center";
 "user.setup.clean_cache" = "Clear Cache";
 "user.setup.toast.clean_cache.success" = "Cleanup successful";

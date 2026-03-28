@@ -125,7 +125,7 @@ struct UserIntroEditView: View {
                         }
                         
                         // 学校
-                        EditItemView(title: "user.intro.title.identity_auth", value: viewModel.currentUser.identityAuthName ?? "未认证") {
+                        EditItemView(title: "user.intro.title.identity_auth", value: viewModel.currentUser.identityAuthName ?? "user.intro.no_auth") {
                             showIdentityEditor = true
                         }
                     }

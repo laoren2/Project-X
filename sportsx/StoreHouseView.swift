@@ -70,85 +70,79 @@ struct StoreHouseView: View {
                 Divider()
                 
                 TabView(selection: $selectedTab) {
-                    GeometryReader { geo in
-                        let itemSpacing: CGFloat = 10
-                        let columnCount = 5
-                        let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
-                        let itemWidth = (geo.size.width - totalSpacing - 20) / CGFloat(columnCount) // 20为ScrollView两侧padding
-                        
-                        ScrollView {
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                ForEach(assetManager.cpassets) { asset in
-                                    CPAssetUserCardView(asset: asset)
-                                        .frame(width: itemWidth)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
-                                        )
-                                        .onTapGesture {
-                                            if selectedAsset?.id == asset.id {
-                                                selectedAsset = nil
-                                            } else {
-                                                selectedAsset = CommonAssetUserInfo(from: asset)
-                                            }
+                    let cpSpacing: CGFloat = 10
+                    let cpCount = 5
+                    
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
+                            ForEach(assetManager.cpassets) { asset in
+                                CPAssetUserCardView(asset: asset)
+                                //.frame(width: itemWidth)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                    )
+                                    .onTapGesture {
+                                        if selectedAsset?.id == asset.id {
+                                            selectedAsset = nil
+                                        } else {
+                                            selectedAsset = CommonAssetUserInfo(from: asset)
                                         }
-                                }
+                                    }
                             }
-                            .padding(.top, 10)
-                            .padding(.bottom, 100)
                         }
-                        .refreshable {
-                            await MainActor.run {
-                                selectedAsset = nil
-                            }
-                            await assetManager.queryCPAssets(withLoadingToast: false)
+                        .padding(.horizontal, 10)
+                        .padding(.top, 10)
+                        .padding(.bottom, 100)
+                    }
+                    .refreshable {
+                        await MainActor.run {
+                            selectedAsset = nil
                         }
+                        await assetManager.queryCPAssets(withLoadingToast: false)
                     }
                     .tag(0)
                     
-                    GeometryReader { geo in
-                        let itemSpacing: CGFloat = 20
-                        let columnCount = 3
-                        let totalSpacing = itemSpacing * CGFloat(columnCount - 1)
-                        let itemWidth = (geo.size.width - totalSpacing - 40) / CGFloat(columnCount) // 40为ScrollView两侧padding
-                        
-                        ScrollView {
-                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: itemSpacing), count: columnCount), spacing: 10) {
-                                ForEach(assetManager.magicCards) { card in
-                                    ZStack {
-                                        MagicCardView(card: card)
-                                            .frame(width: itemWidth)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
-                                            )
-                                        if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                            Text("warehouse.equipcard.unavailable")
-                                                .font(.system(size: itemWidth * 0.2, weight: .bold))
-                                                .foregroundColor(.white)
-                                                .padding(itemWidth * 0.04)
-                                                .background(Color.red.opacity(0.5))
-                                                .cornerRadius(itemWidth * 0.04)
-                                        }
-                                    }
-                                    .onTapGesture {
-                                        if selectedAsset?.id == card.id {
-                                            selectedAsset = nil
-                                        } else {
-                                            selectedAsset = CommonAssetUserInfo(from: card)
-                                        }
+                    let cardSpacing: CGFloat = 20
+                    let cardCount = 3
+                    
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
+                            ForEach(assetManager.magicCards) { card in
+                                ZStack {
+                                    MagicCardView(card: card)
+                                    //.frame(width: itemWidth)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
+                                        )
+                                    /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
+                                     Text("warehouse.equipcard.unavailable")
+                                     .font(.system(size: itemWidth * 0.2, weight: .bold))
+                                     .foregroundColor(.white)
+                                     .padding(itemWidth * 0.04)
+                                     .background(Color.red.opacity(0.5))
+                                     .cornerRadius(itemWidth * 0.04)
+                                     }*/
+                                }
+                                .onTapGesture {
+                                    if selectedAsset?.id == card.id {
+                                        selectedAsset = nil
+                                    } else {
+                                        selectedAsset = CommonAssetUserInfo(from: card)
                                     }
                                 }
                             }
-                            .padding(.top, 20)
-                            .padding(.bottom, 100)
                         }
-                        .refreshable {
-                            await MainActor.run {
-                                selectedAsset = nil
-                            }
-                            await assetManager.queryMagicCards(withLoadingToast: false)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 100)
+                    }
+                    .refreshable {
+                        await MainActor.run {
+                            selectedAsset = nil
                         }
+                        await assetManager.queryMagicCards(withLoadingToast: false)
                     }
                     .tag(1)
                 }
@@ -210,7 +204,7 @@ struct StoreHouseView: View {
                 .padding(.bottom, 85)
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
+        //.toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(edges: .bottom)
         .onValueChange(of: userManager.isLoggedIn) {
             selectedAsset = nil

@@ -1679,27 +1679,21 @@ struct GestureOverlayView: View {
     let formWidth: CGFloat = UIScreen.main.bounds.width - 32
 
     var body: some View {
-        Color.clear
-            .contentShape(Rectangle())
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onEnded { value in
-                        // 点击时手势位移太大会被忽略
-                        if abs(value.location.x - value.startLocation.x) > 5 ||
-                           abs(value.location.y - value.startLocation.y) > 5 {
-                            return
-                        }
-
-                        updateProgress(for: value.location.x)
-                    }
-            )
-            .gesture(
-                DragGesture(minimumDistance: 30)
-                    .onChanged { value in
-                        updateProgress(for: value.location.x)
-                    }
-                    .onEnded { _ in }
-            )
+        ZStack {
+            Color.clear
+            TapCaptureView { point, size in
+                let x = point.x
+                updateProgress(for: x)
+            }
+        }
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 30)
+                .onChanged { value in
+                    updateProgress(for: value.location.x)
+                }
+                .onEnded { _ in }
+        )
     }
 
     private func updateProgress(for x: CGFloat) {
@@ -1716,6 +1710,43 @@ struct GestureOverlayView: View {
                 lastHapticTime = now
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
+        }
+    }
+}
+
+struct TapCaptureView: UIViewRepresentable {
+    var onTap: (CGPoint, CGSize) -> Void
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+
+        let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
+        tap.cancelsTouchesInView = false   // 不影响 ScrollView
+        view.addGestureRecognizer(tap)
+
+        context.coordinator.view = view
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onTap: onTap)
+    }
+
+    class Coordinator: NSObject {
+        var onTap: (CGPoint, CGSize) -> Void
+        weak var view: UIView?
+
+        init(onTap: @escaping (CGPoint, CGSize) -> Void) {
+            self.onTap = onTap
+        }
+
+        @objc func handleTap(_ sender: UITapGestureRecognizer) {
+            guard let view = view else { return }
+            let location = sender.location(in: view)
+            onTap(location, view.bounds.size)
         }
     }
 }

@@ -99,7 +99,7 @@ struct CompetitionCardSelectView: View {
                                 }
                         }
                         Spacer()
-                        Text(String(format: "%.2f %%", Double(stateValue) * 2 / 100))
+                        Text(String(format: "%.2f %%", Double(familiarityValue) * 2))
                             .font(.system(.body, design: .rounded, weight: .bold))
                     }
                     .foregroundStyle(Color.white)
@@ -108,7 +108,7 @@ struct CompetitionCardSelectView: View {
                         Text("competition.cardselect.sport_state_buff")
                             .font(.headline)
                         Spacer()
-                        Text(String(format: "%.2f %%", Double(familiarityValue) * 2))
+                        Text(String(format: "%.2f %%", Double(stateValue) * 2 / 100))
                             .font(.system(.body, design: .rounded, weight: .bold))
                     }
                     .foregroundStyle(Color.white)

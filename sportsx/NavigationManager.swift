@@ -285,14 +285,57 @@ class NavigationManager: ObservableObject {
     }
 
     func removeLast(_ count: Int = 1) {
-        //print("path removeLast")
         guard count > 0 else { return }
+        popWithUIKit(count: count)
+    }
+
+    // MARK: - UIKit Navigation Bridge
+    
+    private func popWithUIKit(count: Int) {
+        guard let nav = findNavigationController() else { return }
         
+        if count == 1 {
+            nav.popViewController(animated: true)
+        } else {
+            let targetIndex = nav.viewControllers.count - count - 1
+            guard targetIndex >= 0, targetIndex < nav.viewControllers.count else { return }
+            let targetVC = nav.viewControllers[targetIndex]
+            nav.popToViewController(targetVC, animated: true)
+        }
+        
+        // 同步 SwiftUI path（防止状态不一致）
         lock.lock()
         if path.count >= count {
             path.removeLast(count)
         }
         lock.unlock()
+    }
+
+    private func findNavigationController() -> UINavigationController? {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first else { return nil }
+        
+        return findNavController(from: window.rootViewController)
+    }
+
+    private func findNavController(from vc: UIViewController?) -> UINavigationController? {
+        guard let vc = vc else { return nil }
+        
+        if let nav = vc as? UINavigationController {
+            return nav
+        }
+        
+        for child in vc.children {
+            if let found = findNavController(from: child) {
+                return found
+            }
+        }
+        
+        if let presented = vc.presentedViewController {
+            return findNavController(from: presented)
+        }
+        
+        return nil
     }
     
     // 直接导航到path内目标页面（有重复页面则导航到第一个出现的页面）
@@ -301,7 +344,7 @@ class NavigationManager: ObservableObject {
         if let index = path.firstIndex(where: { $0.string == des }) {
             let cnt = path.count - index - 1
             if cnt >= 0 {
-                path.removeLast(cnt)
+                popWithUIKit(count: cnt)
             } else {
                 print("Navigation failed")
             }

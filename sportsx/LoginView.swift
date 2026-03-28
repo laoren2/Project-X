@@ -333,11 +333,11 @@ struct CountryPickerView: View {
                     }
                 }
             }
-            .navigationTitle("Select Region")
+            .navigationTitle("user.setup.realname_auth.region")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Close") {
+                    Button("action.close") {
                         dismiss()
                     }
                     .foregroundColor(.secondary)
@@ -568,7 +568,8 @@ struct LoginView: View {
     
 #if DEBUG
     func loginTestAccount() {
-        let body = ["email_address": emailAddress, "code": emailPass]
+        let timezone = TimeZone.current.identifier
+        let body = ["email_address": emailAddress, "code": emailPass, "timezone": timezone]
         guard let encodedBody = try? JSONEncoder().encode(body) else { return }
         
         var headers: [String: String] = [:]

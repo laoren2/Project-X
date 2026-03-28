@@ -111,7 +111,7 @@ struct HomeView: View {
                 .hideKeyboardOnScroll()
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
+        //.toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(.keyboard)
         .onValueChange(of: viewModel.reminderEnabled) {
             if viewModel.reminderEnabled {
@@ -367,7 +367,6 @@ struct SquareView: View {
             }
             .padding(.top, 10)
             .padding(.bottom, 100)
-            .hideKeyboardOnScroll()
         }
     }
 }
