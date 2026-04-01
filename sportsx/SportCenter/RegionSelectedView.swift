@@ -185,7 +185,7 @@ struct RegionSelectedView: View {
     }
     
     func getCityName(from location: CLLocation) {
-        locationManager.regionID = GlobalConfig.shared.locationID
+        //locationManager.regionID = GlobalConfig.shared.locationID
         
         fetchRegionID(location: location)
         

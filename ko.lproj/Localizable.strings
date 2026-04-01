@@ -204,8 +204,6 @@
 "home.sign_in.toast.reminder_permission" = "먼저 시스템 설정에서 알림 권한을 활성화해주세요";
 "home.sign_in.popup.claim_reward_success.content" = "출석 보상을 성공적으로 받았습니다:";
 "home.sign_in.popup.claim_reward_success.content_vip" = "회원 전용 출석 보상을 성공적으로 받았습니다:";
-"home.sign_in.timezone.popup.title" = "출석 안내";
-"home.sign_in.timezone.popup.content" = "출석은 매일 00:00 (UTC+8)에 갱신됩니다.";
 "home.search_text" = "사용자 이름으로 검색";
 "home.search.toast" = "사용자를 찾을 수 없습니다";
 "home.announcament.no_contents" = "공지사항이 없습니다";
@@ -582,6 +580,8 @@
 "user.page.dailytask.distance" = "경기 누적 거리:";
 "user.page.dailytask.time" = "경기 중 누적 운동 시간:";
 "user.page.dailytask.go_complete" = "완료하러 가기";
+"user.page.popup.complete_info.title" = "완전한 정보";
+"user.page.popup.complete_info.content" = "프로필을 완성하여 친구들이 당신을 더 잘 알 수 있도록 하세요!";
 "user.sidebar.select_sport" = "운동 선택";
 "user.sidebar.default_sport" = "프로필 기본 표시 운동:";
 
@@ -761,9 +761,9 @@
 "login.email.placeholder" = "이메일 주소 입력";
 "login.toast.error_email" = "올바른 이메일 주소를 입력하세요";
 "login.reigster.popup.welcome" = "환영합니다";
-"login.reigster.popup.content" = "Sporreer에 오신 것을 환영합니다!\n신규 사용자 선물이 준비되어 있으니 ‘내 정보 - 메일함’에서 확인해주세요.\n이제 간단한 프로필을 완성해볼까요?";
-"login.reigster.popup.action.cancel" = "나중에";
-"login.reigster.popup.action.confirm" = "지금 설정";
+"login.reigster.popup.content" = "Sporreer에 오신 것을 환영합니다!\n신규 사용자 선물이 준비되어 있으니 ‘내 정보 - 메일함’에서 확인해주세요.";
+"login.reigster.popup.action.later" = "나중에";
+"login.reigster.popup.action.claim" = "얻으세요";
 
 "magiccard.detail" = "카드 상세";
 "magiccard.detail.lucky" = "행운 수치";

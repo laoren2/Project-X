@@ -40,8 +40,10 @@ struct CareerView: View {
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .background(Color.white.opacity(0.4))
-                        .cornerRadius(8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                        )
                     }
                 } else {
                     Text("error.unknown")
@@ -325,8 +327,10 @@ struct LocalCareerView: View {
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
-                            .background(Color.white.opacity(0.4))
-                            .cornerRadius(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                            )
                         }
                     } else {
                         Text("error.unknown")

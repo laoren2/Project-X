@@ -25,9 +25,11 @@ class RunningEventBackendViewModel: ObservableObject {
     @Published var name_en: String = ""
     @Published var name_hans: String = ""
     @Published var name_hant: String = ""
+    @Published var name_ko: String = ""
     @Published var description_en: String = ""
     @Published var description_hans: String = ""
     @Published var description_hant: String = ""
+    @Published var description_ko: String = ""
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     var image_url: String = ""
@@ -39,9 +41,11 @@ struct RunningEventCardEntry: Identifiable, Equatable {
     let name_en: String
     let name_hans: String
     let name_hant: String
+    let name_ko: String
     let description_en: String
     let description_hans: String
     let description_hant: String
+    let description_ko: String
     let start_date: String
     let end_date: String
     let season_name: String
@@ -54,9 +58,11 @@ struct RunningEventCardEntry: Identifiable, Equatable {
         self.name_en = event.name["en"]?.stringValue ?? "空"
         self.name_hans = event.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = event.name["zh-Hant"]?.stringValue ?? "空"
+        self.name_ko = event.name["ko"]?.stringValue ?? "空"
         self.description_en = event.description["en"]?.stringValue ?? "空"
         self.description_hans = event.description["zh-Hans"]?.stringValue ?? "空"
         self.description_hant = event.description["zh-Hant"]?.stringValue ?? "空"
+        self.description_ko = event.description["ko"]?.stringValue ?? "空"
         self.start_date = event.start_date
         self.end_date = event.end_date
         self.season_name = event.season_name
@@ -98,6 +104,7 @@ class RunningTrackBackendViewModel: ObservableObject {
     @Published var name_en: String = ""
     @Published var name_hans: String = ""
     @Published var name_hant: String = ""
+    @Published var name_ko: String = ""
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     
@@ -112,6 +119,7 @@ class RunningTrackBackendViewModel: ObservableObject {
     @Published var subRegioName_en: String = ""
     @Published var subRegioName_hans: String = ""
     @Published var subRegioName_hant: String = ""
+    @Published var subRegioName_ko: String = ""
     @Published var prizePool: String = ""
     @Published var distance: String = ""
     @Published var score: String = ""
@@ -126,6 +134,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let name_en: String
     let name_hans: String
     let name_hant: String
+    let name_ko: String
     let from_latitude: String
     let from_longitude: String
     let from_radius: Int
@@ -144,6 +153,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let subRegioName_en: String            // 覆盖的地理子区域
     let subRegioName_hans: String
     let subRegioName_hant: String
+    let subRegioName_ko: String
     let prizePool: String               // 奖金池金额
     let distance: String
     let score: String                   // 积分
@@ -156,6 +166,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.name_en = track.name["en"]?.stringValue ?? "空"
         self.name_hans = track.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = track.name["zh-Hant"]?.stringValue ?? "空"
+        self.name_ko = track.name["ko"]?.stringValue ?? "空"
         self.from_latitude = track.from_latitude
         self.from_longitude = track.from_longitude
         self.from_radius = track.from_radius
@@ -175,6 +186,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.subRegioName_en = track.sub_region_name["en"]?.stringValue ?? "空"
         self.subRegioName_hans = track.sub_region_name["zh-Hans"]?.stringValue ?? "空"
         self.subRegioName_hant = track.sub_region_name["zh-Hant"]?.stringValue ?? "空"
+        self.subRegioName_ko = track.sub_region_name["ko"]?.stringValue ?? "空"
         self.prizePool = track.prize_pool
         self.distance = track.distance
         self.score = track.score
@@ -344,9 +356,11 @@ class BikeEventBackendViewModel: ObservableObject {
     @Published var name_en: String = ""
     @Published var name_hans: String = ""
     @Published var name_hant: String = ""
+    @Published var name_ko: String = ""
     @Published var description_en: String = ""
     @Published var description_hans: String = ""
     @Published var description_hant: String = ""
+    @Published var description_ko: String = ""
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     var image_url: String = ""
@@ -358,9 +372,11 @@ struct BikeEventCardEntry: Identifiable, Equatable {
     let name_en: String
     let name_hans: String
     let name_hant: String
+    let name_ko: String
     let description_en: String
     let description_hans: String
     let description_hant: String
+    let description_ko: String
     let start_date: String
     let end_date: String
     let season_name: String
@@ -373,9 +389,11 @@ struct BikeEventCardEntry: Identifiable, Equatable {
         self.name_en = event.name["en"]?.stringValue ?? "空"
         self.name_hans = event.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = event.name["zh-Hant"]?.stringValue ?? "空"
+        self.name_ko = event.name["ko"]?.stringValue ?? "空"
         self.description_en = event.description["en"]?.stringValue ?? "空"
         self.description_hans = event.description["zh-Hans"]?.stringValue ?? "空"
         self.description_hant = event.description["zh-Hant"]?.stringValue ?? "空"
+        self.description_ko = event.description["ko"]?.stringValue ?? "空"
         self.start_date = event.start_date
         self.end_date = event.end_date
         self.season_name = event.season_name
@@ -417,6 +435,7 @@ class BikeTrackBackendViewModel: ObservableObject {
     @Published var name_en: String = ""
     @Published var name_hans: String = ""
     @Published var name_hant: String = ""
+    @Published var name_ko: String = ""
     
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
@@ -432,6 +451,7 @@ class BikeTrackBackendViewModel: ObservableObject {
     @Published var subRegioName_en: String = ""
     @Published var subRegioName_hans: String = ""
     @Published var subRegioName_hant: String = ""
+    @Published var subRegioName_ko: String = ""
     @Published var prizePool: String = ""
     @Published var score: String = ""
     @Published var distance: String = ""
@@ -446,6 +466,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let name_en: String
     let name_hans: String
     let name_hant: String
+    let name_ko: String
     let from_latitude: String
     let from_longitude: String
     let from_radius: Int
@@ -464,6 +485,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let subRegioName_en: String            // 覆盖的地理子区域
     let subRegioName_hans: String
     let subRegioName_hant: String
+    let subRegioName_ko: String
     let prizePool: String               // 奖金池金额
     let score: String                   // 积分
     let distance: String
@@ -476,6 +498,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.name_en = track.name["en"]?.stringValue ?? "空"
         self.name_hans = track.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = track.name["zh-Hant"]?.stringValue ?? "空"
+        self.name_ko = track.name["ko"]?.stringValue ?? "空"
         self.from_latitude = track.from_latitude
         self.from_longitude = track.from_longitude
         self.from_radius = track.from_radius
@@ -494,6 +517,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.subRegioName_en = track.sub_region_name["en"]?.stringValue ?? "空"
         self.subRegioName_hans = track.sub_region_name["zh-Hans"]?.stringValue ?? "空"
         self.subRegioName_hant = track.sub_region_name["zh-Hant"]?.stringValue ?? "空"
+        self.subRegioName_ko = track.sub_region_name["ko"]?.stringValue ?? "空"
         self.prizePool = track.prize_pool
         self.score = track.score
         self.terrain_type = track.terrain_type

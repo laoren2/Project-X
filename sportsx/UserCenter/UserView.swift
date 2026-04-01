@@ -818,6 +818,19 @@ struct LocalUserView: View {
                 .frame(width: viewModel.sidebarWidth)
                 .offset(x: (viewModel.showSidebar ? 0 : -viewModel.sidebarWidth))
         }
+        .onFirstAppear {
+            PopupWindowManager.shared.presentPopup(
+                title: "user.page.popup.complete_info.title",
+                message: "user.page.popup.complete_info.content",
+                doNotShowAgainKey: "UserView.userInfo",
+                bottomButtons: [
+                    .cancel("login.reigster.popup.action.later"),
+                    .confirm("user.page.dailytask.go_complete") {
+                        appState.navigationManager.append(.userIntroEditView)
+                    }
+                ]
+            )
+        }
         .onValueChange(of: viewModel.activeSport) {
             viewModel.queryHistoryCareers()
             viewModel.queryCurrentRecords()

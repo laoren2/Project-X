@@ -18,7 +18,7 @@ class ImageLoader: ObservableObject {
     
     func load(from urlString: String) {
         guard image == nil else { return }
-        guard let url = URL(string: NetworkService.baseDomain + urlString) else { return }
+        guard let url = URL(string: urlString) else { return }
         
         loadImage(from: url)
     }
@@ -186,11 +186,15 @@ struct ImageTool {
                        format: .RGBA8,
                        colorSpace: CGColorSpaceCreateDeviceRGB())
         
+        let alpha = CGFloat(bitmap[3]) / 255.0
+        guard alpha > 0 else {
+            return UIColor.clear
+        }
         return UIColor(
-            red: CGFloat(bitmap[0]) / 255.0,
-            green: CGFloat(bitmap[1]) / 255.0,
-            blue: CGFloat(bitmap[2]) / 255.0,
-            alpha: 1.0
+            red: (CGFloat(bitmap[0]) / 255.0) / alpha,
+            green: (CGFloat(bitmap[1]) / 255.0) / alpha,
+            blue: (CGFloat(bitmap[2]) / 255.0) / alpha,
+            alpha: alpha
         )
     }
     

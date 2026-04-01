@@ -1332,6 +1332,10 @@ struct LocalDebugPanelView: View {
     @State var selectedEnv: String
     @State var localServerIP: String
     
+    let cor_kr = CLLocationCoordinate2D(latitude: 38.085, longitude: 128.449)
+    let cor_hk = CLLocationCoordinate2D(latitude: 22.319, longitude: 114.174)
+    let cor_tw = CLLocationCoordinate2D(latitude: 25.010, longitude: 121.520)
+    
     init() {
         let savedEnv = UserDefaults.standard.string(forKey: "debug.serverEnv") ?? "prod"
         _selectedEnv = State(initialValue: savedEnv)
@@ -1363,6 +1367,25 @@ struct LocalDebugPanelView: View {
                         Text("设备 GPS 定位")
                             .bold()
                             .padding(.bottom, 20)
+                        HStack {
+                            Button("HK") {
+                                lat = cor_hk.latitude
+                                lon = cor_hk.longitude
+                                GlobalConfig.shared.location_debug = cor_hk
+                            }
+                            Spacer()
+                            Button("TW") {
+                                lat = cor_tw.latitude
+                                lon = cor_tw.longitude
+                                GlobalConfig.shared.location_debug = cor_tw
+                            }
+                            Spacer()
+                            Button("KR") {
+                                lat = cor_kr.latitude
+                                lon = cor_kr.longitude
+                                GlobalConfig.shared.location_debug = cor_kr
+                            }
+                        }
                         TextField("Latitude", value: $lat, format: .number)
                             .keyboardType(.numbersAndPunctuation)
                             .background(Color.gray)

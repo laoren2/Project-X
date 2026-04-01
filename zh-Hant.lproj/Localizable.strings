@@ -91,7 +91,7 @@
 "region.kr" = "韓國";
 "region.kr.gongwan" = "江原";
 "region.kr.gyeonggi" = "京畿";
-"region.kr.southchungcheong" = "忠清北";
+"region.kr.southchungcheong" = "忠清南";
 "region.kr.incheon" = "仁川";
 "region.kr.northjeolla" = "全羅北";
 "region.kr.southjeolla" = "全羅南";
@@ -204,8 +204,6 @@
 "home.sign_in.toast.reminder_permission" = "請先在系統設置裡打開提醒權限";
 "home.sign_in.popup.claim_reward_success.content" = "你已成功領取簽到獎勵：";
 "home.sign_in.popup.claim_reward_success.content_vip" = "你已成功領取會員專屬簽到獎勵：";
-"home.sign_in.timezone.popup.title" = "簽到說明";
-"home.sign_in.timezone.popup.content" = "簽到每日 00:00（UTC+8）刷新。";
 "home.search_text" = "輸入用戶名搜索用戶";
 "home.search.toast" = "搜索不到用戶";
 "home.announcament.no_contents" = "暫無公告";
@@ -582,6 +580,8 @@
 "user.page.dailytask.distance" = "在競技中累計運動距離：";
 "user.page.dailytask.time" = "在競技中累計運動時間：";
 "user.page.dailytask.go_complete" = "去完成";
+"user.page.popup.complete_info.title" = "完善資料";
+"user.page.popup.complete_info.content" = "完善一下個人資料，讓朋友們更了解你吧！";
 "user.sidebar.select_sport" = "選擇運動";
 "user.sidebar.default_sport" = "個人主頁默認展示運動：";
 
@@ -781,9 +781,9 @@
 "login.email.placeholder" = "請輸入郵件地址";
 "login.toast.error_email" = "請輸入正確的郵箱";
 "login.reigster.popup.welcome" = "歡迎";
-"login.reigster.popup.content" = "歡迎來到Sporreer，我們為您準備了一份新人禮包，請盡快去 \"我的-郵箱\" 領取哦。\n現在先來完善一下個人資料吧！";
-"login.reigster.popup.action.cancel" = "稍後";
-"login.reigster.popup.action.confirm" = "立即完善";
+"login.reigster.popup.content" = "歡迎來到Sporreer，我們為您準備了一份新人禮包，請盡快去 \"我的-郵箱\" 領取哦。";
+"login.reigster.popup.action.later" = "稍後";
+"login.reigster.popup.action.claim" = "去領取";
 
 "magiccard.detail" = "卡牌詳情";
 "magiccard.detail.lucky" = "幸運值";
