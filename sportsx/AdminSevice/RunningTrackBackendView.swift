@@ -158,9 +158,28 @@ struct RunningTrackCreateView: View {
     @State var name_en: String = ""
     @State var name_hans: String = ""
     @State var name_hant: String = ""
+    @State var name_ko: String = ""
     @State var eventID: String = ""
-    @State var startDate: Date = Date()
-    @State var endDate: Date = Date().addingTimeInterval(3600*24)
+    @State var startDate: Date = {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 3
+        components.day = 29
+        components.hour = 8
+        components.minute = 0
+        components.second = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    @State var endDate: Date = {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 6
+        components.day = 1
+        components.hour = 7
+        components.minute = 59
+        components.second = 59
+        return Calendar.current.date(from: components) ?? Date()
+    }()
     
     @State var from_la: String = ""
     @State var from_lo: String = ""
@@ -176,6 +195,7 @@ struct RunningTrackCreateView: View {
     @State var subRegioName_en: String = ""
     @State var subRegioName_hans: String = ""
     @State var subRegioName_hant: String = ""
+    @State var subRegioName_ko: String = ""
     @State var prizePool: String = ""
     @State var distance: String = ""
     @State var score: String = ""
@@ -193,10 +213,31 @@ struct RunningTrackCreateView: View {
     var body: some View {
         VStack {
             Form {
+                Section {
+                    Button("普通赛道") {
+                        name_hans = "赛道1"
+                        name_hant = "賽道1"
+                        name_en = "Track 1"
+                        name_ko = "코스 1"
+                        singleRegisterCardID = "cpasset_0c362d5b"
+                        teamRegisterCardID = "cpasset_5c82bf06"
+                    }
+                }
+                Section {
+                    Button("高级赛道") {
+                        name_hans = "高级赛道1"
+                        name_hant = "高級賽道1"
+                        name_en = "Premium Track 1"
+                        name_ko = "고급 코스 1"
+                        singleRegisterCardID = "cpasset_f5de93df"
+                        teamRegisterCardID = "cpasset_560ceaa8"
+                    }
+                }
                 Section(header: Text("基本信息")) {
                     TextField("赛道名称hans", text: $name_hans)
                     TextField("赛道名称hant", text: $name_hant)
                     TextField("赛道名称en", text: $name_en)
+                    TextField("赛道名称ko", text: $name_ko)
                     TextField("赛事ID", text: $eventID)
                 }
                 Section(header: Text("时间")) {
@@ -240,6 +281,7 @@ struct RunningTrackCreateView: View {
                     TextField("子区域hans", text: $subRegioName_hans)
                     TextField("子区域hant", text: $subRegioName_hant)
                     TextField("子区域en", text: $subRegioName_en)
+                    TextField("子区域ko", text: $subRegioName_ko)
                     TextField("奖金池", text: $prizePool)
                         .keyboardType(.numberPad)
                     TextField("路程", text: $distance)
@@ -302,11 +344,13 @@ struct RunningTrackCreateView: View {
         if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
         if !name_en.isEmpty { name_i18n["en"] = name_en }
+        if !name_ko.isEmpty { name_i18n["ko"] = name_ko }
 
         var subRegionName_i18n: [String: String] = [:]
         if !subRegioName_hans.isEmpty { subRegionName_i18n["zh-Hans"] = subRegioName_hans }
         if !subRegioName_hant.isEmpty { subRegionName_i18n["zh-Hant"] = subRegioName_hant }
         if !subRegioName_en.isEmpty { subRegionName_i18n["en"] = subRegioName_en }
+        if !subRegioName_ko.isEmpty { subRegionName_i18n["ko"] = subRegioName_ko }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -343,13 +387,13 @@ struct RunningTrackCreateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("track_image", trackImage, "background.jpg")
+            ("track_image", trackImage, "background.png")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressPNGImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/jpeg\r\n\r\n")
+                body.append("Content-Type: image/png\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -391,6 +435,10 @@ struct RunningTrackUpdateView: View {
                     HStack {
                         Text("赛道名称en")
                         TextField("赛道名称en", text: $viewModel.name_en)
+                    }
+                    HStack {
+                        Text("赛道名称ko")
+                        TextField("赛道名称ko", text: $viewModel.name_ko)
                     }
                 }
                 Section(header: Text("时间")) {
@@ -442,6 +490,10 @@ struct RunningTrackUpdateView: View {
                     HStack {
                         Text("子区域hant")
                         TextField("子区域hant", text: $viewModel.subRegioName_hant)
+                    }
+                    HStack {
+                        Text("子区域ko")
+                        TextField("子区域ko", text: $viewModel.subRegioName_ko)
                     }
                     TextField("奖金池", text: $viewModel.prizePool)
                         .keyboardType(.numberPad)
@@ -507,11 +559,13 @@ struct RunningTrackUpdateView: View {
         if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
         if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
         if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+        if !viewModel.name_ko.isEmpty { name_i18n["en"] = viewModel.name_ko }
 
         var subRegionName_i18n: [String: String] = [:]
         if !viewModel.subRegioName_hans.isEmpty { subRegionName_i18n["zh-Hans"] = viewModel.subRegioName_hans }
         if !viewModel.subRegioName_hant.isEmpty { subRegionName_i18n["zh-Hant"] = viewModel.subRegioName_hant }
         if !viewModel.subRegioName_en.isEmpty { subRegionName_i18n["en"] = viewModel.subRegioName_en }
+        if !viewModel.subRegioName_ko.isEmpty { subRegionName_i18n["ko"] = viewModel.subRegioName_ko }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -546,13 +600,13 @@ struct RunningTrackUpdateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("track_image", trackImage, "background.jpg")
+            ("track_image", trackImage, "background.png")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressPNGImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/jpeg\r\n\r\n")
+                body.append("Content-Type: image/png\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -628,6 +682,7 @@ struct RunningTrackCardView: View {
         viewModel.name_en = track.name_en
         viewModel.name_hans = track.name_hans
         viewModel.name_hant = track.name_hant
+        viewModel.name_ko = track.name_ko
         viewModel.startDate = ISO8601DateFormatter().date(from: track.start_date) ?? Date()
         viewModel.endDate = ISO8601DateFormatter().date(from: track.end_date) ?? Date()
         viewModel.image_url = track.image_url
@@ -642,6 +697,7 @@ struct RunningTrackCardView: View {
         viewModel.subRegioName_en = track.subRegioName_en
         viewModel.subRegioName_hans = track.subRegioName_hans
         viewModel.subRegioName_hant = track.subRegioName_hant
+        viewModel.subRegioName_ko = track.subRegioName_ko
         viewModel.prizePool = track.prizePool
         viewModel.distance = track.distance
         viewModel.score = track.score

@@ -77,7 +77,7 @@ struct ToastView: View {
     var body: some View {
         Text(LocalizedStringKey(toast.message))
             .padding()
-            .background(Color.black.opacity(0.6))
+            .background(Color.black.opacity(0.8))
             .foregroundColor(.white)
             .cornerRadius(8)
             .padding(.horizontal, 16)

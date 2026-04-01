@@ -204,8 +204,6 @@
 "home.sign_in.toast.reminder_permission" = "请先在系统设置里打开提醒权限";
 "home.sign_in.popup.claim_reward_success.content" = "你已成功领取签到奖励：";
 "home.sign_in.popup.claim_reward_success.content_vip" = "你已成功领取会员专属签到奖励：";
-"home.sign_in.timezone.popup.title" = "签到说明";
-"home.sign_in.timezone.popup.content" = "签到每日 00:00（UTC+8）刷新。";
 "home.search_text" = "输入用户名搜索用户";
 "home.search.toast" = "搜索不到用户";
 "home.announcament.no_contents" = "暂无公告";
@@ -582,6 +580,8 @@
 "user.page.dailytask.distance" = "在竞技中累计运动距离：";
 "user.page.dailytask.time" = "在竞技中累计运动时间：";
 "user.page.dailytask.go_complete" = "去完成";
+"user.page.popup.complete_info.title" = "完善资料";
+"user.page.popup.complete_info.content" = "完善一下个人资料，让朋友们更加了解你吧！";
 "user.sidebar.select_sport" = "选择运动";
 "user.sidebar.default_sport" = "个人主页默认展示运动：";
 
@@ -781,9 +781,9 @@
 "login.email.placeholder" = "请输入邮箱地址";
 "login.toast.error_email" = "请输入正确的邮箱";
 "login.reigster.popup.welcome" = "欢迎";
-"login.reigster.popup.content" = "欢迎来到Sporreer，我们为您准备了一份新人礼包，请尽快去 \"我的-邮箱\" 领取哦。\n现在先来完善一下个人资料吧！";
-"login.reigster.popup.action.cancel" = "稍后";
-"login.reigster.popup.action.confirm" = "立即完善";
+"login.reigster.popup.content" = "欢迎来到Sporreer，我们为您准备了一份新人礼包，请尽快去 \"我的-邮箱\" 领取哦。";
+"login.reigster.popup.action.later" = "稍后";
+"login.reigster.popup.action.claim" = "去领取";
 
 "magiccard.detail" = "卡牌详情";
 "magiccard.detail.lucky" = "幸运值";

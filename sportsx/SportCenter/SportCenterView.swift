@@ -59,7 +59,7 @@ struct SportCenterView: View {
                                 .scaledToFit()
                                 .frame(height: 20)
                             Text(appState.sportFeature.title)
-                                .font(.system(size: 20))
+                                .font(.system(size: 18, weight: .bold))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
                         }
@@ -83,6 +83,7 @@ struct SportCenterView: View {
                                     .scaledToFit()
                                     .frame(width: 20, height: 20)
                                 Text(locationManager.regionName ?? "error.unknown")
+                                    .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.white)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.7)
@@ -152,7 +153,7 @@ struct SportCenterView: View {
                 message: "user.setup.realname_auth.popup.no_auth",
                 doNotShowAgainKey: "sportCenterView.realname",
                 bottomButtons: [
-                    .cancel("login.reigster.popup.action.cancel"),
+                    .cancel("login.reigster.popup.action.later"),
                     .confirm("user.intro.go_auth") {
                         appState.navigationManager.append(.realNameAuthView)
                     }

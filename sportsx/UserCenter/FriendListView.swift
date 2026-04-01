@@ -125,7 +125,7 @@ struct FriendListView: View {
                     }
                     .padding(.horizontal, 16)
                     // 好友列表
-                    ZStack(alignment: .top) {
+                    ZStack {
                         if viewModel.myFriends.isEmpty {
                             VStack(spacing: 10) {
                                 Spacer()
@@ -148,7 +148,6 @@ struct FriendListView: View {
                                 Spacer()
                             }
                             .background(Color.defaultBackground)
-                            .hideKeyboardOnTap()
                         } else {
                             ScrollView {
                                 LazyVStack(spacing: 15) {
@@ -168,7 +167,6 @@ struct FriendListView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.top)
                             }
-                            .hideKeyboardOnScroll()
                         }
                         if !searchFriendText.isEmpty {
                             ScrollView {
@@ -190,7 +188,6 @@ struct FriendListView: View {
                                 .padding(.top)
                             }
                             .background(.ultraThinMaterial)
-                            .hideKeyboardOnScroll()
                         }
                     }
                 }
@@ -252,7 +249,7 @@ struct FriendListView: View {
                     }
                     .padding(.horizontal, 16)
                     // 关注列表
-                    ZStack(alignment: .top) {
+                    ZStack {
                         if viewModel.myIdols.isEmpty {
                             VStack(spacing: 10) {
                                 Spacer()
@@ -274,7 +271,6 @@ struct FriendListView: View {
                                 Spacer()
                             }
                             .background(Color.defaultBackground)
-                            .hideKeyboardOnTap()
                         } else {
                             ScrollView {
                                 LazyVStack(spacing: 15) {
@@ -294,7 +290,6 @@ struct FriendListView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.top)
                             }
-                            .hideKeyboardOnScroll()
                         }
                         if !searchIdolText.isEmpty {
                             ScrollView {
@@ -316,7 +311,6 @@ struct FriendListView: View {
                                 .padding(.top)
                             }
                             .background(.ultraThinMaterial)
-                            .hideKeyboardOnScroll()
                         }
                     }
                 }
@@ -379,7 +373,7 @@ struct FriendListView: View {
                     }
                     .padding(.horizontal, 16)
                     // 粉丝列表
-                    ZStack(alignment: .top) {
+                    ZStack {
                         if viewModel.myFans.isEmpty {
                             VStack(spacing: 10) {
                                 Spacer()
@@ -401,7 +395,6 @@ struct FriendListView: View {
                                 Spacer()
                             }
                             .background(Color.defaultBackground)
-                            .hideKeyboardOnTap()
                         } else {
                             ScrollView {
                                 LazyVStack(spacing: 15) {
@@ -421,7 +414,6 @@ struct FriendListView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.top)
                             }
-                            .hideKeyboardOnScroll()
                         }
                         if !searchFanText.isEmpty {
                             ScrollView {
@@ -443,7 +435,6 @@ struct FriendListView: View {
                                 .padding(.top)
                             }
                             .background(.ultraThinMaterial)
-                            .hideKeyboardOnScroll()
                         }
                     }
                 }
@@ -455,6 +446,8 @@ struct FriendListView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .background(Color.defaultBackground)
+        .ignoresSafeArea(edges: .bottom)
+        .hideKeyboardOnScroll()
     }
 }
 

@@ -250,7 +250,7 @@ struct NetworkService {
     }
     
     static func downloadImage(from urlString: String, completion: @escaping (UIImage?) -> Void) {
-        guard let url = URL(string: baseDomain + urlString) else {
+        guard let url = URL(string: urlString) else {
             completion(nil)
             return
         }
@@ -276,7 +276,7 @@ struct NetworkService {
         decodingType: T.Type,
         completion: @escaping (Result<T, APIError>) -> Void
     ) {
-        guard let url = URL(string: baseDomain + path) else {
+        guard let url = URL(string: path) else {
             completion(.failure(.unknown))
             return
         }
@@ -305,7 +305,7 @@ struct NetworkService {
         path: String,
         decodingType: T.Type
     ) async -> Result<T, APIError> {
-        guard let url = URL(string: baseDomain + path) else {
+        guard let url = URL(string: path) else {
             return .failure(.unknown)
         }
         

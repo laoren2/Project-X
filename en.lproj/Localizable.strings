@@ -204,8 +204,6 @@
 "home.sign_in.toast.reminder_permission" = "Please enable reminder permissions in system settings first";
 "home.sign_in.popup.claim_reward_success.content" = "You have successfully claimed your sign-in reward:";
 "home.sign_in.popup.claim_reward_success.content_vip" = "You have successfully claimed your member-exclusive check-in reward:";
-"home.sign_in.timezone.popup.title" = "Sign-in Instructions";
-"home.sign_in.timezone.popup.content" = "Check-in refreshes daily at 00:00 (UTC+8).";
 "home.search_text" = "Enter username to search users";
 "home.search.toast" = "Cannot find user";
 "home.announcament.no_contents" = "No announcements yet";
@@ -582,6 +580,8 @@
 "user.page.dailytask.distance" = "Cumulative distance during the race:";
 "user.page.dailytask.time" = "Cumulative time during the race:";
 "user.page.dailytask.go_complete" = "Go and complete";
+"user.page.popup.complete_info.title" = "Complete profile";
+"user.page.popup.complete_info.content" = "Complete your profile so your friends can get to know you better!";
 "user.sidebar.select_sport" = "Choose Sport";
 "user.sidebar.default_sport" = "Sport displayed by default on the profile page: ";
 
@@ -781,9 +781,9 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "login.email.placeholder" = "Enter your email address";
 "login.toast.error_email" = "Please enter a valid email address";
 "login.reigster.popup.welcome" = "Welcome";
-"login.reigster.popup.content" = "Welcome to Sporreer! We've prepared a welcome gift for you, please claim it from \"Profile-Mailbox\" as soon as possible. \nNow, please complete your profile!";
-"login.reigster.popup.action.cancel" = "Later";
-"login.reigster.popup.action.confirm" = "Complete now";
+"login.reigster.popup.content" = "Welcome to Sporreer! We've prepared a welcome gift for you, please claim it from \"Profile-Mailbox\" as soon as possible.";
+"login.reigster.popup.action.later" = "Later";
+"login.reigster.popup.action.claim" = "Go claim";
 
 "magiccard.detail" = "Card Detail";
 "magiccard.detail.lucky" = "Luck value";

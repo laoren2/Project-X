@@ -159,7 +159,7 @@ class UserManager: ObservableObject {
                 DispatchQueue.main.async {
                     self.avatarImage = image
                 }
-                if let data = image.pngData() {
+                if let data = image.jpegData(compressionQuality: 0.8) {
                     try? data.write(to: avatarPath)
                 }
             } else {
@@ -174,7 +174,7 @@ class UserManager: ObservableObject {
                 DispatchQueue.main.async {
                     self.backgroundImage = image
                 }
-                if let data = image.pngData() {
+                if let data = image.jpegData(compressionQuality: 0.8) {
                     try? data.write(to: backgroundPath)
                 }
                 if let avg = ImageTool.averageColor(from: image) {
@@ -342,8 +342,8 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "followerCount")
         defaults.removeObject(forKey: "friendCount")
         
-        let avatarPath = getLocalImagePath(filename: "avatar.png")
-        let backgroundPath = getLocalImagePath(filename: "background.png")
+        let avatarPath = getLocalImagePath(filename: "avatar.jpg")
+        let backgroundPath = getLocalImagePath(filename: "background.jpg")
         
         try? FileManager.default.removeItem(at: avatarPath)
         try? FileManager.default.removeItem(at: backgroundPath)

@@ -231,9 +231,9 @@ struct SmsLoginView: View {
                                 title: "login.reigster.popup.welcome",
                                 message: "login.reigster.popup.content",
                                 bottomButtons: [
-                                    .cancel("login.reigster.popup.action.cancel"),
-                                    .confirm("login.reigster.popup.action.confirm") {
-                                        navigationManager.append(.userIntroEditView)
+                                    .cancel("login.reigster.popup.action.later"),
+                                    .confirm("login.reigster.popup.action.claim") {
+                                        navigationManager.append(.mailBoxView)
                                     }
                                 ]
                             )
@@ -596,9 +596,9 @@ struct LoginView: View {
                                 title: "login.reigster.popup.welcome",
                                 message: "login.reigster.popup.content",
                                 bottomButtons: [
-                                    .cancel("login.reigster.popup.action.cancel"),
-                                    .confirm("login.reigster.popup.action.confirm") {
-                                        navigationManager.append(.userIntroEditView)
+                                    .cancel("login.reigster.popup.action.later"),
+                                    .confirm("login.reigster.popup.action.claim") {
+                                        navigationManager.append(.mailBoxView)
                                     }
                                 ]
                             )
@@ -703,9 +703,9 @@ struct LoginView: View {
                                 title: "login.reigster.popup.welcome",
                                 message: "login.reigster.popup.content",
                                 bottomButtons: [
-                                    .cancel("login.reigster.popup.action.cancel"),
-                                    .confirm("login.reigster.popup.action.confirm") {
-                                        navigationManager.append(.userIntroEditView)
+                                    .cancel("login.reigster.popup.action.later"),
+                                    .confirm("login.reigster.popup.action.claim") {
+                                        navigationManager.append(.mailBoxView)
                                     }
                                 ]
                             )
@@ -834,9 +834,9 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
                                 title: "login.reigster.popup.welcome",
                                 message: "login.reigster.popup.content",
                                 bottomButtons: [
-                                    .cancel("login.reigster.popup.action.cancel"),
-                                    .confirm("login.reigster.popup.action.confirm") {
-                                        NavigationManager.shared.append(.userIntroEditView)
+                                    .cancel("login.reigster.popup.action.later"),
+                                    .confirm("login.reigster.popup.action.claim") {
+                                        NavigationManager.shared.append(.mailBoxView)
                                     }
                                 ]
                             )

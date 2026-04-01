@@ -151,18 +151,38 @@ struct BikeEventCreateView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: BikeEventBackendViewModel
     
-    @State var name_en: String = ""
-    @State var name_hans: String = ""
-    @State var name_hant: String = ""
-    @State var description_en: String = ""
-    @State var description_hans: String = ""
-    @State var description_hant: String = ""
-    @State var seasonID: String = ""
+    @State var name_en: String = "City Tour"
+    @State var name_hans: String = "城市巡回赛"
+    @State var name_hant: String = "城市巡迴賽"
+    @State var name_ko: String = "시티 투어"
+    @State var description_en: String = "The City Tour is an official city-wide bicycle series launched by Sporreer, each district has its own independent track and leaderboard.\nThe City Tour is a long-term, open, city-level points race. Each track is a popular competitive route, and every successful completion will earn you entry into the leaderboard for that district. You can repeatedly challenge your personal best on your home track or cross districts to prove your overall ability in different terrains and environments.\nFrom flat beaches to undulating mountain trails, different regions and terrains offer different rhythms and tactical options. Based on your understanding of the track, use the appropriate gear cards to showcase your speed, endurance, and skill.\nWe look forward to your participation and have fun!"
+    @State var description_hans: String = "城市巡回赛 是 Sporreer 官方推出的城市区域系列骑行竞技赛事，每个区域均设有独立的赛道与成绩排行榜。\n城市巡回赛是长期巡回开放的城市级积分赛，每一条赛道都是较热门的竞技线路，每一次成功完赛，都会进入对应区域赛道的排行榜。你可以在主场赛道反复冲击个人最佳，也可以跨区挑战，在不同地形与环境中证明自己的综合实力。\n从平坦海滨到起伏山道，不同区域不同地形带来不同的节奏与战术选择。根据你对赛道的理解，搭配合适的装备卡牌，尽情展现速度、耐力和技巧。\n期待你的参与，玩的开心！"
+    @State var description_hant: String = "城市巡迴賽 是 Sporreer 官方推出的城市區域系列騎行競技賽事，每個區域均設有獨立的賽道與成績排行榜。\n城市巡迴賽是長期巡迴開放的城市級積分賽，每一條賽道都是較熱門的競技線路，每一次成功完賽，都會進入對應區域賽道的排行榜。你可以在主場賽道反覆衝擊個人最佳，也可以跨區挑戰，在不同地形與環境中證明自己的綜合實力。\n從平坦海濱到起伏山道，不同區域不同地形帶來不同的節奏與戰術選擇。根據你對賽道的理解，搭配合適的裝備卡牌，盡情展現速度、耐力和技巧。\n期待你的參與，玩的開心！"
+    @State var description_ko: String = "시티 투어 시합‌는 Sporreer가 공식 출시한 도시 지역 시리즈 라이딩 경기로 각 지역마다 독립된 코스와 성적 순위가 있다.\n도시 순회전은 장기간 개최되는 도시급 포인트 대회로, 각 트랙은 인기 있는 경쟁 코스이며, 성공적으로 완주할 경우 해당 지역 트랙의 랭킹에 진입합니다. 홈 트랙에서 개인 최고 기록을 반복적으로 도전하거나 다른 지역을 넘어서 다양한 지형과 환경에서 종합 실력을 입증할 수 있습니다.\n평탄한 해변에서 기복이 심한 산길까지 서로 다른 지역의 서로 다른 지형은 서로 다른 리듬과 전술 선택을 가져온다.코스에 대한 이해에 따라 적합한 장비 카드와 함께 속도, 지구력, 기교를 마음껏 뽐내세요.\n당신의 참여를 기대하며 즐겁게 놀아요!"
+    @State var seasonID: String = "season_8274c6ae"
     @State var regionID: String = ""
-    @State var startDate: Date = Date()
-    @State var endDate: Date = Date().addingTimeInterval(3600*24)
+    @State var startDate: Date = {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 3
+        components.day = 29
+        components.hour = 8
+        components.minute = 0
+        components.second = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    @State var endDate: Date = {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 7
+        components.day = 31
+        components.hour = 23
+        components.minute = 59
+        components.second = 59
+        return Calendar.current.date(from: components) ?? Date()
+    }()
     
-    @State var imageURL: String = ""
+    @State var imageURL: String = "/resources/competition/official_event/city_tour/bike_cover_kr.png"
     @State var eventImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
@@ -175,6 +195,7 @@ struct BikeEventCreateView: View {
                     TextField("赛事名称hans", text: $name_hans)
                     TextField("赛事名称hant", text: $name_hant)
                     TextField("赛事名称en", text: $name_en)
+                    TextField("赛事名称ko", text: $name_ko)
                     TextEditor(text: $description_hans)
                         .frame(minHeight: 100)
                         .padding()
@@ -203,6 +224,16 @@ struct BikeEventCreateView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.gray.opacity(0.3))
                                 Text("描述en")
+                            }
+                        )
+                    TextEditor(text: $description_ko)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                                Text("描述ko")
                             }
                         )
                     //TextField("描述hans", text: $description_hans)
@@ -265,11 +296,13 @@ struct BikeEventCreateView: View {
         if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
         if !name_en.isEmpty { name_i18n["en"] = name_en }
+        if !name_ko.isEmpty { name_i18n["ko"] = name_ko }
 
         var des_i18n: [String: String] = [:]
         if !description_hans.isEmpty { des_i18n["zh-Hans"] = description_hans }
         if !description_hant.isEmpty { des_i18n["zh-Hant"] = description_hant }
         if !description_en.isEmpty { des_i18n["en"] = description_en }
+        if !description_ko.isEmpty { des_i18n["ko"] = description_ko }
         
         var textFields: [String : String] = [
             "start_date": ISO8601DateFormatter().string(from: startDate),
@@ -296,13 +329,13 @@ struct BikeEventCreateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("event_image", eventImage, "background.jpg")
+            ("event_image", eventImage, "background.png")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressPNGImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/jpeg\r\n\r\n")
+                body.append("Content-Type: image/png\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -342,6 +375,10 @@ struct BikeEventUpdateView: View {
                         TextField("赛事名称en", text: $viewModel.name_en)
                     }
                     HStack {
+                        Text("赛事名称ko")
+                        TextField("赛事名称ko", text: $viewModel.name_ko)
+                    }
+                    HStack {
                         Text("描述hans")
                         TextField("描述hans", text: $viewModel.description_hans)
                     }
@@ -352,6 +389,10 @@ struct BikeEventUpdateView: View {
                     HStack {
                         Text("描述en")
                         TextField("描述en", text: $viewModel.description_en)
+                    }
+                    HStack {
+                        Text("描述ko")
+                        TextField("描述ko", text: $viewModel.description_ko)
                     }
                 }
                 Section(header: Text("时间")) {
@@ -415,11 +456,13 @@ struct BikeEventUpdateView: View {
         if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
         if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
         if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+        if !viewModel.name_ko.isEmpty { name_i18n["ko"] = viewModel.name_ko }
 
         var des_i18n: [String: String] = [:]
         if !viewModel.description_hans.isEmpty { des_i18n["zh-Hans"] = viewModel.description_hans }
         if !viewModel.description_hant.isEmpty { des_i18n["zh-Hant"] = viewModel.description_hant }
         if !viewModel.description_en.isEmpty { des_i18n["en"] = viewModel.description_en }
+        if !viewModel.description_ko.isEmpty { des_i18n["ko"] = viewModel.description_ko }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -443,13 +486,13 @@ struct BikeEventUpdateView: View {
         
         // 图片字段
         let images: [(name: String, image: UIImage?, filename: String)] = [
-            ("event_image", eventImage, "background.jpg")
+            ("event_image", eventImage, "background.png")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressPNGImage(unwrappedImage, maxSizeKB: 300) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-                body.append("Content-Type: image/jpeg\r\n\r\n")
+                body.append("Content-Type: image/png\r\n\r\n")
                 body.append(imageData)
                 body.append("\r\n")
             }
@@ -471,6 +514,10 @@ struct BikeEventCardView: View {
     var body: some View {
         HStack {
             Text(event.season_name)
+            Button("id") {
+                UIPasteboard.general.string = event.event_id
+                ToastManager.shared.show(toast: Toast(message: "toast.copied", duration: 2))
+            }
             Text(event.region_name)
             Text(event.name_hans)
             Spacer()
@@ -486,9 +533,11 @@ struct BikeEventCardView: View {
         viewModel.name_en = event.name_en
         viewModel.name_hans = event.name_hans
         viewModel.name_hant = event.name_hant
+        viewModel.name_ko = event.name_ko
         viewModel.description_en = event.description_en
         viewModel.description_hans = event.description_hans
         viewModel.description_hant = event.description_hant
+        viewModel.description_ko = event.description_ko
         viewModel.startDate = ISO8601DateFormatter().date(from: event.start_date) ?? Date()
         viewModel.endDate = ISO8601DateFormatter().date(from: event.end_date) ?? Date()
         viewModel.image_url = event.image_url

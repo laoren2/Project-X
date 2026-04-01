@@ -393,16 +393,6 @@ struct SignInSectionView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 28)
-                Image(systemName: "info.circle")
-                    .foregroundStyle(Color.secondText)
-                    .font(.subheadline)
-                    .exclusiveTouchTapGesture {
-                        PopupWindowManager.shared.presentPopup(
-                            title: "home.sign_in.timezone.popup.title",
-                            message: "home.sign_in.timezone.popup.content",
-                            bottomButtons: [.confirm()]
-                        )
-                    }
                 Spacer()
                 HStack {
                     Image(systemName: "bell.badge")
@@ -418,23 +408,18 @@ struct SignInSectionView: View {
                 //    .font(.caption)
                 //    .foregroundColor(.secondText)
                 if !userManager.user.isVip {
-                    Text("home.sign_in.vip_tile")
-                        .font(.caption)
-                        .foregroundColor(.secondText)
-                    
                     HStack(spacing: 4) {
+                        Text("home.sign_in.vip_tile")
+                            .font(.caption)
+                            .foregroundColor(.secondText)
                         Image("vip_icon_on")
                             .resizable()
                             .scaledToFit()
                             .frame(height: 18)
-                        Image(systemName: "capslock.fill")
-                            .foregroundStyle(Color.white)
-                            .font(.system(size: 12))
                     }
-                    .fontWeight(.semibold)
                     .padding(.vertical, 2)
                     .padding(.horizontal, 5)
-                    .background(.ultraThinMaterial)
+                    .background(Color.white.opacity(0.3))
                     .cornerRadius(4)
                     .exclusiveTouchTapGesture {
                         guard userManager.isLoggedIn else {
@@ -450,14 +435,12 @@ struct SignInSectionView: View {
                 }
                 Spacer()
                 if vm.reminderEnabled {
-                    HStack {
-                        Text("home.sign_in.reminder_time \(vm.reminderTimeString)")
-                        Button("action.change") {
+                    Text("home.sign_in.reminder_time \(vm.reminderTimeString)")
+                        .font(.caption)
+                        .foregroundColor(.secondText)
+                        .exclusiveTouchTapGesture {
                             showSheet = true
                         }
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondText)
                 }
             }
             .environment(\.colorScheme, .light)

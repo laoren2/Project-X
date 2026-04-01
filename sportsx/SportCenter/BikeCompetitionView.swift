@@ -720,12 +720,12 @@ struct BikeEventDetailView: View {
             .padding(.horizontal)
             if let event = event {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(spacing: 0) {
                         // 背景图片
                         CachedAsyncImage(
                             urlString: event.image_url
                         )
-                        .aspectRatio(contentMode: .fill)
+                        .aspectRatio(contentMode: .fit)
                         .frame(height: 200)
                         .clipped()
                         

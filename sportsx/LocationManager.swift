@@ -232,11 +232,12 @@ enum Country: String, CaseIterable {
     case tw = "TW"
     case kr = "KR"
     case cn = "CN"
+    case us = "US"
     
     var supported: Bool {
         switch self {
         case .hk ,.tw, .kr: return true
-        case .cn: return false
+        case .cn, .us: return false
         }
     }
     
@@ -246,6 +247,7 @@ enum Country: String, CaseIterable {
         case .tw: return "886"
         case .kr: return "82"
         case .cn: return "86"
+        case .us: return "1"
         }
     }
     
@@ -255,6 +257,7 @@ enum Country: String, CaseIterable {
         case .tw: return "region.tw"
         case .kr: return "region.kr"
         case .cn: return "region.cn"
+        case .us: return "region.us"
         }
     }
     
@@ -264,6 +267,7 @@ enum Country: String, CaseIterable {
         case .tw: return 9...9
         case .kr: return 10...11
         case .cn: return 11...11
+        case .us: return 10...10
         }
     }
     
@@ -272,7 +276,8 @@ enum Country: String, CaseIterable {
         case .hk: return [.idcard, .passport]
         case .tw: return [.idcard, .passport]
         case .kr: return [.idcard, .passport]
-        case .cn: return  [.idcard]
+        case .cn: return [.idcard]
+        case .us: return [.drivingLicense]
         }
     }
 }
