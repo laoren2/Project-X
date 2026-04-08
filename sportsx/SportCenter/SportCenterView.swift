@@ -525,7 +525,7 @@ struct FullScreenMapView: View {
             .ignoresSafeArea()
 
             Button(action: { dismiss() }) {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: "xmark")
                     .font(.system(size: 30))
                     .foregroundColor(.white)
                     .padding()
@@ -701,6 +701,56 @@ struct CalendarHeaderView: View {
         }
         .padding()
         .foregroundStyle(Color.white)
+    }
+}
+
+struct RegionMapView: UIViewRepresentable {
+    var polygons: [MKPolygon]
+    
+    func makeUIView(context: Context) -> MKMapView {
+        let map = MKMapView()
+        map.isUserInteractionEnabled = false
+        map.showsUserLocation = false
+        map.delegate = context.coordinator
+        return map
+    }
+    
+    func updateUIView(_ map: MKMapView, context: Context) {
+        map.removeOverlays(map.overlays)
+        map.addOverlays(polygons)
+        
+        var rect = MKMapRect.null
+        for polygon in polygons {
+            rect = rect.union(polygon.boundingMapRect)
+        }
+        if !rect.isNull {
+            map.setVisibleMapRect(
+                rect,
+                edgePadding: UIEdgeInsets(top: 40, left: 40, bottom: 40, right: 40),
+                animated: true
+            )
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator: NSObject, MKMapViewDelegate {
+        func mapView(
+            _ mapView: MKMapView,
+            rendererFor overlay: MKOverlay
+        ) -> MKOverlayRenderer {
+            if let polygon = overlay as? MKPolygon {
+                let renderer = MKPolygonRenderer(polygon: polygon)
+                renderer.strokeColor = .systemOrange
+                renderer.fillColor = UIColor.systemOrange.withAlphaComponent(0.2)
+                renderer.lineWidth = 2
+                
+                return renderer
+            }
+            return MKOverlayRenderer()
+        }
     }
 }
 

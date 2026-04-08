@@ -21,6 +21,8 @@
 "common.empty" = "비어 있음";
 "common.history" = "기록";
 "common.duration" = "시간";
+"common.times" = "횟수";
+"common.current" = "현재";
 
 "app.slogan" = "열정을 플레이하다";
 
@@ -209,7 +211,7 @@
 "home.announcament.no_contents" = "공지사항이 없습니다";
 "home.announcament.title" = "공지 및 알림";
 "home.skill" = "사용 팁";
-"home.skill.title" = "Sporreer 이용 시 알아두면 좋은 정보";
+"home.skill.title" = "Movmov 이용 시 알아두면 좋은 정보";
 "home.skill.title.1" = "대회 참가 및 참여";
 "home.skill.title.2" = "팀 모드";
 "home.skill.title.3" = "장비 카드";
@@ -267,6 +269,7 @@
 "training.sport_state.description" = "활동도는 현재 운동 상태를 나타내며 경기 성과에 영향을 줍니다.7일 이상 운동을 하지 않으면 활동량은 계속해서 감소할 것입니다.";
 "training.sport_state.limit" = "일일 최대 20";
 "training.exploration" = "탐색도";
+"training.exploration.2" = "탐색";
 "training.exploration.description" = "탐색도 이번 시즌 훈련을 통해 해당 지역을 얼마나 탐색했는지 보여줍니다.";
 "training.exploration.region.not_supported" = "현재 지역에서는 지원하지 않습니다";
 "training.error.no_login" = "로그인 후 운동 상태 및 탐색 지역을 확인하세요";
@@ -275,8 +278,12 @@
 
 "training.history.no_record" = "훈련 기록 없음";
 
+"training.realtime.action.finish" = "교육 종료";
+"training.realtime.popup.finish" = "정말 교육을 종료하시겠습니까?";
+
 "training.result.record" = "훈련 기록";
 "training.result.complete" = "훈련 종료";
+"training.result.popup.content %lld" = "새로운 지역을 %lld개 성공적으로 탐험하셨습니다!";
 
 "competition.season.info" = "시즌 정보";
 "competition.season.data" = "시즌 데이터";
@@ -289,7 +296,6 @@
 "competition.season.score.leaderboard" = "점수 랭킹";
 "competition.season.no_current_matches" = "진행 중인 경기가 없습니다";
 "competition.season.tier" = "시즌 티어";
-"competition.season.tier.current" = "현재 티어";
 
 "competition.location_select.title" = "지역 선택";
 "competition.location_select.action.relocation" = "위치 재설정";
@@ -652,7 +658,7 @@
 "user.setup.popup.logout.content" = "정말 로그아웃하시겠습니까?";
 "user.setup.toast.logout_failed" = "경기 진행 중에는 로그아웃할 수 없습니다";
 "user.setup.healthkit" = "건강 권한";
-"user.setup.healthkit.content" = "Apple Watch 또는 외부 센서를 사용하여 운동을 기록할 경우,\n운동 성과 분석을 위해 Apple Health(HealthKit) 데이터에 접근할 수 있습니다.\n수집 항목에는 다음이 포함됩니다:\n\n- 심박수\n- 걸음 수\n- 러닝 및 사이클 거리\n- 활동 에너지\n- 러닝 파워\n- 사이클 파워\n- 케이던스\n\n또한 일부 데이터는 ‘건강’ 앱에 기록될 수 있습니다.\n\n이 데이터는 경기 기록, 검증 및 통계 분석에만 사용되며,\n광고, 사용자 프로파일링 또는 제3자 판매에 사용되지 않습니다.\n\n언제든지 iPhone의 ‘건강 앱 → 공유 → 앱 → Sporreer’에서 권한을 해제할 수 있습니다.";
+"user.setup.healthkit.content" = "Apple Watch 또는 외부 센서를 사용하여 운동을 기록할 경우,\n운동 성과 분석을 위해 Apple Health(HealthKit) 데이터에 접근할 수 있습니다.\n수집 항목에는 다음이 포함됩니다:\n\n- 심박수\n- 걸음 수\n- 러닝 및 사이클 거리\n- 활동 에너지\n- 러닝 파워\n- 사이클 파워\n- 케이던스\n\n또한 일부 데이터는 ‘건강’ 앱에 기록될 수 있습니다.\n\n이 데이터는 경기 기록, 검증 및 통계 분석에만 사용되며,\n광고, 사용자 프로파일링 또는 제3자 판매에 사용되지 않습니다.\n\n언제든지 iPhone의 ‘건강 앱 → 공유 → 앱 → Movmov’에서 권한을 해제할 수 있습니다.";
 
 "user.intro.action.change_avatar" = "프로필 사진 변경";
 "user.intro.action.change_background" = "배경 이미지 변경";
@@ -677,6 +683,8 @@
 "user.intro.current_location" = "현재 위치";
 "user.intro.identity" = "신원 정보";
 "user.intro.identity.no_support" = "현재 직업 인증은 지원되지 않습니다";
+"user.intro.save.success" = "저장 성공";
+"user.intro.save.failed" = "저장 실패";
 
 "institute.upgrade.upgradeway" = "업그레이드 방식";
 "institute.upgrade.upgradeway.mat" = "재료 업그레이드";
@@ -741,7 +749,7 @@
 "iap.subscription.bottom_title" = "구독은 현재 구독 기간 종료 최소 24시간 전에 자동으로 갱신됩니다.\nApp Store 계정 설정에서 언제든지 해지할 수 있습니다.\n이미 결제된 구독은 앱 내에서 환불이 불가능하며,\n환불은 Apple 고객센터를 통해 진행해야 합니다.";
 "iap.subscription.update" = "구독을 업데이트하면 현재 구독 종료 후 새 요금제가 적용됩니다.";
 
-"login.title" = "Sporreer에 오신 것을 환영합니다!";
+"login.title" = "Movmov에 오신 것을 환영합니다!";
 "login.subtitle" = "첫 로그인 시 자동으로 계정이 생성됩니다";
 "login.sms.title" = "SMS 로그인";
 "login.sms.phone.placeholder" = "전화번호 입력";
@@ -761,7 +769,7 @@
 "login.email.placeholder" = "이메일 주소 입력";
 "login.toast.error_email" = "올바른 이메일 주소를 입력하세요";
 "login.reigster.popup.welcome" = "환영합니다";
-"login.reigster.popup.content" = "Sporreer에 오신 것을 환영합니다!\n신규 사용자 선물이 준비되어 있으니 ‘내 정보 - 메일함’에서 확인해주세요.";
+"login.reigster.popup.content" = "Movmov에 오신 것을 환영합니다!\n신규 사용자 선물이 준비되어 있으니 ‘내 정보 - 메일함’에서 확인해주세요.";
 "login.reigster.popup.action.later" = "나중에";
 "login.reigster.popup.action.claim" = "얻으세요";
 

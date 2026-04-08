@@ -356,12 +356,25 @@ struct SquareView: View {
                         ]
                     ) {
                         VStack {
+                            Text("training.result.popup.content \(5)")
+                                .fontWeight(.bold)
                             XPProgressView(beforeXP: 112, deltaXP: 205)
                             TrainingStateProgressView(beforeState: 20, deltaState: 30)
+                            HStack(spacing: 4) {
+                                Image(CCAssetType.coin.iconName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20)
+                                Text("+ \(55)")
+                                    .font(.system(size: 15))
+                                    .fontWeight(.semibold)
+                            }
+                            .padding(.top, 10)
                         }
                         .foregroundStyle(Color.white)
                     }
-                }*/
+                }
+                Text("validation score: \(appState.competitionManager.validationScore_debug)")*/
                 
                 Spacer()
             }
@@ -647,6 +660,10 @@ struct SignInDayView: View {
 struct AnnouncementView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
     @State var announcements: [AnnouncementInfo] = []
+    @State private var hasMore: Bool = false
+    @State private var isLoading: Bool = false
+    @State private var page: Int = 1
+    let pageSize: Int = 10
     
     var body: some View {
         VStack {
@@ -686,6 +703,15 @@ struct AnnouncementView: View {
                         .padding()
                         .background(Color.white.opacity(0.2))
                         .cornerRadius(10)
+                        .onAppear {
+                            if info == announcements.last && hasMore {
+                                fetchAnnouncements(reset: false, withLoadingToast: false)
+                            }
+                        }
+                    }
+                    if isLoading {
+                        ProgressView()
+                            .padding()
                     }
                 }
                 .padding()
@@ -695,19 +721,43 @@ struct AnnouncementView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .onFirstAppear {
-            fetchAnnouncements()
+            fetchAnnouncements(reset: true, withLoadingToast: true)
         }
     }
     
-    func fetchAnnouncements() {
-        let request = APIRequest(path: "/homepage/query_announcements", method: .get)
+    func fetchAnnouncements(reset: Bool, withLoadingToast: Bool) {
+        if reset {
+            page = 1
+        }
+        isLoading = true
+        guard var components = URLComponents(string: "/homepage/query_announcements") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "size", value: "\(pageSize)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get)
         NetworkService.sendRequest(with: request, decodingType: AnnouncementResponse.self) { result in
             DispatchQueue.main.async {
+                isLoading = false
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
+                    var tempAnnouncements: [AnnouncementInfo] = []
                     for announcement in unwrappedData.announcements {
-                        self.announcements.append(AnnouncementInfo(from: announcement))
+                        tempAnnouncements.append(AnnouncementInfo(from: announcement))
+                    }
+                    if reset {
+                        announcements = tempAnnouncements
+                    } else {
+                        announcements.append(contentsOf: tempAnnouncements)
+                    }
+                    if unwrappedData.announcements.count < self.pageSize {
+                        hasMore = false
+                    } else {
+                        hasMore = true
+                        page += 1
                     }
                 default:
                     break

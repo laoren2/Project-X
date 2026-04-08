@@ -212,7 +212,7 @@ struct FreeTrainingRealtimeView: View {
                                     .frame(width: 120)
                                     Spacer()
                                     // 背景按钮
-                                    Text("competition.realtime.action.finish")
+                                    Text("training.realtime.action.finish")
                                         .font(.headline)
                                         .foregroundColor(.white)
                                         .frame(width: 100, height: 50)
@@ -220,8 +220,8 @@ struct FreeTrainingRealtimeView: View {
                                         .clipShape(Capsule())
                                         .exclusiveTouchTapGesture {
                                             PopupWindowManager.shared.presentPopup(
-                                                title: "competition.realtime.action.finish",
-                                                message: "competition.realtime.popup.finish",
+                                                title: "training.realtime.action.finish",
+                                                message: "training.realtime.popup.finish",
                                                 bottomButtons: [
                                                     .cancel(),
                                                     .confirm() {

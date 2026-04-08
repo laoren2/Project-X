@@ -32,6 +32,9 @@ class GlobalConfig: ObservableObject {
     var locationID: String?
     //var ipCountryCode: String = "未知"
     
+    // 国家网格系统 bbox 配置
+    var countryBboxes: [String: GridBboxConfig] = [:]
+    
     // record管理页刷新时机
     var refreshRecordManageView: Bool = false
     
@@ -67,4 +70,31 @@ class GlobalConfig: ObservableObject {
         refreshTeamManageView = true
         //refreshUserView = true
     }
+    
+    func fetchCountryGridsBbox() async {
+        let request = APIRequest(path: "/common/country_bboxes", method: .get)
+        
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: CountryBboxesResponse.self)
+        
+        switch result {
+        case .success(let data):
+            if let unwrappedData = data {
+                await MainActor.run {
+                    for config in unwrappedData.configs {
+                        countryBboxes[config.country_code] = config.bbox
+                    }
+                }
+            }
+        default: break
+        }
+    }
+}
+
+struct CountryBboxesResponse: Codable {
+    let configs: [CountryBboxConfig]
+}
+
+struct CountryBboxConfig: Codable {
+    let country_code: String
+    let bbox: GridBboxConfig
 }

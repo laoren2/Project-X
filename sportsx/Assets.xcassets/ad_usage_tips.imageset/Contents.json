@@ -13,73 +13,73 @@
       "scale" : "3x"
     },
     {
-      "filename" : "usage_ad_en.png",
+      "filename" : "usage_ad_en.jpeg",
       "idiom" : "universal",
       "locale" : "en",
       "scale" : "1x"
     },
     {
-      "filename" : "usage_ad_en 1.png",
+      "filename" : "usage_ad_en 1.jpeg",
       "idiom" : "universal",
       "locale" : "en",
       "scale" : "2x"
     },
     {
-      "filename" : "usage_ad_en 2.png",
+      "filename" : "usage_ad_en 2.jpeg",
       "idiom" : "universal",
       "locale" : "en",
       "scale" : "3x"
     },
     {
-      "filename" : "usage_ad_hans.png",
+      "filename" : "usage_ad_hans.jpeg",
       "idiom" : "universal",
       "locale" : "zh-Hans",
       "scale" : "1x"
     },
     {
-      "filename" : "usage_ad_hans 1.png",
+      "filename" : "usage_ad_hans 1.jpeg",
       "idiom" : "universal",
       "locale" : "zh-Hans",
       "scale" : "2x"
     },
     {
-      "filename" : "usage_ad_hans 2.png",
+      "filename" : "usage_ad_hans 2.jpeg",
       "idiom" : "universal",
       "locale" : "zh-Hans",
       "scale" : "3x"
     },
     {
-      "filename" : "usage_ad_hant.png",
+      "filename" : "usage_ad_hant.jpeg",
       "idiom" : "universal",
       "locale" : "zh-Hant",
       "scale" : "1x"
     },
     {
-      "filename" : "usage_ad_hant 1.png",
+      "filename" : "usage_ad_hant 1.jpeg",
       "idiom" : "universal",
       "locale" : "zh-Hant",
       "scale" : "2x"
     },
     {
-      "filename" : "usage_ad_hant 2.png",
+      "filename" : "usage_ad_hant 2.jpeg",
       "idiom" : "universal",
       "locale" : "zh-Hant",
       "scale" : "3x"
     },
     {
-      "filename" : "usage_ad_ko.png",
+      "filename" : "usage_ad_ko.jpeg",
       "idiom" : "universal",
       "locale" : "ko",
       "scale" : "1x"
     },
     {
-      "filename" : "usage_ad_ko 1.png",
+      "filename" : "usage_ad_ko 1.jpeg",
       "idiom" : "universal",
       "locale" : "ko",
       "scale" : "2x"
     },
     {
-      "filename" : "usage_ad_ko 2.png",
+      "filename" : "usage_ad_ko 2.jpeg",
       "idiom" : "universal",
       "locale" : "ko",
       "scale" : "3x"

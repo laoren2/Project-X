@@ -255,7 +255,7 @@ struct NetworkService {
             return
         }
         
-        let request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 5)
+        let request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10)
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             // 确保没有错误，且返回的是有效图片数据

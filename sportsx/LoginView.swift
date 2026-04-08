@@ -45,13 +45,13 @@ struct SmsLoginView: View {
                 Spacer()
             }
             
-            HStack {
-                Text("login.title")
-                    .font(.title)
-                    .foregroundStyle(.white)
-                Spacer()
-            }
-            .padding(.top, 40)
+            Text("login.title")
+                .font(.title)
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.leading)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .padding(.top, 40)
             
             HStack {
                 Text("login.subtitle")
@@ -380,13 +380,13 @@ struct LoginView: View {
                 }
                 .padding(.top, 10)
                 
-                HStack {
-                    Text("login.title")
-                        .font(.title)
-                        .foregroundStyle(.white)
-                    Spacer()
-                }
-                .padding(.top, 40)
+                Text("login.title")
+                    .font(.title)
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .padding(.top, 40)
                 
                 HStack {
                     Text("login.subtitle")

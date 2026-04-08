@@ -81,7 +81,6 @@ struct MailBoxView: View {
     @MainActor
     func queryMails(reset: Bool, withLoadingToast: Bool) async {
         if reset {
-            mails.removeAll()
             page = 1
         }
         isLoading = true
@@ -100,8 +99,14 @@ struct MailBoxView: View {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempMails: [MailCard] = []
                 for mail in unwrappedData.mails {
-                    mails.append(MailCard(from: mail))
+                    tempMails.append(MailCard(from: mail))
+                }
+                if reset {
+                    mails = tempMails
+                } else {
+                    mails.append(contentsOf: tempMails)
                 }
                 if unwrappedData.mails.count < self.pageSize {
                     hasMore = false

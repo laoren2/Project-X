@@ -101,6 +101,22 @@ struct CoordinateConverter {
             return coordinate
         }
     }
+    
+    // 3857 -> 4326
+    static func mercatorToLatLng(x: Double, y: Double) -> (lat: Double, lng: Double) {
+        let lng = x / 20037508.34 * 180.0
+        var lat = y / 20037508.34 * 180.0
+        lat = 180 / .pi * (2 * atan(exp(lat * .pi / 180)) - .pi / 2)
+        return (lat, lng)
+    }
+    
+    // 4326 -> 3857
+    static func latLngToMercator(lat: Double, lng: Double) -> (x: Double, y: Double) {
+        let x = lng * 20037508.34 / 180.0
+        var y = log(tan((90 + lat) * .pi / 360)) / (.pi / 180)
+        y = y * 20037508.34 / 180.0
+        return (x, y)
+    }
 }
 
 struct DateParser {

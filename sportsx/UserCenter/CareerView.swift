@@ -823,7 +823,7 @@ struct TierDetailView: View {
                             .fontWeight(.bold)
                             .padding(.vertical, 4)
                         if tier.level == currentLevel {
-                            Text("competition.season.tier.current")
+                            Text("common.current")
                                 .padding(.vertical, 4)
                                 .padding(.horizontal, 10)
                                 .background(Color.orange)

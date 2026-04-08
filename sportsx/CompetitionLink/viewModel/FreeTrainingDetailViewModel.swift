@@ -51,6 +51,7 @@ class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
 struct TrainingSettlementsInfo {
     let xp: Int
     let state_value: Int
+    let cc_rewards: [CCUpdateResponse]
 }
 
 struct BikeFreeTrainingRecordDetailInfo {
@@ -61,13 +62,19 @@ struct BikeFreeTrainingRecordDetailInfo {
         self.duration = detail.duration
         var xp: Int = 0
         var state_value: Int = 0
+        var temp_assets: [CCUpdateResponse] = []
         if let amount = detail.settlements["xp"]?.intValue {
             xp = amount
         }
         if let amount = detail.settlements["training_state"]?.intValue {
             state_value = amount
         }
-        self.settlements = TrainingSettlementsInfo(xp: xp, state_value: state_value)
+        for type in CCAssetType.allCases {
+            if let amount = detail.settlements["\(type.rawValue)"]?.intValue {
+                temp_assets.append(CCUpdateResponse(ccasset_type: type, new_ccamount: amount))
+            }
+        }
+        self.settlements = TrainingSettlementsInfo(xp: xp, state_value: state_value, cc_rewards: temp_assets)
     }
 }
 
@@ -138,13 +145,19 @@ struct RunningFreeTrainingRecordDetailInfo {
         self.duration = detail.duration
         var xp: Int = 0
         var state_value: Int = 0
+        var temp_assets: [CCUpdateResponse] = []
         if let amount = detail.settlements["xp"]?.intValue {
             xp = amount
         }
         if let amount = detail.settlements["training_state"]?.intValue {
             state_value = amount
         }
-        self.settlements = TrainingSettlementsInfo(xp: xp, state_value: state_value)
+        for type in CCAssetType.allCases {
+            if let amount = detail.settlements["\(type.rawValue)"]?.intValue {
+                temp_assets.append(CCUpdateResponse(ccasset_type: type, new_ccamount: amount))
+            }
+        }
+        self.settlements = TrainingSettlementsInfo(xp: xp, state_value: state_value, cc_rewards: temp_assets)
     }
 }
 

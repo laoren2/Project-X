@@ -359,6 +359,10 @@ struct RealNaviView: View {
                     BikeFreeTrainingRecordDetailView(recordID: rid)
                 case .runningFreeTrainingRecordDetailView(let rid):
                     RunningFreeTrainingRecordDetailView(recordID: rid)
+                case .bikeTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng, let config):
+                    BikeTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng, config: config)
+                case .runningTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng, let config):
+                    RunningTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng, config: config)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()

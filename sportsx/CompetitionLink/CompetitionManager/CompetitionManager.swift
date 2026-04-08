@@ -26,7 +26,7 @@ var SAVESENSORDATA: Bool = false
 let SKIPVARIFYSCOREUPLOAD: Bool = true
 
 // 是否 dump 每场比赛的详细数据
-let DUMPMATCHDATA: Bool = false
+let DUMPMATCHDATA: Bool = true
 #endif
 
 class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -97,7 +97,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     var bikePathData_debug: [BikePathPoint] = []
     var runningPathData_debug: [RunningPathPoint] = []
     
-    var validationScore_debug: Double = 0
+    @Published var validationScore_debug: Double = 0
 #endif
     
     @Published var basePathData: [PathPoint] = []                             // 基本轨迹数据
@@ -1602,6 +1602,9 @@ extension CompetitionManager {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
+                        for asset in unwrappedData.cc_rewards {
+                            self.assetManager.updateCCAsset(type: asset.ccasset_type, newBalance: asset.new_ccamount)
+                        }
                         PopupWindowManager.shared.presentPopup(
                             title: "training.result.complete",
                             bottomButtons: [
@@ -1609,8 +1612,26 @@ extension CompetitionManager {
                             ]
                         ) {
                             VStack {
+                                if unwrappedData.new_grids > 0 {
+                                    Text("training.result.popup.content \(unwrappedData.new_grids)")
+                                        .fontWeight(.bold)
+                                }
                                 XPProgressView(beforeXP: unwrappedData.xp_before, deltaXP: unwrappedData.xp_delta)
                                 TrainingStateProgressView(beforeState: unwrappedData.training_state_before, deltaState: unwrappedData.training_state_delta)
+                                HStack(spacing: 10) {
+                                    ForEach(unwrappedData.cc_rewards) { reward in
+                                        HStack(spacing: 4) {
+                                            Image(reward.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
+                                            Text("+ \(reward.reward_amount)")
+                                                .font(.system(size: 15))
+                                                .fontWeight(.semibold)
+                                        }
+                                    }
+                                }
+                                .padding(.top, 10)
                             }
                             .foregroundStyle(Color.white)
                         }
@@ -1646,6 +1667,9 @@ extension CompetitionManager {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
+                        for asset in unwrappedData.cc_rewards {
+                            self.assetManager.updateCCAsset(type: asset.ccasset_type, newBalance: asset.new_ccamount)
+                        }
                         PopupWindowManager.shared.presentPopup(
                             title: "training.result.complete",
                             bottomButtons: [
@@ -1653,8 +1677,26 @@ extension CompetitionManager {
                             ]
                         ) {
                             VStack {
+                                if unwrappedData.new_grids > 0 {
+                                    Text("training.result.popup.content \(unwrappedData.new_grids)")
+                                        .fontWeight(.bold)
+                                }
                                 XPProgressView(beforeXP: unwrappedData.xp_before, deltaXP: unwrappedData.xp_delta)
                                 TrainingStateProgressView(beforeState: unwrappedData.training_state_before, deltaState: unwrappedData.training_state_delta)
+                                HStack(spacing: 10) {
+                                    ForEach(unwrappedData.cc_rewards) { reward in
+                                        HStack(spacing: 4) {
+                                            Image(reward.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 20)
+                                            Text("+ \(reward.reward_amount)")
+                                                .font(.system(size: 15))
+                                                .fontWeight(.semibold)
+                                        }
+                                    }
+                                }
+                                .padding(.top, 10)
                             }
                             .foregroundStyle(Color.white)
                         }
@@ -2131,6 +2173,8 @@ struct FreeTrainingFinishResponse: Codable {
     let xp_delta: Int
     let training_state_before: Int
     let training_state_delta: Int
+    let new_grids: Int
+    let cc_rewards: [CCRewardResponse]
 }
 
 

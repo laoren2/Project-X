@@ -120,7 +120,8 @@ struct XPProgressView: View {
             
             VStack {
                 HStack {
-                    Text(tier.baseKey) + Text(" ") + Text(tier.suffix)
+                    (Text(tier.baseKey) + Text(" ") + Text(tier.suffix))
+                        .foregroundStyle(Color.secondText)
                     Spacer()
                     Image("experience_points")
                         .resizable()
@@ -298,23 +299,25 @@ struct TrainingStateProgressView: View {
     var body: some View {
         VStack {
             HStack {
-                Image(systemName: "flame.fill")
-                Text("training.sport_state")
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .foregroundStyle(Color.secondText)
+                    Text("training.sport_state")
+                        .foregroundStyle(Color.secondText)
+                    (Text("(") + Text("training.sport_state.limit") + Text(")"))
+                        .font(.caption)
+                        .foregroundStyle(Color.thirdText)
+                }
                 Spacer()
                 Text(deltaState > 0 ? "+\(deltaState)" : "\(deltaState)")
+                    .foregroundStyle(Color.white)
             }
-            .foregroundStyle(Color.white)
             ZStack {
                 ProgressBar(progress: progress)
                     .frame(height: 14)
                 Text("")
                     .modifier(AnimatedNumberText(value: animatedState))
             }
-            HStack {
-                Spacer()
-                Text("training.sport_state.limit")
-            }
-            .foregroundStyle(Color.thirdText)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
