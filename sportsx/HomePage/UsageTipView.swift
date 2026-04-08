@@ -89,8 +89,11 @@ struct UsageTipView: View {
             Text("home.skill.title")
                 .font(.title2)
                 .foregroundStyle(Color.white)
-                .padding()
+                .padding(.horizontal)
+                .padding(.top)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Divider()
             
             ScrollView {
                 VStack {

@@ -167,3 +167,41 @@ struct RegionResponse: Codable {
     let region_id: String?
     let country_code: String?
 }
+
+struct TrainingGridTileRequest: Codable {
+    let tiles: [TileKey]
+}
+
+struct TrainingGridTile: Codable {
+    let key: TileKey
+    let cells: [GridCell]
+}
+
+struct TrainingGridTileResponse: Codable {
+    let tiles: [TrainingGridTile]
+}
+
+struct GridBboxConfig: Codable, Equatable, Hashable {
+    let originLat: Double
+    let originLng: Double
+    let endLat: Double
+    let endLng: Double
+}
+
+struct GridCell: Codable {
+    let grid_x: Int
+    let grid_y: Int
+    let count: Int
+}
+
+struct TileKey: Hashable, Codable {
+    let level: Int
+    let x: Int
+    let y: Int
+}
+
+struct RegionExploreResponse: Codable {
+    let explored_grids: Int
+    let total_grids: Int
+    let boundary: JSONValue
+}

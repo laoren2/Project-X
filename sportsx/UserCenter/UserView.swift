@@ -819,17 +819,19 @@ struct LocalUserView: View {
                 .offset(x: (viewModel.showSidebar ? 0 : -viewModel.sidebarWidth))
         }
         .onFirstAppear {
-            PopupWindowManager.shared.presentPopup(
-                title: "user.page.popup.complete_info.title",
-                message: "user.page.popup.complete_info.content",
-                doNotShowAgainKey: "UserView.userInfo",
-                bottomButtons: [
-                    .cancel("login.reigster.popup.action.later"),
-                    .confirm("user.page.dailytask.go_complete") {
-                        appState.navigationManager.append(.userIntroEditView)
-                    }
-                ]
-            )
+            if userManager.user.introduction == nil || userManager.user.location == nil {
+                PopupWindowManager.shared.presentPopup(
+                    title: "user.page.popup.complete_info.title",
+                    message: "user.page.popup.complete_info.content",
+                    doNotShowAgainKey: "UserView.userInfo",
+                    bottomButtons: [
+                        .cancel("login.reigster.popup.action.later"),
+                        .confirm("user.page.dailytask.go_complete") {
+                            appState.navigationManager.append(.userIntroEditView)
+                        }
+                    ]
+                )
+            }
         }
         .onValueChange(of: viewModel.activeSport) {
             viewModel.queryHistoryCareers()
@@ -1651,19 +1653,26 @@ struct LocalUserSportSelectedBar: View {
                     .padding(.bottom, 10)
                     .padding(.horizontal, 20)
                 
-                HStack {
-                    if !isEditMode {
+                if !isEditMode {
+                    HStack {
                         Text("user.sidebar.default_sport")
+                        Spacer()
                         Text(LocalizedStringKey(userManager.user.defaultSport.name))
                     }
+                    .font(.subheadline)
+                    .foregroundColor(.secondText)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 10)
+                }
+                HStack {
                     Spacer()
                     Text(isEditMode ? "action.cancel_edit" : "action.edit")
                         .exclusiveTouchTapGesture {
                             isEditMode.toggle()
                         }
+                        .font(.subheadline)
+                        .foregroundColor(.thirdText)
                 }
-                .font(.subheadline)
-                .foregroundColor(.secondText)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
                 

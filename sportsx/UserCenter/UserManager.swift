@@ -164,7 +164,9 @@ class UserManager: ObservableObject {
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.avatarImage = UIImage(named: "broken_image")
+                    if self.avatarImage == nil {
+                        self.avatarImage = UIImage(named: "broken_image")
+                    }
                 }
             }
         }
@@ -184,7 +186,9 @@ class UserManager: ObservableObject {
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.backgroundImage = UIImage(named: "broken_image")
+                    if self.backgroundImage == nil {
+                        self.backgroundImage = UIImage(named: "broken_image")
+                    }
                 }
             }
         }

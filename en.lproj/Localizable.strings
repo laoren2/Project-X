@@ -21,6 +21,8 @@
 "common.empty" = "Empty";
 "common.history" = "History";
 "common.duration" = "Duration";
+"common.times" = "Times";
+"common.current" = "Current";
 
 "app.slogan" = "Play for Passion";
 
@@ -209,7 +211,7 @@
 "home.announcament.no_contents" = "No announcements yet";
 "home.announcament.title" = "Announcements & Notices";
 "home.skill" = "Usage Tips";
-"home.skill.title" = "Things You Need to Know About Sporreer.";
+"home.skill.title" = "Things You Need to Know About Movmov.";
 "home.skill.title.1" = "Competition registration and participation";
 "home.skill.title.2" = "Team Mode";
 "home.skill.title.3" = "Equipment Cards";
@@ -267,6 +269,7 @@
 "training.sport_state.description" = "Momentum level describes your current training status and can affect your performance in competitions. You will continue to lose momentum level if you do not train for more than 7 days.";
 "training.sport_state.limit" = "Daily limit 20";
 "training.exploration" = "Exploration";
+"training.exploration.2" = "Explored";
 "training.exploration.description" = "Exploration level describes how much you explore your area during training this season.";
 "training.exploration.region.not_supported" = "Not supported in the current region";
 "training.error.no_login" = "Log in to view your activity status and exploration area.";
@@ -275,8 +278,12 @@
 
 "training.history.no_record" = "No training records";
 
+"training.realtime.action.finish" = "Finish";
+"training.realtime.popup.finish" = "Are you sure you want to end the training?";
+
 "training.result.record" = "Training records";
 "training.result.complete" = "Training ended";
+"training.result.popup.content %lld" = "You have just successfully explored %lld new areas!";
 
 "competition.season.info" = "Season Information";
 "competition.season.data" = "Season Data";
@@ -289,7 +296,6 @@
 "competition.season.score.leaderboard" = "Scores leaderboard";
 "competition.season.no_current_matches" = "There are no matches currently in progress.";
 "competition.season.tier" = "Season Tier";
-"competition.season.tier.current" = "Current tier";
 
 "competition.location_select.title" = "Select Area";
 "competition.location_select.action.relocation" = "Relocate";
@@ -358,7 +364,7 @@
 "competition.cardselect.familiarity_buff.description" = "Your familiarity with the track will affect your performance in the race, and you can train around the track to improve your familiarity.";
 "competition.cardselect.sport_state_buff" = "Momentum buff";
 
-"competition.realtime.action.finish" = "End";
+"competition.realtime.action.finish" = "Finish";
 "competition.realtime.action.finish.2" = "End";
 "competition.realtime.action.start" = "Start";
 "competition.realtime.popup.finish" = "Are you sure you want to manually end the game?";
@@ -583,7 +589,7 @@
 "user.page.popup.complete_info.title" = "Complete profile";
 "user.page.popup.complete_info.content" = "Complete your profile so your friends can get to know you better!";
 "user.sidebar.select_sport" = "Choose Sport";
-"user.sidebar.default_sport" = "Sport displayed by default on the profile page: ";
+"user.sidebar.default_sport" = "Default sport on profile: ";
 
 "user.setup.account_and_security" = "Account and Security";
 "user.setup.realname_auth" = "Real-name Authentication";
@@ -672,7 +678,7 @@ In addition, we write activity data to Fitness Training so you can view it in th
 
 This data is used solely for recording performance, verifying race results, and statistical analysis. It will not be used for advertising, profiling, or sold to third parties.
 
-You can turn off data access at any time in 「Apple Health App」-「Share」-「App」-「Sporreer」.";
+You can turn off data access at any time in 「Apple Health App」-「Share」-「App」-「Movmov」.";
 
 "user.intro.action.change_avatar" = "Select profile picture";
 "user.intro.action.change_background" = "Select cover picture";
@@ -697,6 +703,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "user.intro.current_location" = "Current location";
 "user.intro.identity" = "Identity information";
 "user.intro.identity.no_support" = "Professional certification is not currently supported";
+"user.intro.save.success" = "Saved";
+"user.intro.save.failed" = "Save failed";
 
 "institute.upgrade.upgradeway" = "Upgrade Method";
 "institute.upgrade.upgradeway.mat" = "Material upgrade";
@@ -757,11 +765,11 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.action.help" = "Help and Feedback";
 "iap.subscription.action.vip_autorenewal_agreement" = "Membership Automatic Renewal Agreement";
 "iap.subscription.toast.vip_autorenewal_agreement" = "Please agree to the automatic membership renewal agreement";
-"iap.subscription.help_prompts" = "    If you encounter a situation where your subscription benefits haven't been credited after payment when subscribing on iOS, it might be because you have multiple Sporreer accounts under your Apple ID logged into the App Store. Try switching between accounts to see if the purchase was made on another account, or click the button below to check the subscribed accounts associated with your current Apple ID, you can also try manually refreshing your subscription status after a short while. If the problem persists, please submit feedback along with a screenshot of your Apple payment bill. We will resolve the issue and respond as soon as possible. Thank you for your support!";
+"iap.subscription.help_prompts" = "    If you encounter a situation where your subscription benefits haven't been credited after payment when subscribing on iOS, it might be because you have multiple Movmov accounts under your Apple ID logged into the App Store. Try switching between accounts to see if the purchase was made on another account, or click the button below to check the subscribed accounts associated with your current Apple ID, you can also try manually refreshing your subscription status after a short while. If the problem persists, please submit feedback along with a screenshot of your Apple payment bill. We will resolve the issue and respond as soon as possible. Thank you for your support!";
 "iap.subscription.bottom_title" = "Your subscription will automatically renew at least 24 hours before the end of the current period, and can be canceled at any time in your App Store account settings.\nPurchased subscriptions cannot be refunded directly by this app. Please contact Apple Support for a refund.";
 "iap.subscription.update" = "After renew subscription, your new plan will take effect when your current subscription expires.";
 
-"login.title" = "Welcome to Sporreer!";
+"login.title" = "Welcome to Movmov!";
 "login.subtitle" = "An account will be automatically registered after the first login verification";
 "login.sms.title" = "SMS verification code login";
 "login.sms.phone.placeholder" = "Enter mobile phone number";
@@ -781,7 +789,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "login.email.placeholder" = "Enter your email address";
 "login.toast.error_email" = "Please enter a valid email address";
 "login.reigster.popup.welcome" = "Welcome";
-"login.reigster.popup.content" = "Welcome to Sporreer! We've prepared a welcome gift for you, please claim it from \"Profile-Mailbox\" as soon as possible.";
+"login.reigster.popup.content" = "Welcome to Movmov! We've prepared a welcome gift for you, please claim it from \"Profile-Mailbox\" as soon as possible.";
 "login.reigster.popup.action.later" = "Later";
 "login.reigster.popup.action.claim" = "Go claim";
 

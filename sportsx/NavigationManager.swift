@@ -68,6 +68,8 @@ enum AppRoute: Hashable {
     case runningTrainingRecordHistoryView
     case bikeFreeTrainingRecordDetailView(recordID: String)
     case runningFreeTrainingRecordDetailView(recordID: String)
+    case bikeTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double, config: GridBboxConfig)
+    case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double, config: GridBboxConfig)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -200,6 +202,10 @@ enum AppRoute: Hashable {
             return "bikeFreeTrainingRecordDetailView"
         case .runningFreeTrainingRecordDetailView:
             return "runningFreeTrainingRecordDetailView"
+        case .bikeTrainingMapView:
+            return "bikeTrainingMapView"
+        case .runningTrainingMapView:
+            return "runningTrainingMapView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"

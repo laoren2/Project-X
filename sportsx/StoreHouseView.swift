@@ -74,26 +74,41 @@ struct StoreHouseView: View {
                     let cpCount = 5
                     
                     ScrollView {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
-                            ForEach(assetManager.cpassets) { asset in
-                                CPAssetUserCardView(asset: asset)
-                                //.frame(width: itemWidth)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
-                                    )
-                                    .onTapGesture {
-                                        if selectedAsset?.id == asset.id {
-                                            selectedAsset = nil
-                                        } else {
-                                            selectedAsset = CommonAssetUserInfo(from: asset)
-                                        }
-                                    }
+                        if assetManager.cpassets.isEmpty {
+                            HStack {
+                                Spacer()
+                                VStack(spacing: 20) {
+                                    Image(systemName: "doc.text.magnifyingglass")
+                                        .font(.system(size: 60))
+                                    Text("error.no_data")
+                                        .font(.headline)
+                                }
+                                .foregroundStyle(Color.white.opacity(0.3))
+                                Spacer()
                             }
+                            .padding(.top, 100)
+                        } else {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
+                                ForEach(assetManager.cpassets) { asset in
+                                    CPAssetUserCardView(asset: asset)
+                                    //.frame(width: itemWidth)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
+                                        )
+                                        .onTapGesture {
+                                            if selectedAsset?.id == asset.id {
+                                                selectedAsset = nil
+                                            } else {
+                                                selectedAsset = CommonAssetUserInfo(from: asset)
+                                            }
+                                        }
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.top, 10)
+                            .padding(.bottom, 100)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.top, 10)
-                        .padding(.bottom, 100)
                     }
                     .refreshable {
                         await MainActor.run {
@@ -107,36 +122,51 @@ struct StoreHouseView: View {
                     let cardCount = 3
                     
                     ScrollView {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
-                            ForEach(assetManager.magicCards) { card in
-                                ZStack {
-                                    MagicCardView(card: card)
-                                    //.frame(width: itemWidth)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
-                                        )
-                                    /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
-                                     Text("warehouse.equipcard.unavailable")
-                                     .font(.system(size: itemWidth * 0.2, weight: .bold))
-                                     .foregroundColor(.white)
-                                     .padding(itemWidth * 0.04)
-                                     .background(Color.red.opacity(0.5))
-                                     .cornerRadius(itemWidth * 0.04)
-                                     }*/
+                        if assetManager.magicCards.isEmpty {
+                            HStack {
+                                Spacer()
+                                VStack(spacing: 20) {
+                                    Image(systemName: "doc.text.magnifyingglass")
+                                        .font(.system(size: 60))
+                                    Text("error.no_data")
+                                        .font(.headline)
                                 }
-                                .onTapGesture {
-                                    if selectedAsset?.id == card.id {
-                                        selectedAsset = nil
-                                    } else {
-                                        selectedAsset = CommonAssetUserInfo(from: card)
+                                .foregroundStyle(Color.white.opacity(0.3))
+                                Spacer()
+                            }
+                            .padding(.top, 100)
+                        } else {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
+                                ForEach(assetManager.magicCards) { card in
+                                    ZStack {
+                                        MagicCardView(card: card)
+                                        //.frame(width: itemWidth)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 3)
+                                            )
+                                        /*if !AppVersionManager.shared.checkMinimumVersion(card.version) {
+                                         Text("warehouse.equipcard.unavailable")
+                                         .font(.system(size: itemWidth * 0.2, weight: .bold))
+                                         .foregroundColor(.white)
+                                         .padding(itemWidth * 0.04)
+                                         .background(Color.red.opacity(0.5))
+                                         .cornerRadius(itemWidth * 0.04)
+                                         }*/
+                                    }
+                                    .onTapGesture {
+                                        if selectedAsset?.id == card.id {
+                                            selectedAsset = nil
+                                        } else {
+                                            selectedAsset = CommonAssetUserInfo(from: card)
+                                        }
                                     }
                                 }
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 100)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        .padding(.bottom, 100)
                     }
                     .refreshable {
                         await MainActor.run {

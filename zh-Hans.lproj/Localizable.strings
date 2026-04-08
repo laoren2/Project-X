@@ -21,8 +21,10 @@
 "common.empty" = "空";
 "common.history" = "历史";
 "common.duration" = "时间";
+"common.times" = "次数";
+"common.current" = "当前";
 
-"app.slogan" = "随时随地  即刻开赛";
+"app.slogan" = "YI起动    YI起玩";
 
 "sport.bike" = "自行车";
 "sport.running" = "跑步";
@@ -209,7 +211,7 @@
 "home.announcament.no_contents" = "暂无公告";
 "home.announcament.title" = "公告与通知";
 "home.skill" = "使用技巧";
-"home.skill.title" = "那些你需要知道的关于 Sporreer 的事";
+"home.skill.title" = "那些你需要知道的关于 Movmov 的事";
 "home.skill.title.1" = "比赛报名与参与";
 "home.skill.title.2" = "组队模式";
 "home.skill.title.3" = "装备卡牌";
@@ -267,6 +269,7 @@
 "training.sport_state.description" = "运动活跃度描述了当前的运动训练状态，可以影响你在竞技中的表现，超过7天不进行训练会持续损失活跃度哦。";
 "training.sport_state.limit" = "每日上限 20";
 "training.exploration" = "探索度";
+"training.exploration.2" = "探索";
 "training.exploration.description" = "探索度描述了当前赛季的训练中您对所在区域的探索情况。";
 "training.exploration.region.not_supported" = "当前区域不支持";
 "training.error.no_login" = "登录查看运动状态和探索区域";
@@ -275,8 +278,12 @@
 
 "training.history.no_record" = "无训练记录";
 
+"training.realtime.action.finish" = "结束训练";
+"training.realtime.popup.finish" = "你确定要结束训练吗？";
+
 "training.result.record" = "训练记录";
 "training.result.complete" = "训练结束";
+"training.result.popup.content %lld" = "你刚刚成功探索了 %lld 个新区域！";
 
 "competition.season.info" = "赛季信息";
 "competition.season.data" = "赛季数据";
@@ -289,7 +296,6 @@
 "competition.season.score.leaderboard" = "积分榜";
 "competition.season.no_current_matches" = "暂无进行中的比赛";
 "competition.season.tier" = "赛季段位";
-"competition.season.tier.current" = "当前段位";
 
 "competition.location_select.title" = "选择区域";
 "competition.location_select.action.relocation" = "重新定位";
@@ -672,7 +678,7 @@
 
 这些数据仅用于运动成绩记录、比赛验证和数据统计，不会用于广告、画像或向第三方出售。
 
-您可以随时在 iPhone 的「健康 App」-「共享」-「App」-「Sporreer」中关闭数据访问权限。";
+您可以随时在 iPhone 的「健康 App」-「共享」-「App」-「Movmov」中关闭数据访问权限。";
 
 "user.intro.action.change_avatar" = "更换头像";
 "user.intro.action.change_background" = "更换封面";
@@ -697,6 +703,8 @@
 "user.intro.current_location" = "当前位置";
 "user.intro.identity" = "身份信息";
 "user.intro.identity.no_support" = "暂不支持职业认证";
+"user.intro.save.success" = "保存成功";
+"user.intro.save.failed" = "保存失败";
 
 "institute.upgrade.upgradeway" = "升级方式";
 "institute.upgrade.upgradeway.mat" = "材料升级";
@@ -757,11 +765,11 @@
 "iap.subscription.action.help" = "帮助与反馈";
 "iap.subscription.action.vip_autorenewal_agreement" = "会员自动续费协议";
 "iap.subscription.toast.vip_autorenewal_agreement" = "请同意会员自动续费协议";
-"iap.subscription.help_prompts" = "    在iOS系统中进行订阅时，如果出现付款后权益未到账的情况，可能是您登陆App Store的appleID下有多个Sporreer账号，可先切换各账号查看是否购买在其他账号，或点击下方按钮查询当前appleID关联的已订阅账号，也可以稍等片刻尝试手动刷新一下订阅状态，如果仍有问题，可提交反馈并附上Apple支付账单截图，我们会尽快解决并给予回复，感谢您的支持！";
+"iap.subscription.help_prompts" = "    在iOS系统中进行订阅时，如果出现付款后权益未到账的情况，可能是您登陆App Store的appleID下有多个Movmov账号，可先切换各账号查看是否购买在其他账号，或点击下方按钮查询当前appleID关联的已订阅账号，也可以稍等片刻尝试手动刷新一下订阅状态，如果仍有问题，可提交反馈并附上Apple支付账单截图，我们会尽快解决并给予回复，感谢您的支持！";
 "iap.subscription.bottom_title" = "订阅将在当前周期结束前至少24小时自动续订，且可随时在 App Store 账户设置中取消。\n已购买的订阅不支持由本应用直接退款，如需退款请联系 Apple 支持。";
 "iap.subscription.update" = "更新订阅后，您的新套餐将在您当前的订阅项目到期后生效。";
 
-"login.title" = "欢迎来到 Sporreer!";
+"login.title" = "欢迎来到 Movmov!";
 "login.subtitle" = "首次验证登录后将自动注册账号";
 "login.sms.title" = "短信验证码登录";
 "login.sms.phone.placeholder" = "请输入手机号";
@@ -781,7 +789,7 @@
 "login.email.placeholder" = "请输入邮箱地址";
 "login.toast.error_email" = "请输入正确的邮箱";
 "login.reigster.popup.welcome" = "欢迎";
-"login.reigster.popup.content" = "欢迎来到Sporreer，我们为您准备了一份新人礼包，请尽快去 \"我的-邮箱\" 领取哦。";
+"login.reigster.popup.content" = "欢迎来到 Movmov，我们为您准备了一份新人礼包，请尽快去 \"我的-邮箱\" 领取哦。";
 "login.reigster.popup.action.later" = "稍后";
 "login.reigster.popup.action.claim" = "去领取";
 

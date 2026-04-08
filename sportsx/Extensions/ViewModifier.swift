@@ -1004,3 +1004,12 @@ extension View {
             .background(Color.white)
     }
 }
+
+// Helper extension for MKPolygon coordinates extraction
+extension MKPolygon {
+    func coordinates() -> [CLLocationCoordinate2D] {
+        var coords = [CLLocationCoordinate2D](repeating: kCLLocationCoordinate2DInvalid, count: self.pointCount)
+        self.getCoordinates(&coords, range: NSRange(location: 0, length: self.pointCount))
+        return coords
+    }
+}

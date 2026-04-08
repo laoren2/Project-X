@@ -147,15 +147,23 @@ class HomeViewModel: ObservableObject {
     }
     
     func fetchAnnouncements() {
-        let request = APIRequest(path: "/homepage/query_announcements", method: .get)
+        guard var components = URLComponents(string: "/homepage/query_announcements") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "page", value: "1"),
+            URLQueryItem(name: "size", value: "3")
+        ]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .get)
         NetworkService.sendRequest(with: request, decodingType: AnnouncementResponse.self) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
+                    var tempAnnouncements: [String] = []
                     for announcement in unwrappedData.announcements {
-                        self.announcements.append(announcement.content)
+                        tempAnnouncements.append(announcement.content)
                     }
+                    self.announcements = tempAnnouncements
                 default:
                     break
                 }
@@ -564,7 +572,7 @@ struct SignInResultDTO: Codable {
     let date: String
 }
 
-struct AnnouncementInfo: Identifiable {
+struct AnnouncementInfo: Identifiable, Equatable {
     let id = UUID()
     let content: String
     let date: Date?
@@ -572,6 +580,10 @@ struct AnnouncementInfo: Identifiable {
     init(from announcement: AnnouncementDTO) {
         self.content = announcement.content
         self.date = DateParser.parseISO8601(announcement.date)
+    }
+    
+    static func == (lhs: AnnouncementInfo, rhs: AnnouncementInfo) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 

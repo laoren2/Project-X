@@ -6,7 +6,7 @@
   
 */
 
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the exercise is running in the background.";
 "NSLocationWhenInUseUsageDescription" = "Used to display information about nearby races and tracks that are available to participate in.";
 "NSPhotoLibraryUsageDescription" = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
 "NSHealthShareUsageDescription" = "Used to access your Health app to read exercise data such as heart rate and steps, and sync it to your iPhone via Apple Watch for recording and analysis.";

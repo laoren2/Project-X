@@ -119,6 +119,7 @@ final class BootstrapManager: ObservableObject {
         // 8. 商店信息加载
         await ShopManager.shared.queryCPAssets(withLoadingToast: true)
         await ShopManager.shared.queryMagicCards(withLoadingToast: true)
+        await GlobalConfig.shared.fetchCountryGridsBbox()
         advanceProgress(by: 15)
         
         try? await Task.sleep(nanoseconds: 300_000_000)
@@ -374,7 +375,7 @@ struct TestLaunchView: View {
     @ObservedObject var bootstrap = BootstrapManager.shared
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             Spacer()
             Image("single_app_icon")
                 .renderingMode(.template)
@@ -382,13 +383,15 @@ struct TestLaunchView: View {
                 .scaledToFit()
                 .frame(width: 100)
                 .foregroundStyle(Color.orange.opacity(0.8))
-            ProgressBar(progress: bootstrap.progress)
-                .frame(height: 10)
             Text("app.slogan")
                 .font(.system(.title, design: .rounded, weight: .heavy))
                 .foregroundStyle(Color.secondText)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
+                .padding(.top, 10)
+                .padding(.bottom, 20)
+            ProgressBar(progress: bootstrap.progress)
+                .frame(height: 10)
+                //.padding(.top, 10)
             Spacer()
         }
         .padding()

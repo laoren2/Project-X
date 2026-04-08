@@ -6,7 +6,7 @@
   
 */
 
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当比赛在后台进行期间会使用后台定位。";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "用于在后台进行运动时持续记录轨迹、距离等数据，并匹配对应的比赛赛道。仅当运动在后台进行期间会使用后台定位。";
 "NSLocationWhenInUseUsageDescription" = "用于展示附近可参与的比赛与赛道信息。";
 "NSPhotoLibraryUsageDescription" = "用于访问你的本地相册图片来更新你的个人信息，不会访问未被你选择的照片。";
 "NSHealthShareUsageDescription" = "用于访问您的健康 App 读取心率、步数等运动数据，并通过 Apple Watch 同步至 iPhone 进行记录和分析。";

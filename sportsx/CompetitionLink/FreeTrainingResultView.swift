@@ -175,7 +175,6 @@ struct BikeFreeTrainingRecordDetailView: View {
                             .padding(.top, 10)
                             
                             HStack(spacing: 20) {
-                                Spacer()
                                 HStack(spacing: 4) {
                                     Image("experience_points")
                                         .resizable()
@@ -184,11 +183,23 @@ struct BikeFreeTrainingRecordDetailView: View {
                                     Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
                                         .font(.system(.body, design: .rounded, weight: .bold))
                                 }
+                                Spacer()
                                 HStack(spacing: 4) {
                                     Image(systemName: "flame.fill")
                                         .font(.system(size: 20))
                                     Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
                                         .font(.system(.body, design: .rounded, weight: .bold))
+                                }
+                                ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                                    HStack(spacing: 4) {
+                                        Image(ccasset.ccasset_type.iconName)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 25)
+                                        Text("+\(ccasset.new_ccamount)")
+                                            .font(.system(.body, design: .rounded, weight: .bold))
+                                            .foregroundStyle(Color.white)
+                                    }
                                 }
                             }
                             .foregroundStyle(Color.white)
@@ -744,7 +755,6 @@ struct RunningFreeTrainingRecordDetailView: View {
                             .padding(.top, 10)
                             
                             HStack(spacing: 20) {
-                                Spacer()
                                 HStack(spacing: 4) {
                                     Image("experience_points")
                                         .resizable()
@@ -753,11 +763,23 @@ struct RunningFreeTrainingRecordDetailView: View {
                                     Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
                                         .font(.system(.body, design: .rounded, weight: .bold))
                                 }
+                                Spacer()
                                 HStack(spacing: 4) {
                                     Image(systemName: "flame.fill")
                                         .font(.system(size: 20))
                                     Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
                                         .font(.system(.body, design: .rounded, weight: .bold))
+                                }
+                                ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                                    HStack(spacing: 4) {
+                                        Image(ccasset.ccasset_type.iconName)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 25)
+                                        Text("+\(ccasset.new_ccamount)")
+                                            .font(.system(.body, design: .rounded, weight: .bold))
+                                            .foregroundStyle(Color.white)
+                                    }
                                 }
                             }
                             .foregroundStyle(Color.white)
