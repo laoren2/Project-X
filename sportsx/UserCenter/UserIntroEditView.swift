@@ -208,9 +208,9 @@ struct UserIntroEditView: View {
         }
         .photosPicker(isPresented: $showAvatarPicker, selection: $selectedAvatarItem, matching: .images)
         .photosPicker(isPresented: $showBackgroundPicker, selection: $selectedBackgroundItem, matching: .images)
-        .onValueChange(of: selectedAvatarItem) {
+        .onValueChange(of: selectedAvatarItem) { _, newState in
             Task {
-                if let data = try? await selectedAvatarItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     viewModel.avatarImage = uiImage
                 } else {
@@ -218,9 +218,9 @@ struct UserIntroEditView: View {
                 }
             }
         }
-        .onValueChange(of: selectedBackgroundItem) {
+        .onValueChange(of: selectedBackgroundItem) { _, newState in
             Task {
-                if let data = try? await selectedBackgroundItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     viewModel.backgroundImage = uiImage
                 } else {
@@ -228,8 +228,8 @@ struct UserIntroEditView: View {
                 }
             }
         }
-        .onValueChange(of: viewModel.backgroundImage) {
-            if let backgroundImage = viewModel.backgroundImage, let avg = ImageTool.averageColor(from: backgroundImage) {
+        .onValueChange(of: viewModel.backgroundImage) { _, newState in
+            if let backgroundImage = newState, let avg = ImageTool.averageColor(from: backgroundImage) {
                 viewModel.backgroundColor = avg.bestSoftDarkReadableColor()
             } else {
                 viewModel.backgroundColor = .defaultBackground
@@ -320,9 +320,9 @@ struct IntroEditorView: View {
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
-                    .onValueChange(of: tempIntro) {
+                    .onValueChange(of: tempIntro) { _, newState in
                         DispatchQueue.main.async {
-                            if tempIntro.count > 100 {
+                            if newState.count > 100 {
                                 tempIntro = String(tempIntro.prefix(100)) // 限制为最多100个字符
                             }
                         }
@@ -394,9 +394,9 @@ struct NameEditorView: View {
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
-                    .onValueChange(of: tempName) {
+                    .onValueChange(of: tempName) { _, newState in
                         DispatchQueue.main.async {
-                            if tempName.count > 15 {
+                            if newState.count > 15 {
                                 tempName = String(tempName.prefix(15)) // 限制为最多10个字符
                             }
                         }

@@ -28,7 +28,7 @@ struct BikeScoreRankingView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                (Text(viewModel.seasonName) + Text("competition.season.score.leaderboard"))
+                (Text(viewModel.seasonName) + Text(" ") + Text("competition.season.score.leaderboard"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -40,24 +40,14 @@ struct BikeScoreRankingView: View {
             }
             
             HStack {
-                Menu {
+                Picker("", selection: $viewModel.gender) {
                     ForEach(genders, id: \.self) { gender in
-                        Button(LocalizedStringKey(gender.displayName)) {
-                            viewModel.gender = gender
-                        }
+                        Text(LocalizedStringKey(gender.displayName))
+                            .tag(gender)
                     }
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.subheadline)
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
-                    .cornerRadius(5)
                 }
+                .pickerStyle(.menu)
+                .tint(.white)
                 Spacer()
             }
             
@@ -65,7 +55,10 @@ struct BikeScoreRankingView: View {
                 Text("competition.track.leaderboard.ranking")
                 Text("common.user")
                 Spacer()
-                Text("competition.track.leaderboard.score")
+                Image("season_points")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
             }
             .font(.subheadline)
             .foregroundStyle(Color.secondText)
@@ -83,11 +76,10 @@ struct BikeScoreRankingView: View {
                         }
                     } else {
                         LazyVStack(spacing: 10) {
-                            ForEach(viewModel.rankingListEntries.indices, id: \.self) { index in
-                                let entry = viewModel.rankingListEntries[index]
+                            ForEach(viewModel.rankingListEntries) { entry in
                                 BikeScoreRankEntryView(entry: entry)
                                     .onAppear {
-                                        if entry == viewModel.rankingListEntries.last && viewModel.hasMore {
+                                        if entry.id == viewModel.rankingListEntries.last?.id && viewModel.hasMore {
                                             viewModel.queryScoreRankingList(reset: false)
                                         }
                                     }
@@ -109,7 +101,7 @@ struct BikeScoreRankingView: View {
         .onFirstAppear {
             viewModel.queryScoreRankingList(reset: true)
         }
-        .onValueChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) { _, _ in
             viewModel.queryScoreRankingList(reset: true)
         }
     }
@@ -147,24 +139,14 @@ struct BikeRankingListView: View {
             }
             
             HStack {
-                Menu {
+                Picker("", selection: $viewModel.gender) {
                     ForEach(genders, id: \.self) { gender in
-                        Button(LocalizedStringKey(gender.displayName)) {
-                            viewModel.gender = gender
-                        }
+                        Text(LocalizedStringKey(gender.displayName))
+                            .tag(gender)
                     }
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.subheadline)
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
-                    .cornerRadius(5)
                 }
+                .pickerStyle(.menu)
+                .tint(.white)
                 Spacer()
                 if !viewModel.isHistory {
                     Image(systemName: "arrow.clockwise")
@@ -180,8 +162,14 @@ struct BikeRankingListView: View {
                 Text("competition.track.leaderboard.ranking")
                 Text("competition.track.leaderboard.user_and_time")
                 Spacer()
-                Text("competition.track.leaderboard.reward")
-                Text("competition.track.leaderboard.score")
+                Image("voucher")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Image("season_points")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
             }
             .font(.subheadline)
             .foregroundStyle(Color.secondText)
@@ -218,19 +206,15 @@ struct BikeRankingListView: View {
                             .foregroundStyle(Color.secondText)
                     }
                     Spacer()
-                    if let voucher = viewModel.voucherAmount {
-                        HStack(spacing: 2) {
-                            Image("voucher")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20)
+                    HStack(spacing: 30) {
+                        if let voucher = viewModel.voucherAmount {
                             Text("\(voucher)")
                                 .foregroundStyle(Color.secondText)
                         }
-                    }
-                    if let score = viewModel.score {
-                        Text("\(score)")
-                            .foregroundStyle(Color.secondText)
+                        if let score = viewModel.score {
+                            Text("\(score)")
+                                .foregroundStyle(Color.secondText)
+                        }
                     }
                 }
                 .padding(8)
@@ -250,11 +234,10 @@ struct BikeRankingListView: View {
                         }
                     } else {
                         LazyVStack(spacing: 10) {
-                            ForEach(viewModel.rankingListEntries.indices, id: \.self) { index in
-                                let entry = viewModel.rankingListEntries[index]
+                            ForEach(viewModel.rankingListEntries) { entry in
                                 BikeRankingListEntryView(entry: entry)
                                     .onAppear {
-                                        if entry == viewModel.rankingListEntries.last && viewModel.hasMore {
+                                        if entry.id == viewModel.rankingListEntries.last?.id && viewModel.hasMore {
                                             if viewModel.isHistory {
                                                 viewModel.queryHistoryRankingList(reset: false)
                                             } else {
@@ -280,7 +263,7 @@ struct BikeRankingListView: View {
         .onFirstAppear {
             viewModel.refresh()
         }
-        .onValueChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) { _, _ in
             viewModel.refresh(enforce: true)
         }
     }
@@ -348,16 +331,12 @@ struct BikeRankingListEntryView: View {
                     .foregroundStyle(.white)
             }
             Spacer()
-            HStack(spacing: 2) {
-                Image("voucher")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20)
+            HStack(spacing: 30) {
                 Text("\(entry.voucher)")
                     .foregroundStyle(Color.secondText)
+                Text("\(entry.score)")
+                    .foregroundStyle(Color.secondText)
             }
-            Text("\(entry.score)")
-                .foregroundStyle(Color.secondText)
         }
         .padding(8)
         .background(Color.gray.opacity(0.8))
@@ -386,7 +365,7 @@ struct RunningScoreRankingView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                (Text(viewModel.seasonName) + Text("competition.season.score.leaderboard"))
+                (Text(viewModel.seasonName) + Text(" ") + Text("competition.season.score.leaderboard"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
@@ -398,24 +377,14 @@ struct RunningScoreRankingView: View {
             }
             
             HStack {
-                Menu {
+                Picker("", selection: $viewModel.gender) {
                     ForEach(genders, id: \.self) { gender in
-                        Button(LocalizedStringKey(gender.displayName)) {
-                            viewModel.gender = gender
-                        }
+                        Text(LocalizedStringKey(gender.displayName))
+                            .tag(gender)
                     }
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.subheadline)
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
-                    .cornerRadius(5)
                 }
+                .pickerStyle(.menu)
+                .tint(.white)
                 Spacer()
             }
             
@@ -423,7 +392,10 @@ struct RunningScoreRankingView: View {
                 Text("competition.track.leaderboard.ranking")
                 Text("common.user")
                 Spacer()
-                Text("competition.track.leaderboard.score")
+                Image("season_points")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
             }
             .font(.subheadline)
             .foregroundStyle(Color.secondText)
@@ -441,11 +413,10 @@ struct RunningScoreRankingView: View {
                         }
                     } else {
                         LazyVStack(spacing: 10) {
-                            ForEach(viewModel.rankingListEntries.indices, id: \.self) { index in
-                                let entry = viewModel.rankingListEntries[index]
+                            ForEach(viewModel.rankingListEntries) { entry in
                                 RunningScoreRankEntryView(entry: entry)
                                     .onAppear {
-                                        if entry == viewModel.rankingListEntries.last && viewModel.hasMore {
+                                        if entry.id == viewModel.rankingListEntries.last?.id && viewModel.hasMore {
                                             viewModel.queryScoreRankingList(reset: false)
                                         }
                                     }
@@ -467,7 +438,7 @@ struct RunningScoreRankingView: View {
         .onFirstAppear {
             viewModel.queryScoreRankingList(reset: true)
         }
-        .onValueChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) { _, _ in
             viewModel.queryScoreRankingList(reset: true)
         }
     }
@@ -505,24 +476,14 @@ struct RunningRankingListView: View {
             }
             
             HStack {
-                Menu {
+                Picker("", selection: $viewModel.gender) {
                     ForEach(genders, id: \.self) { gender in
-                        Button(LocalizedStringKey(gender.displayName)) {
-                            viewModel.gender = gender
-                        }
+                        Text(LocalizedStringKey(gender.displayName))
+                            .tag(gender)
                     }
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.subheadline)
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
-                    .cornerRadius(5)
                 }
+                .pickerStyle(.menu)
+                .tint(.white)
                 Spacer()
                 if !viewModel.isHistory {
                     Image(systemName: "arrow.clockwise")
@@ -538,8 +499,14 @@ struct RunningRankingListView: View {
                 Text("competition.track.leaderboard.ranking")
                 Text("competition.track.leaderboard.user_and_time")
                 Spacer()
-                Text("competition.track.leaderboard.reward")
-                Text("competition.track.leaderboard.score")
+                Image("voucher")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Image("season_points")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
             }
             .font(.subheadline)
             .foregroundStyle(Color.secondText)
@@ -576,19 +543,15 @@ struct RunningRankingListView: View {
                             .foregroundStyle(Color.secondText)
                     }
                     Spacer()
-                    if let voucher = viewModel.voucherAmount {
-                        HStack(spacing: 2) {
-                            Image("voucher")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20)
+                    HStack(spacing: 30) {
+                        if let voucher = viewModel.voucherAmount {
                             Text("\(voucher)")
                                 .foregroundStyle(Color.secondText)
                         }
-                    }
-                    if let score = viewModel.score {
-                        Text("\(score)")
-                            .foregroundStyle(Color.secondText)
+                        if let score = viewModel.score {
+                            Text("\(score)")
+                                .foregroundStyle(Color.secondText)
+                        }
                     }
                 }
                 .padding(8)
@@ -608,11 +571,10 @@ struct RunningRankingListView: View {
                         }
                     } else {
                         LazyVStack(spacing: 10) {
-                            ForEach(viewModel.rankingListEntries.indices, id: \.self) { index in
-                                let entry = viewModel.rankingListEntries[index]
+                            ForEach(viewModel.rankingListEntries) { entry in
                                 RunningRankingListEntryView(entry: entry)
                                     .onAppear {
-                                        if entry == viewModel.rankingListEntries.last && viewModel.hasMore{
+                                        if entry.id == viewModel.rankingListEntries.last?.id && viewModel.hasMore{
                                             if viewModel.isHistory {
                                                 viewModel.queryHistoryRankingList(reset: false)
                                             } else {
@@ -638,7 +600,7 @@ struct RunningRankingListView: View {
         .onFirstAppear {
             viewModel.refresh()
         }
-        .onValueChange(of: viewModel.gender) {
+        .onValueChange(of: viewModel.gender) { _, _ in
             viewModel.refresh(enforce: true)
         }
     }
@@ -706,16 +668,12 @@ struct RunningRankingListEntryView: View {
                     .foregroundStyle(.white)
             }
             Spacer()
-            HStack(spacing: 2) {
-                Image("voucher")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20)
+            HStack(spacing: 30) {
                 Text("\(entry.voucher)")
                     .foregroundStyle(Color.secondText)
+                Text("\(entry.score)")
+                    .foregroundStyle(Color.secondText)
             }
-            Text("\(entry.score)")
-                .foregroundStyle(Color.secondText)
         }
         .padding(8)
         .background(Color.gray.opacity(0.8))

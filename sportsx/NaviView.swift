@@ -226,26 +226,28 @@ struct RealNaviView: View {
                     .offset(x: (navigationManager.showSideBar ? 0 : -sidebarWidth))
             }
             .ignoresSafeArea(edges: .bottom)
-            .onValueChange(of: scenePhase) {
-                // 应用从后台恢复时，加载之前的 Tab 状态
-                guard scenePhase == .active else { return }
-                if isAppLaunching {
-                    isAppLaunching = false
-                    UserDefaults.standard.set(Tab.home.rawValue, forKey: "SelectedTab")
-                    return
+            .onValueChange(of: scenePhase) { oldPhase, newPhase  in
+                switch (oldPhase, newPhase) {
+                case (_, .active):
+                    if isAppLaunching {
+                        isAppLaunching = false
+                        UserDefaults.standard.set(Tab.home.rawValue, forKey: "SelectedTab")
+                        return
+                    }
+                    
+                    let rawValue = UserDefaults.standard.integer(forKey: "SelectedTab")
+                    if let restoredTab = Tab(rawValue: rawValue) {
+                        navigationManager.selectedTab = restoredTab
+                        //print("后台恢复 Tab:", restoredTab)
+                    }
+                    
+                    appState.competitionManager.syncWidgetVisibility()
+                case (.active, _):
+                    UserDefaults.standard.set(navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
+                    //print("设置后台 Tab:", navigationManager.selectedTab)
+                default:
+                    break
                 }
-                let rawValue = UserDefaults.standard.integer(forKey: "SelectedTab")
-                if let restoredTab = Tab(rawValue: rawValue) {
-                    navigationManager.selectedTab = restoredTab
-                    //print("后台恢复 Tab: ", restoredTab)
-                }
-                appState.competitionManager.syncWidgetVisibility()
-            }
-            .onValueChange(of: scenePhase) {
-                // 当应用进入后台时，保存当前选中的 Tab
-                guard scenePhase == .background || scenePhase == .inactive else { return }
-                UserDefaults.standard.set(navigationManager.selectedTab.rawValue, forKey: "SelectedTab")
-                //print("set key: SelectedTab value: ", navigationManager.selectedTab)
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -543,8 +545,8 @@ struct SportSelectionSidebar: View {
         .onFirstAppear {
             selectedFeature = appState.sportFeature
         }
-        .onValueChange(of: appState.sportFeature) {
-            selectedFeature = appState.sportFeature
+        .onValueChange(of: appState.sportFeature) { _, newState in
+            selectedFeature = newState
         }
     }
 }

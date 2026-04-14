@@ -236,9 +236,9 @@ struct StoreHouseView: View {
         }
         //.toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(edges: .bottom)
-        .onValueChange(of: userManager.isLoggedIn) {
+        .onValueChange(of: userManager.isLoggedIn) { _, newState  in
             selectedAsset = nil
-            if !userManager.isLoggedIn {
+            if !newState {
                 assetManager.resetAll()
             }
         }

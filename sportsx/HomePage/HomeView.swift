@@ -113,15 +113,15 @@ struct HomeView: View {
         }
         //.toolbar(.hidden, for: .navigationBar)
         .ignoresSafeArea(.keyboard)
-        .onValueChange(of: viewModel.reminderEnabled) {
-            if viewModel.reminderEnabled {
+        .onValueChange(of: viewModel.reminderEnabled) { _, newState in
+            if newState {
                 viewModel.enableReminder()
             } else {
                 viewModel.disableReminder()
             }
         }
-        .onValueChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn {
+        .onValueChange(of: userManager.isLoggedIn) { _, newState in
+            if newState {
                 viewModel.fetchStatus()
             }
         }

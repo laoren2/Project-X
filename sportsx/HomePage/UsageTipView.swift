@@ -86,12 +86,9 @@ struct UsageTipView: View {
             }
             .padding(.horizontal)
             
-            Text("home.skill.title")
-                .font(.title2)
-                .foregroundStyle(Color.white)
-                .padding(.horizontal)
-                .padding(.top)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            //Text("home.skill.title")
+            JustifiedText(localizedKey: "home.skill.title", font: .systemFont(ofSize: 25, weight: .bold), textColor: .white)
+                .padding()
             
             Divider()
             

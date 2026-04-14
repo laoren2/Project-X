@@ -12,7 +12,7 @@
 "common.loading" = "Loading";
 "common.member.a/b %lld %lld" = "%lld/%lld members";
 "common.me" = "Me";
-"common.my" = "My";
+"common.my" = "my";
 "common.male" = "Male";
 "common.female" = "Female";
 "common.user" = "User";
@@ -109,6 +109,64 @@
 "region.kr.gwangju" = "Gwangju";
 "region.kr.daegu" = "Daegu";
 
+"region.us" = "United States";
+"region.us.northeast" = "Northeast";
+"region.us.maine" = "Maine";
+"region.us.newhampshire" = "New Hampshire";
+"region.us.vermont" = "Vermont";
+"region.us.massachusetts" = "Massachusetts";
+"region.us.rhodeisland" = "Rhode Island";
+"region.us.connecticut" = "Connecticut";
+"region.us.newyork" = "New York";
+"region.us.newjersey" = "New Jersey";
+"region.us.pennsylvania" = "Pennsylvania";
+"region.us.delaware" = "Delaware";
+"region.us.maryland" = "Maryland";
+"region.us.washingtondc" = "Washington, D.C.";
+"region.us.midwest" = "Midwest";
+"region.us.ohio" = "Ohio";
+"region.us.michigan" = "Michigan";
+"region.us.indiana" = "Indiana";
+"region.us.illinois" = "Illinois";
+"region.us.wisconsin" = "Wisconsin";
+"region.us.minnesota" = "Minnesota";
+"region.us.iowa" = "Iowa";
+"region.us.missouri" = "Missouri";
+"region.us.northdakota" = "North Dakota";
+"region.us.southdakota" = "South Dakota";
+"region.us.nebraska" = "Nebraska";
+"region.us.kansas" = "Kansas";
+"region.us.southeast" = "Southeast";
+"region.us.virginia" = "Virginia";
+"region.us.westvirginia" = "West Virginia";
+"region.us.kentucky" = "Kentucky";
+"region.us.northcarolina" = "North Carolina";
+"region.us.southcarolina" = "South Carolina";
+"region.us.tennessee" = "Tennessee";
+"region.us.georgia" = "Georgia";
+"region.us.florida" = "Florida";
+"region.us.alabama" = "Alabama";
+"region.us.mississippi" = "Mississippi";
+"region.us.arkansas" = "Arkansas";
+"region.us.louisiana" = "Louisiana";
+"region.us.southwest" = "Southwest";
+"region.us.texas" = "Texas";
+"region.us.oklahoma" = "Oklahoma";
+"region.us.newmexico" = "New Mexico";
+"region.us.arizona" = "Arizona";
+"region.us.west" = "West";
+"region.us.colorado" = "Colorado";
+"region.us.wyoming" = "Wyoming";
+"region.us.montana" = "Montana";
+"region.us.idaho" = "Idaho";
+"region.us.utah" = "Utah";
+"region.us.nevada" = "Nevada";
+"region.us.california" = "California";
+"region.us.oregon" = "Oregon";
+"region.us.washington" = "Washington";
+"region.us.alaska" = "Alaska";
+"region.us.hawaii" = "Hawaii";
+
 "region.cn" = "Mainland China";
 "region.cn.shanghai" = "Shanghai";
 "region.cn.beijing" = "Beijing";
@@ -158,7 +216,7 @@
 "action.register" = "Register";
 "action.cancel_register" = "Cancel";
 "action.create" = "Create";
-"action.detail" = "Detail";
+"action.detail" = "detail";
 "action.select" = "Choose";
 
 "error.unknown" = "Unknown";
@@ -199,7 +257,7 @@
 
 "home.sign_in.tile" = "Daily Check-in";
 "home.sign_in.subtile" = "More rewards for consecutive check-ins!";
-"home.sign_in.vip_tile" = "Subscribe now to receive more sign-in rewards";
+"home.sign_in.vip_tile" = "Subscribe to claim more rewards";
 "home.sign_in.reminder_time %@" = "reminder at: %@";
 "home.sign_in.reminder_time" = "reminder time";
 "home.sign_in.reminder.content" = "Open to claim your daily rewards, don't forget to keep exercising!";
@@ -211,7 +269,7 @@
 "home.announcament.no_contents" = "No announcements yet";
 "home.announcament.title" = "Announcements & Notices";
 "home.skill" = "Usage Tips";
-"home.skill.title" = "Things You Need to Know About Movmov.";
+"home.skill.title" = "Things you need to know about Movmov:";
 "home.skill.title.1" = "Competition registration and participation";
 "home.skill.title.2" = "Team Mode";
 "home.skill.title.3" = "Equipment Cards";
@@ -280,6 +338,9 @@
 
 "training.realtime.action.finish" = "Finish";
 "training.realtime.popup.finish" = "Are you sure you want to end the training?";
+"training.realtime.popup.cannot_save" = "Unable to save";
+"training.realtime.popup.cannot_save.content" = "If training time or distance is too short, the record may not be saved.";
+"training.realtime.popup.cannot_save.button" = "Still finish";
 
 "training.result.record" = "Training records";
 "training.result.complete" = "Training ended";
@@ -293,13 +354,13 @@
 "competition.season.total_distance" = "Total distance";
 "competition.season.total_rewards" = "Rewards received";
 "competition.season.event_records" = "Records history";
-"competition.season.score.leaderboard" = "Scores leaderboard";
+"competition.season.score.leaderboard" = "leaderboard";
 "competition.season.no_current_matches" = "There are no matches currently in progress.";
 "competition.season.tier" = "Season Tier";
 
 "competition.location_select.title" = "Select Area";
 "competition.location_select.action.relocation" = "Relocate";
-"competition.location_select.regions_with_events" = "only with events";
+"competition.location_select.regions_with_events" = "with competitions";
 "competition.location_select.no_auth.popup.title" = "Location failed";
 "competition.location_select.no_auth.popup.content" = "Please check your system's location permissions.";
 
@@ -321,7 +382,7 @@
 "competition.register.team" = "Team up";
 "competition.register.team.2" = "Team registration";
 "competition.register.team.3" = "Team";
-"competition.register.team.content" = "Use your team code to register for the competition your team belongs to";
+"competition.register.team.content" = "Use team code to register for the competition";
 "competition.register.team.placeholder" = "Enter your 8-digit team code";
 "competition.start" = "Start";
 "competition.record" = "Record";
@@ -338,7 +399,7 @@
 "competition.record.time_and_data" = "Data statistics";
 "competition.record.result" = "Match Results";
 "competition.record.title" = "Match Records";
-"competition.record.detail" = "Record detail";
+"competition.record.detail" = "detail";
 "competition.record.popup.cancel_register" = "Are you sure you want to cancel your registration?";
 "competition.record.complete" = "Match ended";
 "competition.record.result.track_best" = "Congratulations! You have just broken the track record and become the new track record holder!";
@@ -351,7 +412,7 @@
 
 "competition.cardselect.choose" = "Choose your equipment card";
 "competition.cardselect.subscription" = "Subscribe to get extra card slots";
-"competition.cardselect.action.choose" = "Select Card";
+"competition.cardselect.action.choose" = "Select";
 "competition.cardselect.action.next_step" = "Next step";
 "competition.cardselect.magiccard.equipped" = "equipped";
 "competition.cardselect.magiccard.empty_slot" = "Empty slot";
@@ -400,36 +461,36 @@
 "competition.result.bonus_time.familiarity" = "Familiarity rewards";
 "competition.result.bonus_time.training_state" = "Momentum rewards";
 
-"competition.event" = "Event";
-"competition.event.detail" = "Event Details";
-"competition.event.info" = "Event Info";
+"competition.event" = "Competition";
+"competition.event.detail" = "Competition Details";
+"competition.event.info" = "Competition Info";
 "competition.event.precautions" = "Precautions";
-"competition.event.bike.precautions.content" = "1. Participants must complete the race within the designated opening time of the course. The system will calculate the valid completion time based on timing and rewards, and the score will be based on the valid completion time.\n2. This is not a closed-course event. Participants must abide by local traffic rules during the race. Violations may result in disqualification.\n3. Participants must wear a cycling helmet that meets safety standards throughout the race. Wearing gloves, knee pads, and other protective gear is strongly recommended.\n4. When riding in a team, maintain a safe distance from team members and avoid dangerous overtaking, sudden braking, and other dangerous behaviors.\n5. On off-road courses, pay close attention to the terrain surface conditions (elevation, slipperiness, etc.) and control your speed and center of gravity accordingly.\n6. Only non-assisted bicycles are permitted for participation. The use of electric-assisted bicycles/motorcycles/other modes of transportation is strictly prohibited.\n7. Please ensure your phone has background location permissions enabled, as the entire race will be recorded, which may consume significant battery power.\n8. Data will be verified during and after the race. Results will be invalidated if verification fails. Malicious or dishonest behavior may result in account bans.\n9. Individuals with heart disease, high blood pressure, recent major surgery, or other conditions unsuitable for strenuous exercise are prohibited from participating.\n10. If you feel unwell during the race, stop immediately and seek help or withdraw. Do not force yourself to continue.\n11. The organizers reserve the right to adjust the course or race time as needed.";
-"competition.event.running.precautions.content" = "1. Participants must complete the race within the designated opening time of the course. The system will calculate the valid completion time based on timing and rewards, and the result will be statistically based on the valid completion time.\n2. This is not a closed-course event. Participants must abide by local traffic rules during the race. Violations of traffic rules may result in invalidation of the result.\n3. Warm up properly before the race and wear suitable running shoes and sportswear. Avoid using new shoes that have not been broken in.\n4. When running in a team, maintain a safe distance from team members to avoid dangerous crowding, trampling, or other dangerous behaviors.\n5. It is recommended to replenish energy gels/drinks appropriately according to the race distance and water drinking time to avoid dehydration during the race.\n6. Pay close attention to the terrain surface (potholes, slippery surfaces, etc.) on the off-road course. Slow down immediately if you encounter danger and avoid cutting in front of others.\n7. Ensure your phone has background location permissions enabled, as the race will record data throughout and may consume a significant amount of battery power.\n8. Exercise data will be verified during and after the race. Results that fail verification will be invalidated. Malicious or dishonest behavior may result in account bans.\n9. Individuals with heart disease, high blood pressure, recent major surgery, or other conditions unsuitable for strenuous exercise are prohibited from participating.\n10. If you feel unwell during the race, stop immediately and seek help or withdraw. Do not force yourself to continue.\n11. The organizers reserve the right to adjust the course or race time as needed.";
-"competition.event.error.no_events" = "There are currently no events in this region";
+"competition.event.bike.precautions.content" = "1. Participants must complete the race within the designated opening time of the course. The system will calculate the valid completion time based on timing and rewards, and the score will be based on the valid completion time.\n2. This is not a closed-course competition. Participants must abide by local traffic rules during the race. Violations may result in disqualification.\n3. Participants must wear a cycling helmet that meets safety standards throughout the race. Wearing gloves, knee pads, and other protective gear is strongly recommended.\n4. When riding in a team, maintain a safe distance from team members and avoid dangerous overtaking, sudden braking, and other dangerous behaviors.\n5. On off-road courses, pay close attention to the terrain surface conditions (elevation, slipperiness, etc.) and control your speed and center of gravity accordingly.\n6. Only non-assisted bicycles are permitted for participation. The use of electric-assisted bicycles/motorcycles/other modes of transportation is strictly prohibited.\n7. Please ensure your phone has background location permissions enabled, as the entire race will be recorded, which may consume significant battery power.\n8. Data will be verified during and after the race. Results will be invalidated if verification fails. Malicious or dishonest behavior may result in account bans.\n9. Individuals with heart disease, high blood pressure, recent major surgery, or other conditions unsuitable for strenuous exercise are prohibited from participating.\n10. If you feel unwell during the race, stop immediately and seek help or withdraw. Do not force yourself to continue.\n11. The organizers reserve the right to adjust the course or race time as needed.";
+"competition.event.running.precautions.content" = "1. Participants must complete the race within the designated opening time of the course. The system will calculate the valid completion time based on timing and rewards, and the result will be statistically based on the valid completion time.\n2. This is not a closed-course competition. Participants must abide by local traffic rules during the race. Violations of traffic rules may result in invalidation of the result.\n3. Warm up properly before the race and wear suitable running shoes and sportswear. Avoid using new shoes that have not been broken in.\n4. When running in a team, maintain a safe distance from team members to avoid dangerous crowding, trampling, or other dangerous behaviors.\n5. It is recommended to replenish energy gels/drinks appropriately according to the race distance and water drinking time to avoid dehydration during the race.\n6. Pay close attention to the terrain surface (potholes, slippery surfaces, etc.) on the off-road course. Slow down immediately if you encounter danger and avoid cutting in front of others.\n7. Ensure your phone has background location permissions enabled, as the race will record data throughout and may consume a significant amount of battery power.\n8. Exercise data will be verified during and after the race. Results that fail verification will be invalidated. Malicious or dishonest behavior may result in account bans.\n9. Individuals with heart disease, high blood pressure, recent major surgery, or other conditions unsuitable for strenuous exercise are prohibited from participating.\n10. If you feel unwell during the race, stop immediately and seek help or withdraw. Do not force yourself to continue.\n11. The organizers reserve the right to adjust the course or race time as needed.";
+"competition.event.error.no_events" = "There are currently no competitions in this region";
 
 "competition.track" = "Track";
 "competition.track.start" = "Start";
 "competition.track.finish" = "End";
 "competition.track.info" = "Track Info";
-"competition.track.error.no_tracks" = "There are currently no available tracks for this event.\nPlease switch regions or events to try again.";
+"competition.track.error.no_tracks" = "There are currently no available tracks for this competition.\nPlease switch regions or competition to try again.";
 "competition.track.error.closed" = "The track is closed.";
-"competition.track.total_number %lld" = "Total participation: %lld";
+"competition.track.total_number %lld" = "total participation: %lld";
 "competition.track.terrain" = "terrain";
 "competition.track.altitude" = "altitude diff";
 "competition.track.prize_pool" = "prize pool";
 "competition.track.sub_region" = "subregion";
-"competition.track.score" = "Track points";
-"competition.track.distance" = "total distance";
+"competition.track.score" = "season points";
+"competition.track.distance" = "distance";
 "competition.track.my_score" = "My grades";
-"competition.track.leaderboard" = "Leaderboard";
-"competition.track.leaderboard.ranking" = "Ranking";
+"competition.track.leaderboard" = "leaderboard";
+"competition.track.leaderboard.ranking" = "Rank";
 "competition.track.leaderboard.score" = "Score";
 "competition.track.leaderboard.reward" = "Reward";
-"competition.track.leaderboard.reference_reward" = "Reference Rewards";
-"competition.track.leaderboard.ranking.2" = "Ranking info";
+"competition.track.leaderboard.reference_reward" = "ref. rewards";
+"competition.track.leaderboard.ranking.2" = "ranking";
 "competition.track.leaderboard.no_data" = "No ranking data available.";
-"competition.track.leaderboard.user_and_time" = "User and Time";
+"competition.track.leaderboard.user_and_time" = "User & Time";
 "competition.track.altitude.2" = "Altitude";
 "competition.track.familiarity" = "Familiarity";
 
@@ -441,13 +502,13 @@
 "competition.team.create" = "Create team";
 "competition.team.create.toast.success" = "Team creation successful, team code copied.";
 "competition.team.member.count %lld" = "Team size: %lld";
-"competition.team.public" = "Public team information";
+"competition.team.public" = "Public status";
 "competition.team.toast.no_name" = "Please enter the team name";
 "competition.team.toast.invalid_time" = "The match time was illegal.";
 "competition.team.join" = "Join team";
 "competition.team.join.toast.success" = "Joined successfully";
-"competition.team.join.placeholder" = "Enter the 8-digit team code to join directly";
-"competition.team.join.action" = "Join with one click";
+"competition.team.join.placeholder" = "Enter 8-digit team code to join";
+"competition.team.join.action" = "Join";
 "competition.team.join.toast.invalid_teamcode" = "Please enter a valid 8-digit team code";
 "competition.team.join.no_team" = "There are no teams available to join right now, go create a new team!";
 "competition.team.action.applied" = "Apply to join";
@@ -497,7 +558,7 @@
 "competition.team.popup.disband.content" = "Are you sure you want to disband the team?";
 "competition.team.disband.success" = "The team has disbanded";
 "competition.team.manage.public.popup.title" = "Public status";
-"competition.team.manage.public.popup.content" = "After a team is made public, users can find their team in the list of teams available to join in the current track.";
+"competition.team.manage.public.popup.content" = "After a team is made public, others can find it in the list of available teams to join in the current track.";
 "competition.team.manage.lock.popup.title" = "Lock status";
 "competition.team.manage.lock.popup.content" = "Once a team is locked, users cannot apply for or directly join your team, and team information cannot be modified.";
 "competition.team.manage.ready.popup.title" = "Match status";
@@ -582,10 +643,10 @@
 "user.page.tab.current_record" = "In Progress";
 "user.page.account_status.banned" = "This account has been banned";
 "user.page.account_status.deleted" = "This account has been deleted";
-"user.page.dailytask" = "Daily Exercise Task";
+"user.page.dailytask" = "Daily Task";
 "user.page.dailytask.distance" = "Cumulative distance during the race:";
 "user.page.dailytask.time" = "Cumulative time during the race:";
-"user.page.dailytask.go_complete" = "Go and complete";
+"user.page.dailytask.go_complete" = "Go";
 "user.page.popup.complete_info.title" = "Complete profile";
 "user.page.popup.complete_info.content" = "Complete your profile so your friends can get to know you better!";
 "user.sidebar.select_sport" = "Choose Sport";
@@ -688,7 +749,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "user.intro.title.birthday" = "Birthday";
 "user.intro.title.location" = "Location";
 "user.intro.title.identity_auth" = "Pro Identifier";
-"user.intro.words_entered %lld %lld" = "entered %lld/%lld characters";
+"user.intro.words_entered %lld %lld" = "entered %lld/%lld";
 "user.intro.edit_intro" = "Edit Profile";
 "user.intro.edit_name" = "Edit Name";
 "user.intro.edit_gender" = "Edit Gender";

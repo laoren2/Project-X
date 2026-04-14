@@ -555,8 +555,8 @@ struct LoginView: View {
             }
         }
         .background(Color.defaultBackground)
-        .onValueChange(of: userManager.showingLogin) {
-            if userManager.showingLogin {
+        .onValueChange(of: userManager.showingLogin) { _, newState in
+            if newState {
                 clearAll()
             } else {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)

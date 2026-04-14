@@ -740,13 +740,36 @@ extension String {
 
 extension View {
     @ViewBuilder
-    func onValueChange<V: Equatable>(of value: V, perform action: @escaping () -> Void) -> some View {
+    func onValueChange<V: Equatable>(
+        of value: V,
+        perform action: @escaping (_ old: V, _ new: V) -> Void
+    ) -> some View {
+        modifier(OnValueChangeModifier(value: value, action: action))
+    }
+}
+
+private struct OnValueChangeModifier<V: Equatable>: ViewModifier {
+    let value: V
+    let action: (V, V) -> Void
+
+    @State private var oldValue: V
+
+    init(value: V, action: @escaping (V, V) -> Void) {
+        self.value = value
+        self.action = action
+        _oldValue = State(initialValue: value)
+    }
+
+    func body(content: Content) -> some View {
         if #available(iOS 17.0, *) {
-            // iOS17+ 支持零参数闭包
-            self.onChange(of: value, action)
+            content.onChange(of: value) { previous, newValue in
+                action(previous, newValue)
+            }
         } else {
-            // iOS16 必须写带参数的闭包
-            self.onChange(of: value) { _ in action() }
+            content.onChange(of: value) { newValue in
+                action(oldValue, newValue)
+                oldValue = newValue
+            }
         }
     }
 }

@@ -294,8 +294,8 @@ struct CoinPurchaseView: View {
                     .frame(height: 40)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .onValueChange(of: coinCount) {
-                        if coinCount > 99999 {
+                    .onValueChange(of: coinCount) { _, newState in
+                        if newState > 99999 {
                             coinCount = 99999
                         }
                     }
@@ -347,10 +347,10 @@ struct CoinPurchaseView: View {
                             .foregroundStyle(Color.white)
                     }
                     .padding(10)
-                    .background((coinCount % 10 == 0 && coinCount >= 10) ? Color.orange : Color.gray)
+                    .background((coinCount % 10 == 0 && coinCount >= 10 && coinCount < 100000) ? Color.orange : Color.gray)
                     .cornerRadius(10)
                 }
-                .disabled(coinCount % 10 != 0 || coinCount < 10)
+                .disabled(coinCount % 10 != 0 || coinCount < 10 || coinCount > 99999)
                 Button {
                     _ = PopupWindowManager.shared.dismissPopup()
                     PopupWindowManager.shared.presentPopup(
@@ -383,10 +383,10 @@ struct CoinPurchaseView: View {
                             .foregroundStyle(Color.white)
                     }
                     .padding(10)
-                    .background((coinCount % 10 == 0 && coinCount >= 10) ? Color.orange : Color.gray)
+                    .background((coinCount % 10 == 0 && coinCount >= 10 && coinCount < 100000) ? Color.orange : Color.gray)
                     .cornerRadius(10)
                 }
-                .disabled(coinCount % 10 != 0 || coinCount < 10)
+                .disabled(coinCount % 10 != 0 || coinCount < 10 || coinCount > 99999)
             }
         }
     }

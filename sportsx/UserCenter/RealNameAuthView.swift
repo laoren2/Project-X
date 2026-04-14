@@ -155,15 +155,18 @@ struct RealNameAuthView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     cardImage = uiImage
                 } else {
                     cardImage = nil
                 }
             }
+        }
+        .onValueChange(of: selectedCountry) { _, _ in
+            selectedAuthMethod = nil
         }
         .sheet(isPresented: $showCountrySheet) {
             CountryAuthView(selectedCountry: $selectedCountry)

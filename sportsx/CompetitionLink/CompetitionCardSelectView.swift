@@ -140,7 +140,7 @@ struct CompetitionCardSelectView: View {
                             }
                         }
                     }
-                    .padding(.top, 50)
+                    .padding(.top, 20)
                     .padding(.bottom, 10)
                     
                     VStack {
@@ -182,8 +182,12 @@ struct CompetitionCardSelectView: View {
                             .padding(.horizontal, 30)
                             .padding(.vertical, 12)
                             .foregroundColor(.white)
-                            .background(Color.white.opacity(0.5))
-                            .cornerRadius(12)
+                            .background(Color.defaultBackground)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.orange, lineWidth: 2)
+                            )
                             .exclusiveTouchTapGesture {
                                 showCardSelection = true
                             }
@@ -205,7 +209,7 @@ struct CompetitionCardSelectView: View {
                                     title: "competition.cardselect.healthkit.title",
                                     message: "competition.cardselect.healthkit.content",
                                     bottomButtons: [
-                                        .confirm(),
+                                        .cancel("action.confirm"),
                                         .confirm("action.detail") {
                                             appState.navigationManager.append(.privacyPanelView)
                                         }
@@ -222,7 +226,7 @@ struct CompetitionCardSelectView: View {
                         Image(systemName: "arrowshape.right")
                     }
                     .foregroundColor(.white)
-                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
                     .background(Color.orange)
                     .cornerRadius(12)

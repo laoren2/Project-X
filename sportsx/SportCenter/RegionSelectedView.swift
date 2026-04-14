@@ -68,18 +68,17 @@ struct RegionSelectedView: View {
                 Text(locationManager.regionName ?? "error.unknown")
                     .font(.headline)
                     .foregroundColor(.white)
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(Color.thirdText)
+                    .exclusiveTouchTapGesture {
+                        reposition()
+                    }
                 Spacer()
-                CommonTextButton(text: "competition.location_select.action.relocation") {
-                    reposition()
-                }
-                .foregroundStyle(Color.thirdText)
-                Spacer()
-                Toggle(isOn: $onlyShowWithEvents) {
-                    Text("competition.location_select.regions_with_events")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.thirdText)
-                }
-                .frame(width: 170)
+                Text("competition.location_select.regions_with_events")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.thirdText)
+                Toggle("", isOn: $onlyShowWithEvents)
+                    .labelsHidden()
             }
             .padding()
             
@@ -153,8 +152,8 @@ struct RegionSelectedView: View {
             }
             selectedProvince = regions.keys.sorted().first ?? "error.unknown"
         }
-        .onValueChange(of: regions) {
-            for (province, cities) in regions {
+        .onValueChange(of: regions) { _, newState in
+            for (province, cities) in newState {
                 for city in cities {
                     if city.regionID == locationManager.regionID {
                         selectedProvince = province
@@ -164,7 +163,7 @@ struct RegionSelectedView: View {
             }
             selectedProvince = regions.keys.sorted().first ?? "error.unknown"
         }
-        .onValueChange(of: locationManager.country) {
+        .onValueChange(of: locationManager.country) { _, _ in
             fetchRegionsWithEvents()
         }
     }
@@ -232,6 +231,11 @@ struct RegionSelectedView: View {
                             locationManager.country = nil
                         }
                         if let regionID = unwrappedData.region_id, let _ = unwrappedData.country_code {
+                            for (province, cities) in regions {
+                                if cities.contains(where: { $0.regionID == regionID }) {
+                                    selectedProvince = province
+                                }
+                            }
                             let userManager = UserManager.shared
                             if userManager.isLoggedIn && userManager.user.enableAutoLocation && userManager.user.location != regionID {
                                 userManager.updateUserLocation(regionID: regionID)

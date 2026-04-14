@@ -183,7 +183,7 @@ struct BikeFreeTrainingView: View {
                                         title: "competition.cardselect.healthkit.title",
                                         message: "competition.cardselect.healthkit.content",
                                         bottomButtons: [
-                                            .confirm(),
+                                            .cancel("action.confirm"),
                                             .confirm("action.detail") {
                                                 appState.navigationManager.append(.privacyPanelView)
                                             }
@@ -235,13 +235,13 @@ struct BikeFreeTrainingView: View {
                 viewModel.didLoad = true
             }
         }
-        .onValueChange(of: locationManager.regionID) {
-            if let regionID = locationManager.regionID {
+        .onValueChange(of: locationManager.regionID) { _, newState in
+            if let regionID = newState {
                 queryExploration(with: regionID)
             }
         }
-        .onValueChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn {
+        .onValueChange(of: userManager.isLoggedIn) { _, newState in
+            if newState {
                 queryTrainingState()
                 if let regionID = locationManager.regionID {
                     queryExploration(with: regionID)
@@ -370,111 +370,114 @@ struct BikeTrainingMapView: View {
                 showGrids: showGrids
             )
             .ignoresSafeArea(.all)
-            VStack {
-                HStack {
-                    Button(action: {}) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 30))
-                            .foregroundColor(.clear)
-                            .padding()
-                    }
-                    Spacer()
-                    Image("bike")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 20)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.black.opacity(0.3))
-                        .cornerRadius(10)
-                    Spacer()
-                    Button(action: {
-                        navigationManager.removeLast()
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 30))
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.black.opacity(0.3))
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal, 10)
-                Spacer()
-            }
+        }
+        // 顶部栏
+        .overlay(alignment: .top) {
             HStack {
-                Spacer()
-                VStack {
-                    Image(systemName: "square.grid.2x2")
+                Button(action: {
+                    navigationManager.removeLast()
+                }) {
+                    Image(systemName: "chevron.left")
                         .font(.system(size: 30))
+                        .frame(width: 30, height: 30)
                         .foregroundColor(.white)
                         .padding(10)
-                        .background(showGrids ? Color.defaultBackground : Color.black.opacity(0.3))
+                        .background(Color.black.opacity(0.3))
                         .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(showGrids ? Color.orange : Color.clear, lineWidth: 2)
-                        )
-                        .padding(.top, 150)
-                        .exclusiveTouchTapGesture {
-                            showGrids.toggle()
-                        }
-                    
-                    if showGrids {
-                        VStack(spacing: 10) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                // 渐变色条（0-10探索次数）
-                                HStack(alignment: .bottom, spacing: 4) {
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.orange.opacity(0.1),
-                                            Color.orange.opacity(0.3),
-                                            Color.orange.opacity(0.5),
-                                            Color.orange.opacity(0.6),
-                                            Color.orange
-                                        ]),
-                                        startPoint: .bottom,
-                                        endPoint: .top
-                                    )
-                                    .frame(width: 10, height: 140)
-                                    .cornerRadius(5)
-                                    
-                                    VStack {
-                                        Text("10+")
-                                        Spacer()
-                                        Text("5")
-                                        Spacer()
-                                        Text("1")
-                                    }
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .frame(height: 140)
-                                }
-                                
-                                // 未探索
-                                HStack(spacing: 11) {
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(Color.gray.opacity(0.3))
-                                        .frame(width: 10, height: 10)
-                                    Text("0")
-                                        .font(.system(size: 12, weight: .semibold))
-                                }
-                            }
-                            VStack(spacing: 0) {
-                                Text("training.exploration.2")
-                                Text("common.times")
-                            }
-                            .font(.system(size: 13, weight: .medium))
-                        }
-                        .foregroundStyle(Color.white)
-                        .padding(10)
-                        .background(Color.defaultBackground)
-                        .cornerRadius(10)
-                        .padding(.top, 50)
-                    }
-                    Spacer()
                 }
+                Spacer()
+                Image("bike")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 20)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(10)
+                Spacer()
+                // 占位，保持布局对称
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 30))
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.clear)
+                    .padding(10)
             }
             .padding(.horizontal, 10)
+            .padding(.top, 10)
+        }
+        // 右侧控制栏
+        .overlay(alignment: .trailing) {
+            VStack {
+                Image(systemName: "square.grid.2x2")
+                    .font(.system(size: 30))
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.white)
+                    .padding(10)
+                    .background(showGrids ? Color.defaultBackground : Color.black.opacity(0.3))
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(showGrids ? Color.orange : Color.clear, lineWidth: 2)
+                    )
+                    .padding(.top, 150)
+                    .exclusiveTouchTapGesture {
+                        showGrids.toggle()
+                    }
+
+                if showGrids {
+                    VStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .bottom, spacing: 4) {
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.orange.opacity(0.1),
+                                        Color.orange.opacity(0.3),
+                                        Color.orange.opacity(0.5),
+                                        Color.orange.opacity(0.6),
+                                        Color.orange
+                                    ]),
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                )
+                                .frame(width: 10, height: 140)
+                                .cornerRadius(5)
+
+                                VStack {
+                                    Text("10+")
+                                    Spacer()
+                                    Text("5")
+                                    Spacer()
+                                    Text("1")
+                                }
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(height: 140)
+                            }
+
+                            HStack(spacing: 11) {
+                                RoundedRectangle(cornerRadius: 5)
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 10, height: 10)
+                                Text("0")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                        }
+
+                        VStack(spacing: 0) {
+                            Text("training.exploration.2")
+                            Text("common.times")
+                        }
+                        .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundStyle(Color.white)
+                    .padding(10)
+                    .background(Color.defaultBackground)
+                    .cornerRadius(10)
+                    .padding(.top, 50)
+                }
+
+                Spacer()
+            }
+            .padding(.trailing, 10)
         }
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()

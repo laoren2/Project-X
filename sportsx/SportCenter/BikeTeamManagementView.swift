@@ -1083,8 +1083,8 @@ struct BikeTeamManageView: View {
         .bottomSheet(isPresented: $viewModel.showTeamEditor, size: .large) {
             BikeTeamEditorView(viewModel: viewModel)
         }
-        .onValueChange(of: viewModel.showTeamEditor) {
-            if !viewModel.showTeamEditor {
+        .onValueChange(of: viewModel.showTeamEditor) { _, newState in
+            if !newState {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
         }
@@ -1230,9 +1230,9 @@ struct BikeTeamEditorView: View {
                         .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                         .background(.ultraThinMaterial)
                         .cornerRadius(20)
-                        .onValueChange(of: viewModel.tempTitle) {
+                        .onValueChange(of: viewModel.tempTitle) { _, newState in
                             DispatchQueue.main.async {
-                                if viewModel.tempTitle.count > 15 {
+                                if newState.count > 15 {
                                     viewModel.tempTitle = String(viewModel.tempTitle.prefix(15)) // 限制为最多10个字符
                                 }
                             }
@@ -1254,9 +1254,9 @@ struct BikeTeamEditorView: View {
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
-                            .onValueChange(of: viewModel.tempDescription) {
+                            .onValueChange(of: viewModel.tempDescription) { _, newState in
                                 DispatchQueue.main.async {
-                                    if viewModel.tempDescription.count > 50 {
+                                    if newState.count > 50 {
                                         viewModel.tempDescription = String(viewModel.tempDescription.prefix(50)) // 限制为最多50个字符
                                     }
                                 }
@@ -1291,8 +1291,8 @@ struct BikeTeamEditorView: View {
         .background(Color.defaultBackground)
         .ignoresSafeArea(.keyboard)
         .hideKeyboardOnScroll()
-        .onValueChange(of: viewModel.showTeamEditor) {
-            if viewModel.showTeamEditor {
+        .onValueChange(of: viewModel.showTeamEditor) { _, newState in
+            if newState {
                 viewModel.tempTitle = viewModel.teamInfo?.title ?? ""
                 viewModel.tempDescription = viewModel.teamInfo?.description ?? ""
                 if let date = viewModel.teamInfo?.competition_date, date > Date() {

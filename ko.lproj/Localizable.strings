@@ -109,6 +109,64 @@
 "region.kr.gwangju" = "광주";
 "region.kr.daegu" = "대구";
 
+"region.us" = "미국";
+"region.us.northeast" = "북동부";
+"region.us.maine" = "메인주";
+"region.us.newhampshire" = "뉴햄프셔주";
+"region.us.vermont" = "버몬트주";
+"region.us.massachusetts" = "매사추세츠주";
+"region.us.rhodeisland" = "로드아일랜드주";
+"region.us.connecticut" = "코네티컷주";
+"region.us.newyork" = "뉴욕주";
+"region.us.newjersey" = "뉴저지주";
+"region.us.pennsylvania" = "펜실베이니아주";
+"region.us.delaware" = "델라웨어주";
+"region.us.maryland" = "메릴랜드주";
+"region.us.washingtondc" = "워싱턴 D.C.";
+"region.us.midwest" = "중서부";
+"region.us.ohio" = "오하이오주";
+"region.us.michigan" = "미시간주";
+"region.us.indiana" = "인디애나주";
+"region.us.illinois" = "일리노이주";
+"region.us.wisconsin" = "위스콘신주";
+"region.us.minnesota" = "미네소타주";
+"region.us.iowa" = "아이오와주";
+"region.us.missouri" = "미주리주";
+"region.us.northdakota" = "노스다코타주";
+"region.us.southdakota" = "사우스다코타주";
+"region.us.nebraska" = "네브래스카주";
+"region.us.kansas" = "캔자스주";
+"region.us.southeast" = "남동부";
+"region.us.virginia" = "버지니아주";
+"region.us.westvirginia" = "웨스트버지니아주";
+"region.us.kentucky" = "켄터키주";
+"region.us.northcarolina" = "노스캐롤라이나주";
+"region.us.southcarolina" = "사우스캐롤라이나주";
+"region.us.tennessee" = "테네시주";
+"region.us.georgia" = "조지아주";
+"region.us.florida" = "플로리다주";
+"region.us.alabama" = "앨라배마주";
+"region.us.mississippi" = "미시시피주";
+"region.us.arkansas" = "아칸소주";
+"region.us.louisiana" = "루이지애나주";
+"region.us.southwest" = "남서부";
+"region.us.texas" = "텍사스주";
+"region.us.oklahoma" = "오클라호마주";
+"region.us.newmexico" = "뉴멕시코주";
+"region.us.arizona" = "애리조나주";
+"region.us.west" = "서부";
+"region.us.colorado" = "콜로라도주";
+"region.us.wyoming" = "와이오밍주";
+"region.us.montana" = "몬태나주";
+"region.us.idaho" = "아이다호주";
+"region.us.utah" = "유타주";
+"region.us.nevada" = "네바다주";
+"region.us.california" = "캘리포니아주";
+"region.us.oregon" = "오리건주";
+"region.us.washington" = "워싱턴주";
+"region.us.alaska" = "알래스카주";
+"region.us.hawaii" = "하와이주";
+
 "region.cn" = "중국 본토";
 "region.cn.shanghai" = "상하이";
 "region.cn.beijing" = "베이징";
@@ -211,7 +269,7 @@
 "home.announcament.no_contents" = "공지사항이 없습니다";
 "home.announcament.title" = "공지 및 알림";
 "home.skill" = "사용 팁";
-"home.skill.title" = "Movmov 이용 시 알아두면 좋은 정보";
+"home.skill.title" = "Movmov 이용 시 알아두면 좋은 정보:";
 "home.skill.title.1" = "대회 참가 및 참여";
 "home.skill.title.2" = "팀 모드";
 "home.skill.title.3" = "장비 카드";
@@ -280,6 +338,9 @@
 
 "training.realtime.action.finish" = "교육 종료";
 "training.realtime.popup.finish" = "정말 교육을 종료하시겠습니까?";
+"training.realtime.popup.cannot_save" = "저장할 수 없습니다";
+"training.realtime.popup.cannot_save.content" = "훈련 시간이나 거리가 너무 짧으면 기록이 저장되지 않을 수 있습니다.";
+"training.realtime.popup.cannot_save.button" = "계속 종료";
 
 "training.result.record" = "훈련 기록";
 "training.result.complete" = "훈련 종료";
@@ -429,7 +490,7 @@
 "competition.track.leaderboard.reference_reward" = "참고 보상";
 "competition.track.leaderboard.ranking.2" = "전체 랭킹";
 "competition.track.leaderboard.no_data" = "랭킹 데이터 없음";
-"competition.track.leaderboard.user_and_time" = "사용자 및 기록";
+"competition.track.leaderboard.user_and_time" = "사용자 & 기록";
 "competition.track.altitude.2" = "고도";
 "competition.track.familiarity" = "익숙하다";
 

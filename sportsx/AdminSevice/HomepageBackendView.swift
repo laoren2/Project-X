@@ -149,9 +149,9 @@ struct HomepageBackendView: View {
         .photosPicker(isPresented: $showImagePicker_hant, selection: $selectedImageItem_hant, matching: .images)
         .photosPicker(isPresented: $showImagePicker_en, selection: $selectedImageItem_en, matching: .images)
         .photosPicker(isPresented: $showImagePicker_ko, selection: $selectedImageItem_ko, matching: .images)
-        .onValueChange(of: selectedImageItem_hans) {
+        .onValueChange(of: selectedImageItem_hans) { _, newState in
             Task {
-                if let data = try? await selectedImageItem_hans?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     adImage_hans = uiImage
                 } else {
@@ -159,9 +159,9 @@ struct HomepageBackendView: View {
                 }
             }
         }
-        .onValueChange(of: selectedImageItem_hant) {
+        .onValueChange(of: selectedImageItem_hant) { _, newState in
             Task {
-                if let data = try? await selectedImageItem_hant?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     adImage_hant = uiImage
                 } else {
@@ -169,9 +169,9 @@ struct HomepageBackendView: View {
                 }
             }
         }
-        .onValueChange(of: selectedImageItem_en) {
+        .onValueChange(of: selectedImageItem_en) { _, newState in
             Task {
-                if let data = try? await selectedImageItem_en?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     adImage_en = uiImage
                 } else {
@@ -179,9 +179,9 @@ struct HomepageBackendView: View {
                 }
             }
         }
-        .onValueChange(of: selectedImageItem_ko) {
+        .onValueChange(of: selectedImageItem_ko) { _, newState in
             Task {
-                if let data = try? await selectedImageItem_ko?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     adImage_ko = uiImage
                 } else {
