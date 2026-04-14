@@ -91,11 +91,11 @@ struct UserView: View {
                 .background(Color.defaultBackground)
             }
         }
-        .onValueChange(of: viewModel.activeSport) {
+        .onValueChange(of: viewModel.activeSport) { _, _ in
             viewModel.queryHistoryCareers()
             viewModel.queryCurrentRecords()
         }
-        .onValueChange(of: viewModel.selectedSeason) {
+        .onValueChange(of: viewModel.selectedSeason) { _, _ in
             viewModel.queryCareerData()
             viewModel.queryCareerRecords()
         }
@@ -575,7 +575,7 @@ struct MainUserView: View {
                             GeometryReader { geo in
                                 Color.clear
                                     .onAppear { updateOffset(geo) }
-                                    .onValueChange(of: geo.frame(in: .global).minY) {
+                                    .onValueChange(of: geo.frame(in: .global).minY) { _, _ in
                                         updateOffset(geo)
                                     }
                             }
@@ -833,17 +833,17 @@ struct LocalUserView: View {
                 )
             }
         }
-        .onValueChange(of: viewModel.activeSport) {
+        .onValueChange(of: viewModel.activeSport) { _, newState in
             viewModel.queryHistoryCareers()
             viewModel.queryCurrentRecords()
-            DailyTaskManager.shared.queryDailyTask(sport: viewModel.activeSport)
+            DailyTaskManager.shared.queryDailyTask(sport: newState)
         }
-        .onValueChange(of: viewModel.selectedSeason) {
+        .onValueChange(of: viewModel.selectedSeason) { _, _ in
             viewModel.queryCareerData()
             viewModel.queryCareerRecords()
         }
-        .onValueChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn {
+        .onValueChange(of: userManager.isLoggedIn) { _, newState in
+            if newState {
                 Task {
                     await userManager.fetchMeInfo()
                     await MainActor.run {
@@ -1290,7 +1290,7 @@ struct LocalMainUserView: View {
                                         Text("user.page.dailytask.go_complete")
                                         Image(systemName: "chevron.right")
                                     }
-                                    .font(.subheadline)
+                                    .font(.system(size: 20, weight: .semibold))
                                     .offset(y: 40)
                                     .exclusiveTouchTapGesture {
                                         switch viewModel.activeSport {
@@ -1362,7 +1362,7 @@ struct LocalMainUserView: View {
                             GeometryReader { geo in
                                 Color.clear
                                     .onAppear { updateOffset(geo) }
-                                    .onValueChange(of: geo.frame(in: .global).minY) {
+                                    .onValueChange(of: geo.frame(in: .global).minY) { _, _ in
                                         updateOffset(geo)
                                     }
                             }
@@ -1603,8 +1603,8 @@ struct UserSportSelectedBar: View {
             }
         }
         .background(viewModel.backgroundColor)
-        .onValueChange(of: viewModel.showSidebar) {
-            if !viewModel.showSidebar {
+        .onValueChange(of: viewModel.showSidebar) { _, newState in
+            if !newState {
                 isEditMode = false
             }
         }
@@ -1719,8 +1719,8 @@ struct LocalUserSportSelectedBar: View {
             }
         }
         .background(userManager.backgroundColor)
-        .onValueChange(of: viewModel.showSidebar) {
-            if !viewModel.showSidebar {
+        .onValueChange(of: viewModel.showSidebar) { _, newState in
+            if !newState {
                 isEditMode = false
             }
         }

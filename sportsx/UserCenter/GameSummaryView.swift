@@ -122,7 +122,13 @@ struct GameSummaryCardView: View {
                 Spacer()
                 Text("competition.track.leaderboard.ranking") + Text(": \(gameSummaryCard.rank)")
                 Spacer()
-                Text("competition.track.leaderboard.score") + Text(": \(gameSummaryCard.score)")
+                HStack(spacing: 4) {
+                    Image("season_points")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                    Text("\(gameSummaryCard.score)")
+                }
             }
             .font(.subheadline)
             .foregroundStyle(Color.secondText)

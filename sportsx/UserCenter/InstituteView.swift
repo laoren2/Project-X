@@ -247,8 +247,8 @@ struct InstituteView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .onValueChange(of: selectedCard) {
-            if let card = selectedCard {
+        .onValueChange(of: selectedCard) { _, newState in
+            if let card = newState {
                 queryUpgradePrice(cardID: card.cardID)
                 querySkill1UpgradePrice(card: card)
                 querySkill2UpgradePrice(card: card)
@@ -694,8 +694,8 @@ struct Stone1PurchaseView: View {
                     .frame(height: 40)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .onValueChange(of: stone1Count) {
-                        if stone1Count > 999 {
+                    .onValueChange(of: stone1Count) { _, newState in
+                        if newState > 999 {
                             stone1Count = 999
                         }
                     }
@@ -790,8 +790,8 @@ struct Stone23PurchaseView: View {
                     .frame(height: 40)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .onValueChange(of: stoneCount) {
-                        if stoneCount > 999 {
+                    .onValueChange(of: stoneCount) { _, newState in
+                        if newState > 999 {
                             stoneCount = 999
                         }
                     }

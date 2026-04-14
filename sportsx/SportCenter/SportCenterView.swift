@@ -148,19 +148,8 @@ struct SportCenterView: View {
             if let location = locationManager.getLocation(), locationManager.regionID == nil {
                 viewModel.updateCity(from: location)
             }
-            PopupWindowManager.shared.presentPopup(
-                title: "user.setup.realname_auth.undone",
-                message: "user.setup.realname_auth.popup.no_auth",
-                doNotShowAgainKey: "sportCenterView.realname",
-                bottomButtons: [
-                    .cancel("login.reigster.popup.action.later"),
-                    .confirm("user.intro.go_auth") {
-                        appState.navigationManager.append(.realNameAuthView)
-                    }
-                ]
-            )
         }
-        .onValueChange(of: appState.sport) {
+        .onValueChange(of: appState.sport) { _, _ in
             viewModel.fetchCurrentSeason()
         }
     }

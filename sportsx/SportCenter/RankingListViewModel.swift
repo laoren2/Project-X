@@ -46,8 +46,21 @@ class BikeScoreRankingViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        var tempEntries: [BikeScoreRankEntry] = []
                         for entry in unwrappedData.entries {
-                            self.rankingListEntries.append(BikeScoreRankEntry(from: entry))
+                            tempEntries.append(BikeScoreRankEntry(from: entry))
+                        }
+                        if reset {
+                            self.rankingListEntries = tempEntries
+                        } else {
+                            for entry in tempEntries {
+                                let index = entry.rank - 1
+                                if index >= 0 && index < self.rankingListEntries.count {
+                                    self.rankingListEntries[index] = entry
+                                } else {
+                                    self.rankingListEntries.append(entry)
+                                }
+                            }
                         }
                         if unwrappedData.entries.count < self.pageSize {
                             self.hasMore = false
@@ -159,8 +172,21 @@ class BikeRankingListViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        var tempEntries: [BikeRankingListEntry] = []
                         for entry in unwrappedData.entries {
-                            self.rankingListEntries.append(BikeRankingListEntry(from: entry))
+                            tempEntries.append(BikeRankingListEntry(from: entry))
+                        }
+                        if reset {
+                            self.rankingListEntries = tempEntries
+                        } else {
+                            for entry in tempEntries {
+                                let index = entry.rank - 1
+                                if index >= 0 && index < self.rankingListEntries.count {
+                                    self.rankingListEntries[index] = entry
+                                } else {
+                                    self.rankingListEntries.append(entry)
+                                }
+                            }
                         }
                         self.timeStamp = unwrappedData.time_stamp
                         if unwrappedData.entries.count < self.pageSize {
@@ -197,8 +223,21 @@ class BikeRankingListViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        var tempEntries: [BikeRankingListEntry] = []
                         for entry in unwrappedData.entries {
-                            self.rankingListEntries.append(BikeRankingListEntry(from: entry))
+                            tempEntries.append(BikeRankingListEntry(from: entry))
+                        }
+                        if reset {
+                            self.rankingListEntries = tempEntries
+                        } else {
+                            for entry in tempEntries {
+                                let index = entry.rank - 1
+                                if index >= 0 && index < self.rankingListEntries.count {
+                                    self.rankingListEntries[index] = entry
+                                } else {
+                                    self.rankingListEntries.append(entry)
+                                }
+                            }
                         }
                         if unwrappedData.entries.count < self.pageSize {
                             self.hasMore = false
@@ -225,7 +264,7 @@ struct BikeScoreRankInfo: Codable {
     let score: Int
 }
 
-struct BikeScoreRankEntry: Identifiable, Equatable {
+struct BikeScoreRankEntry: Identifiable {
     var id: String { userID }
     let rank: Int
     let userID: String
@@ -239,10 +278,6 @@ struct BikeScoreRankEntry: Identifiable, Equatable {
         self.nickname = bikeEntry.user_info.nickname
         self.avatarImageURL = bikeEntry.user_info.avatar_image_url
         self.score = bikeEntry.score
-    }
-    
-    static func == (lhs: BikeScoreRankEntry, rhs: BikeScoreRankEntry) -> Bool {
-        return lhs.userID == rhs.userID
     }
 }
 
@@ -260,7 +295,7 @@ struct BikeRankingListInfo: Codable {
     let score: Int
 }
 
-struct BikeRankingListEntry: Identifiable, Equatable {
+struct BikeRankingListEntry: Identifiable {
     var id: String { userID }
     let rank: Int
     let userID: String
@@ -300,10 +335,6 @@ struct BikeRankingListEntry: Identifiable, Equatable {
         self.voucher = bikeEntry.voucher
         self.score = bikeEntry.score
         self.recordID = bikeEntry.record_id
-    }
-    
-    static func == (lhs: BikeRankingListEntry, rhs: BikeRankingListEntry) -> Bool {
-        return lhs.userID == rhs.userID
     }
 }
 
@@ -346,8 +377,21 @@ class RunningScoreRankingViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        var tempEntries: [RunningScoreRankEntry] = []
                         for entry in unwrappedData.entries {
-                            self.rankingListEntries.append(RunningScoreRankEntry(from: entry))
+                            tempEntries.append(RunningScoreRankEntry(from: entry))
+                        }
+                        if reset {
+                            self.rankingListEntries = tempEntries
+                        } else {
+                            for entry in tempEntries {
+                                let index = entry.rank - 1
+                                if index >= 0 && index < self.rankingListEntries.count {
+                                    self.rankingListEntries[index] = entry
+                                } else {
+                                    self.rankingListEntries.append(entry)
+                                }
+                            }
                         }
                         if unwrappedData.entries.count < self.pageSize {
                             self.hasMore = false
@@ -459,8 +503,21 @@ class RunningRankingListViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        var tempEntries: [RunningRankingListEntry] = []
                         for entry in unwrappedData.entries {
-                            self.rankingListEntries.append(RunningRankingListEntry(from: entry))
+                            tempEntries.append(RunningRankingListEntry(from: entry))
+                        }
+                        if reset {
+                            self.rankingListEntries = tempEntries
+                        } else {
+                            for entry in tempEntries {
+                                let index = entry.rank - 1
+                                if index >= 0 && index < self.rankingListEntries.count {
+                                    self.rankingListEntries[index] = entry
+                                } else {
+                                    self.rankingListEntries.append(entry)
+                                }
+                            }
                         }
                         self.timeStamp = unwrappedData.time_stamp
                         if unwrappedData.entries.count < self.pageSize {
@@ -497,8 +554,21 @@ class RunningRankingListViewModel: ObservableObject {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        var tempEntries: [RunningRankingListEntry] = []
                         for entry in unwrappedData.entries {
-                            self.rankingListEntries.append(RunningRankingListEntry(from: entry))
+                            tempEntries.append(RunningRankingListEntry(from: entry))
+                        }
+                        if reset {
+                            self.rankingListEntries = tempEntries
+                        } else {
+                            for entry in tempEntries {
+                                let index = entry.rank - 1
+                                if index >= 0 && index < self.rankingListEntries.count {
+                                    self.rankingListEntries[index] = entry
+                                } else {
+                                    self.rankingListEntries.append(entry)
+                                }
+                            }
                         }
                         if unwrappedData.entries.count < self.pageSize {
                             self.hasMore = false
@@ -524,7 +594,7 @@ struct RunningScoreRankInfo: Codable {
     let score: Int
 }
 
-struct RunningScoreRankEntry: Identifiable, Equatable {
+struct RunningScoreRankEntry: Identifiable {
     var id: String { userID }
     let rank: Int
     let userID: String
@@ -538,10 +608,6 @@ struct RunningScoreRankEntry: Identifiable, Equatable {
         self.nickname = bikeEntry.user_info.nickname
         self.avatarImageURL = bikeEntry.user_info.avatar_image_url
         self.score = bikeEntry.score
-    }
-    
-    static func == (lhs: RunningScoreRankEntry, rhs: RunningScoreRankEntry) -> Bool {
-        return lhs.userID == rhs.userID
     }
 }
 
@@ -559,7 +625,7 @@ struct RunningRankingListInfo: Codable {
     let score: Int
 }
 
-struct RunningRankingListEntry: Identifiable, Equatable {
+struct RunningRankingListEntry: Identifiable {
     var id: String { userID }
     let rank: Int
     let userID: String
@@ -599,9 +665,5 @@ struct RunningRankingListEntry: Identifiable, Equatable {
         self.voucher = bikeEntry.voucher
         self.score = bikeEntry.score
         self.recordID = bikeEntry.record_id
-    }
-    
-    static func == (lhs: RunningRankingListEntry, rhs: RunningRankingListEntry) -> Bool {
-        return lhs.userID == rhs.userID
     }
 }

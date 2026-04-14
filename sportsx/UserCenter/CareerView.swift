@@ -661,7 +661,10 @@ struct CompetitionScoreCard: View {
                 
                 HStack(alignment: .center) {
                     Text("+ \(trackRecord.score)/\(trackRecord.trackScore)")
-                    Text("competition.track.leaderboard.score")
+                    Image("season_points")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
                 }
             }
             .foregroundColor(.secondText)

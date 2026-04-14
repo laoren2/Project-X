@@ -109,6 +109,64 @@
 "region.kr.gwangju" = "光州";
 "region.kr.daegu" = "大邱";
 
+"region.us" = "美國";
+"region.us.northeast" = "東北部";
+"region.us.maine" = "緬因州";
+"region.us.newhampshire" = "新罕布什爾州";
+"region.us.vermont" = "佛蒙特州";
+"region.us.massachusetts" = "麻薩諸塞州";
+"region.us.rhodeisland" = "羅德島州";
+"region.us.connecticut" = "康乃狄克州";
+"region.us.newyork" = "紐約州";
+"region.us.newjersey" = "紐澤西州";
+"region.us.pennsylvania" = "賓夕法尼亞州";
+"region.us.delaware" = "德拉瓦州";
+"region.us.maryland" = "馬里蘭州";
+"region.us.washingtondc" = "華盛頓哥倫比亞特區";
+"region.us.midwest" = "中西部";
+"region.us.ohio" = "俄亥俄州";
+"region.us.michigan" = "密西根州";
+"region.us.indiana" = "印第安納州";
+"region.us.illinois" = "伊利諾州";
+"region.us.wisconsin" = "威斯康辛州";
+"region.us.minnesota" = "明尼蘇達州";
+"region.us.iowa" = "愛荷華州";
+"region.us.missouri" = "密蘇里州";
+"region.us.northdakota" = "北達科他州";
+"region.us.southdakota" = "南達科他州";
+"region.us.nebraska" = "內布拉斯加州";
+"region.us.kansas" = "堪薩斯州";
+"region.us.southeast" = "東南部";
+"region.us.virginia" = "維吉尼亞州";
+"region.us.westvirginia" = "西維吉尼亞州";
+"region.us.kentucky" = "肯塔基州";
+"region.us.northcarolina" = "北卡羅來納州";
+"region.us.southcarolina" = "南卡羅來納州";
+"region.us.tennessee" = "田納西州";
+"region.us.georgia" = "喬治亞州";
+"region.us.florida" = "佛羅里達州";
+"region.us.alabama" = "阿拉巴馬州";
+"region.us.mississippi" = "密西西比州";
+"region.us.arkansas" = "阿肯色州";
+"region.us.louisiana" = "路易斯安那州";
+"region.us.southwest" = "西南部";
+"region.us.texas" = "德州";
+"region.us.oklahoma" = "奧克拉荷馬州";
+"region.us.newmexico" = "新墨西哥州";
+"region.us.arizona" = "亞利桑那州";
+"region.us.west" = "西部";
+"region.us.colorado" = "科羅拉多州";
+"region.us.wyoming" = "懷俄明州";
+"region.us.montana" = "蒙大拿州";
+"region.us.idaho" = "愛達荷州";
+"region.us.utah" = "猶他州";
+"region.us.nevada" = "內華達州";
+"region.us.california" = "加利福尼亞州";
+"region.us.oregon" = "奧勒岡州";
+"region.us.washington" = "華盛頓州";
+"region.us.alaska" = "阿拉斯加州";
+"region.us.hawaii" = "夏威夷州";
+
 "region.cn" = "中國大陸";
 "region.cn.shanghai" = "上海";
 "region.cn.beijing" = "北京";
@@ -211,7 +269,7 @@
 "home.announcament.no_contents" = "暫無公告";
 "home.announcament.title" = "公告與通知";
 "home.skill" = "使用技巧";
-"home.skill.title" = "你需要知道的關於 Movmov 的事";
+"home.skill.title" = "你需要知道的關於 Movmov 的事：";
 "home.skill.title.1" = "比賽報名與參與";
 "home.skill.title.2" = "組隊模式";
 "home.skill.title.3" = "裝備卡牌";
@@ -280,6 +338,9 @@
 
 "training.realtime.action.finish" = "結束訓練";
 "training.realtime.popup.finish" = "你確定要結束訓練嗎？";
+"training.realtime.popup.cannot_save" = "無法保存";
+"training.realtime.popup.cannot_save.content" = "訓練時間過短或距離過短，可能無法保存記錄。";
+"training.realtime.popup.cannot_save.button" = "仍然結束";
 
 "training.result.record" = "訓練記錄";
 "training.result.complete" = "訓練結束";
@@ -429,7 +490,7 @@
 "competition.track.leaderboard.reference_reward" = "參考獎勵";
 "competition.track.leaderboard.ranking.2" = "完整排行";
 "competition.track.leaderboard.no_data" = "暫無排行榜數據";
-"competition.track.leaderboard.user_and_time" = "用戶和成績";
+"competition.track.leaderboard.user_and_time" = "用戶/成績";
 "competition.track.altitude.2" = "海拔";
 "competition.track.familiarity" = "熟悉度";
 
@@ -497,7 +558,7 @@
 "competition.team.popup.disband.content" = "你確定要解散隊伍嗎？";
 "competition.team.disband.success" = "隊伍已解散";
 "competition.team.manage.public.popup.title" = "隊伍的公開狀態";
-"competition.team.manage.public.popup.content" = "公開隊伍後，使用者可以在目前賽道的可加入隊伍清單中發現你的隊伍。";
+"competition.team.manage.public.popup.content" = "公開隊伍後，人們可以在目前賽道的可加入隊伍清單中發現你的隊伍。";
 "competition.team.manage.lock.popup.title" = "隊伍的鎖定狀態";
 "competition.team.manage.lock.popup.content" = "鎖定隊伍後，使用者無法申請或直接加入你的隊伍，且隊伍資訊無法修改。";
 "competition.team.manage.ready.popup.title" = "隊伍的比賽狀態";

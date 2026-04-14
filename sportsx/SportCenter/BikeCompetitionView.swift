@@ -439,7 +439,13 @@ struct BikeCompetitionView: View {
                                                 Text("competition.track.leaderboard.ranking") + Text(": ") + Text("error.no_data")
                                             }
                                             Spacer()
-                                            Text("competition.track.leaderboard.score") + Text(": \(rankInfo.score ?? 0)")
+                                            HStack(spacing: 4) {
+                                                Image("season_points")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 20)
+                                                Text("\(rankInfo.score ?? 0)")
+                                            }
                                         }
                                         .font(.subheadline)
                                         .foregroundColor(.secondText)
@@ -471,22 +477,24 @@ struct BikeCompetitionView: View {
                                     .background(Color.black.opacity(0.2))
                                     .cornerRadius(20)
                                 } else {
-                                    HStack(alignment: .top) {
-                                        Text("competition.track.my_score")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                        Spacer()
+                                    VStack {
+                                        HStack(alignment: .top) {
+                                            Text("competition.track.my_score")
+                                                .font(.headline)
+                                                .fontWeight(.bold)
+                                            Spacer()
+                                            HStack {
+                                                Text("competition.track.leaderboard")
+                                                Image(systemName: "chevron.right")
+                                            }
+                                            .font(.subheadline)
+                                            .exclusiveTouchTapGesture {
+                                                appState.navigationManager.append(.bikeRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                            }
+                                        }
                                         Text("toast.no_login.2")
-                                            .font(.headline)
-                                        Spacer()
-                                        HStack {
-                                            Text("competition.track.leaderboard")
-                                            Image(systemName: "chevron.right")
-                                        }
-                                        .font(.subheadline)
-                                        .exclusiveTouchTapGesture {
-                                            appState.navigationManager.append(.bikeRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
-                                        }
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondText)
                                     }
                                     .foregroundColor(.white)
                                     .padding()
@@ -589,13 +597,13 @@ struct BikeCompetitionView: View {
                 .padding(.bottom, 85)
             }
         }
-        .onValueChange(of: locationManager.regionID) {
-            if let regionID = locationManager.regionID {
+        .onValueChange(of: locationManager.regionID) { _, newState in
+            if let regionID = newState {
                 viewModel.fetchEvents(with: regionID)
             }
         }
-        .onValueChange(of: viewModel.selectedTrack) {
-            if let track = viewModel.selectedTrack {
+        .onValueChange(of: viewModel.selectedTrack) { _, newState in
+            if let track = newState {
                 viewModel.selectedRankInfo = track.rankInfo
                 if track.rankInfo == nil {
                     viewModel.queryRankInfo(trackID: track.trackID)
@@ -605,11 +613,24 @@ struct BikeCompetitionView: View {
                 }
             }
         }
-        .onValueChange(of: userManager.isLoggedIn) {
-            if userManager.isLoggedIn, let track = viewModel.selectedTrack {
+        .onValueChange(of: userManager.isLoggedIn) { _, newState in
+            if newState, let track = viewModel.selectedTrack {
                 viewModel.queryRankInfo(trackID: track.trackID)
                 viewModel.queryTrackFamiliarity(trackID: track.trackID)
             }
+        }
+        .onFirstAppear {
+            PopupWindowManager.shared.presentPopup(
+                title: "user.setup.realname_auth.undone",
+                message: "user.setup.realname_auth.popup.no_auth",
+                doNotShowAgainKey: "CompetitionView.realname",
+                bottomButtons: [
+                    .cancel("login.reigster.popup.action.later"),
+                    .confirm("user.intro.go_auth") {
+                        appState.navigationManager.append(.realNameAuthView)
+                    }
+                ]
+            )
         }
         .onStableAppear {
             if (!viewModel.didLoad) || globalConfig.refreshCompetitionView {
@@ -875,9 +896,9 @@ struct BikeTeamCreateView: View {
                     .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                     .background(.ultraThinMaterial)
                     .cornerRadius(20)
-                    .onValueChange(of: teamTitle) {
+                    .onValueChange(of: teamTitle) { _, newState in
                         DispatchQueue.main.async {
-                            if teamTitle.count > 15 {
+                            if newState.count > 15 {
                                 teamTitle = String(teamTitle.prefix(15)) // 限制为最多10个字符
                             }
                         }
@@ -899,9 +920,9 @@ struct BikeTeamCreateView: View {
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
-                            .onValueChange(of: teamDescription) {
+                            .onValueChange(of: teamDescription) { _, newState in
                                 DispatchQueue.main.async {
-                                    if teamDescription.count > 50 {
+                                    if newState.count > 50 {
                                         teamDescription = String(teamDescription.prefix(50)) // 限制为最多50个字符
                                     }
                                 }
@@ -1199,9 +1220,9 @@ struct BikeTeamAppliedView: View {
                         .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                         .background(.ultraThinMaterial)
                         .cornerRadius(20)
-                        .onValueChange(of: introduction) {
+                        .onValueChange(of: introduction) { _, newState in
                             DispatchQueue.main.async {
-                                if introduction.count > 50 {
+                                if newState.count > 50 {
                                     introduction = String(introduction.prefix(50)) // 限制为最多50个字符
                                 }
                             }
@@ -1225,9 +1246,9 @@ struct BikeTeamAppliedView: View {
         .padding()
         .background(Color.defaultBackground)
         //.hideKeyboardOnScroll()
-        .onValueChange(of: viewModel.showIntroSheet) {
+        .onValueChange(of: viewModel.showIntroSheet) { _, newState in
             introduction = ""
-            if !viewModel.showIntroSheet {
+            if !newState {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
         }

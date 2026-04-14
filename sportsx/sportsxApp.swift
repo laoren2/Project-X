@@ -329,7 +329,7 @@ final class BootstrapManager: ObservableObject {
 class AppState: ObservableObject {
     static let shared = AppState()
     // 运动中心功能入口
-    @Published var sportFeature: SportFeature = .bikeRace
+    @Published var sportFeature: SportFeature = .bikeFreeTraining
     // 运动中心展示运动
     var sport: SportName {
         return sportFeature.sportType

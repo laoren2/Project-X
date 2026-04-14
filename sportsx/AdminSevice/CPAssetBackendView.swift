@@ -205,9 +205,9 @@ struct CPAssetCreateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     coverImage = uiImage
                 } else {
@@ -343,9 +343,9 @@ struct CPAssetUpdateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     assetImage = uiImage
                 } else {

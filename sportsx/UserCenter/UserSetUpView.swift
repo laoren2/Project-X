@@ -1063,9 +1063,9 @@ struct FeedbackView: View {
                             .scrollContentBackground(.hidden) // 隐藏系统默认的背景
                             .background(.ultraThinMaterial)
                             .cornerRadius(20)
-                            .onValueChange(of: description) {
+                            .onValueChange(of: description) { _, newState in
                                 DispatchQueue.main.async {
-                                    if description.count > 100 {
+                                    if newState.count > 100 {
                                         description = String(description.prefix(100))
                                     }
                                 }
@@ -1140,9 +1140,9 @@ struct FeedbackView: View {
         .hideKeyboardOnScroll()
         .ignoresSafeArea(.keyboard)
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     if iapImage1 == nil {
                         iapImage1 = uiImage
@@ -1335,6 +1335,7 @@ struct LocalDebugPanelView: View {
     let cor_kr = CLLocationCoordinate2D(latitude: 38.085, longitude: 128.449)
     let cor_hk = CLLocationCoordinate2D(latitude: 22.319, longitude: 114.174)
     let cor_tw = CLLocationCoordinate2D(latitude: 25.010, longitude: 121.520)
+    let cor_us = CLLocationCoordinate2D(latitude: 38.8984, longitude: -76.97)
     
     init() {
         let savedEnv = UserDefaults.standard.string(forKey: "debug.serverEnv") ?? "prod"
@@ -1367,23 +1368,27 @@ struct LocalDebugPanelView: View {
                         Text("设备 GPS 定位")
                             .bold()
                             .padding(.bottom, 20)
-                        HStack {
+                        HStack(spacing: 10) {
+                            Spacer()
                             Button("HK") {
                                 lat = cor_hk.latitude
                                 lon = cor_hk.longitude
                                 GlobalConfig.shared.location_debug = cor_hk
                             }
-                            Spacer()
                             Button("TW") {
                                 lat = cor_tw.latitude
                                 lon = cor_tw.longitude
                                 GlobalConfig.shared.location_debug = cor_tw
                             }
-                            Spacer()
                             Button("KR") {
                                 lat = cor_kr.latitude
                                 lon = cor_kr.longitude
                                 GlobalConfig.shared.location_debug = cor_kr
+                            }
+                            Button("US") {
+                                lat = cor_us.latitude
+                                lon = cor_us.longitude
+                                GlobalConfig.shared.location_debug = cor_us
                             }
                         }
                         TextField("Latitude", value: $lat, format: .number)
@@ -1426,8 +1431,8 @@ struct LocalDebugPanelView: View {
                             Text("local").tag("local")
                         }
                         .pickerStyle(.segmented)
-                        .onValueChange(of: selectedEnv) {
-                            UserDefaults.standard.set(selectedEnv, forKey: "debug.serverEnv")
+                        .onValueChange(of: selectedEnv) { _, newState in
+                            UserDefaults.standard.set(newState, forKey: "debug.serverEnv")
                         }
                         
                         if selectedEnv == "local" {

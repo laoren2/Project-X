@@ -192,12 +192,77 @@ let regionTable_KR: [String: [Region]] = [
     ]
 ]
 
+let regionTable_US: [String: [Region]] = [
+    "region.us.northeast": [
+        Region(regionID: "US-MAINE", regionName: "region.us.maine"),
+        Region(regionID: "US-NEW-HAMPSHIRE", regionName: "region.us.newhampshire"),
+        Region(regionID: "US-VERMONT", regionName: "region.us.vermont"),
+        Region(regionID: "US-MASSACHUSETTS", regionName: "region.us.massachusetts"),
+        Region(regionID: "US-RHODE-ISLAND", regionName: "region.us.rhodeisland"),
+        Region(regionID: "US-CONNECTICUT", regionName: "region.us.connecticut"),
+        Region(regionID: "US-NEW-YORK", regionName: "region.us.newyork"),
+        Region(regionID: "US-NEW-JERSEY", regionName: "region.us.newjersey"),
+        Region(regionID: "US-PENNSYLVANIA", regionName: "region.us.pennsylvania"),
+        Region(regionID: "US-DELAWARE", regionName: "region.us.delaware"),
+        Region(regionID: "US-MARYLAND", regionName: "region.us.maryland"),
+        Region(regionID: "US-WASHINGTONDC", regionName: "region.us.washingtondc")
+    ],
+    "region.us.midwest": [
+        Region(regionID: "US-OHIO", regionName: "region.us.ohio"),
+        Region(regionID: "US-MICHIGAN", regionName: "region.us.michigan"),
+        Region(regionID: "US-INDIANA", regionName: "region.us.indiana"),
+        Region(regionID: "US-ILLINOIS", regionName: "region.us.illinois"),
+        Region(regionID: "US-WISCONSIN", regionName: "region.us.wisconsin"),
+        Region(regionID: "US-MINNESOTA", regionName: "region.us.minnesota"),
+        Region(regionID: "US-IOWA", regionName: "region.us.iowa"),
+        Region(regionID: "US-MISSOURI", regionName: "region.us.missouri"),
+        Region(regionID: "US-NORTH-DAKOTA", regionName: "region.us.northdakota"),
+        Region(regionID: "US-SOUTH-DAKOTA", regionName: "region.us.southdakota"),
+        Region(regionID: "US-NEBRASKA", regionName: "region.us.nebraska"),
+        Region(regionID: "US-KANSAS", regionName: "region.us.kansas")
+    ],
+    "region.us.southeast": [
+        Region(regionID: "US-VIRGINIA", regionName: "region.us.virginia"),
+        Region(regionID: "US-WEST-VIRGINIA", regionName: "region.us.westvirginia"),
+        Region(regionID: "US-KENTUCKY", regionName: "region.us.kentucky"),
+        Region(regionID: "US-NORTH-CAROLINA", regionName: "region.us.northcarolina"),
+        Region(regionID: "US-SOUTH-CAROLINA", regionName: "region.us.southcarolina"),
+        Region(regionID: "US-TENNESSEE", regionName: "region.us.tennessee"),
+        Region(regionID: "US-GEORGIA", regionName: "region.us.georgia"),
+        Region(regionID: "US-FLORIDA", regionName: "region.us.florida"),
+        Region(regionID: "US-ALABAMA", regionName: "region.us.alabama"),
+        Region(regionID: "US-MISSISSIPPI", regionName: "region.us.mississippi"),
+        Region(regionID: "US-ARKANSAS", regionName: "region.us.arkansas"),
+        Region(regionID: "US-LOUISIANA", regionName: "region.us.louisiana")
+    ],
+    "region.us.southwest": [
+        Region(regionID: "US-TEXAS", regionName: "region.us.texas"),
+        Region(regionID: "US-OKLAHOMA", regionName: "region.us.oklahoma"),
+        Region(regionID: "US-NEW-MEXICO", regionName: "region.us.newmexico"),
+        Region(regionID: "US-ARIZONA", regionName: "region.us.arizona")
+    ],
+    "region.us.west": [
+        Region(regionID: "US-COLORADO", regionName: "region.us.colorado"),
+        Region(regionID: "US-WYOMING", regionName: "region.us.wyoming"),
+        Region(regionID: "US-MONTANA", regionName: "region.us.montana"),
+        Region(regionID: "US-IDAHO", regionName: "region.us.idaho"),
+        Region(regionID: "US-UTAH", regionName: "region.us.utah"),
+        Region(regionID: "US-NEVADA", regionName: "region.us.nevada"),
+        Region(regionID: "US-CALIFORNIA", regionName: "region.us.california"),
+        Region(regionID: "US-OREGON", regionName: "region.us.oregon"),
+        Region(regionID: "US-WASHINGTON", regionName: "region.us.washington"),
+        Region(regionID: "US-ALASKA", regionName: "region.us.alaska"),
+        Region(regionID: "US-HAWAII", regionName: "region.us.hawaii")
+    ]
+]
+
 struct RegionStore {
     static let tables: [String: [String: [Region]]] = [
         "CN": regionTable_CN,
         "HK": regionTable_HK,
         "TW": regionTable_TW,
-        "KR": regionTable_KR
+        "KR": regionTable_KR,
+        "US": regionTable_US
     ]
     
     static let index: [String: Region] = {
@@ -236,8 +301,8 @@ enum Country: String, CaseIterable {
     
     var supported: Bool {
         switch self {
-        case .hk ,.tw, .kr: return true
-        case .cn, .us: return false
+        case .hk ,.tw, .kr, .us: return true
+        case .cn: return false
         }
     }
     
@@ -277,7 +342,7 @@ enum Country: String, CaseIterable {
         case .tw: return [.idcard, .passport]
         case .kr: return [.idcard, .passport]
         case .cn: return [.idcard]
-        case .us: return [.drivingLicense]
+        case .us: return [.drivingLicense, .passport]
         }
     }
 }

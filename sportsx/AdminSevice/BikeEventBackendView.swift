@@ -182,7 +182,7 @@ struct BikeEventCreateView: View {
         return Calendar.current.date(from: components) ?? Date()
     }()
     
-    @State var imageURL: String = "/resources/competition/official_event/city_tour/bike_cover_kr.png"
+    @State var imageURL: String = "/resources/competition/official_event/city_tour/cover_us.png"
     @State var eventImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
@@ -272,9 +272,9 @@ struct BikeEventCreateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState  in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     eventImage = uiImage
                 } else {
@@ -421,9 +421,9 @@ struct BikeEventUpdateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState  in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     eventImage = uiImage
                 } else {

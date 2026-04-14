@@ -227,11 +227,11 @@ struct FreeTrainingRealtimeView: View {
                                                     .confirm() {
                                                         guard checkRecord() else {
                                                             PopupWindowManager.shared.presentPopup(
-                                                                title: "无法保存",
-                                                                message: "训练时间过短或距离过短，可能无法保存记录。",
+                                                                title: "training.realtime.popup.cannot_save",
+                                                                message: "training.realtime.popup.cannot_save.content",
                                                                 bottomButtons: [
                                                                     .cancel(),
-                                                                    .confirm("仍然结束") {
+                                                                    .confirm("training.realtime.popup.cannot_save.button") {
                                                                         appState.competitionManager.stopFreeTraining()
                                                                     }
                                                                 ]

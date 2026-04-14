@@ -163,8 +163,8 @@ struct RunningTrackCreateView: View {
     @State var startDate: Date = {
         var components = DateComponents()
         components.year = 2026
-        components.month = 3
-        components.day = 29
+        components.month = 4
+        components.day = 13
         components.hour = 8
         components.minute = 0
         components.second = 0
@@ -183,10 +183,10 @@ struct RunningTrackCreateView: View {
     
     @State var from_la: String = ""
     @State var from_lo: String = ""
-    @State var from_radius: Int = 10
+    @State var from_radius: Int = 20
     @State var to_la: String = ""
     @State var to_lo: String = ""
-    @State var to_radius: Int = 10
+    @State var to_radius: Int = 20
     
     @State var singleRegisterCardID: String = ""
     @State var teamRegisterCardID: String = ""
@@ -320,9 +320,9 @@ struct RunningTrackCreateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState  in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     trackImage = uiImage
                 } else {
@@ -524,9 +524,9 @@ struct RunningTrackUpdateView: View {
             }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
-        .onValueChange(of: selectedImageItem) {
+        .onValueChange(of: selectedImageItem) { _, newState  in
             Task {
-                if let data = try? await selectedImageItem?.loadTransferable(type: Data.self),
+                if let data = try? await newState?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     trackImage = uiImage
                 } else {

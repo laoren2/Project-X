@@ -49,7 +49,7 @@ struct MailBoxView: View {
                         ForEach(mails) { mail in
                             MailCardView(mail: mail)
                                 .onAppear {
-                                    if mail == mails.last && hasMore{
+                                    if mail.id == mails.last?.id && hasMore {
                                         Task {
                                             await queryMails(reset: false, withLoadingToast: false)
                                         }
@@ -81,6 +81,7 @@ struct MailBoxView: View {
     @MainActor
     func queryMails(reset: Bool, withLoadingToast: Bool) async {
         if reset {
+            mails.removeAll()
             page = 1
         }
         isLoading = true
@@ -394,7 +395,7 @@ struct MailCardDetailDTO: Codable {
     let expired_at: String?
 }
 
-class MailCard: Identifiable, Equatable {
+class MailCard: Identifiable {
     var id: String { mailID }
     let mailID: String
     let title: String
@@ -408,10 +409,6 @@ class MailCard: Identifiable, Equatable {
         self.mailType = card.mail_type
         self.created_at = DateParser.parseISO8601(card.created_at)
         self.isRead = card.is_read
-    }
-    
-    static func == (lhs: MailCard, rhs: MailCard) -> Bool {
-        return lhs.id == rhs.id
     }
 }
 
