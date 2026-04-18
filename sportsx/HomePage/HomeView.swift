@@ -310,14 +310,22 @@ struct SquareView: View {
                 
                 // 公告区域
                 HStack(alignment: .center, spacing: 10) {
-                    Image(systemName: "speaker.wave.2")
-                        .frame(width: 20)
-                        .foregroundStyle(Color.yellow)
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "speaker.wave.2")
+                            .frame(width: 20)
+                            .foregroundStyle(Color.yellow)
+                        if viewModel.hasNewAnnouncement {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 8, height: 8)
+                                .offset(x: 4, y: -4)
+                        }
+                    }
                     Divider()
                     if !viewModel.announcements.isEmpty {
                         TextBannerView(
                             height: 40,
-                            texts: viewModel.announcements
+                            texts: viewModel.announcementTexts
                         )
                     } else {
                         Spacer()
@@ -335,6 +343,10 @@ struct SquareView: View {
                 .padding(.top, 20)
                 .exclusiveTouchTapGesture {
                     appState.navigationManager.append(.announcementView)
+                    if viewModel.hasNewAnnouncement, let latest = viewModel.announcements.first {
+                        UserDefaults.standard.set(latest.date, forKey: "announcement.latestDate")
+                        viewModel.hasNewAnnouncement = false
+                    }
                 }
                 
                 // todo: 签到区域
@@ -738,7 +750,7 @@ struct AnnouncementView: View {
         guard let urlPath = components.string else { return }
         
         let request = APIRequest(path: urlPath, method: .get)
-        NetworkService.sendRequest(with: request, decodingType: AnnouncementResponse.self) { result in
+        NetworkService.sendRequest(with: request, decodingType: AnnouncementResponse.self, showLoadingToast: withLoadingToast) { result in
             DispatchQueue.main.async {
                 isLoading = false
                 switch result {

@@ -27,7 +27,7 @@ struct GeographyTool {
 struct CoordinateConverter {
     // 判断设备是否在中国境内
     // todo: 添加ip判断
-    private static func outOfChina(coordinate: CLLocationCoordinate2D) -> Bool {
+    static func outOfChina(coordinate: CLLocationCoordinate2D) -> Bool {
         //let lat = coordinate.latitude
         //let lon = coordinate.longitude
         //let isCoorInCN = lon > 73.66 && lon < 135.05 && lat > 3.86 && lat < 53.55

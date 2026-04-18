@@ -55,9 +55,9 @@ struct UserSetUpView: View {
                             NavigationManager.shared.append(.userSetUpAccountView)
                         }
                         
-                        SetUpItemView(icon: "person.text.rectangle", title: "user.setup.realname_auth") {
+                        /*SetUpItemView(icon: "person.text.rectangle", title: "user.setup.realname_auth") {
                             NavigationManager.shared.append(.realNameAuthView)
-                        }
+                        }*/
                         
                         SetUpItemView(icon: "vip_icon", title: "user.setup.vip_center", isSysIcon: false) {
                             NavigationManager.shared.append(.subscriptionDetailView)
@@ -1229,6 +1229,7 @@ struct FeedbackView: View {
 struct AboutUsView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
     
+    let XAccount: String = "Passionkc26"
     let emailAdress: String = "contact@valbara.top"
     let vxAccount: String = "97784765"
     
@@ -1283,6 +1284,19 @@ struct AboutUsView: View {
                             Spacer()
                         }
                         VStack(spacing: 0) {
+                            SetUpItemView(icon: "X_icon", title: "X(Twitter)", showChevron: false, isSysIcon: false) {
+                                UIPasteboard.general.string = emailAdress
+                                let toast = Toast(message: "toast.copied", duration: 2)
+                                ToastManager.shared.show(toast: toast)
+                            } trailingView: {
+                                HStack(spacing: 4) {
+                                    Text(XAccount)
+                                    Image(systemName: "doc.on.doc")
+                                }
+                                .foregroundStyle(Color.thirdText)
+                                .font(.subheadline)
+                            }
+                            
                             SetUpItemView(icon: "envelope", title: "user.setup.contact_us.email", showChevron: false) {
                                 UIPasteboard.general.string = emailAdress
                                 let toast = Toast(message: "toast.copied", duration: 2)
@@ -1336,6 +1350,10 @@ struct LocalDebugPanelView: View {
     let cor_hk = CLLocationCoordinate2D(latitude: 22.319, longitude: 114.174)
     let cor_tw = CLLocationCoordinate2D(latitude: 25.010, longitude: 121.520)
     let cor_us = CLLocationCoordinate2D(latitude: 38.8984, longitude: -76.97)
+    let cor_jp = CLLocationCoordinate2D(latitude: 35.6802, longitude: 139.7703)
+    let cor_uk = CLLocationCoordinate2D(latitude: 51.698131, longitude: 0.019759)
+    let cor_au = CLLocationCoordinate2D(latitude: -27.682833, longitude: 136.088435)
+    let cor_ca = CLLocationCoordinate2D(latitude: 56.661947, longitude: -102.903721)
     
     init() {
         let savedEnv = UserDefaults.standard.string(forKey: "debug.serverEnv") ?? "prod"
@@ -1369,7 +1387,6 @@ struct LocalDebugPanelView: View {
                             .bold()
                             .padding(.bottom, 20)
                         HStack(spacing: 10) {
-                            Spacer()
                             Button("HK") {
                                 lat = cor_hk.latitude
                                 lon = cor_hk.longitude
@@ -1389,6 +1406,26 @@ struct LocalDebugPanelView: View {
                                 lat = cor_us.latitude
                                 lon = cor_us.longitude
                                 GlobalConfig.shared.location_debug = cor_us
+                            }
+                            Button("JP") {
+                                lat = cor_jp.latitude
+                                lon = cor_jp.longitude
+                                GlobalConfig.shared.location_debug = cor_jp
+                            }
+                            Button("UK") {
+                                lat = cor_uk.latitude
+                                lon = cor_uk.longitude
+                                GlobalConfig.shared.location_debug = cor_uk
+                            }
+                            Button("AU") {
+                                lat = cor_au.latitude
+                                lon = cor_au.longitude
+                                GlobalConfig.shared.location_debug = cor_au
+                            }
+                            Button("CA") {
+                                lat = cor_ca.latitude
+                                lon = cor_ca.longitude
+                                GlobalConfig.shared.location_debug = cor_ca
                             }
                         }
                         TextField("Latitude", value: $lat, format: .number)

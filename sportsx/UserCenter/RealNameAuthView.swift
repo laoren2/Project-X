@@ -5,7 +5,7 @@
 //  Created by 任杰 on 2025/4/29.
 //
 
-import SwiftUI
+/*import SwiftUI
 import PhotosUI
 
 
@@ -321,4 +321,4 @@ struct RealnameMethodView: View {
     let appState = AppState.shared
     RealNameAuthView()
         .environmentObject(appState)
-}
+}*/

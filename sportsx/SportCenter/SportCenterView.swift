@@ -743,6 +743,100 @@ struct RegionMapView: UIViewRepresentable {
     }
 }
 
+class TileOverlay: NSObject, MKOverlay {
+    var coordinate: CLLocationCoordinate2D
+    var boundingMapRect: MKMapRect
+    var coords: [CLLocationCoordinate2D]
+    var counts: [Int]
+    var level: Int
+    
+    init(coordinates: [CLLocationCoordinate2D], counts: [Int], level: Int) {
+        self.coords = coordinates
+        self.counts = counts
+        self.level = level
+        
+        let polygon = MKPolygon(coordinates: coordinates, count: coordinates.count)
+        self.coordinate = polygon.coordinate
+        self.boundingMapRect = polygon.boundingMapRect
+    }
+}
+
+class TileRenderer: MKOverlayRenderer {
+    let tile: TileOverlay
+
+    init(overlay: TileOverlay) {
+        self.tile = overlay
+        super.init(overlay: overlay)
+    }
+
+    override func draw(_ mapRect: MKMapRect, zoomScale: MKZoomScale, in context: CGContext) {
+        let coords = tile.coords
+        let counts = tile.counts
+
+        var index = 0
+        var i = 0
+
+        while i + 3 < coords.count {
+            let c0 = coords[i]
+            let c1 = coords[i + 1]
+            let c2 = coords[i + 2]
+            let c3 = coords[i + 3]
+
+            let p0 = self.point(for: MKMapPoint(c0))
+            let p1 = self.point(for: MKMapPoint(c1))
+            let p2 = self.point(for: MKMapPoint(c2))
+            let p3 = self.point(for: MKMapPoint(c3))
+
+            let minX = min(min(p0.x, p1.x), min(p2.x, p3.x))
+            let maxX = max(max(p0.x, p1.x), max(p2.x, p3.x))
+            let minY = min(min(p0.y, p1.y), min(p2.y, p3.y))
+            let maxY = max(max(p0.y, p1.y), max(p2.y, p3.y))
+
+            let rect = CGRect(
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY
+            )
+
+            let count = index < counts.count ? counts[index] : 0
+
+            let color: UIColor
+            let borderColor: UIColor
+            if count > 0 {
+                let alpha = min(0.1 + Double(count) * 0.05, 0.6)
+                color = UIColor.orange.withAlphaComponent(alpha)
+                borderColor = UIColor.orange
+            } else {
+                color = UIColor.gray.withAlphaComponent(0.3)
+                borderColor = UIColor.black.withAlphaComponent(0.2)
+            }
+
+            context.setFillColor(color.cgColor)
+            context.fill(rect)
+            
+            context.setStrokeColor(borderColor.cgColor)
+            context.setLineWidth(0.5 / zoomScale)
+            context.stroke(rect)
+
+            index += 1
+            i += 4
+        }
+    }
+}
+
+class SelectedGridOverlay: NSObject, MKOverlay {
+    var coordinate: CLLocationCoordinate2D
+    var boundingMapRect: MKMapRect
+    var polygon: MKPolygon
+
+    init(polygon: MKPolygon) {
+        self.polygon = polygon
+        self.coordinate = polygon.coordinate
+        self.boundingMapRect = polygon.boundingMapRect
+    }
+}
+
 /*#Preview {
     let appState = AppState.shared
     return SportCenterView()

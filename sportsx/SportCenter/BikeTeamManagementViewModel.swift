@@ -67,8 +67,14 @@ class BikeTeamManagementViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempTeams: [BikeTeamAppliedCard] = []
                 for team in unwrappedData.teams {
-                    myAppliedTeams.append(BikeTeamAppliedCard(from: team))
+                    tempTeams.append(BikeTeamAppliedCard(from: team))
+                }
+                if reset {
+                    myAppliedTeams = tempTeams
+                } else {
+                    myAppliedTeams.append(contentsOf: tempTeams)
                 }
                 if unwrappedData.teams.count < self.pageSize {
                     hasMoreAppliedTeams = false
@@ -103,8 +109,14 @@ class BikeTeamManagementViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempTeams: [BikeTeamCard] = []
                 for team in unwrappedData.teams {
-                    myCreatedTeams.append(BikeTeamCard(from: team))
+                    tempTeams.append(BikeTeamCard(from: team))
+                }
+                if reset {
+                    myCreatedTeams = tempTeams
+                } else {
+                    myCreatedTeams.append(contentsOf: tempTeams)
                 }
                 if unwrappedData.teams.count < self.pageSize {
                     hasMoreCreatedTeams = false
@@ -139,8 +151,14 @@ class BikeTeamManagementViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempTeams: [BikeTeamCard] = []
                 for team in unwrappedData.teams {
-                    myJoinedTeams.append(BikeTeamCard(from: team))
+                    tempTeams.append(BikeTeamCard(from: team))
+                }
+                if reset {
+                    myJoinedTeams = tempTeams
+                } else {
+                    myJoinedTeams.append(contentsOf: tempTeams)
                 }
                 if unwrappedData.teams.count < self.pageSize {
                     hasMoreJoinedTeams = false

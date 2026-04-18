@@ -215,6 +215,11 @@ struct RunningTeamAppliedCardView: View {
     
     let team: RunningTeamAppliedCard
     
+    var regionName: LocalizedStringKey? {
+        guard let region = RegionStore.index[team.region_id] else { return nil }
+        return LocalizedStringKey(region.regionName)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // 标题和人数
@@ -264,7 +269,7 @@ struct RunningTeamAppliedCardView: View {
             // 分隔线
             Divider()
             
-            (Text(LocalizedStringKey(team.region_name)) + Text(" - \(team.event_name) - \(team.track_name)"))
+            (Text(regionName ?? "error.unknown") + Text(" - \(team.event_name) - \(team.track_name)"))
                 .font(.caption)
                 .foregroundStyle(Color.secondText)
             
@@ -340,6 +345,10 @@ struct RunningTeamCardView: View {
     
     let team: RunningTeamCard
     
+    var regionName: LocalizedStringKey? {
+        guard let region = RegionStore.index[team.region_id] else { return nil }
+        return LocalizedStringKey(region.regionName)
+    }
     
     var body: some View {
         
@@ -372,7 +381,7 @@ struct RunningTeamCardView: View {
             
             Divider()
             
-            (Text(LocalizedStringKey(team.region_name)) + Text(" - \(team.event_name) - \(team.track_name)"))
+            (Text(regionName ?? "error.unknown") + Text(" - \(team.event_name) - \(team.track_name)"))
                 .font(.caption)
                 .foregroundStyle(Color.secondText)
             
@@ -566,6 +575,10 @@ struct RunningTeamDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if let team = viewModel.teamInfo {
+                        var regionName: String? {
+                            guard let region = RegionStore.index[team.region_id] else { return nil }
+                            return region.regionName
+                        }
                         // 队伍基本信息
                         VStack(alignment: .leading, spacing: 10) {
                                 Text("competition.team.info")
@@ -603,7 +616,7 @@ struct RunningTeamDetailView: View {
                                 }
                                 .padding(.vertical, 3)
                                 
-                                infoRow(title: "competition.team.region", value: team.region_name)
+                                infoRow(title: "competition.team.region", value: regionName ?? "error.unknown")
                                 infoRow(title: "competition.event", value: team.event_name)
                                 infoRow(title: "competition.track", value: team.track_name)
                             }
@@ -747,6 +760,10 @@ struct RunningTeamManageView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if let team = viewModel.teamInfo {
+                        var regionName: String? {
+                            guard let region = RegionStore.index[team.region_id] else { return nil }
+                            return region.regionName
+                        }
                         // 队伍基本信息
                         VStack(alignment: .leading, spacing: 10) {
                             HStack{
@@ -800,7 +817,7 @@ struct RunningTeamManageView: View {
                                         .multilineTextAlignment(.leading)
                                 }
                                 .padding(.vertical, 3)
-                                infoRow(title: "competition.team.region", value: team.region_name)
+                                infoRow(title: "competition.team.region", value: regionName ?? "error.unknown")
                                 infoRow(title: "competition.event", value: team.event_name)
                                 infoRow(title: "competition.track", value: team.track_name)
                             }

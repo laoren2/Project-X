@@ -205,3 +205,42 @@ struct RegionExploreResponse: Codable {
     let total_grids: Int
     let boundary: JSONValue
 }
+
+struct GridSelection: Identifiable {
+    let id = UUID()
+    let gridX: Int
+    let gridY: Int
+    let level: Int
+}
+
+struct GridFamiliarityMeInfo: Codable {
+    let count: Int
+    let rank: Int
+}
+
+struct GridFamiliarityRankResponse: Codable {
+    let data: [GridFamiliarityRankDTO]
+}
+
+struct GridFamiliarityRankDTO: Codable {
+    let user: PersonInfoDTO
+    let count: Int
+    let rank: Int
+}
+
+struct GridFamiliarityRankInfo: Identifiable {
+    var id: String { userID }
+    let userID: String
+    let avatarUrl: String
+    let nickName: String
+    let count: Int
+    let rank: Int
+    
+    init(from dto: GridFamiliarityRankDTO) {
+        self.userID = dto.user.user_id
+        self.avatarUrl = dto.user.avatar_image_url
+        self.nickName = dto.user.nickname
+        self.count = dto.count
+        self.rank = dto.rank
+    }
+}

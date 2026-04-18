@@ -95,6 +95,11 @@ struct GameSummaryCardView: View {
     @State var sport: SportName
     let gameSummaryCard: GameSummaryCard
     
+    var regionName: LocalizedStringKey? {
+        guard let region = RegionStore.index[gameSummaryCard.regionID] else { return nil }
+        return LocalizedStringKey(region.regionName)
+    }
+    
     var body: some View {
         VStack {
             HStack(spacing: 5) {
@@ -106,7 +111,7 @@ struct GameSummaryCardView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
-                Text(LocalizedStringKey(gameSummaryCard.cityName))
+                Text(regionName ?? "error.unknown")
             }
             .font(.headline)
             .foregroundStyle(Color.white)
@@ -167,7 +172,7 @@ struct GameSummaryCard: Identifiable {
     let record_id: String
     let eventname: String
     let trackName: String
-    let cityName: String
+    let regionID: String
     let best_time: TimeInterval
     let rank: Int
     let voucher: Int
@@ -178,7 +183,7 @@ struct GameSummaryCard: Identifiable {
         self.record_id = card.record_id
         self.eventname = card.event_name
         self.trackName = card.track_name
-        self.cityName = card.city_name
+        self.regionID = card.region_id
         self.best_time = card.best_time
         self.rank = card.rank
         self.voucher = card.voucher
@@ -190,7 +195,7 @@ struct GameSummaryCardDTO: Codable {
     let record_id: String
     let event_name: String
     let track_name: String
-    let city_name: String
+    let region_id: String
     let best_time: Double
     let rank: Int
     let voucher: Int

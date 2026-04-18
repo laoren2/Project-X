@@ -481,7 +481,7 @@ struct CareerRecord: Identifiable {
     let trackID: String
     let trackName: String
     let eventName: String
-    let region: String
+    let regionID: String
     // 赛道对应积分
     let trackScore: Int
     // 用户获得的积分
@@ -493,7 +493,7 @@ struct CareerRecord: Identifiable {
         self.trackID = record.track_id
         self.trackName = record.track_name
         self.eventName = record.event_name
-        self.region = record.region
+        self.regionID = record.region_id
         self.trackScore = record.track_score
         self.score = record.score
         self.recordDate = DateParser.parseISO8601(record.record_date)
@@ -505,7 +505,7 @@ struct CareerRecordDTO: Codable {
     let track_id: String
     let track_name: String
     let event_name: String
-    let region: String
+    let region_id: String
     let track_score: Int
     let score: Int
     let record_date: String

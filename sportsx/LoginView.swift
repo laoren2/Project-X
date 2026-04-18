@@ -46,7 +46,7 @@ struct SmsLoginView: View {
             }
             
             Text("login.title")
-                .font(.title)
+                .font(.system(.title, design: .rounded, weight: .bold))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.leading)
                 .lineLimit(1)
@@ -381,7 +381,7 @@ struct LoginView: View {
                 .padding(.top, 10)
                 
                 Text("login.title")
-                    .font(.title)
+                    .font(.system(.title, design: .rounded, weight: .bold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.leading)
                     .lineLimit(1)

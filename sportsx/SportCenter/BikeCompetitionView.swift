@@ -619,20 +619,22 @@ struct BikeCompetitionView: View {
                 viewModel.queryTrackFamiliarity(trackID: track.trackID)
             }
         }
-        .onFirstAppear {
-            PopupWindowManager.shared.presentPopup(
-                title: "user.setup.realname_auth.undone",
-                message: "user.setup.realname_auth.popup.no_auth",
-                doNotShowAgainKey: "CompetitionView.realname",
-                bottomButtons: [
-                    .cancel("login.reigster.popup.action.later"),
-                    .confirm("user.intro.go_auth") {
-                        appState.navigationManager.append(.realNameAuthView)
-                    }
-                ]
-            )
-        }
         .onStableAppear {
+            if !viewModel.didLoad && userManager.isLoggedIn && (userManager.user.gender == nil || userManager.user.birthday == nil) {
+                DispatchQueue.main.async {
+                    PopupWindowManager.shared.presentPopup(
+                        title: "user.setup.profile.undone",
+                        message: "user.setup.profile.popup.missing",
+                        doNotShowAgainKey: "CompetitionView.realname",
+                        bottomButtons: [
+                            .cancel("login.reigster.popup.action.later"),
+                            .confirm("user.page.dailytask.go_complete") {
+                                appState.navigationManager.append(.userIntroEditView)
+                            }
+                        ]
+                    )
+                }
+            }
             if (!viewModel.didLoad) || globalConfig.refreshCompetitionView {
                 if let regionID = locationManager.regionID {
                     viewModel.fetchEvents(with: regionID)

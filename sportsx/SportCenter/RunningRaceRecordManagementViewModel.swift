@@ -55,8 +55,14 @@ class RunningRaceRecordManagementViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempRecords: [RunningRaceRecord] = []
                 for record in unwrappedData.records {
-                    incompleteRecords.append(RunningRaceRecord(from: record))
+                    tempRecords.append(RunningRaceRecord(from: record))
+                }
+                if reset {
+                    incompleteRecords = tempRecords
+                } else {
+                    incompleteRecords.append(contentsOf: tempRecords)
                 }
                 if unwrappedData.records.count < self.pageSize {
                     hasMoreIncompleteRecords = false
@@ -94,8 +100,14 @@ class RunningRaceRecordManagementViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempRecords: [RunningRaceRecord] = []
                 for record in unwrappedData.records {
-                    completedRecords.append(RunningRaceRecord(from: record))
+                    tempRecords.append(RunningRaceRecord(from: record))
+                }
+                if reset {
+                    completedRecords = tempRecords
+                } else {
+                    completedRecords.append(contentsOf: tempRecords)
                 }
                 if unwrappedData.records.count < self.pageSize {
                     self.hasMoreCompletedRecords = false
