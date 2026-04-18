@@ -367,7 +367,7 @@ struct MainUserView: View {
                                         
                                         HStack {
                                             if user.isDisplayGender == true, let gender = user.gender {
-                                                Text(gender.rawValue)
+                                                Text(LocalizedStringKey(gender.displayName))
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
                                                     .background(.ultraThinMaterial)
@@ -819,7 +819,7 @@ struct LocalUserView: View {
                 .offset(x: (viewModel.showSidebar ? 0 : -viewModel.sidebarWidth))
         }
         .onFirstAppear {
-            if userManager.user.introduction == nil || userManager.user.location == nil {
+            if userManager.user.gender == nil || userManager.user.birthday == nil {
                 PopupWindowManager.shared.presentPopup(
                     title: "user.page.popup.complete_info.title",
                     message: "user.page.popup.complete_info.content",
@@ -995,7 +995,7 @@ struct LocalMainUserView: View {
                                         
                                         HStack {
                                             if userManager.user.isDisplayGender == true, let gender = userManager.user.gender {
-                                                Text(gender.rawValue)
+                                                Text(LocalizedStringKey(gender.displayName))
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
                                                     .background(.ultraThinMaterial)
@@ -1415,12 +1415,12 @@ struct LocalMainUserView: View {
                                     
                                     Spacer()
                                     
-                                    if !userManager.user.isRealnameAuth {
+                                    if userManager.user.gender == nil || userManager.user.birthday == nil {
                                         HStack(spacing: 4) {
                                             Image(systemName: "exclamationmark.circle")
                                                 .foregroundStyle(Color.pink)
                                                 .frame(width: 20, height: 20)
-                                            Text("user.setup.realname_auth.undone.2")
+                                            Text("user.setup.profile.undone.2")
                                                 .font(.system(size: 18))
                                         }
                                         .padding(.horizontal, 12)
@@ -1430,11 +1430,11 @@ struct LocalMainUserView: View {
                                         .foregroundColor(.white)
                                         .exclusiveTouchTapGesture {
                                             PopupWindowManager.shared.presentPopup(
-                                                title: "user.setup.realname_auth.undone",
-                                                message: "user.setup.realname_auth.popup.no_auth",
+                                                title: "user.setup.profile.undone",
+                                                message: "user.setup.profile.popup.missing",
                                                 bottomButtons: [
-                                                    .confirm("user.intro.go_auth") {
-                                                        appState.navigationManager.append(.realNameAuthView)
+                                                    .confirm("user.page.dailytask.go_complete") {
+                                                        appState.navigationManager.append(.userIntroEditView)
                                                     }
                                                 ]
                                             )
@@ -1585,6 +1585,7 @@ struct UserSportSelectedBar: View {
                         .foregroundStyle((sport == viewModel.sport && (!isEditMode)) ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             if isEditMode {
                                 updateUserDefaultSport(with: sport)
                             } else {
@@ -1619,7 +1620,7 @@ struct UserSportSelectedBar: View {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: SportName.self, showErrorToast: true) {result in
+        NetworkService.sendRequest(with: request, decodingType: SportName.self, showLoadingToast: true, showErrorToast: true) {result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -1701,6 +1702,7 @@ struct LocalUserSportSelectedBar: View {
                         .foregroundStyle((sport == viewModel.sport && (!isEditMode)) ? Color.white : Color.thirdText)
                         .cornerRadius(10)
                         .exclusiveTouchTapGesture {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             if isEditMode {
                                 updateUserDefaultSport(with: sport)
                             } else {
@@ -1735,7 +1737,7 @@ struct LocalUserSportSelectedBar: View {
         
         let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
         
-        NetworkService.sendRequest(with: request, decodingType: SportName.self, showErrorToast: true) {result in
+        NetworkService.sendRequest(with: request, decodingType: SportName.self, showLoadingToast: true, showErrorToast: true) {result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {

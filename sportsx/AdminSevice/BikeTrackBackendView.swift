@@ -654,7 +654,7 @@ struct BikeTrackCardView: View {
     var body: some View {
         HStack {
             Text(track.season_name)
-            Text(track.region_name)
+            Text(track.region_id)
             Text(track.event_name)
             Text(track.name_hans)
             Spacer()

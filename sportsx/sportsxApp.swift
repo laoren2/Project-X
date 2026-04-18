@@ -119,7 +119,7 @@ final class BootstrapManager: ObservableObject {
         // 8. 商店信息加载
         await ShopManager.shared.queryCPAssets(withLoadingToast: true)
         await ShopManager.shared.queryMagicCards(withLoadingToast: true)
-        await GlobalConfig.shared.fetchCountryGridsBbox()
+        //await GlobalConfig.shared.fetchCountryGridsBbox()
         advanceProgress(by: 15)
         
         try? await Task.sleep(nanoseconds: 300_000_000)

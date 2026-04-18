@@ -544,7 +544,7 @@ struct RunningEventCardView: View {
                 UIPasteboard.general.string = event.event_id
                 ToastManager.shared.show(toast: Toast(message: "toast.copied", duration: 2))
             }
-            Text(event.region_name)
+            Text(event.region_id)
             Text(event.name_hans)
             Spacer()
             Button("修改") {

@@ -9,10 +9,29 @@ import Foundation
 
 
 struct BikeTrainingRecordHistoryView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
     @StateObject var vm = BikeTrainingRecordHistoryViewModel()
 
     var body: some View {
         VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
+                Text("training.history.title")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
             CalendarHeaderView(
                 monthText: vm.monthText,
                 onPrev: vm.prevMonth,

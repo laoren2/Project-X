@@ -67,7 +67,7 @@ struct MemberRecord: Identifiable {
 struct BikeRaceRecord: Identifiable, Equatable {
     var id: String { record_id }
     let record_id: String                   // 唯一标识符id
-    let regionName: String                  // 区域名
+    let regionID: String                  // 区域名
     let eventName: String                   // 赛事名
     let trackName: String                   // 赛道名
     let trackStart: CLLocationCoordinate2D  // 赛道出发点
@@ -86,7 +86,7 @@ struct BikeRaceRecord: Identifiable, Equatable {
     
     init(from record: BikeRaceRecordDTO) {
         self.record_id = record.record_id
-        self.regionName = record.region_name
+        self.regionID = record.region_id
         self.eventName = record.event_name
         self.trackName = record.track_name
         self.trackStart = CLLocationCoordinate2D(latitude: record.track_start_lat, longitude: record.track_start_lng)
@@ -116,7 +116,7 @@ struct BikeRaceRecord: Identifiable, Equatable {
 
 struct BikeRaceRecordDTO: Codable {
     let record_id: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let track_start_lat: Double
@@ -150,7 +150,7 @@ struct BikeRegisterResponse: Codable {
 struct RunningRaceRecord: Identifiable, Equatable {
     var id: String { record_id }
     let record_id: String                   // 唯一标识符id
-    let regionName: String                  // 区域名
+    let regionID: String                  // 区域名
     let eventName: String                   // 赛事名
     let trackName: String                   // 赛道名
     let trackStart: CLLocationCoordinate2D  // 赛道出发点
@@ -169,7 +169,7 @@ struct RunningRaceRecord: Identifiable, Equatable {
     
     init(from record: RunningRaceRecordDTO) {
         self.record_id = record.record_id
-        self.regionName = record.region_name
+        self.regionID = record.region_id
         self.eventName = record.event_name
         self.trackName = record.track_name
         self.trackStart = CLLocationCoordinate2D(latitude: record.track_start_lat, longitude: record.track_start_lng)
@@ -199,7 +199,7 @@ struct RunningRaceRecord: Identifiable, Equatable {
 
 struct RunningRaceRecordDTO: Codable {
     let record_id: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let track_start_lat: Double

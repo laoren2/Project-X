@@ -638,13 +638,18 @@ struct CompetitionScoreCard: View {
     @State var sport: SportName
     let trackRecord: CareerRecord
     
+    var regionName: LocalizedStringKey? {
+        guard let region = RegionStore.index[trackRecord.regionID] else { return nil }
+        return LocalizedStringKey(region.regionName)
+    }
+    
     var body: some View {
         VStack(spacing: 10) {
             HStack {
                 Text(trackRecord.eventName)
                     .foregroundColor(.white)
                 Spacer()
-                Text(LocalizedStringKey(trackRecord.region))
+                Text(regionName ?? "error.unknown")
                     .foregroundColor(.secondText)
             }
             .fontWeight(.bold)

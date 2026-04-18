@@ -49,7 +49,7 @@ struct RunningEventCardEntry: Identifiable, Equatable {
     let start_date: String
     let end_date: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
     
     init(from event: RunningEventInfoInternalDTO) {
@@ -66,7 +66,7 @@ struct RunningEventCardEntry: Identifiable, Equatable {
         self.start_date = event.start_date
         self.end_date = event.end_date
         self.season_name = event.season_name
-        self.region_name = event.region_name
+        self.region_id = event.region_id
         self.image_url = event.image_url
     }
     
@@ -82,7 +82,7 @@ struct RunningEventInfoInternalDTO: Codable {
     let start_date: String
     let end_date: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
 }
 
@@ -146,7 +146,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let end_date: String
     let event_name: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
     
     let elevationDifference: String     // 海拔差(米)
@@ -178,7 +178,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.end_date = track.end_date
         self.event_name = track.event_name
         self.season_name = track.season_name
-        self.region_name = track.region_name
+        self.region_id = track.region_id
         self.image_url = track.image_url
         self.terrain_type = track.terrain_type
         
@@ -206,7 +206,7 @@ struct RunningTrackInfoInternalDTO: Codable {
     let end_date: String
     let event_name: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
     
     let from_latitude: String
@@ -380,7 +380,7 @@ struct BikeEventCardEntry: Identifiable, Equatable {
     let start_date: String
     let end_date: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
     
     init(from event: BikeEventInfoInternalDTO) {
@@ -397,7 +397,7 @@ struct BikeEventCardEntry: Identifiable, Equatable {
         self.start_date = event.start_date
         self.end_date = event.end_date
         self.season_name = event.season_name
-        self.region_name = event.region_name
+        self.region_id = event.region_id
         self.image_url = event.image_url
     }
     
@@ -413,7 +413,7 @@ struct BikeEventInfoInternalDTO: Codable {
     let start_date: String
     let end_date: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
 }
 
@@ -478,7 +478,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let end_date: String
     let event_name: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
     
     let elevationDifference: String     // 海拔差(米)
@@ -510,7 +510,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.end_date = track.end_date
         self.event_name = track.event_name
         self.season_name = track.season_name
-        self.region_name = track.region_name
+        self.region_id = track.region_id
         self.image_url = track.image_url
         
         self.elevationDifference = track.elevation_difference
@@ -538,7 +538,7 @@ struct BikeTrackInfoInternalDTO: Codable {
     let end_date: String
     let event_name: String
     let season_name: String
-    let region_name: String
+    let region_id: String
     let image_url: String
     
     let from_latitude: String

@@ -30,7 +30,7 @@ enum AppRoute: Hashable {
     case userView(id: String)
     case friendListView(id: String, selectedTab: Int)
     case userIntroEditView
-    case realNameAuthView
+    //case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
     case smsLoginView
@@ -68,8 +68,8 @@ enum AppRoute: Hashable {
     case runningTrainingRecordHistoryView
     case bikeFreeTrainingRecordDetailView(recordID: String)
     case runningFreeTrainingRecordDetailView(recordID: String)
-    case bikeTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double, config: GridBboxConfig)
-    case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double, config: GridBboxConfig)
+    case bikeTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
+    case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -126,8 +126,8 @@ enum AppRoute: Hashable {
             return "friendListView"
         case .userIntroEditView:
             return "userIntroEditView"
-        case .realNameAuthView:
-            return "realNameAuthView"
+        //case .realNameAuthView:
+        //    return "realNameAuthView"
         case .identityAuthView:
             return "identityAuthView"
         case .userSetUpAccountView:

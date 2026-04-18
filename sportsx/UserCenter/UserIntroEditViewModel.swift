@@ -47,12 +47,15 @@ class UserIntroEditViewModel: ObservableObject {
             "nickname": currentUser.nickname,
             "introduction": currentUser.introduction,
             "location": currentUser.location,
+            "gender": currentUser.gender?.rawValue,
+            "birthday": currentUser.birthday,
             "is_display_gender": currentUser.isDisplayGender.description,
             "is_display_age": currentUser.isDisplayAge.description,
             "is_display_location": currentUser.isDisplayLocation.description,
             "enable_auto_location": currentUser.enableAutoLocation.description,
             "is_display_identity": currentUser.isDisplayIdentity.description
         ]
+        
         for (key, value) in textFields {
             if let unwrapped = value {
                 body.append("--\(boundary)\r\n")
@@ -88,7 +91,7 @@ class UserIntroEditViewModel: ObservableObject {
             customErrorToast: { error in
                 switch error {
                 case .decodeError, .noData, .unknown:
-                    return Toast(message: "保存失败", duration: 2)
+                    return Toast(message: "user.intro.save.failed", duration: 2)
                 default:
                     return nil
                 }
@@ -97,7 +100,7 @@ class UserIntroEditViewModel: ObservableObject {
             switch result {
             case .success(let data):
                 DispatchQueue.main.async {
-                    let successToast = Toast(message: "保存成功", duration: 2)
+                    let successToast = Toast(message: "user.intro.save.success", duration: 2)
                     ToastManager.shared.show(toast: successToast)
                 }
                 
@@ -112,7 +115,6 @@ class UserIntroEditViewModel: ObservableObject {
                         self.userManager.user.birthday = user.birthday
                         self.userManager.user.location = user.location
                         self.userManager.user.identityAuthName = user.identity_auth_name
-                        self.userManager.user.isRealnameAuth = (user.gender != nil && user.birthday != nil)
                         self.userManager.user.isIdentityAuth = (user.identity_auth_name != nil)
                         self.userManager.user.isDisplayGender = user.is_display_gender
                         self.userManager.user.isDisplayAge = user.is_display_age

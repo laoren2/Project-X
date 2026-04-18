@@ -184,6 +184,11 @@ struct BikeCompetitionRecordCard: View {
     @ObservedObject var viewModel: BikeRaceRecordManagementViewModel
     let record: BikeRaceRecord
     
+    var regionName: LocalizedStringKey? {
+        guard let region = RegionStore.index[record.regionID] else { return nil }
+        return LocalizedStringKey(region.regionName)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 顶部信息：赛道名和比赛类型
@@ -293,7 +298,7 @@ struct BikeCompetitionRecordCard: View {
             // 对于未完成的比赛，添加操作按钮
             if record.status == .notStarted {
                 HStack(spacing: 0) {
-                    (Text(LocalizedStringKey(record.regionName)) + Text(" - \(record.eventName)"))
+                    (Text(regionName ?? "error.unknown") + Text(" - \(record.eventName)"))
                         .font(.caption)
                         .foregroundStyle(Color.secondText)
                     
@@ -351,7 +356,7 @@ struct BikeCompetitionRecordCard: View {
             // 对于已完成的比赛，添加详情按钮
             if record.status != .notStarted && record.status != .recording {
                 HStack {
-                    (Text(LocalizedStringKey(record.regionName)) + Text(" - \(record.eventName)"))
+                    (Text(regionName ?? "error.unknown") + Text(" - \(record.eventName)"))
                         .font(.caption)
                         .foregroundStyle(Color.secondText)
                     

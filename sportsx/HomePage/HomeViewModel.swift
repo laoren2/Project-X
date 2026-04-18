@@ -20,7 +20,8 @@ class HomeViewModel: ObservableObject {
     @Published var ads: [AdInfo] = []
     @Published var items: [SignInDay] = []
     //@Published var continuousDays: Int = 0
-    @Published var announcements: [String] = []
+    @Published var announcementTexts: [String] = []
+    var announcements: [AnnouncementDTO] = []
     @Published var isLoading: Bool = false
     @Published var isLoadingVip: Bool = false
     @AppStorage("signInReminderEnabled") var reminderEnabled: Bool = false
@@ -30,6 +31,8 @@ class HomeViewModel: ObservableObject {
     var page: Int = 1
     let size: Int = 10
     @Published var isUserLoading: Bool = false
+    
+    @Published var hasNewAnnouncement: Bool = false
 
     var reminderTime: Date {
         get {
@@ -159,11 +162,21 @@ class HomeViewModel: ObservableObject {
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
-                    var tempAnnouncements: [String] = []
+                    var tempAnnouncements: [AnnouncementDTO] = []
+                    var tempAnnouncementTexts: [String] = []
                     for announcement in unwrappedData.announcements {
-                        tempAnnouncements.append(announcement.content)
+                        tempAnnouncements.append(announcement)
+                        tempAnnouncementTexts.append(announcement.content)
                     }
                     self.announcements = tempAnnouncements
+                    self.announcementTexts = tempAnnouncementTexts
+                    if let latest = tempAnnouncements.first {
+                        let latestDate = latest.date
+                        let local = UserDefaults.standard.string(forKey: "announcement.latestDate")
+                        if local != latestDate {
+                            self.hasNewAnnouncement = true
+                        }
+                    }
                 default:
                     break
                 }

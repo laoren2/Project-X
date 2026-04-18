@@ -110,7 +110,7 @@ struct UserIntroEditView: View {
                         }
                         
                         // 性别
-                        EditItemView(title: "user.intro.title.gender", value: viewModel.currentUser.gender?.rawValue ?? "action.not_set") {
+                        EditItemView(title: "user.intro.title.gender", value: viewModel.currentUser.gender?.displayName ?? "action.not_set") {
                             showGenderEditor = true
                         }
                         
@@ -425,6 +425,7 @@ struct GenderEditorView: View {
     @ObservedObject var viewModel: UserIntroEditViewModel
     @Binding var showGenderEditor: Bool
     @State private var tempDisplayStatus: Bool = false
+    @State private var tempGender: Gender = .male
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -446,6 +447,7 @@ struct GenderEditorView: View {
                         Spacer()
                         
                         Button(action:{
+                            viewModel.currentUser.gender = tempGender
                             viewModel.currentUser.isDisplayGender = tempDisplayStatus
                             showGenderEditor = false
                         }) {
@@ -462,44 +464,39 @@ struct GenderEditorView: View {
                 }
                 
                 VStack{
-                    Toggle("action.display", isOn: $tempDisplayStatus)
-                        .foregroundStyle(.white)
-                        .font(.system(size: 16))
-                        .disabled(viewModel.currentUser.gender == nil)
-                    
-                    Divider()
-                    
                     HStack {
-                        Text("user.intro.gender_info")
+                        Text("user.intro.title.gender")
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                         
                         Spacer()
                         
-                        if let gender = viewModel.currentUser.gender {
-                            Text("\(gender.rawValue)")
-                                .font(.system(size: 16))
+                        HStack(spacing: 10) {
+                            Text(LocalizedStringKey(tempGender.displayName))
                                 .foregroundStyle(.white)
-                        } else {
-                            Text("user.intro.go_auth")
-                                .font(.system(size: 14))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .foregroundStyle(.white)
-                                .background(.orange)
-                                .cornerRadius(10)
-                                .exclusiveTouchTapGesture {
-                                    showGenderEditor = false
-                                    appState.navigationManager.append(.realNameAuthView)
-                                }
+                            Image(systemName: "arrow.left.arrow.right")
+                                .foregroundStyle(Color.secondText)
+                        }
+                        .font(.system(size: 16))
+                        .onTapGesture {
+                            if tempGender == .male {
+                                tempGender = .female
+                            } else {
+                                tempGender = .male
+                            }
                         }
                     }
+                    Divider()
+                    Toggle("action.display", isOn: $tempDisplayStatus)
+                        .foregroundStyle(.white)
+                        .font(.system(size: 16))
                 }
             }
             .padding(.horizontal)
         }
         .preferredColorScheme(.dark)
         .onAppear {
+            tempGender = viewModel.currentUser.gender ?? .male
             tempDisplayStatus = viewModel.currentUser.isDisplayGender
         }
     }
@@ -509,6 +506,7 @@ struct AgeEditorView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var viewModel: UserIntroEditViewModel
     @Binding var showAgeEditor: Bool
+    @State private var tempBirthDay: Date = Date()
     @State private var tempDisplayStatus: Bool = false
     
     var body: some View {
@@ -531,6 +529,9 @@ struct AgeEditorView: View {
                         Spacer()
                         
                         Button(action:{
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "yyyy-MM-dd"
+                            viewModel.currentUser.birthday = formatter.string(from: tempBirthDay)
                             viewModel.currentUser.isDisplayAge = tempDisplayStatus
                             showAgeEditor = false
                         }) {
@@ -547,44 +548,41 @@ struct AgeEditorView: View {
                 }
                 
                 VStack{
-                    Toggle("action.display", isOn: $tempDisplayStatus)
-                        .foregroundStyle(.white)
-                        .font(.system(size: 16))
-                        .disabled(!viewModel.currentUser.isRealnameAuth)
-                    
-                    Divider()
-                    
                     HStack {
-                        Text("user.intro.birthday_info")
+                        Text("user.intro.title.birthday")
                             .font(.system(size: 16))
                             .foregroundStyle(.white)
                         
                         Spacer()
                         
-                        if viewModel.currentUser.isRealnameAuth {
-                            Text("\(viewModel.currentUser.birthday ?? "error.unknown")")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.white)
-                        } else {
-                            Text("user.intro.go_auth")
-                                .font(.system(size: 14))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .foregroundStyle(.white)
-                                .background(.orange)
-                                .cornerRadius(10)
-                                .exclusiveTouchTapGesture {
-                                    showAgeEditor = false
-                                    appState.navigationManager.append(.realNameAuthView)
-                                }
-                        }
+                        // 调整为选择生日的 DatePicker 控件
+                        let minDate = Calendar.current.date(from: DateComponents(year: 1900))!
+                        DatePicker("", selection: $tempBirthDay, in: minDate...Date(), displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .tint(Color.orange)
                     }
+                    Divider()
+                    Toggle("action.display", isOn: $tempDisplayStatus)
+                        .foregroundStyle(.white)
+                        .font(.system(size: 16))
                 }
             }
             .padding(.horizontal)
         }
         .preferredColorScheme(.dark)
         .onAppear {
+            if let birthdayStr = viewModel.currentUser.birthday {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                
+                if let date = formatter.date(from: birthdayStr) {
+                    tempBirthDay = date
+                } else {
+                    tempBirthDay = Date() // 解析失败 fallback
+                }
+            } else {
+                tempBirthDay = Date() // nil 时默认当前时间
+            }
             tempDisplayStatus = viewModel.currentUser.isDisplayAge
         }
     }

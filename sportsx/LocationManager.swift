@@ -256,13 +256,177 @@ let regionTable_US: [String: [Region]] = [
     ]
 ]
 
+let regionTable_JP: [String: [Region]] = [
+    "region.jp.hokkaido": [
+        Region(regionID: "JP-01", regionName: "region.jp.hokkaido")
+    ],
+    "region.jp.tohoku": [
+        Region(regionID: "JP-02", regionName: "region.jp.aomori"),
+        Region(regionID: "JP-03", regionName: "region.jp.iwate"),
+        Region(regionID: "JP-04", regionName: "region.jp.miyagi"),
+        Region(regionID: "JP-05", regionName: "region.jp.akita"),
+        Region(regionID: "JP-06", regionName: "region.jp.yamagata"),
+        Region(regionID: "JP-07", regionName: "region.jp.fukushima")
+    ],
+    "region.jp.kanto": [
+        Region(regionID: "JP-08", regionName: "region.jp.ibaraki"),
+        Region(regionID: "JP-09", regionName: "region.jp.tochigi"),
+        Region(regionID: "JP-10", regionName: "region.jp.gunma"),
+        Region(regionID: "JP-11", regionName: "region.jp.saitama"),
+        Region(regionID: "JP-12", regionName: "region.jp.chiba"),
+        Region(regionID: "JP-13", regionName: "region.jp.tokyo"),
+        Region(regionID: "JP-14", regionName: "region.jp.kanagawa")
+    ],
+    "region.jp.chubu": [
+        Region(regionID: "JP-15", regionName: "region.jp.niigata"),
+        Region(regionID: "JP-16", regionName: "region.jp.toyama"),
+        Region(regionID: "JP-17", regionName: "region.jp.ishikawa"),
+        Region(regionID: "JP-18", regionName: "region.jp.fukui"),
+        Region(regionID: "JP-19", regionName: "region.jp.yamanashi"),
+        Region(regionID: "JP-20", regionName: "region.jp.nagano"),
+        Region(regionID: "JP-21", regionName: "region.jp.gifu"),
+        Region(regionID: "JP-22", regionName: "region.jp.shizuoka"),
+        Region(regionID: "JP-23", regionName: "region.jp.aichi")
+    ],
+    "region.jp.kinki": [
+        Region(regionID: "JP-24", regionName: "region.jp.mie"),
+        Region(regionID: "JP-25", regionName: "region.jp.shiga"),
+        Region(regionID: "JP-26", regionName: "region.jp.kyoto"),
+        Region(regionID: "JP-27", regionName: "region.jp.osaka"),
+        Region(regionID: "JP-28", regionName: "region.jp.hyogo"),
+        Region(regionID: "JP-29", regionName: "region.jp.nara"),
+        Region(regionID: "JP-30", regionName: "region.jp.wakayama")
+    ],
+    "region.jp.chugoku": [
+        Region(regionID: "JP-31", regionName: "region.jp.tottori"),
+        Region(regionID: "JP-32", regionName: "region.jp.shimane"),
+        Region(regionID: "JP-33", regionName: "region.jp.okayama"),
+        Region(regionID: "JP-34", regionName: "region.jp.hiroshima"),
+        Region(regionID: "JP-35", regionName: "region.jp.yamaguchi")
+    ],
+    "region.jp.shikoku": [
+        Region(regionID: "JP-36", regionName: "region.jp.tokushima"),
+        Region(regionID: "JP-37", regionName: "region.jp.kagawa"),
+        Region(regionID: "JP-38", regionName: "region.jp.ehime"),
+        Region(regionID: "JP-39", regionName: "region.jp.kochi")
+    ],
+    "region.jp.kyushu": [
+        Region(regionID: "JP-40", regionName: "region.jp.fukuoka"),
+        Region(regionID: "JP-41", regionName: "region.jp.saga"),
+        Region(regionID: "JP-42", regionName: "region.jp.nagasaki"),
+        Region(regionID: "JP-43", regionName: "region.jp.kumamoto"),
+        Region(regionID: "JP-44", regionName: "region.jp.oita"),
+        Region(regionID: "JP-45", regionName: "region.jp.miyazaki"),
+        Region(regionID: "JP-46", regionName: "region.jp.kagoshima"),
+        Region(regionID: "JP-47", regionName: "region.jp.okinawa")
+    ]
+]
+
+let regionTable_UK: [String: [Region]] = [
+    "region.uk.england": [
+        Region(regionID: "UK-ENG-LON", regionName: "region.uk.london"),
+        Region(regionID: "UK-ENG-SE", regionName: "region.uk.southeast"),
+        Region(regionID: "UK-ENG-SW", regionName: "region.uk.southwest"),
+        Region(regionID: "UK-ENG-WM", regionName: "region.uk.west_midlands"),
+        Region(regionID: "UK-ENG-NW", regionName: "region.uk.northwest"),
+        Region(regionID: "UK-ENG-NE", regionName: "region.uk.northeast"),
+        Region(regionID: "UK-ENG-YH", regionName: "region.uk.yorkshire_humber"),
+        Region(regionID: "UK-ENG-EM", regionName: "region.uk.east_midlands"),
+        Region(regionID: "UK-ENG-EE", regionName: "region.uk.east_of_england")
+    ],
+    "region.uk.scotland": [
+        Region(regionID: "UK-SCT-CEN", regionName: "region.uk.central_scotland"),
+        Region(regionID: "UK-SCT-HIG", regionName: "region.uk.highlands")
+    ],
+    "region.uk.wales": [
+        Region(regionID: "UK-WLS-N", regionName: "region.uk.north_wales"),
+        Region(regionID: "UK-WLS-S", regionName: "region.uk.south_wales")
+    ],
+    "region.uk.northern_ireland": [
+        Region(regionID: "UK-NIR", regionName: "region.uk.northern_ireland")
+    ]
+]
+
+let regionTable_CA: [String: [Region]] = [
+    "region.ca.alberta": [
+        Region(regionID: "CA-AB", regionName: "region.ca.alberta")
+    ],
+    "region.ca.british_columbia": [
+        Region(regionID: "CA-BC", regionName: "region.ca.british_columbia")
+    ],
+    "region.ca.manitoba": [
+        Region(regionID: "CA-MB", regionName: "region.ca.manitoba")
+    ],
+    "region.ca.new_brunswick": [
+        Region(regionID: "CA-NB", regionName: "region.ca.new_brunswick")
+    ],
+    "region.ca.newfoundland_and_labrador": [
+        Region(regionID: "CA-NL", regionName: "region.ca.newfoundland_and_labrador")
+    ],
+    "region.ca.nova_scotia": [
+        Region(regionID: "CA-NS", regionName: "region.ca.nova_scotia")
+    ],
+    "region.ca.northwest_territories": [
+        Region(regionID: "CA-NT", regionName: "region.ca.northwest_territories")
+    ],
+    "region.ca.nunavut": [
+        Region(regionID: "CA-NU", regionName: "region.ca.nunavut")
+    ],
+    "region.ca.ontario": [
+        Region(regionID: "CA-ON", regionName: "region.ca.ontario")
+    ],
+    "region.ca.prince_edward_island": [
+        Region(regionID: "CA-PE", regionName: "region.ca.prince_edward_island")
+    ],
+    "region.ca.quebec": [
+        Region(regionID: "CA-QC", regionName: "region.ca.quebec")
+    ],
+    "region.ca.saskatchewan": [
+        Region(regionID: "CA-SK", regionName: "region.ca.saskatchewan")
+    ],
+    "region.ca.yukon": [
+        Region(regionID: "CA-YT", regionName: "region.ca.yukon")
+    ]
+]
+
+let regionTable_AU: [String: [Region]] = [
+    "region.au.australian_capital_territory": [
+        Region(regionID: "AU-ACT", regionName: "region.au.australian_capital_territory")
+    ],
+    "region.au.new_south_wales": [
+        Region(regionID: "AU-NSW", regionName: "region.au.new_south_wales")
+    ],
+    "region.au.northern_territory": [
+        Region(regionID: "AU-NT", regionName: "region.au.northern_territory")
+    ],
+    "region.au.queensland": [
+        Region(regionID: "AU-QLD", regionName: "region.au.queensland")
+    ],
+    "region.au.south_australia": [
+        Region(regionID: "AU-SA", regionName: "region.au.south_australia")
+    ],
+    "region.au.tasmania": [
+        Region(regionID: "AU-TAS", regionName: "region.au.tasmania")
+    ],
+    "region.au.victoria": [
+        Region(regionID: "AU-VIC", regionName: "region.au.victoria")
+    ],
+    "region.au.western_australia": [
+        Region(regionID: "AU-WA", regionName: "region.au.western_australia")
+    ]
+]
+
 struct RegionStore {
     static let tables: [String: [String: [Region]]] = [
         "CN": regionTable_CN,
         "HK": regionTable_HK,
         "TW": regionTable_TW,
         "KR": regionTable_KR,
-        "US": regionTable_US
+        "US": regionTable_US,
+        "JP": regionTable_JP,
+        "CA": regionTable_CA,
+        "AU": regionTable_AU,
+        "UK": regionTable_UK
     ]
     
     static let index: [String: Region] = {
@@ -278,7 +442,7 @@ struct RegionStore {
     }()
 }
 
-enum RealNameMethod: String {
+/*enum RealNameMethod: String {
     case idcard = "idcard"
     case passport = "passport"
     case drivingLicense = "drivingLicense"
@@ -290,7 +454,7 @@ enum RealNameMethod: String {
         case .drivingLicense: return "user.setup.realname_auth.method.driving_license"
         }
     }
-}
+}*/
 
 enum Country: String, CaseIterable {
     case hk = "HK"
@@ -298,10 +462,14 @@ enum Country: String, CaseIterable {
     case kr = "KR"
     case cn = "CN"
     case us = "US"
+    case jp = "JP"
+    case ca = "CA"
+    case au = "AU"
+    case uk = "UK"
     
     var supported: Bool {
         switch self {
-        case .hk ,.tw, .kr, .us: return true
+        case .hk, .tw, .kr, .us, .jp, .ca, .au, .uk: return true
         case .cn: return false
         }
     }
@@ -313,6 +481,10 @@ enum Country: String, CaseIterable {
         case .kr: return "82"
         case .cn: return "86"
         case .us: return "1"
+        case .jp: return "81"
+        case .ca: return "1"
+        case .au: return "61"
+        case .uk: return "44"
         }
     }
     
@@ -323,6 +495,10 @@ enum Country: String, CaseIterable {
         case .kr: return "region.kr"
         case .cn: return "region.cn"
         case .us: return "region.us"
+        case .jp: return "region.jp"
+        case .ca: return "region.ca"
+        case .au: return "region.au"
+        case .uk: return "region.uk"
         }
     }
     
@@ -333,10 +509,14 @@ enum Country: String, CaseIterable {
         case .kr: return 10...11
         case .cn: return 11...11
         case .us: return 10...10
+        case .jp: return 11...11
+        case .ca: return 10...10
+        case .au: return 9...9
+        case .uk: return 10...10
         }
     }
     
-    var realnameMethod: [RealNameMethod] {
+    /*var realnameMethod: [RealNameMethod] {
         switch self {
         case .hk: return [.idcard, .passport]
         case .tw: return [.idcard, .passport]
@@ -344,7 +524,7 @@ enum Country: String, CaseIterable {
         case .cn: return [.idcard]
         case .us: return [.drivingLicense, .passport]
         }
-    }
+    }*/
 }
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {

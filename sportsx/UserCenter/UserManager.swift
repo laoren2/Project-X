@@ -250,7 +250,6 @@ class UserManager: ObservableObject {
         defaults.set(user.birthday, forKey: "user.birthday")
         defaults.set(user.location, forKey: "user.location")
         defaults.set(user.identityAuthName, forKey: "user.identityAuthName")
-        defaults.set(user.isRealnameAuth, forKey: "user.isRealnameAuth")
         defaults.set(user.isIdentityAuth, forKey: "user.isIdentityAuth")
         defaults.set(user.isDisplayGender, forKey: "user.isDisplayGender")
         defaults.set(user.isDisplayAge, forKey: "user.isDisplayAge")
@@ -284,7 +283,6 @@ class UserManager: ObservableObject {
             birthday: defaults.string(forKey: "user.birthday"),
             location: defaults.string(forKey: "user.location"),
             identityAuthName: defaults.string(forKey: "user.identityAuthName"),
-            isRealnameAuth: defaults.bool(forKey: "user.isRealnameAuth"),
             isIdentityAuth: defaults.bool(forKey: "user.isIdentityAuth"),
             isDisplayGender: defaults.bool(forKey: "user.isDisplayGender"),
             isDisplayAge: defaults.bool(forKey: "user.isDisplayAge"),
@@ -332,7 +330,6 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.birthday")
         defaults.removeObject(forKey: "user.location")
         defaults.removeObject(forKey: "user.identityAuthName")
-        defaults.removeObject(forKey: "user.isRealnameAuth")
         defaults.removeObject(forKey: "user.isIdentityAuth")
         defaults.removeObject(forKey: "user.isDisplayGender")
         defaults.removeObject(forKey: "user.isDisplayAge")
@@ -667,7 +664,7 @@ struct User: Identifiable, Codable, Hashable {
     var location: String?           // 地理位置ID
     var identityAuthName: String?   // 身份名称
     
-    var isRealnameAuth: Bool    // 是否已实名认证
+    //var isRealnameAuth: Bool    // 是否已实名认证
     var isIdentityAuth: Bool    // 是否已身份认证
     
     var isDisplayGender: Bool       // 是否展示性别
@@ -693,7 +690,6 @@ struct User: Identifiable, Codable, Hashable {
         birthday: String? = nil,
         location: String? = nil,
         identityAuthName: String? = nil,
-        isRealnameAuth: Bool = false,
         isIdentityAuth: Bool = false,
         isDisplayGender: Bool = false,
         isDisplayAge: Bool = false,
@@ -717,7 +713,6 @@ struct User: Identifiable, Codable, Hashable {
         self.birthday = birthday
         self.location = location
         self.identityAuthName = identityAuthName
-        self.isRealnameAuth = isRealnameAuth
         self.isIdentityAuth = isIdentityAuth
         self.isDisplayGender = isDisplayGender
         self.isDisplayAge = isDisplayAge
@@ -743,7 +738,6 @@ struct User: Identifiable, Codable, Hashable {
         self.birthday = dto.birthday
         self.location = dto.location
         self.identityAuthName = dto.identity_auth_name
-        self.isRealnameAuth = (dto.gender != nil && dto.birthday != nil)
         self.isIdentityAuth = (dto.identity_auth_name != nil)
         self.isDisplayGender = dto.is_display_gender
         self.isDisplayAge = dto.is_display_age

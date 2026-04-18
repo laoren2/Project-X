@@ -22,7 +22,7 @@ struct RunningTeamAppliedCardDTO: Codable {
     let description: String
     let member_count: Int
     let max_member_size: Int
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let competition_date: String
@@ -42,7 +42,7 @@ struct RunningTeamAppliedCard: Identifiable, Equatable {
     let description: String
     let member_count: Int
     let max_member_size: Int
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let competition_date: Date?
@@ -56,7 +56,7 @@ struct RunningTeamAppliedCard: Identifiable, Equatable {
         self.description = team.description
         self.member_count = team.member_count
         self.max_member_size = team.max_member_size
-        self.region_name = team.region_name
+        self.region_id = team.region_id
         self.event_name = team.event_name
         self.track_name = team.track_name
         self.competition_date = ISO8601DateFormatter().date(from: team.competition_date)
@@ -76,7 +76,7 @@ struct RunningTeamCardDTO: Codable {
     let member_count: Int
     let max_member_size: Int
     let team_code: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let is_public: Bool
@@ -98,7 +98,7 @@ struct RunningTeamCard: Identifiable, Equatable {
     var member_count: Int
     let max_member_size: Int
     let team_code: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     var is_public: Bool
@@ -114,7 +114,7 @@ struct RunningTeamCard: Identifiable, Equatable {
         self.member_count = team.member_count
         self.max_member_size = team.max_member_size
         self.team_code = team.team_code
-        self.region_name = team.region_name
+        self.region_id = team.region_id
         self.event_name = team.event_name
         self.track_name = team.track_name
         self.is_public = team.is_public
@@ -133,7 +133,7 @@ struct RunningTeamManageDTO: Codable {
     let description: String
     let max_member_size: Int
     let team_code: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let track_end_date: String
@@ -152,7 +152,7 @@ struct RunningTeamManageInfo: Identifiable {
     var description: String
     let max_member_size: Int
     let team_code: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let track_end_date: Date?
@@ -168,7 +168,7 @@ struct RunningTeamManageInfo: Identifiable {
         self.description = team.description
         self.max_member_size = team.max_member_size
         self.team_code = team.team_code
-        self.region_name = team.region_name
+        self.region_id = team.region_id
         self.event_name = team.event_name
         self.track_name = team.track_name
         self.track_end_date = ISO8601DateFormatter().date(from: team.track_end_date)
@@ -186,7 +186,7 @@ struct RunningTeamDetailDTO: Codable {
     let description: String
     let max_member_size: Int
     let team_code: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let is_public: Bool
@@ -203,7 +203,7 @@ struct RunningTeamDetailInfo: Identifiable {
     let description: String
     let max_member_size: Int
     let team_code: String
-    let region_name: String
+    let region_id: String
     let event_name: String
     let track_name: String
     let is_public: Bool
@@ -218,7 +218,7 @@ struct RunningTeamDetailInfo: Identifiable {
         self.description = team.description
         self.max_member_size = team.max_member_size
         self.team_code = team.team_code
-        self.region_name = team.region_name
+        self.region_id = team.region_id
         self.event_name = team.event_name
         self.track_name = team.track_name
         self.is_public = team.is_public

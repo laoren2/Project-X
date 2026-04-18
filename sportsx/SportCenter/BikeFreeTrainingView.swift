@@ -108,15 +108,13 @@ struct BikeFreeTrainingView: View {
                                         .fill(Color.clear)
                                         .contentShape(Rectangle())
                                         .exclusiveTouchTapGesture {
-                                            if let region = regionFromPolygons(polygons), let countryCode = locationManager.country?.rawValue, let config = globalConfig.countryBboxes[countryCode] {
-                                                //print(config)
+                                            if let region = regionFromPolygons(polygons) {
                                                 appState.navigationManager.append(
                                                     .bikeTrainingMapView(
                                                         centerLat: region.center.latitude,
                                                         centerLng: region.center.longitude,
                                                         spanLat: region.span.latitudeDelta,
-                                                        spanLng: region.span.longitudeDelta,
-                                                        config: config
+                                                        spanLng: region.span.longitudeDelta
                                                     )
                                                 )
                                             } else {
@@ -355,9 +353,10 @@ struct BikeTrainingMapView: View {
     let centerLng: Double
     let spanLat: Double
     let spanLng: Double
-    let config: GridBboxConfig
     
     @State var showGrids: Bool = true
+    @State var selectedGrid: GridSelection? = nil
+    @State var showSheet: Bool = false
     
     var body: some View {
         ZStack {
@@ -366,8 +365,12 @@ struct BikeTrainingMapView: View {
                 centerLng: centerLng,
                 spanLat: spanLat,
                 spanLng: spanLng,
-                countryBbox: config,
-                showGrids: showGrids
+                showGrids: showGrids,
+                onGridTap: { selection in
+                    selectedGrid = selection
+                    showGrids = false
+                    showSheet = true
+                }
             )
             .ignoresSafeArea(.all)
         }
@@ -481,6 +484,234 @@ struct BikeTrainingMapView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
+        .sheet(isPresented: $showSheet, onDismiss: {
+            selectedGrid = nil
+            showGrids = true
+        }) {
+            if let grid = selectedGrid {
+                BikeGridDetailSheet(grid: grid, showSheet: $showSheet)
+                    .presentationDetents([.medium, .large])
+                    .interactiveDismissDisabled()
+            }
+        }
+    }
+}
+
+struct BikeGridDetailSheet: View {
+    @ObservedObject var userManager = UserManager.shared
+    @ObservedObject var navigationManager = NavigationManager.shared
+    
+    let grid: GridSelection
+    @Binding var showSheet: Bool
+    
+    @State private var me: GridFamiliarityMeInfo?
+    @State private var rankList: [GridFamiliarityRankInfo] = []
+    @State private var hasMore: Bool = false
+    @State private var isLoading: Bool = false
+    @State private var page: Int = 1
+    let pageSize: Int = 10
+    
+    @State var backgroundColor: Color = .defaultBackground
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Button(action: {}) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(Color.clear)
+                }
+                Spacer()
+                Text("training.realtime.grid.title")
+                Spacer()
+                Button(action: {
+                    showSheet = false
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 30))
+                }
+            }
+            .padding()
+            .foregroundStyle(Color.secondText)
+            
+            // 探索记录信息
+            HStack {
+                Text("training.realtime.grid.exploration_status")
+                Spacer()
+            }
+            .font(.headline)
+            .padding(.horizontal)
+            
+            // 我的数据
+            if let me {
+                HStack {
+                    Text("#\(me.rank)")
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    if let avatar = userManager.avatarImage {
+                        Image(uiImage: avatar)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 50, height: 50)
+                            .clipShape(Circle())
+                    } else {
+                        Image("placeholder")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 50, height: 50)
+                            .clipShape(Circle())
+                    }
+                    Text("common.me")
+                    Spacer()
+                    Text("+\(me.count)")
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                }
+                .padding(.horizontal)
+            }
+            
+            Rectangle()
+                .foregroundStyle(Color.thirdText)
+                .frame(height: 1)
+                .padding(.horizontal)
+            
+            // 排行榜
+            ScrollView(showsIndicators: false) {
+                LazyVStack {
+                    if rankList.isEmpty {
+                        Text("training.realtime.grid.ranklist.no_data")
+                            .foregroundStyle(Color.thirdText)
+                            .padding(.top, 100)
+                    } else {
+                        ForEach(rankList) { info in
+                            HStack {
+                                Text("#\(info.rank)")
+                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                CachedAsyncImage(urlString: info.avatarUrl)
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                                    .exclusiveTouchTapGesture {
+                                        showSheet = false
+                                        navigationManager.append(.userView(id: info.userID))
+                                    }
+                                Text(info.nickName)
+                                if info.rank == 1 {
+                                    Text("training.realtime.grid.occupier")
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(Color.orange)
+                                        .cornerRadius(6)
+                                }
+                                Spacer()
+                                Text("+\(info.count)")
+                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 10)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(10)
+                            .onAppear {
+                                if info.id == rankList.last?.id && hasMore {
+                                    fetchRankListPage(grid: grid, reset: false)
+                                }
+                            }
+                        }
+                        if isLoading {
+                            ProgressView()
+                                .padding()
+                        }
+                    }
+                }
+                .padding()
+                .foregroundStyle(Color.white)
+            }
+        }
+        .background(backgroundColor)
+        .onStableAppear {
+            fetchMeRankInfo()
+            fetchRankListPage(grid: grid, reset: true)
+        }
+    }
+    
+    func fetchMeRankInfo() {
+        guard var components = URLComponents(string: "/training/bike/query_grid_familiarity_me") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "grid_x", value: "\(grid.gridX)"),
+            URLQueryItem(name: "grid_y", value: "\(grid.gridY)"),
+            URLQueryItem(name: "level", value: "\(grid.level)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: GridFamiliarityMeInfo.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    me = unwrappedData
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    func fetchRankListPage(grid: GridSelection, reset: Bool) {
+        if reset {
+            page = 1
+        }
+        isLoading = true
+        guard var components = URLComponents(string: "/training/bike/query_grid_familiarity_ranklist") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "grid_x", value: "\(grid.gridX)"),
+            URLQueryItem(name: "grid_y", value: "\(grid.gridY)"),
+            URLQueryItem(name: "level", value: "\(grid.level)"),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "size", value: "\(pageSize)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get)
+        NetworkService.sendRequest(with: request, decodingType: GridFamiliarityRankResponse.self) { result in
+            DispatchQueue.main.async {
+                isLoading = false
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    var tempRanks: [GridFamiliarityRankInfo] = []
+                    for info in unwrappedData.data {
+                        tempRanks.append(GridFamiliarityRankInfo(from: info))
+                    }
+                    if reset {
+                        rankList = tempRanks
+                        if let first = tempRanks.first {
+                            downloadImages(url: first.avatarUrl)
+                        }
+                    } else {
+                        rankList.append(contentsOf: tempRanks)
+                    }
+                    if unwrappedData.data.count < self.pageSize {
+                        hasMore = false
+                    } else {
+                        hasMore = true
+                        page += 1
+                    }
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    func downloadImages(url: String) {
+        NetworkService.downloadImage(from: url) { image in
+            if let image = image {
+                if let avg = ImageTool.averageColor(from: image) {
+                    DispatchQueue.main.async {
+                        self.backgroundColor = avg.bestSoftDarkReadableColor()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -489,10 +720,9 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
     let centerLng: Double
     let spanLat: Double
     let spanLng: Double
-    let countryBbox: GridBboxConfig
     let showGrids: Bool
     
-    class BBoxOverlay: MKPolygon {}
+    var onGridTap: ((GridSelection) -> Void)?
     
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -516,26 +746,24 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
         
         if !showGrids {
             let removable = uiView.overlays.filter {
-                !($0 is BBoxOverlay)
+                !($0 is SelectedGridOverlay)
             }
             uiView.removeOverlays(removable)
             context.coordinator.renderedTiles.removeAll()
         } else {
+            let selected = uiView.overlays.filter { $0 is SelectedGridOverlay }
+            uiView.removeOverlays(selected)
             context.coordinator.updateVisibleTiles(mapView: uiView)
         }
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(countryBbox: countryBbox, showGrids: showGrids)
+        let coordinator = Coordinator(showGrids: showGrids)
+        coordinator.onGridTap = onGridTap
+        return coordinator
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
-#if DEBUG
-        let displayCountryBbox = true
-        var hasDrawnBBox = false
-#endif
-        // 国家 bbox
-        let countryBbox: GridBboxConfig
         // 是否显示网格
         var showGrids: Bool
         // L0 = 500m，每级翻倍
@@ -560,23 +788,18 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
         // 捕捉 level 变化
         var lastLevel: Int = -1
         
+        var onGridTap: ((GridSelection) -> Void)?
+        
         weak var mapViewRef: MKMapView?
         
         // init
-        init(countryBbox: GridBboxConfig, showGrids: Bool) {
-            self.countryBbox = countryBbox
+        init(showGrids: Bool) {
             self.showGrids = showGrids
             super.init()
         }
 
         // Map 回调
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-#if DEBUG
-            if displayCountryBbox && !hasDrawnBBox {
-                drawCountryBBox(on: mapView)
-                hasDrawnBBox = true
-            }
-#endif
             self.mapViewRef = mapView
             updateVisibleTiles(mapView: mapView)
         }
@@ -586,11 +809,11 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
                 return TileRenderer(overlay: tileOverlay)
             }
             
-            if let bbox = overlay as? BBoxOverlay {
-                let renderer = MKPolygonRenderer(polygon: bbox)
-                renderer.strokeColor = UIColor.red
-                renderer.lineWidth = 2
-                renderer.fillColor = UIColor.clear
+            if let selected = overlay as? SelectedGridOverlay {
+                let renderer = MKPolygonRenderer(polygon: selected.polygon)
+                renderer.strokeColor = UIColor.yellow
+                renderer.lineWidth = 3
+                renderer.fillColor = UIColor.yellow.withAlphaComponent(0.25)
                 return renderer
             }
             
@@ -603,21 +826,6 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
                 return
             }
             let windowBbox = mapView.region
-            let minLat = windowBbox.center.latitude - windowBbox.span.latitudeDelta / 2
-            let maxLat = windowBbox.center.latitude + windowBbox.span.latitudeDelta / 2
-            let minLng = windowBbox.center.longitude - windowBbox.span.longitudeDelta / 2
-            let maxLng = windowBbox.center.longitude + windowBbox.span.longitudeDelta / 2
-            // 超出国家范围 → 直接跳过
-            if maxLat < countryBbox.endLat || minLat > countryBbox.originLat ||
-                maxLng < countryBbox.originLng || minLng > countryBbox.endLng {
-                //print("超出国家范围")
-                let removable = mapView.overlays.filter {
-                    !($0 is BBoxOverlay)
-                }
-                mapView.removeOverlays(removable)
-                renderedTiles.removeAll()
-                return
-            }
             
             let zoom = getZoomLevel(mapView: mapView)
             let level = levelForZoom(zoom)
@@ -626,7 +834,7 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
             
             if level >= 3 && zoom < 10 {
                 let removable = mapView.overlays.filter {
-                    !($0 is BBoxOverlay)
+                    !($0 is SelectedGridOverlay)
                 }
                 mapView.removeOverlays(removable)
                 renderedTiles.removeAll()
@@ -642,7 +850,7 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
             if gridCount > 1000 {
                 //print("skip: too many grids: \(gridCount)")
                 let removable = mapView.overlays.filter {
-                    !($0 is BBoxOverlay)
+                    !($0 is SelectedGridOverlay)
                 }
                 mapView.removeOverlays(removable)
                 renderedTiles.removeAll()
@@ -685,13 +893,8 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
             let minLng = bbox.center.longitude - bbox.span.longitudeDelta / 2
             let maxLng = bbox.center.longitude + bbox.span.longitudeDelta / 2
             
-            let clampedMinLat = max(minLat, countryBbox.endLat)
-            let clampedMaxLat = min(maxLat, countryBbox.originLat)
-            let clampedMinLng = max(minLng, countryBbox.originLng)
-            let clampedMaxLng = min(maxLng, countryBbox.endLng)
-            
-            let (minX, minY) = gridXY(lat: clampedMinLat, lng: clampedMinLng, level: level)
-            let (maxX, maxY) = gridXY(lat: clampedMaxLat, lng: clampedMaxLng, level: level)
+            let (minX, minY) = gridXY(lat: minLat, lng: minLng, level: level)
+            let (maxX, maxY) = gridXY(lat: maxLat, lng: maxLng, level: level)
             
             return (
                 min(minX, maxX),
@@ -775,7 +978,7 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
         func render(mapView: MKMapView, tiles: [TileKey], removeAll: Bool) {
             if removeAll {
                 let removable = mapView.overlays.filter {
-                    !($0 is BBoxOverlay)
+                    !($0 is SelectedGridOverlay)
                 }
                 mapView.removeOverlays(removable)
                 renderedTiles.removeAll()
@@ -855,116 +1058,52 @@ struct TileBasedGridsBikeMapView: UIViewRepresentable {
             let gy = Int(floor(y / gridSize))
             return (gx, gy)
         }
-#if DEBUG
-        func drawCountryBBox(on mapView: MKMapView) {
-            let coords = [
-                CLLocationCoordinate2D(latitude: countryBbox.originLat, longitude: countryBbox.originLng),
-                CLLocationCoordinate2D(latitude: countryBbox.originLat, longitude: countryBbox.endLng),
-                CLLocationCoordinate2D(latitude: countryBbox.endLat, longitude: countryBbox.endLng),
-                CLLocationCoordinate2D(latitude: countryBbox.endLat, longitude: countryBbox.originLng)
-            ]
-            
-            let polygon = BBoxOverlay(coordinates: coords, count: coords.count)
-            mapView.addOverlay(polygon)
+        
+        func showSelectedGrid(mapView: MKMapView, gridX: Int, gridY: Int, level: Int) {
+            // 移除旧的选中
+            let removable = mapView.overlays.filter { $0 is SelectedGridOverlay }
+            mapView.removeOverlays(removable)
+
+            let polygon = makePolygon(gridX: gridX, gridY: gridY, level: level)
+            let overlay = SelectedGridOverlay(polygon: polygon)
+            mapView.addOverlay(overlay)
         }
-#endif
     }
 }
 
-// MARK: - TileOverlay & TileRenderer
 extension TileBasedGridsBikeMapView.Coordinator {
     @objc func handleTap(_ gesture: UITapGestureRecognizer) {
-        guard let mapView = mapViewRef else { return }
+        guard let mapView = mapViewRef, showGrids, !renderedTiles.isEmpty else { return }
+        
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         let point = gesture.location(in: mapView)
         let coord = mapView.convert(point, toCoordinateFrom: mapView)
+        var coordParse = coord
         
+        if !CoordinateConverter.outOfChina(coordinate: coord) {
+            coordParse = CoordinateConverter.gcj02ToWgs84(lat: coord.latitude, lon: coord.longitude)
+        }
         let zoom = getZoomLevel(mapView: mapView)
         let level = levelForZoom(zoom)
         
-        let (gx, gy) = gridXY(lat: coord.latitude, lng: coord.longitude, level: level)
-        //print("Tapped bike grid: (\(gx), \(gy)) at level \(level)")
-    }
-    
-    class TileOverlay: NSObject, MKOverlay {
-        var coordinate: CLLocationCoordinate2D
-        var boundingMapRect: MKMapRect
-        var coords: [CLLocationCoordinate2D]
-        var counts: [Int]
-        var level: Int
+        let (gx, gy) = gridXY(lat: coordParse.latitude, lng: coordParse.longitude, level: level)
+        onGridTap?(GridSelection(gridX: gx, gridY: gy, level: level))
+        showSelectedGrid(mapView: mapView, gridX: gx, gridY: gy, level: level)
         
-        init(coordinates: [CLLocationCoordinate2D], counts: [Int], level: Int) {
-            self.coords = coordinates
-            self.counts = counts
-            self.level = level
-            
-            let polygon = MKPolygon(coordinates: coordinates, count: coordinates.count)
-            self.coordinate = polygon.coordinate
-            self.boundingMapRect = polygon.boundingMapRect
-        }
-    }
-    
-    class TileRenderer: MKOverlayRenderer {
-        let tile: TileOverlay
-
-        init(overlay: TileOverlay) {
-            self.tile = overlay
-            super.init(overlay: overlay)
-        }
-
-        override func draw(_ mapRect: MKMapRect, zoomScale: MKZoomScale, in context: CGContext) {
-            let coords = tile.coords
-            let counts = tile.counts
-
-            var index = 0
-            var i = 0
-
-            while i + 3 < coords.count {
-                let c0 = coords[i]
-                let c1 = coords[i + 1]
-                let c2 = coords[i + 2]
-                let c3 = coords[i + 3]
-
-                let p0 = self.point(for: MKMapPoint(c0))
-                let p1 = self.point(for: MKMapPoint(c1))
-                let p2 = self.point(for: MKMapPoint(c2))
-                let p3 = self.point(for: MKMapPoint(c3))
-
-                let minX = min(min(p0.x, p1.x), min(p2.x, p3.x))
-                let maxX = max(max(p0.x, p1.x), max(p2.x, p3.x))
-                let minY = min(min(p0.y, p1.y), min(p2.y, p3.y))
-                let maxY = max(max(p0.y, p1.y), max(p2.y, p3.y))
-
-                let rect = CGRect(
-                    x: minX,
-                    y: minY,
-                    width: maxX - minX,
-                    height: maxY - minY
-                )
-
-                let count = index < counts.count ? counts[index] : 0
-
-                let color: UIColor
-                let borderColor: UIColor
-                if count > 0 {
-                    let alpha = min(0.1 + Double(count) * 0.05, 0.6)
-                    color = UIColor.orange.withAlphaComponent(alpha)
-                    borderColor = UIColor.orange
-                } else {
-                    color = UIColor.gray.withAlphaComponent(0.3)
-                    borderColor = UIColor.black.withAlphaComponent(0.2)
-                }
-
-                context.setFillColor(color.cgColor)
-                context.fill(rect)
-                
-                context.setStrokeColor(borderColor.cgColor)
-                context.setLineWidth(0.5 / zoomScale)
-                context.stroke(rect)
-
-                index += 1
-                i += 4
-            }
-        }
+        // 将选中网格移动到视角上方中央
+        let currentRegion = mapView.region
+        let latOffset = currentRegion.span.latitudeDelta * 0.25   // 向下移动约1/4屏
+        let newCenter = CLLocationCoordinate2D(
+            latitude: coord.latitude - latOffset,
+            longitude: coord.longitude
+        )
+        let newRegion = MKCoordinateRegion(
+            center: newCenter,
+            span: currentRegion.span
+        )
+        mapView.setRegion(newRegion, animated: true)
+        
+        //print("Tapped bike grid: (\(gx), \(gy)) at level \(level)")
     }
 }
 

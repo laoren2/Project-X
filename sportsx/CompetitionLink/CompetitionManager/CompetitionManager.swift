@@ -1849,7 +1849,7 @@ extension CompetitionManager {
     func startCompetitionSession_debug(with feature: SportFeature) {
         //guard let sport else { return }
         sportFeature = feature
-        let testDTO = BikeRaceRecordDTO(record_id: "", region_name: "", event_name: "", track_name: "", track_start_lat: 0, track_start_lng: 0, track_start_radius: 0, track_end_lat: 0, track_end_lng: 0, track_end_radius: 0, track_end_date: "", status: .notStarted, start_date: nil, end_date: nil, duration_seconds: nil, is_team: false, team_title: nil, team_competition_date: nil, created_at: "")
+        let testDTO = BikeRaceRecordDTO(record_id: "", region_id: "", event_name: "", track_name: "", track_start_lat: 0, track_start_lng: 0, track_start_radius: 0, track_end_lat: 0, track_end_lng: 0, track_end_radius: 0, track_end_date: "", status: .notStarted, start_date: nil, end_date: nil, duration_seconds: nil, is_team: false, team_title: nil, team_competition_date: nil, created_at: "")
         currentBikeRecord = BikeRaceRecord(from: testDTO)
         loadMatchEnv()
         startTime = Date()

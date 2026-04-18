@@ -287,8 +287,8 @@ struct RealNaviView: View {
                     FriendListView(id: id, selectedTab: selectedTab)
                 case .userIntroEditView:
                     UserIntroEditView()
-                case .realNameAuthView:
-                    RealNameAuthView()
+                //case .realNameAuthView:
+                //    RealNameAuthView()
                 case .identityAuthView:
                     IdentityAuthView()
                 case .userSetUpAccountView:
@@ -361,10 +361,10 @@ struct RealNaviView: View {
                     BikeFreeTrainingRecordDetailView(recordID: rid)
                 case .runningFreeTrainingRecordDetailView(let rid):
                     RunningFreeTrainingRecordDetailView(recordID: rid)
-                case .bikeTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng, let config):
-                    BikeTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng, config: config)
-                case .runningTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng, let config):
-                    RunningTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng, config: config)
+                case .bikeTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng):
+                    BikeTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
+                case .runningTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng):
+                    RunningTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
