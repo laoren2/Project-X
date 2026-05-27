@@ -11,7 +11,7 @@ struct NaviView: View {
     @EnvironmentObject var workoutManager: WatchDataManager
     
     var body: some View {
-        if workoutManager.running {
+        if workoutManager.isRecording {
             SessionPageView()
         } else {
             StartView()

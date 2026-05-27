@@ -12,6 +12,7 @@ struct BikeScoreRankingView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeScoreRankingViewModel
     @ObservedObject var userManager = UserManager.shared
+    @State var genderOnFilter: Bool = false
     
     let genders: [Gender] = [.male, .female]
     
@@ -40,14 +41,45 @@ struct BikeScoreRankingView: View {
             }
             
             HStack {
-                Picker("", selection: $viewModel.gender) {
-                    ForEach(genders, id: \.self) { gender in
+                if genderOnFilter {
+                    ForEach(Gender.allCases, id: \.self) { gender in
                         Text(LocalizedStringKey(gender.displayName))
-                            .tag(gender)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
+                            )
+                            .exclusiveTouchTapGesture {
+                                viewModel.gender = gender
+                                genderOnFilter.toggle()
+                            }
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white)
+                        Image(systemName: "arrow.left.arrow.right")
+                            .foregroundStyle(Color.secondText)
+                            .font(.system(size: 10, weight: .light))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.defaultBackground)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.orange, lineWidth: 2)
+                            )
+                    )
+                    .exclusiveTouchTapGesture {
+                        genderOnFilter.toggle()
                     }
                 }
-                .pickerStyle(.menu)
-                .tint(.white)
                 Spacer()
             }
             
@@ -69,9 +101,14 @@ struct BikeScoreRankingView: View {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("competition.track.leaderboard.no_data")
-                                .foregroundColor(.secondText)
-                                .padding()
+                            VStack(spacing: 20) {
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 60)
+                                Text("competition.track.leaderboard.no_data")
+                                    .foregroundColor(.secondText)
+                            }
                             Spacer()
                         }
                     } else {
@@ -111,8 +148,7 @@ struct BikeRankingListView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeRankingListViewModel
     @ObservedObject var userManager = UserManager.shared
-    
-    let genders: [Gender] = [.male, .female]
+    @State var genderOnFilter: Bool = false
     
     init(trackID: String, gender: Gender, isHistory: Bool) {
         _viewModel = StateObject(wrappedValue: BikeRankingListViewModel(trackID: trackID, gender: gender, isHistory: isHistory))
@@ -139,20 +175,52 @@ struct BikeRankingListView: View {
             }
             
             HStack {
-                Picker("", selection: $viewModel.gender) {
-                    ForEach(genders, id: \.self) { gender in
+                if genderOnFilter {
+                    ForEach(Gender.allCases, id: \.self) { gender in
                         Text(LocalizedStringKey(gender.displayName))
-                            .tag(gender)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
+                            )
+                            .exclusiveTouchTapGesture {
+                                viewModel.gender = gender
+                                genderOnFilter.toggle()
+                            }
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white)
+                        Image(systemName: "arrow.left.arrow.right")
+                            .foregroundStyle(Color.secondText)
+                            .font(.system(size: 10, weight: .light))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.defaultBackground)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.orange, lineWidth: 2)
+                            )
+                    )
+                    .exclusiveTouchTapGesture {
+                        genderOnFilter.toggle()
                     }
                 }
-                .pickerStyle(.menu)
-                .tint(.white)
                 Spacer()
                 if !viewModel.isHistory {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 15))
                         .foregroundStyle(.white)
                         .onTapGesture {
+                            genderOnFilter = false
                             viewModel.refresh()
                         }
                 }
@@ -176,16 +244,18 @@ struct BikeRankingListView: View {
             .padding(.horizontal)
             
             if (!viewModel.isHistory) && userManager.isLoggedIn {
-                HStack {
+                HStack(spacing: 10) {
                     if let rank = viewModel.rank {
+                        let NoSize: CGFloat = CGFloat(rank < 4 ? 15 + (8 - 2 * rank) : 15)
+                        let NoWeight: Font.Weight = rank < 4 ? .bold : .medium
+                        let NoColor: Color = rank < 4 ? (rank == 1 ? Color.gold : (rank == 2 ? Color.silver : Color.bronze)) : Color.white
                         Text("\(rank)")
-                            .foregroundStyle(.white)
-                            .font(.headline)
-                            .padding(.horizontal, 10)
+                            .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                            .foregroundStyle(NoColor)
                     } else {
-                        Text("error.no_data")
+                        Text("#-")
                             .foregroundStyle(.white)
-                            .font(.subheadline)
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
                     }
                     CachedAsyncImage(
                         urlString: userManager.user.avatarImageURL
@@ -227,9 +297,14 @@ struct BikeRankingListView: View {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("competition.track.leaderboard.no_data")
-                                .foregroundColor(.secondText)
-                                .padding()
+                            VStack(spacing: 20) {
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 60)
+                                Text("competition.track.leaderboard.no_data")
+                                    .foregroundColor(.secondText)
+                            }
                             Spacer()
                         }
                     } else {
@@ -269,16 +344,237 @@ struct BikeRankingListView: View {
     }
 }
 
+struct BikeRouteRankListView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject var userManager = UserManager.shared
+    @StateObject var viewModel: BikeRouteRankListViewModel
+    @State var genderOnFilter: Bool = false
+    
+    init(routeID: String, isPremium: Bool) {
+        _viewModel = StateObject(wrappedValue: BikeRouteRankListViewModel(routeID: routeID, isPremium: isPremium))
+    }
+    
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
+                Text("competition.track.leaderboard")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            
+            HStack {
+                if genderOnFilter {
+                    Text("all")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(viewModel.gender == nil ? Color.white : Color.thirdText)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(viewModel.gender == nil ? Color.orange : Color.gray)
+                        )
+                        .exclusiveTouchTapGesture {
+                            viewModel.gender = nil
+                            genderOnFilter.toggle()
+                        }
+                    ForEach(Gender.allCases, id: \.self) { gender in
+                        ZStack {
+                            Text(LocalizedStringKey(gender.displayName))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(viewModel.gender == gender ? Color.orange : Color.gray)
+                                )
+                            if !viewModel.isPremium {
+                                Image(systemName: "nosign")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundStyle(Color.pink.opacity(0.5))
+                            }
+                        }
+                        .exclusiveTouchTapGesture {
+                            viewModel.gender = viewModel.isPremium ? gender : nil
+                            genderOnFilter.toggle()
+                        }
+                    }
+                } else {
+                    let genderKey = viewModel.gender?.displayName ?? "all"
+                    Text(LocalizedStringKey(genderKey))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(Color.defaultBackground)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.orange, lineWidth: 2)
+                                )
+                        )
+                        .exclusiveTouchTapGesture {
+                            genderOnFilter.toggle()
+                        }
+                }
+                Spacer()
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white)
+                    .exclusiveTouchTapGesture {
+                        genderOnFilter = false
+                        viewModel.queryRanklists()
+                    }
+            }
+            
+            if userManager.isLoggedIn {
+                HStack(spacing: 10) {
+                    if let rank = viewModel.rank {
+                        let NoSize: CGFloat = CGFloat(rank < 4 ? 15 + (8 - 2 * rank) : 15)
+                        let NoWeight: Font.Weight = rank < 4 ? .bold : .medium
+                        let NoColor: Color = rank < 4 ? (rank == 1 ? Color.gold : (rank == 2 ? Color.silver : Color.bronze)) : Color.white
+                        Text("#\(rank)")
+                            .foregroundStyle(NoColor)
+                            .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                    } else {
+                        Text("#-")
+                            .foregroundStyle(.white)
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                    }
+                    CachedAsyncImage(
+                        urlString: userManager.user.avatarImageURL
+                    )
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
+                    .padding(.leading, 5)
+                    .exclusiveTouchTapGesture {
+                        navigationManager.append(.userView(id: userManager.user.userID))
+                    }
+                    Text(userManager.user.nickname)
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                    Spacer()
+                    Text(TimeDisplay.formattedTime(viewModel.score, showFraction: true))
+                        .foregroundStyle(Color.secondText)
+                }
+                .padding(8)
+                .background(Color.gray.opacity(0.8))
+                .cornerRadius(10)
+                .padding(.top, 10)
+            }
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    if viewModel.entries.isEmpty && !viewModel.isLoading {
+                        HStack {
+                            Spacer()
+                            VStack(spacing: 20) {
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 60)
+                                Text("competition.track.leaderboard.no_data")
+                                    .foregroundColor(.secondText)
+                            }
+                            Spacer()
+                        }
+                    } else {
+                        LazyVStack(spacing: 10) {
+                            ForEach(viewModel.entries) { entry in
+                                BikeRouteRankEntryView(entry: entry)
+                                    .onAppear {
+                                        if entry.id == viewModel.entries.last?.id && viewModel.nextCursor != nil {
+                                            viewModel.queryRanklists(reset: false)
+                                        }
+                                    }
+                            }
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .padding()
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 10)
+            }
+        }
+        .padding(.horizontal)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+        .onFirstAppear {
+            viewModel.queryMeRankInfo()
+            viewModel.queryRanklists()
+        }
+        .onValueChange(of: viewModel.gender) { _, _ in
+            viewModel.queryRanklists()
+        }
+    }
+}
+
+struct BikeRouteRankEntryView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    let entry: BikeRouteRankEntry
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            let NoSize: CGFloat = CGFloat(entry.rank < 4 ? 15 + (8 - 2 * entry.rank) : 15)
+            let NoWeight: Font.Weight = entry.rank < 4 ? .bold : .medium
+            let NoColor: Color = entry.rank < 4 ? (entry.rank == 1 ? Color.gold : (entry.rank == 2 ? Color.silver : Color.bronze)) : Color.white
+            Text("#\(entry.rank)")
+                .foregroundStyle(NoColor)
+                .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+            CachedAsyncImage(
+                urlString: entry.avatarImageURL
+            )
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
+            .padding(.leading, 5)
+            .exclusiveTouchTapGesture {
+                navigationManager.append(.userView(id: entry.userID))
+            }
+            Text(entry.nickname)
+                .font(.subheadline)
+                .foregroundStyle(.white)
+                .lineLimit(2)
+            Spacer()
+            Text(TimeDisplay.formattedTime(entry.score, showFraction: true))
+                .foregroundStyle(Color.secondText)
+        }
+        .padding(8)
+        .background(Color.gray.opacity(0.8))
+        .cornerRadius(10)
+    }
+}
+
 struct BikeScoreRankEntryView: View {
     @EnvironmentObject var appState: AppState
     let entry: BikeScoreRankEntry
     
     var body: some View {
-        HStack {
-            Text("\(entry.rank)")
-                .foregroundStyle(.white)
-                .font(.headline)
-                .padding(.horizontal, 10)
+        HStack(spacing: 10) {
+            let NoSize: CGFloat = CGFloat(entry.rank < 4 ? 15 + (8 - 2 * entry.rank) : 15)
+            let NoWeight: Font.Weight = entry.rank < 4 ? .bold : .medium
+            let NoColor: Color = entry.rank < 4 ? (entry.rank == 1 ? Color.gold : (entry.rank == 2 ? Color.silver : Color.bronze)) : Color.white
+            Text("#\(entry.rank)")
+                .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                .foregroundStyle(NoColor)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL
             )
@@ -292,6 +588,7 @@ struct BikeScoreRankEntryView: View {
             Text(entry.nickname)
                 .font(.subheadline)
                 .foregroundStyle(.white)
+                .lineLimit(2)
             Spacer()
             Text("\(entry.score)")
                 .foregroundStyle(Color.secondText)
@@ -307,11 +604,13 @@ struct BikeRankingListEntryView: View {
     let entry: BikeRankingListEntry
 
     var body: some View {
-        HStack {
-            Text("\(entry.rank)")
-                .foregroundStyle(.white)
-                .font(.headline)
-                .padding(.horizontal, 10)
+        HStack(spacing: 10) {
+            let NoSize: CGFloat = CGFloat(entry.rank < 4 ? 15 + (8 - 2 * entry.rank) : 15)
+            let NoWeight: Font.Weight = entry.rank < 4 ? .bold : .medium
+            let NoColor: Color = entry.rank < 4 ? (entry.rank == 1 ? Color.gold : (entry.rank == 2 ? Color.silver : Color.bronze)) : Color.white
+            Text("#\(entry.rank)")
+                .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                .foregroundStyle(NoColor)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL
             )
@@ -326,6 +625,8 @@ struct BikeRankingListEntryView: View {
                 Text(entry.nickname)
                     .font(.subheadline)
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 Text(TimeDisplay.formattedTime(entry.duration, showFraction: true))
                     .font(.subheadline)
                     .foregroundStyle(.white)
@@ -349,6 +650,7 @@ struct RunningScoreRankingView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningScoreRankingViewModel
     @ObservedObject var userManager = UserManager.shared
+    @State var genderOnFilter: Bool = false
     
     let genders: [Gender] = [.male, .female]
     
@@ -377,14 +679,45 @@ struct RunningScoreRankingView: View {
             }
             
             HStack {
-                Picker("", selection: $viewModel.gender) {
-                    ForEach(genders, id: \.self) { gender in
+                if genderOnFilter {
+                    ForEach(Gender.allCases, id: \.self) { gender in
                         Text(LocalizedStringKey(gender.displayName))
-                            .tag(gender)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
+                            )
+                            .exclusiveTouchTapGesture {
+                                viewModel.gender = gender
+                                genderOnFilter.toggle()
+                            }
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white)
+                        Image(systemName: "arrow.left.arrow.right")
+                            .foregroundStyle(Color.secondText)
+                            .font(.system(size: 10, weight: .light))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.defaultBackground)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.orange, lineWidth: 2)
+                            )
+                    )
+                    .exclusiveTouchTapGesture {
+                        genderOnFilter.toggle()
                     }
                 }
-                .pickerStyle(.menu)
-                .tint(.white)
                 Spacer()
             }
             
@@ -406,9 +739,14 @@ struct RunningScoreRankingView: View {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("competition.track.leaderboard.no_data")
-                                .foregroundColor(.secondText)
-                                .padding()
+                            VStack(spacing: 20) {
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 60)
+                                Text("competition.track.leaderboard.no_data")
+                                    .foregroundColor(.secondText)
+                            }
                             Spacer()
                         }
                     } else {
@@ -448,6 +786,7 @@ struct RunningRankingListView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningRankingListViewModel
     @ObservedObject var userManager = UserManager.shared
+    @State var genderOnFilter: Bool = false
     
     let genders: [Gender] = [.male, .female]
     
@@ -476,20 +815,52 @@ struct RunningRankingListView: View {
             }
             
             HStack {
-                Picker("", selection: $viewModel.gender) {
-                    ForEach(genders, id: \.self) { gender in
+                if genderOnFilter {
+                    ForEach(Gender.allCases, id: \.self) { gender in
                         Text(LocalizedStringKey(gender.displayName))
-                            .tag(gender)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
+                            )
+                            .exclusiveTouchTapGesture {
+                                viewModel.gender = gender
+                                genderOnFilter.toggle()
+                            }
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Text(LocalizedStringKey(viewModel.gender.displayName))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.white)
+                        Image(systemName: "arrow.left.arrow.right")
+                            .foregroundStyle(Color.secondText)
+                            .font(.system(size: 10, weight: .light))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.defaultBackground)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.orange, lineWidth: 2)
+                            )
+                    )
+                    .exclusiveTouchTapGesture {
+                        genderOnFilter.toggle()
                     }
                 }
-                .pickerStyle(.menu)
-                .tint(.white)
                 Spacer()
                 if !viewModel.isHistory {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 15))
                         .foregroundStyle(.white)
                         .onTapGesture {
+                            genderOnFilter = false
                             viewModel.refresh()
                         }
                 }
@@ -513,16 +884,18 @@ struct RunningRankingListView: View {
             .padding(.horizontal)
             
             if (!viewModel.isHistory) && userManager.isLoggedIn {
-                HStack {
+                HStack(spacing: 10) {
                     if let rank = viewModel.rank {
+                        let NoSize: CGFloat = CGFloat(rank < 4 ? 15 + (8 - 2 * rank) : 15)
+                        let NoWeight: Font.Weight = rank < 4 ? .bold : .medium
+                        let NoColor: Color = rank < 4 ? (rank == 1 ? Color.gold : (rank == 2 ? Color.silver : Color.bronze)) : Color.white
                         Text("\(rank)")
-                            .foregroundStyle(.white)
-                            .font(.headline)
-                            .padding(.horizontal, 10)
+                            .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                            .foregroundStyle(NoColor)
                     } else {
-                        Text("error.no_data")
+                        Text("#-")
                             .foregroundStyle(.white)
-                            .font(.subheadline)
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
                     }
                     CachedAsyncImage(
                         urlString: userManager.user.avatarImageURL
@@ -564,9 +937,14 @@ struct RunningRankingListView: View {
                     if viewModel.rankingListEntries.isEmpty && !viewModel.isLoading {
                         HStack {
                             Spacer()
-                            Text("competition.track.leaderboard.no_data")
-                                .foregroundColor(.secondText)
-                                .padding()
+                            VStack(spacing: 20) {
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 60)
+                                Text("competition.track.leaderboard.no_data")
+                                    .foregroundColor(.secondText)
+                            }
                             Spacer()
                         }
                     } else {
@@ -606,16 +984,237 @@ struct RunningRankingListView: View {
     }
 }
 
+struct RunningRouteRankListView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject var userManager = UserManager.shared
+    @StateObject var viewModel: RunningRouteRankListViewModel
+    @State var genderOnFilter: Bool = false
+    
+    init(routeID: String, isPremium: Bool) {
+        _viewModel = StateObject(wrappedValue: RunningRouteRankListViewModel(routeID: routeID, isPremium: isPremium))
+    }
+    
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                Spacer()
+                Text("competition.track.leaderboard")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            
+            HStack {
+                if genderOnFilter {
+                    Text("all")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(viewModel.gender == nil ? Color.white : Color.thirdText)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(viewModel.gender == nil ? Color.orange : Color.gray)
+                        )
+                        .exclusiveTouchTapGesture {
+                            viewModel.gender = nil
+                            genderOnFilter.toggle()
+                        }
+                    ForEach(Gender.allCases, id: \.self) { gender in
+                        ZStack {
+                            Text(LocalizedStringKey(gender.displayName))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(viewModel.gender == gender ? Color.orange : Color.gray)
+                                )
+                            if !viewModel.isPremium {
+                                Image(systemName: "nosign")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundStyle(Color.pink.opacity(0.5))
+                            }
+                        }
+                        .exclusiveTouchTapGesture {
+                            viewModel.gender = viewModel.isPremium ? gender : nil
+                            genderOnFilter.toggle()
+                        }
+                    }
+                } else {
+                    let genderKey = viewModel.gender?.displayName ?? "all"
+                    Text(LocalizedStringKey(genderKey))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(Color.defaultBackground)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.orange, lineWidth: 2)
+                                )
+                        )
+                        .exclusiveTouchTapGesture {
+                            genderOnFilter.toggle()
+                        }
+                }
+                Spacer()
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white)
+                    .exclusiveTouchTapGesture {
+                        genderOnFilter = false
+                        viewModel.queryRanklists()
+                    }
+            }
+            
+            if userManager.isLoggedIn {
+                HStack(spacing: 10) {
+                    if let rank = viewModel.rank {
+                        let NoSize: CGFloat = CGFloat(rank < 4 ? 15 + (8 - 2 * rank) : 15)
+                        let NoWeight: Font.Weight = rank < 4 ? .bold : .medium
+                        let NoColor: Color = rank < 4 ? (rank == 1 ? Color.gold : (rank == 2 ? Color.silver : Color.bronze)) : Color.white
+                        Text("#\(rank)")
+                            .foregroundStyle(NoColor)
+                            .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                    } else {
+                        Text("#-")
+                            .foregroundStyle(.white)
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                    }
+                    CachedAsyncImage(
+                        urlString: userManager.user.avatarImageURL
+                    )
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
+                    .padding(.leading, 5)
+                    .exclusiveTouchTapGesture {
+                        navigationManager.append(.userView(id: userManager.user.userID))
+                    }
+                    Text(userManager.user.nickname)
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                    Spacer()
+                    Text(TimeDisplay.formattedTime(viewModel.score, showFraction: true))
+                        .foregroundStyle(Color.secondText)
+                }
+                .padding(8)
+                .background(Color.gray.opacity(0.8))
+                .cornerRadius(10)
+                .padding(.top, 10)
+            }
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    if viewModel.entries.isEmpty && !viewModel.isLoading {
+                        HStack {
+                            Spacer()
+                            VStack(spacing: 20) {
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 60)
+                                Text("competition.track.leaderboard.no_data")
+                                    .foregroundColor(.secondText)
+                            }
+                            Spacer()
+                        }
+                    } else {
+                        LazyVStack(spacing: 10) {
+                            ForEach(viewModel.entries) { entry in
+                                RunningRouteRankEntryView(entry: entry)
+                                    .onAppear {
+                                        if entry.id == viewModel.entries.last?.id && viewModel.nextCursor != nil {
+                                            viewModel.queryRanklists(reset: false)
+                                        }
+                                    }
+                            }
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .padding()
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 10)
+            }
+        }
+        .padding(.horizontal)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+        .onFirstAppear {
+            viewModel.queryMeRankInfo()
+            viewModel.queryRanklists()
+        }
+        .onValueChange(of: viewModel.gender) { _, _ in
+            viewModel.queryRanklists()
+        }
+    }
+}
+
+struct RunningRouteRankEntryView: View {
+    @ObservedObject var navigationManager = NavigationManager.shared
+    let entry: RunningRouteRankEntry
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            let NoSize: CGFloat = CGFloat(entry.rank < 4 ? 15 + (8 - 2 * entry.rank) : 15)
+            let NoWeight: Font.Weight = entry.rank < 4 ? .bold : .medium
+            let NoColor: Color = entry.rank < 4 ? (entry.rank == 1 ? Color.gold : (entry.rank == 2 ? Color.silver : Color.bronze)) : Color.white
+            Text("#\(entry.rank)")
+                .foregroundStyle(NoColor)
+                .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+            CachedAsyncImage(
+                urlString: entry.avatarImageURL
+            )
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
+            .padding(.leading, 5)
+            .exclusiveTouchTapGesture {
+                navigationManager.append(.userView(id: entry.userID))
+            }
+            Text(entry.nickname)
+                .font(.subheadline)
+                .foregroundStyle(.white)
+                .lineLimit(2)
+            Spacer()
+            Text(TimeDisplay.formattedTime(entry.score, showFraction: true))
+                .foregroundStyle(Color.secondText)
+        }
+        .padding(8)
+        .background(Color.gray.opacity(0.8))
+        .cornerRadius(10)
+    }
+}
+
 struct RunningScoreRankEntryView: View {
     @EnvironmentObject var appState: AppState
     let entry: RunningScoreRankEntry
     
     var body: some View {
-        HStack {
-            Text("\(entry.rank)")
-                .foregroundStyle(.white)
-                .font(.headline)
-                .padding(.horizontal, 10)
+        HStack(spacing: 10) {
+            let NoSize: CGFloat = CGFloat(entry.rank < 4 ? 15 + (8 - 2 * entry.rank) : 15)
+            let NoWeight: Font.Weight = entry.rank < 4 ? .bold : .medium
+            let NoColor: Color = entry.rank < 4 ? (entry.rank == 1 ? Color.gold : (entry.rank == 2 ? Color.silver : Color.bronze)) : Color.white
+            Text("#\(entry.rank)")
+                .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                .foregroundStyle(NoColor)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL
             )
@@ -629,6 +1228,7 @@ struct RunningScoreRankEntryView: View {
             Text(entry.nickname)
                 .font(.subheadline)
                 .foregroundStyle(.white)
+                .lineLimit(2)
             Spacer()
             Text("\(entry.score)")
                 .foregroundStyle(Color.secondText)
@@ -644,11 +1244,13 @@ struct RunningRankingListEntryView: View {
     let entry: RunningRankingListEntry
 
     var body: some View {
-        HStack {
-            Text("\(entry.rank)")
-                .foregroundStyle(.white)
-                .font(.headline)
-                .padding(.horizontal, 10)
+        HStack(spacing: 10) {
+            let NoSize: CGFloat = CGFloat(entry.rank < 4 ? 15 + (8 - 2 * entry.rank) : 15)
+            let NoWeight: Font.Weight = entry.rank < 4 ? .bold : .medium
+            let NoColor: Color = entry.rank < 4 ? (entry.rank == 1 ? Color.gold : (entry.rank == 2 ? Color.silver : Color.bronze)) : Color.white
+            Text("#\(entry.rank)")
+                .font(.system(size: NoSize, weight: NoWeight, design: .rounded))
+                .foregroundStyle(NoColor)
             CachedAsyncImage(
                 urlString: entry.avatarImageURL
             )
@@ -663,6 +1265,8 @@ struct RunningRankingListEntryView: View {
                 Text(entry.nickname)
                     .font(.subheadline)
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 Text(TimeDisplay.formattedTime(entry.duration, showFraction: true))
                     .font(.subheadline)
                     .foregroundStyle(.white)

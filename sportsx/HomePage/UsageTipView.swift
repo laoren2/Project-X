@@ -56,6 +56,27 @@ struct UsageTipView: View {
                 UsageTipItem(rank: 2, subtitle: "home.skill.title.5.subtitle.2", content: "home.skill.title.5.subtitle.2.content"),
                 UsageTipItem(rank: 3, subtitle: "home.skill.title.5.subtitle.3", content: "home.skill.title.5.subtitle.3.content")
             ]
+        ),
+        UsageTipSection(
+            rank: 6,
+            title: "home.skill.title.6",
+            items: [
+                UsageTipItem(rank: 1, subtitle: "home.skill.title.6.subtitle.1", content: "home.skill.title.6.subtitle.1.content")
+            ]
+        ),
+        UsageTipSection(
+            rank: 7,
+            title: "home.skill.title.7",
+            items: [
+                UsageTipItem(rank: 1, subtitle: "home.skill.title.7.subtitle.1", content: "home.skill.title.7.subtitle.1.content")
+            ]
+        ),
+        UsageTipSection(
+            rank: 8,
+            title: "home.skill.title.8",
+            items: [
+                UsageTipItem(rank: 1, subtitle: "home.skill.title.8.subtitle.1", content: "home.skill.title.8.subtitle.1.content")
+            ]
         )
     ]
     
@@ -104,7 +125,9 @@ struct UsageTipView: View {
                         .padding(.vertical)
                         .contentShape(Rectangle())
                         .exclusiveTouchTapGesture {
-                            expandedSections[index].toggle()
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                expandedSections[index].toggle()
+                            }
                         }
                         if expandedSections[index] {
                             VStack(spacing: 20) {
@@ -123,7 +146,9 @@ struct UsageTipView: View {
                             .padding(.vertical)
                             .contentShape(Rectangle())
                             .exclusiveTouchTapGesture {
-                                expandedSections[index].toggle()
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    expandedSections[index].toggle()
+                                }
                             }
                         }
                     }

@@ -44,9 +44,12 @@ struct CardSelectionView: View {
                 Button(action: {
                     showCardSelection = false
                 }) {
-                    Text("action.cancel")
+                    Image(systemName: "xmark")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.thirdText)
+                        .padding(10)
+                        .background(Color.gray.opacity(0.3))
+                        .clipShape(Circle())
                 }
                 
                 Spacer()
@@ -61,9 +64,12 @@ struct CardSelectionView: View {
                     showCardSelection = false
                     appState.competitionManager.selectedCards = tempSelectedCards
                 }) {
-                    Text("action.complete")
+                    Image(systemName: "checkmark")
                         .font(.system(size: 16))
                         .foregroundStyle(Color.white)
+                        .padding(10)
+                        .background(Color.orange.opacity(0.3))
+                        .clipShape(Circle())
                 }
             }
             .padding()
@@ -193,7 +199,6 @@ struct CardSelectionView: View {
             }
             Spacer()
         }
-        .ignoresSafeArea(.keyboard)
         .background(Color.defaultBackground)
         .hideKeyboardOnScroll()
         .onStableAppear {
@@ -227,16 +232,15 @@ struct CardSelectionView: View {
                 }
             }
             // 检查传感器
-            if let location = card.sensorLocation {
-                if !DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorType) {
-                    if card.sensorLocation2 == nil {
-                        ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.no_sensor"))
-                        return
-                    }
-                    if let location2 = card.sensorLocation2, !DeviceManager.shared.checkSensorLocation(at: location2 >> 1, in: card.sensorType) {
-                        ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.no_sensor"))
-                        return
-                    }
+            if !card.sensorDevices.isEmpty {
+                guard let defaultPos = DeviceManager.shared.defaultSensorPos else {
+                    ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.no_sensor"))
+                    return
+                }
+                let location = card.sensorLocation ?? (1 << (defaultPos.rawValue + 1))
+                guard DeviceManager.shared.checkSensorLocation(at: location >> 1, in: card.sensorDevices) else {
+                    ToastManager.shared.show(toast: Toast(message: "competition.magiccard.error.no_sensor"))
+                    return
                 }
             }
             // 检查版本

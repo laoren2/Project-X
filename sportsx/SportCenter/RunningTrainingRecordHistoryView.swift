@@ -22,9 +22,15 @@ struct RunningTrainingRecordHistoryView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
                 Spacer()
-                Text("training.history.title")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
+                HStack(spacing: 4) {
+                    Image("running")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                    Text("training.history.title")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                }
                 Spacer()
                 Button(action: {}) {
                     Image(systemName: "chevron.left")
@@ -95,22 +101,38 @@ struct RunningTrainingRecordCardView: View {
     let record: RunningFreeTrainingRecord
     
     var body: some View {
-        HStack(spacing: 5) {
-            Text(DateDisplay.formattedDate(record.endTime))
+        HStack(spacing: 20) {
+            Image(record.trainingType == .freeTraining ? "free_training" : "route_training")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20)
+            HStack(spacing: 4) {
+                Image(systemName: "calendar")
+                Text(DateDisplay.formattedDate(record.endTime, part: .time))
+            }
+            .foregroundStyle(Color.secondText)
+            .font(.system(size: 15))
             Spacer()
-            Image(systemName: "flame.fill")
-                .font(.system(size: 20))
-            Text("\(record.delta >= 0 ? "+" : "") \(record.delta)")
-                .foregroundColor(record.delta >= 0 ? .orange : .red)
+            HStack(spacing: 4) {
+                Image("momentum")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Text("\(record.delta >= 0 ? "+" : "") \(record.delta)")
+                    .foregroundColor(record.delta >= 0 ? .orange : .red)
+            }
             Image(systemName: "chevron.right")
                 .foregroundStyle(Color.secondText)
-                .exclusiveTouchTapGesture {
-                    appState.navigationManager.append(.runningFreeTrainingRecordDetailView(recordID: record.record_id))
-                }
         }
         .foregroundStyle(Color.white)
         .padding()
-        .background(Color.gray.opacity(0.5))
-        .cornerRadius(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white.opacity(0.3))
+        )
+        .exclusiveTouchTapGesture {
+            let des: AppRoute = record.trainingType == .freeTraining ? .runningFreeTrainingRecordDetailView(recordID: record.record_id) : .runningRouteTrainingRecordDetailView(recordID: record.record_id)
+            appState.navigationManager.append(des)
+        }
     }
 }

@@ -10,7 +10,7 @@ import CoreLocation
 
 
 // 自行车赛道地形类型
-enum BikeTrackTerrainType: String, Codable {
+enum BikeTrackTerrainType: String, Codable, CaseIterable {
     case road = "road"
     case crossCountry = "crossCountry"
     case enduro = "enduro"

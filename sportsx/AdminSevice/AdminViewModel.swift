@@ -123,7 +123,7 @@ class RunningTrackBackendViewModel: ObservableObject {
     @Published var prizePool: String = ""
     @Published var distance: String = ""
     @Published var score: String = ""
-    @Published var terrainType: RunningTrackTerrainType = .other
+    @Published var terrainType: RunningTrackTerrainType = .road
     
     var image_url: String = ""
 }
@@ -689,9 +689,13 @@ class CPAssetBackendViewModel: ObservableObject {
     @Published var name_en: String = ""
     @Published var name_hans: String = ""
     @Published var name_hant: String = ""
+    @Published var name_ko: String = ""
+    @Published var name_ja: String = ""
     @Published var description_en: String = ""
     @Published var description_hans: String = ""
     @Published var description_hant: String = ""
+    @Published var description_ko: String = ""
+    @Published var description_ja: String = ""
     var image_url: String = ""
 }
 
@@ -702,9 +706,13 @@ struct CPAssetCardEntry: Identifiable, Equatable {
     let name_en: String
     let name_hans: String
     let name_hant: String
+    let name_ko: String
+    let name_ja: String
     let description_en: String
     let description_hans: String
     let description_hant: String
+    let description_ko: String
+    let description_ja: String
     let image_url: String
     
     init(from asset: CPAssetDefDTO) {
@@ -713,9 +721,13 @@ struct CPAssetCardEntry: Identifiable, Equatable {
         self.name_en = asset.name["en"]?.stringValue ?? "空"
         self.name_hans = asset.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = asset.name["zh-Hant"]?.stringValue ?? "空"
+        self.name_ko = asset.name["ko"]?.stringValue ?? "空"
+        self.name_ja = asset.name["ja"]?.stringValue ?? "空"
         self.description_en = asset.description["en"]?.stringValue ?? "空"
         self.description_hans = asset.description["zh-Hans"]?.stringValue ?? "空"
         self.description_hant = asset.description["zh-Hant"]?.stringValue ?? "空"
+        self.description_ko = asset.description["ko"]?.stringValue ?? "空"
+        self.description_ja = asset.description["ja"]?.stringValue ?? "空"
         self.image_url = asset.image_url
     }
     
@@ -816,18 +828,28 @@ class MagicCardBackendViewModel: ObservableObject {
     @Published var name_en: String = ""
     @Published var name_hans: String = ""
     @Published var name_hant: String = ""
+    @Published var name_ko: String = ""
+    @Published var name_ja: String = ""
     @Published var description_en: String = ""
     @Published var description_hans: String = ""
     @Published var description_hant: String = ""
+    @Published var description_ko: String = ""
+    @Published var description_ja: String = ""
     @Published var skill1_description_en: String = ""
     @Published var skill1_description_hans: String = ""
     @Published var skill1_description_hant: String = ""
+    @Published var skill1_description_ko: String = ""
+    @Published var skill1_description_ja: String = ""
     @Published var skill2_description_en: String = ""
     @Published var skill2_description_hans: String = ""
     @Published var skill2_description_hant: String = ""
+    @Published var skill2_description_ko: String = ""
+    @Published var skill2_description_ja: String = ""
     @Published var skill3_description_en: String = ""
     @Published var skill3_description_hans: String = ""
     @Published var skill3_description_hant: String = ""
+    @Published var skill3_description_ko: String = ""
+    @Published var skill3_description_ja: String = ""
     var image_url: String = ""
     @Published var version: String = ""
 }
@@ -839,18 +861,28 @@ struct MagicCardEntry: Identifiable, Equatable {
     let name_en: String
     let name_hans: String
     let name_hant: String
+    let name_ko: String
+    let name_ja: String
     let description_en: String
     let description_hans: String
     let description_hant: String
+    let description_ko: String
+    let description_ja: String
     let skill1_description_en: String
     let skill1_description_hans: String
     let skill1_description_hant: String
+    let skill1_description_ko: String
+    let skill1_description_ja: String
     let skill2_description_en: String
     let skill2_description_hans: String
     let skill2_description_hant: String
+    let skill2_description_ko: String
+    let skill2_description_ja: String
     let skill3_description_en: String
     let skill3_description_hans: String
     let skill3_description_hant: String
+    let skill3_description_ko: String
+    let skill3_description_ja: String
     let image_url: String
     let version: String
     let rarity: String
@@ -860,35 +892,51 @@ struct MagicCardEntry: Identifiable, Equatable {
         self.name_en = card.name_i18n["en"]?.stringValue ?? "空"
         self.name_hans = card.name_i18n["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = card.name_i18n["zh-Hant"]?.stringValue ?? "空"
+        self.name_ko = card.name_i18n["ko"]?.stringValue ?? "空"
+        self.name_ja = card.name_i18n["ja"]?.stringValue ?? "空"
         self.description_en = card.description_i18n["en"]?.stringValue ?? "空"
         self.description_hans = card.description_i18n["zh-Hans"]?.stringValue ?? "空"
         self.description_hant = card.description_i18n["zh-Hant"]?.stringValue ?? "空"
+        self.description_ko = card.description_i18n["ko"]?.stringValue ?? "空"
+        self.description_ja = card.description_i18n["ja"]?.stringValue ?? "空"
         if let skill1_des = card.skill1_description_i18n {
             self.skill1_description_en = skill1_des["en"]?.stringValue ?? ""
             self.skill1_description_hans = skill1_des["zh-Hans"]?.stringValue ?? ""
             self.skill1_description_hant = skill1_des["zh-Hant"]?.stringValue ?? ""
+            self.skill1_description_ko = skill1_des["ko"]?.stringValue ?? ""
+            self.skill1_description_ja = skill1_des["ja"]?.stringValue ?? ""
         } else {
             self.skill1_description_en = ""
             self.skill1_description_hans = ""
             self.skill1_description_hant = ""
+            self.skill1_description_ko = ""
+            self.skill1_description_ja = ""
         }
         if let skill2_des = card.skill2_description_i18n {
             self.skill2_description_en = skill2_des["en"]?.stringValue ?? ""
             self.skill2_description_hans = skill2_des["zh-Hans"]?.stringValue ?? ""
             self.skill2_description_hant = skill2_des["zh-Hant"]?.stringValue ?? ""
+            self.skill2_description_ko = skill2_des["ko"]?.stringValue ?? ""
+            self.skill2_description_ja = skill2_des["ja"]?.stringValue ?? ""
         } else {
             self.skill2_description_en = ""
             self.skill2_description_hans = ""
             self.skill2_description_hant = ""
+            self.skill2_description_ko = ""
+            self.skill2_description_ja = ""
         }
         if let skill3_des = card.skill3_description_i18n {
             self.skill3_description_en = skill3_des["en"]?.stringValue ?? ""
             self.skill3_description_hans = skill3_des["zh-Hans"]?.stringValue ?? ""
             self.skill3_description_hant = skill3_des["zh-Hant"]?.stringValue ?? ""
+            self.skill3_description_ko = skill3_des["ko"]?.stringValue ?? ""
+            self.skill3_description_ja = skill3_des["ja"]?.stringValue ?? ""
         } else {
             self.skill3_description_en = ""
             self.skill3_description_hans = ""
             self.skill3_description_hant = ""
+            self.skill3_description_ko = ""
+            self.skill3_description_ja = ""
         }
         self.image_url = card.image_url
         self.sport_type = card.sport_type

@@ -231,6 +231,12 @@ final class BootstrapManager: ObservableObject {
         MagicCardFactory.register(defID: "equipcard_running_00000006") { cardID, level, params in
             return SpeedEffect_A_00000001(cardID: cardID, level: level, with: params)
         }
+        MagicCardFactory.register(defID: "equipcard_running_00000007") { cardID, level, params in
+            return HeartRateEffect_A_00000001(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_running_00000008") { cardID, level, params in
+            return AltitudeEffect_A_00000001(cardID: cardID, level: level, with: params)
+        }
         // bike
         MagicCardFactory.register(defID: "equipcard_bike_00000001") { cardID, level, params in
             return HeartRateEffect_C_00000001(cardID: cardID, level: level, with: params)
@@ -249,6 +255,12 @@ final class BootstrapManager: ObservableObject {
         }
         MagicCardFactory.register(defID: "equipcard_bike_00000006") { cardID, level, params in
             return SpeedEffect_A_00000002(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_bike_00000007") { cardID, level, params in
+            return HeartRateEffect_A_00000001(cardID: cardID, level: level, with: params)
+        }
+        MagicCardFactory.register(defID: "equipcard_bike_00000008") { cardID, level, params in
+            return AltitudeEffect_A_00000001(cardID: cardID, level: level, with: params)
         }
         // test
         //MagicCardFactory.register(defID: "equipcard_bike_00000000") { cardID, level, params in
@@ -399,6 +411,95 @@ struct TestLaunchView: View {
         .background(Color.defaultBackground)
     }
 }
+
+/*struct LaunchRecordingView: View {
+    @State private var progress: Double = 0
+    @State private var sloganIndex: Int = 0
+    @State private var isVisible: Bool = true
+    
+    private let slogans: [String] = [
+        "Play for Passion",
+        "動いて、遊べ。",
+        "열정을 플레이하다",
+        "YI起动    YI起玩",
+        "YI起動    YI起玩"
+    ]
+    
+    private let timer = Timer.publish(every: 1.2, on: .main, in: .common).autoconnect()
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            
+            Image("single_app_icon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100)
+                .foregroundStyle(Color.orange.opacity(0.85))
+            
+            ZStack {
+                ForEach(Array(slogans.enumerated()), id: \.offset) { index, text in
+                    if sloganIndex == index {
+                        SloganTextView(text: text)
+                            .transition(
+                                .asymmetric(
+                                    insertion: .opacity.combined(with: .move(edge: .bottom)),
+                                    removal: .opacity.combined(with: .move(edge: .top))
+                                )
+                            )
+                    }
+                }
+            }
+            .frame(height: 40)
+            .padding(.top, 14)
+            .padding(.bottom, 26)
+            .animation(.easeInOut(duration: 0.5), value: sloganIndex)
+            
+            ProgressBar(progress: progress)
+                .frame(height: 10)
+            
+            Spacer()
+        }
+        .padding()
+        .ignoresSafeArea(.all)
+        .background(Color.defaultBackground)
+        .task {
+            withAnimation(.linear(duration: 6.0)) {
+                progress = 1.0
+            }
+        }
+        .onReceive(timer) { _ in
+            withAnimation(.easeInOut(duration: 0.45)) {
+                sloganIndex = (sloganIndex + 1) % slogans.count
+            }
+        }
+    }
+}
+
+struct SloganTextView: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(font)
+            .foregroundStyle(Color.secondText)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+    }
+    
+    private var font: Font {
+        if text.contains("열정") {
+            return .system(size: 28, weight: .semibold, design: .rounded)
+        }
+        
+        if text.contains("情熱") {
+            return .system(size: 30, weight: .bold, design: .rounded)
+        }
+        
+        return .system(size: 30, weight: .heavy, design: .rounded)
+    }
+}*/
 
 struct TestErrorView: View {
     let message: String

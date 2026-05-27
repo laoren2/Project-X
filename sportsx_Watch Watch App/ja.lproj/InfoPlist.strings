@@ -1,0 +1,10 @@
+/* 
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/4.
+  
+*/
+
+"NSHealthShareUsageDescription" = "より正確な運動記録とパフォーマンス分析のために、ヘルスケアAppから運動データや心拍数データを読み取ります。";
+"NSHealthUpdateUsageDescription" = "運動記録をヘルスケアAppに保存し、システムのヘルスケアAppで運動履歴を確認できるようにします。";

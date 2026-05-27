@@ -70,6 +70,16 @@ enum AppRoute: Hashable {
     case runningFreeTrainingRecordDetailView(recordID: String)
     case bikeTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
     case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
+    case bikeRouteCreateView
+    case runningRouteCreateView
+    case routeEditorView(storeID: UUID)
+    case bikeRouteManageView
+    case runningRouteManageView
+    case routeTrainingRealtimeView
+    case bikeRouteTrainingRecordDetailView(recordID: String)
+    case runningRouteTrainingRecordDetailView(recordID: String)
+    case bikeRouteRankListView(routeID: String, isPremium: Bool)
+    case runningRouteRankListView(routeID: String, isPremium: Bool)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -206,6 +216,26 @@ enum AppRoute: Hashable {
             return "bikeTrainingMapView"
         case .runningTrainingMapView:
             return "runningTrainingMapView"
+        case .bikeRouteCreateView:
+            return "bikeRouteCreateView"
+        case .runningRouteCreateView:
+            return "runningRouteCreateView"
+        case .routeEditorView:
+            return "routeEditorView"
+        case .bikeRouteManageView:
+            return "bikeRouteManageView"
+        case .runningRouteManageView:
+            return "runningRouteManageView"
+        case .routeTrainingRealtimeView:
+            return "routeTrainingRealtimeView"
+        case .bikeRouteTrainingRecordDetailView:
+            return "bikeRouteTrainingRecordDetailView"
+        case .runningRouteTrainingRecordDetailView:
+            return "runningRouteTrainingRecordDetailView"
+        case .bikeRouteRankListView:
+            return "bikeRouteRankListView"
+        case .runningRouteRankListView:
+            return "runningRouteRankListView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"
@@ -292,13 +322,17 @@ class NavigationManager: ObservableObject {
 
     func removeLast(_ count: Int = 1) {
         guard count > 0 else { return }
-        popWithUIKit(count: count)
+        lock.lock()
+        defer { lock.unlock() }
+        path.removeLast(min(count, path.count))
+        //popWithUIKit(count: count)
     }
 
     // MARK: - UIKit Navigation Bridge
     
     private func popWithUIKit(count: Int) {
         guard let nav = findNavigationController() else { return }
+        let oldCount = path.count
         
         if count == 1 {
             nav.popViewController(animated: true)
@@ -310,11 +344,15 @@ class NavigationManager: ObservableObject {
         }
         
         // 同步 SwiftUI path（防止状态不一致）
-        lock.lock()
-        if path.count >= count {
-            path.removeLast(count)
+        DispatchQueue.main.async {
+            self.lock.lock()
+            defer { self.lock.unlock() }
+            
+            // UIKit 没同步时才手动同步
+            if self.path.count == oldCount {
+                self.path.removeLast(min(count, self.path.count))
+            }
         }
-        lock.unlock()
     }
 
     private func findNavigationController() -> UINavigationController? {
@@ -362,5 +400,44 @@ class NavigationManager: ObservableObject {
     func backToHome() {
         selectedTab = .home
         removeLast(path.count)
+    }
+}
+
+protocol NavigationStore: AnyObject {}
+
+final class WeakBox {
+    weak var value: AnyObject?
+    
+    init(_ value: AnyObject) {
+        self.value = value
+    }
+}
+
+final class NavigationStoreManager {
+    static let shared = NavigationStoreManager()
+    
+    private init() {}
+    
+    private var stores: [UUID: WeakBox] = [:]
+    
+    // 创建（不再强持有）
+    func register<T: NavigationStore>(_ store: T) -> UUID {
+        let id = UUID()
+        stores[id] = WeakBox(store)
+        return id
+    }
+    
+    // 获取
+    func resolve<T: NavigationStore>(_ id: UUID, as type: T.Type) -> T? {
+        guard let value = stores[id]?.value else {
+            stores.removeValue(forKey: id) // 顺手清理
+            return nil
+        }
+        return value as? T
+    }
+    
+    // 可选：清理空引用（懒清理）
+    func cleanup() {
+        stores = stores.filter { $0.value.value != nil }
     }
 }

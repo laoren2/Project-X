@@ -12,8 +12,7 @@ import WatchConnectivity
 struct SensorBindView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var deviceManager = DeviceManager.shared
-    @State private var isLoading: BodyPosition? = nil
-    @State private var selectedPosition: BodyPosition? = nil
+    //@State private var selectedPosition: BodyPosition? = nil
     
     var body: some View {
         VStack(spacing: 20) {
@@ -58,9 +57,10 @@ struct SensorBindView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
+                    AWBindView()
                     //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posWST)
-                    BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLH)
-                    BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRH)
+                    //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLH)
+                    //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRH)
                     //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posLF)
                     //BodyBindView(selectedPosition: $selectedPosition, isLoading: $isLoading, position: .posRF)
                 }
@@ -70,7 +70,7 @@ struct SensorBindView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .sheet(item: $selectedPosition) { pos in
+        /*.sheet(item: $selectedPosition) { pos in
             VStack {
                 HStack {
                     Spacer()
@@ -109,7 +109,71 @@ struct SensorBindView: View {
             }
             .presentationDetents([.medium])
             .background(Color.defaultBackground)
+        }*/
+    }
+}
+
+struct AWBindView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject var deviceManager = DeviceManager.shared
+    @State private var isLoading: Bool = false
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "applewatch")
+                .font(.system(size: 25))
+            Text("Apple Watch")
+                .font(.system(size: 20, weight: .bold))
+            Spacer()
+            if deviceManager.checkAW() {
+                HStack(spacing: 2) {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(Color.green)
+                    Text("user.page.bind_device.connected")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.thirdText)
+                }
+            } else {
+                Text("user.page.bind_device.action.connect")
+                    .font(.system(size: 15))
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.orange)
+                    )
+                    .exclusiveTouchTapGesture {
+                        deviceManager.connectAW()
+                    }
+            }
+            if deviceManager.hasAppleWatchBound() {
+                Button(action:{
+                    if !appState.competitionManager.isRecording {
+                        deviceManager.unbindDevice(at: .posLH)
+                        ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
+                    }
+                }) {
+                    Text("user.setup.action.phone.unbind")
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                }
+            } else {
+                Button(action:{
+                    bindAWDevice(pos: .posLH)
+                }) {
+                    Text("user.setup.action.phone.bind")
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                }
+            }
         }
+        .foregroundStyle(Color.white)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white.opacity(0.3))
+        )
     }
     
     func bindAWDevice(pos: BodyPosition) {
@@ -121,7 +185,7 @@ struct SensorBindView: View {
             deviceName: "applewatch",
             sensorPos: pos.rawValue
         )
-        isLoading = pos
+        isLoading = true
         var counter = 0
         let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
         timer.schedule(deadline: .now(), repeating: 1.0)
@@ -129,7 +193,7 @@ struct SensorBindView: View {
             if newWatch.connect() {
                 DispatchQueue.main.async {
                     deviceManager.bindDevice(newWatch, at: pos)
-                    isLoading = nil
+                    isLoading = false
                     ToastManager.shared.finish()
                     let toast = Toast(message: "user.page.bind_device.result.success")
                     ToastManager.shared.show(toast: toast)
@@ -140,7 +204,7 @@ struct SensorBindView: View {
                 if counter >= 10 {
                     DispatchQueue.main.async {
                         ToastManager.shared.finish()
-                        isLoading = nil
+                        isLoading = false
                         let toast = Toast(message: "user.page.bind_device.result.failed")
                         ToastManager.shared.show(toast: toast)
                     }
@@ -171,8 +235,7 @@ struct BodyBindView: View {
                 .bold()
                 .foregroundStyle(Color.secondText)
             Spacer()
-            if deviceManager.isBound(at: position),
-               let device = deviceManager.getDevice(at: position) {
+            if deviceManager.isBound(at: position), let device = deviceManager.getDevice(at: position) {
                 HStack(spacing: 2) {
                     // 已绑定状态 => 显示设备名
                     Text("\(device.deviceName)")

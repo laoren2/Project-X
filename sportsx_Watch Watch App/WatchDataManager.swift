@@ -23,7 +23,7 @@ enum SportType: String {
 class WatchDataManager: NSObject, ObservableObject {
     static let shared = WatchDataManager()
     
-    @Published var running = false
+    @Published var isRecording = false
     
     @Published var heartRate: Double = 0
     private var avgHeartRate: Double = 0
@@ -210,7 +210,7 @@ class WatchDataManager: NSObject, ObservableObject {
     }
     
     func startWorkout(config: HKWorkoutConfiguration) {
-        guard !running, WKsession == nil, builder == nil else { return }
+        guard !isRecording, WKsession == nil, builder == nil else { return }
         
         do {
             WKsession = try HKWorkoutSession(healthStore: healthStore, configuration: config)
@@ -416,7 +416,9 @@ class WatchDataManager: NSObject, ObservableObject {
         }*/
         WKsession?.end()
         locationManager.stopUpdatingLocation()
-        showingSummaryView = true
+        if isRecording {
+            showingSummaryView = true
+        }
         //resetWorkout()
     }
     
@@ -578,7 +580,7 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                         from fromState: HKWorkoutSessionState,
                         date: Date) {
         DispatchQueue.main.async {
-            self.running = toState == .running
+            self.isRecording = toState == .running
         }
         
         if toState == .running {

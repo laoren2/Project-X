@@ -62,11 +62,13 @@ struct BikeFreeTrainingRecord: Identifiable {
     let record_id: String
     let endTime: Date?
     let delta: Int
+    let trainingType: TrainingType
     
     init(from record: TrainingRecordInfo) {
         self.record_id = record.record_id
         self.delta = record.delta_state
         self.endTime =  DateParser.parseISO8601(record.end_time)
+        self.trainingType = record.training_type
     }
 }
 
@@ -75,11 +77,13 @@ struct RunningFreeTrainingRecord: Identifiable {
     let record_id: String
     let endTime: Date?
     let delta: Int
+    let trainingType: TrainingType
     
     init(from record: TrainingRecordInfo) {
         self.record_id = record.record_id
         self.delta = record.delta_state
         self.endTime =  DateParser.parseISO8601(record.end_time)
+        self.trainingType = record.training_type
     }
 }
 
@@ -87,8 +91,14 @@ struct TrainingRecordInfo: Codable {
     let record_id: String
     let delta_state: Int
     let end_time: String
+    let training_type: TrainingType
 }
 
 struct TrainingRecordsResponse: Codable {
     let records: [TrainingRecordInfo]
+}
+
+enum TrainingType: String, Codable {
+    case freeTraining = "freeTraining"
+    case routeTraining = "routeTraining"
 }

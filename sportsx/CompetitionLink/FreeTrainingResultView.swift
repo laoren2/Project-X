@@ -18,6 +18,7 @@ struct BikeFreeTrainingRecordDetailView: View {
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
     @State var isPowerDetail: Bool = false
+    @State var isPedalCadenceDetail: Bool = false
     
     let formHeight: CGFloat = 80
     
@@ -56,6 +57,16 @@ struct BikeFreeTrainingRecordDetailView: View {
         return (minVal, maxVal)
     }
     
+    var overallPedalCadenceRange: (min: Double?, max: Double?) {
+        let pedals = viewModel.samplePath.compactMap { $0.pedal_cadence_avg }
+        if pedals.isEmpty {
+            return (nil, nil)
+        }
+        let minVal = pedals.min() ?? 0
+        let maxVal = pedals.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
     var heartRateAvg: Double? {
         let validHeartRates = viewModel.basePath.compactMap { $0.heart_rate }
         guard !validHeartRates.isEmpty else { return nil }
@@ -88,6 +99,12 @@ struct BikeFreeTrainingRecordDetailView: View {
         let powers = viewModel.pathData.compactMap { $0.power }
         guard !powers.isEmpty else { return nil }
         return powers.reduce(0, +) / Double(powers.count)
+    }
+    
+    var pedalCadenceAvg: Double? {
+        let pedals = viewModel.pathData.compactMap { $0.pedal_cadence }
+        guard !pedals.isEmpty else { return nil }
+        return pedals.reduce(0, +) / Double(pedals.count)
     }
     
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
@@ -124,7 +141,10 @@ struct BikeFreeTrainingRecordDetailView: View {
                     }
                 Spacer()
                 HStack {
-                    Text(LocalizedStringKey(SportName.Bike.name))
+                    Image(SportName.Bike.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
                     Text("training.result.record")
                 }
                 .font(.system(size: 18, weight: .bold))
@@ -185,11 +205,18 @@ struct BikeFreeTrainingRecordDetailView: View {
                                 }
                                 Spacer()
                                 HStack(spacing: 4) {
-                                    Image(systemName: "flame.fill")
-                                        .font(.system(size: 20))
+                                    Image("momentum")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20)
                                     Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
                                         .font(.system(.body, design: .rounded, weight: .bold))
                                 }
+                            }
+                            .foregroundStyle(Color.white)
+                            
+                            HStack(spacing: 20) {
+                                Spacer()
                                 ForEach(detailInfo.settlements.cc_rewards) { ccasset in
                                     HStack(spacing: 4) {
                                         Image(ccasset.ccasset_type.iconName)
@@ -206,6 +233,56 @@ struct BikeFreeTrainingRecordDetailView: View {
                             
                             Divider()
                                 .environment(\.colorScheme, .dark)
+                            
+                            // buff 信息
+                            if !detailInfo.buffInfos.isEmpty {
+                                HStack {
+                                    Text("training.result.grid_reward")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                }
+                                
+                                ScrollView(.horizontal) {
+                                    HStack {
+                                        ForEach(detailInfo.buffInfos) { buff in
+                                            ZStack(alignment: .topTrailing) {
+                                                Image(buff.rewardType.iconName)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 20)
+                                                if buff.conditionType == .distance {
+                                                    Image("buff_condition_distance")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 15)
+                                                        .offset(x: 4, y: -4)
+                                                } else if buff.conditionType == .speed {
+                                                    Image("buff_condition_speed")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 15)
+                                                        .offset(x: 4, y: -4)
+                                                }
+                                            }
+                                            .frame(width: 35, height: 35)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 5)
+                                                    .fill(Color.orange.opacity(0.2))
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 5)
+                                                    .stroke(Color.orange.opacity(0.8), lineWidth: 1.5)
+                                            )
+                                        }
+                                    }
+                                    .padding(5)
+                                }
+                                
+                                Divider()
+                                    .environment(\.colorScheme, .dark)
+                            }
                             
                             HStack {
                                 Text("competition.record.time_and_data")
@@ -398,7 +475,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("common.speed")
+                                                    Text("common.pace")
                                                     Spacer()
                                                     Text(String(format: "%.0f - %.0f ", overallSpeedRange.min, overallSpeedRange.max)) + Text("speed.km/h")
                                                 }
@@ -445,7 +522,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("common.speed")
+                                            Text("common.pace")
                                             Spacer()
                                             Text("common.average") + Text(String(format: " %.0f ", speedAvg)) + Text("speed.km/h")
                                         }
@@ -540,6 +617,89 @@ struct BikeFreeTrainingRecordDetailView: View {
                                             }
                                         }
                                     }
+                                    if let rangeMin = overallPedalCadenceRange.min, let rangeMax = overallPedalCadenceRange.max {
+                                        if isPedalCadenceDetail {
+                                            VStack {
+                                                ZStack(alignment: .center) {
+                                                    HStack {
+                                                        Text("competition.result.pedalcadence")
+                                                        Spacer()
+                                                        (Text(String(format: "%.0f - %.0f ", rangeMin, rangeMax)) + Text("pedalCadence.unit"))
+                                                    }
+                                                    .foregroundStyle(Color.pink)
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        isPedalCadenceDetail.toggle()
+                                                    }
+                                                    if let avg = viewModel.samplePath[progressIndex].pedal_cadence_avg {
+                                                        (Text(String(format: "%.0f ", avg)) + Text("pedalCadence.unit"))
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.pink.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    } else {
+                                                        Text("error.no_data")
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.gray.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    }
+                                                }
+                                                ZStack {
+                                                    HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                        ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                            if let pedal_avg = viewModel.samplePath[i].pedal_cadence_avg {
+                                                                let overall = rangeMax - rangeMin
+                                                                let ratio = overall > 0 ? (pedal_avg - rangeMin) / overall : 1/2
+                                                                let height = max(formHeight * ratio, 0) + 4
+                                                                
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                                    .frame(width: 2, height: height)
+                                                            } else {
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .frame(width: 2, height: 2)
+                                                                    .hidden()
+                                                            }
+                                                        }
+                                                    }
+                                                    GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                                }
+                                                .frame(height: formHeight)
+                                                Rectangle()
+                                                    .foregroundStyle(Color.gray)
+                                                    .frame(height: 1)
+                                                HStack {
+                                                    Text("00:00")
+                                                    Spacer()
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
+                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                    }
+                                                }
+                                                .font(.caption)
+                                                .foregroundStyle(Color.gray)
+                                            }
+                                        } else {
+                                            HStack {
+                                                Text("competition.result.pedalcadence")
+                                                Spacer()
+                                                if let pedalAvg = pedalCadenceAvg {
+                                                    Text("common.average") + Text(String(format: " %.0f ", pedalAvg)) + Text("pedalCadence.unit")
+                                                }
+                                            }
+                                            .padding()
+                                            .foregroundStyle(Color.white)
+                                            .background(Color.pink.opacity(0.8))
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .onTapGesture {
+                                                isPedalCadenceDetail.toggle()
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -550,8 +710,14 @@ struct BikeFreeTrainingRecordDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("error.no_data")
-                        .foregroundStyle(.white)
+                    VStack(spacing: 20) {
+                        Image("no_data")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 60)
+                        Text("error.nothing_here")
+                            .foregroundStyle(.white)
+                    }
                     Spacer()
                 }
             }
@@ -704,7 +870,10 @@ struct RunningFreeTrainingRecordDetailView: View {
                     }
                 Spacer()
                 HStack {
-                    Text(LocalizedStringKey(SportName.Running.name))
+                    Image(SportName.Running.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
                     Text("training.result.record")
                 }
                 .font(.system(size: 18, weight: .bold))
@@ -765,11 +934,18 @@ struct RunningFreeTrainingRecordDetailView: View {
                                 }
                                 Spacer()
                                 HStack(spacing: 4) {
-                                    Image(systemName: "flame.fill")
-                                        .font(.system(size: 20))
+                                    Image("momentum")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20)
                                     Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
                                         .font(.system(.body, design: .rounded, weight: .bold))
                                 }
+                            }
+                            .foregroundStyle(Color.white)
+                            
+                            HStack(spacing: 20) {
+                                Spacer()
                                 ForEach(detailInfo.settlements.cc_rewards) { ccasset in
                                     HStack(spacing: 4) {
                                         Image(ccasset.ccasset_type.iconName)
@@ -786,6 +962,56 @@ struct RunningFreeTrainingRecordDetailView: View {
                             
                             Divider()
                                 .environment(\.colorScheme, .dark)
+                            
+                            // buff 信息
+                            if !detailInfo.buffInfos.isEmpty {
+                                HStack {
+                                    Text("training.result.grid_reward")
+                                        .font(.title2)
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                }
+                                
+                                ScrollView(.horizontal) {
+                                    HStack {
+                                        ForEach(detailInfo.buffInfos) { buff in
+                                            ZStack(alignment: .topTrailing) {
+                                                Image(buff.rewardType.iconName)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 20)
+                                                if buff.conditionType == .distance {
+                                                    Image("buff_condition_distance")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 15)
+                                                        .offset(x: 4, y: -4)
+                                                } else if buff.conditionType == .speed {
+                                                    Image("buff_condition_speed")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 15)
+                                                        .offset(x: 4, y: -4)
+                                                }
+                                            }
+                                            .frame(width: 35, height: 35)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 5)
+                                                    .fill(Color.orange.opacity(0.2))
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 5)
+                                                    .stroke(Color.orange.opacity(0.8), lineWidth: 1.5)
+                                            )
+                                        }
+                                    }
+                                    .padding(5)
+                                }
+                                
+                                Divider()
+                                    .environment(\.colorScheme, .dark)
+                            }
                             
                             HStack {
                                 Text("competition.record.time_and_data")
@@ -978,7 +1204,7 @@ struct RunningFreeTrainingRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("common.speed")
+                                                    Text("common.pace")
                                                     Spacer()
                                                     Text(SpeedHelper.paceString(from: overallSpeedRange.min)) + Text(" - ") + Text(SpeedHelper.paceString(from: overallSpeedRange.max)) + Text("/") + Text("distance.km")
                                                 }
@@ -1025,9 +1251,9 @@ struct RunningFreeTrainingRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("common.speed")
+                                            Text("common.pace")
                                             Spacer()
-                                            Text("common.average") + Text(SpeedHelper.paceString(from: speedAvg)) + Text("/") + Text("distance.km")
+                                            Text("common.average") + Text(" ") + Text(SpeedHelper.paceString(from: speedAvg)) + Text("/") + Text("distance.km")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -1214,8 +1440,14 @@ struct RunningFreeTrainingRecordDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("error.no_data")
-                        .foregroundStyle(.white)
+                    VStack(spacing: 20) {
+                        Image("no_data")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 60)
+                        Text("error.nothing_here")
+                            .foregroundStyle(.white)
+                    }
                     Spacer()
                 }
             }
@@ -1224,9 +1456,6 @@ struct RunningFreeTrainingRecordDetailView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
-        .onFirstAppear {
-            viewModel.queryRecordDetail()
-        }
     }
     
     private func adjustNavigationPath() {

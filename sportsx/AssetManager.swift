@@ -114,7 +114,7 @@ class AssetManager: ObservableObject {
     }
     
     // 购买装备卡
-    func purchaseMCWithCC(cardID: String) {
+    func purchaseMCWithCC(cardID: String, onSuccess: ((MagicCard) -> Void)? = nil) {
         guard var components = URLComponents(string: "/asset/buy_equip_card") else { return }
         components.queryItems = [
             URLQueryItem(name: "card_def_id", value: cardID)
@@ -128,8 +128,10 @@ class AssetManager: ObservableObject {
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
                         self.updateCCAsset(type: unwrappedData.ccasset_type, newBalance: unwrappedData.new_ccamount)
-                        self.magicCards.insert(MagicCard(from: unwrappedData.card), at: 0)
-                        ToastManager.shared.show(toast: Toast(message: "iap.coupon.success"))
+                        let newCard = MagicCard(from: unwrappedData.card)
+                        self.magicCards.insert(newCard, at: 0)
+                        onSuccess?(newCard)
+                        //ToastManager.shared.show(toast: Toast(message: "iap.coupon.success"))
                     }
                 }
             default: break
@@ -396,6 +398,11 @@ struct CPAssetResponse: Codable {
     let new_balance: Int
 }
 
+struct CPAssetCoverInfo: Codable {
+    let asset_id: String
+    let image_url: String
+}
+
 class CC_CC_PurchaseResultResponse: Codable {
     let decrease_type: CCAssetType
     let decrease_amount: Int
@@ -429,8 +436,25 @@ struct CCRewardResponse: Codable, Identifiable {
     let reward_amount: Int
 }
 
-// 外设的传感器类型
+// 传感器类型
 enum SensorType: String, Codable {
+    case heart = "heart"
+    case rawIMU = "rawIMU"
+    case pedal = "pedal"
+    case step = "step"
+    
+    var devices: [SensorDevice] {
+        switch self {
+        case .heart: return [.AW]
+        case .rawIMU: return [.AW]
+        case .pedal: return [.AW]
+        case .step: return [.AW]
+        }
+    }
+}
+
+// 设备品牌
+enum SensorDevice: String {
     case AW = "applewatch"
     
     var displayName: String {
@@ -466,13 +490,13 @@ struct MagicCard: Identifiable, Equatable {
     let imageURL: String
     
     // 传感器类型要求
-    let sensorType: [SensorType]
+    let sensorDevices: [SensorDevice]
     // 传感器绑定位置要求
     // |---  +   +   +   +   +    +  |
     //       |   |   |   |   |    |
     //      WST  RF  LF  RH  LH  PHONE
     let sensorLocation: Int?
-    let sensorLocation2: Int?   // 备选方案(可选)
+    //let sensorLocation2: Int?   // 备选方案(可选)
     
     let lucky: Double
     let rarity: String
@@ -497,14 +521,15 @@ struct MagicCard: Identifiable, Equatable {
         self.levelSkill3 = card.levelSkill3
         self.imageURL = card.image_url
         if let sensorStrings = card.effect_def["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
-            self.sensorType = sensorStrings.compactMap { SensorType(rawValue: $0) }
+            let sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+            self.sensorDevices = Array(Set(sensorTypes.flatMap { $0.devices }))
         } else {
-            self.sensorType = []
+            self.sensorDevices = []
         }
         let location = card.effect_def["sensor_location"]?.intValue
         self.sensorLocation = location
-        let location2 = card.effect_def["sensor_location2"]?.intValue
-        self.sensorLocation2 = location2
+        //let location2 = card.effect_def["sensor_location2"]?.intValue
+        //self.sensorLocation2 = location2
         
         self.lucky = card.lucky
         self.rarity = card.rarity
@@ -554,9 +579,9 @@ struct MagicCard: Identifiable, Equatable {
         self.levelSkill2 = nil
         self.levelSkill3 = nil
         self.imageURL = card.imageURL
-        self.sensorType = card.sensorType
+        self.sensorDevices = card.sensorDevices
         self.sensorLocation = card.sensorLocation
-        self.sensorLocation2 = card.sensorLocation2
+        //self.sensorLocation2 = card.sensorLocation2
         self.lucky = -1
         self.rarity = card.rarity
         self.description = card.description
@@ -611,9 +636,9 @@ struct MagicCardShop: Identifiable, Equatable {
     let name: String
     let sportType: SportName
     let imageURL: String
-    let sensorType: [SensorType]
+    let sensorDevices: [SensorDevice]
     let sensorLocation: Int?
-    let sensorLocation2: Int?   // 备选方案（可选）
+    //let sensorLocation2: Int?   // 备选方案（可选）
     let rarity: String
     let description: String
     let descriptionSkill1: String?
@@ -631,14 +656,15 @@ struct MagicCardShop: Identifiable, Equatable {
         self.imageURL = card.image_url
         
         if let sensorStrings = card.effect_config["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
-            self.sensorType = sensorStrings.compactMap { SensorType(rawValue: $0) }
+            let sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+            self.sensorDevices = Array(Set(sensorTypes.flatMap { $0.devices }))
         } else {
-            self.sensorType = []
+            self.sensorDevices = []
         }
         let location = card.effect_config["sensor_location"]?.intValue
         self.sensorLocation = location
-        let location2 = card.effect_config["sensor_location2"]?.intValue
-        self.sensorLocation2 = location2
+        //let location2 = card.effect_config["sensor_location2"]?.intValue
+        //self.sensorLocation2 = location2
         
         self.rarity = card.rarity
         self.description = card.description.rendered(with: card.effect_config)

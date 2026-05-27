@@ -127,16 +127,16 @@ struct PopupContainerView: View {
                 VStack(spacing: 16) {
                     if let title = popup.title {
                         Text(LocalizedStringKey(title))
-                            .font(.title3.bold())
-                            .foregroundColor(.white)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(Color.secondText)
                     }
                     
                     if let customView = popup.messageView {
                         customView
                     } else if let msg = popup.message {
                         Text(LocalizedStringKey(msg))
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondText)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(Color.white)
                             .multilineTextAlignment(.center)
                     }
                     

@@ -159,6 +159,7 @@ struct BikeTrackCreateView: View {
     @State var name_hans: String = ""
     @State var name_hant: String = ""
     @State var name_ko: String = ""
+    @State var name_ja: String = ""
     @State var eventID: String = ""
     @State var startDate: Date = {
         var components = DateComponents()
@@ -196,6 +197,7 @@ struct BikeTrackCreateView: View {
     @State var subRegioName_hans: String = ""
     @State var subRegioName_hant: String = ""
     @State var subRegioName_ko: String = ""
+    @State var subRegioName_ja: String = ""
     @State var prizePool: String = ""
     @State var score: String = ""
     @State var distance: String = ""
@@ -222,6 +224,7 @@ struct BikeTrackCreateView: View {
                         name_hant = "賽道1"
                         name_en = "Track 1"
                         name_ko = "코스 1"
+                        name_ja = "コース1"
                         singleRegisterCardID = "cpasset_89702ab1"
                         teamRegisterCardID = "cpasset_dc0b21d2"
                     }
@@ -232,6 +235,7 @@ struct BikeTrackCreateView: View {
                         name_hant = "高級賽道1"
                         name_en = "Premium Track 1"
                         name_ko = "고급 코스 1"
+                        name_ja = "上級コース1"
                         singleRegisterCardID = "cpasset_23e183aa"
                         teamRegisterCardID = "cpasset_c9b35404"
                     }
@@ -241,6 +245,7 @@ struct BikeTrackCreateView: View {
                     TextField("赛道名称hant", text: $name_hant)
                     TextField("赛道名称en", text: $name_en)
                     TextField("赛道名称ko", text: $name_ko)
+                    TextField("赛道名称ja", text: $name_ja)
                     TextField("赛事ID", text: $eventID)
                 }
                 Section(header: Text("时间")) {
@@ -285,6 +290,7 @@ struct BikeTrackCreateView: View {
                     TextField("子区域hant", text: $subRegioName_hant)
                     TextField("子区域en", text: $subRegioName_en)
                     TextField("子区域ko", text: $subRegioName_ko)
+                    TextField("子区域ja", text: $subRegioName_ja)
                     TextField("奖金池", text: $prizePool)
                         .keyboardType(.numberPad)
                     TextField("积分", text: $score)
@@ -348,12 +354,14 @@ struct BikeTrackCreateView: View {
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
         if !name_en.isEmpty { name_i18n["en"] = name_en }
         if !name_ko.isEmpty { name_i18n["ko"] = name_ko }
+        if !name_ja.isEmpty { name_i18n["ja"] = name_ja }
 
         var subRegionName_i18n: [String: String] = [:]
         if !subRegioName_hans.isEmpty { subRegionName_i18n["zh-Hans"] = subRegioName_hans }
         if !subRegioName_hant.isEmpty { subRegionName_i18n["zh-Hant"] = subRegioName_hant }
         if !subRegioName_en.isEmpty { subRegionName_i18n["en"] = subRegioName_en }
         if !subRegioName_ko.isEmpty { subRegionName_i18n["ko"] = subRegioName_ko }
+        if !subRegioName_ja.isEmpty { subRegionName_i18n["ja"] = subRegioName_ja }
         
         // 文字字段
         var textFields: [String : String] = [

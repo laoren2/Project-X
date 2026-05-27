@@ -494,15 +494,18 @@ class SpeedEffect_B_00000002: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
+            guard context.sportFeature == .bikeRace else { return }
             CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
+            guard context.sportFeature == .bikeRace else { return }
             if context.speed >= self.speed_from && context.speed <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
         }
         eventBus.on(.matchEnd) { context in
+            guard context.sportFeature == .bikeRace else { return }
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 && speedAvg_kmh <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
@@ -571,15 +574,18 @@ class SpeedEffect_A_00000002: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
+            guard context.sportFeature == .bikeRace else { return }
             CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
+            guard context.sportFeature == .bikeRace else { return }
             if context.speed >= self.speed_from && context.speed <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
                 context.addOrUpdateTeamBonusTime(cardID: self.cardID, bonusTime: self.bonus_ratio_member * 0.01 * 3)
             }
         }
         eventBus.on(.matchEnd) { context in
+            guard context.sportFeature == .bikeRace else { return }
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             if self.level >= 3 && speedAvg_kmh >= self.speed_skill1 && speedAvg_kmh <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_skill1)
@@ -629,9 +635,11 @@ class SpeedEffect_B_00000001: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
+            guard context.sportFeature == .runningRace else { return }
             CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
+            guard context.sportFeature == .runningRace else { return }
             let speed_minkm = 60.0 / context.speed
             if speed_minkm >= self.speed_from && speed_minkm <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
@@ -639,6 +647,7 @@ class SpeedEffect_B_00000001: MagicCardEffect {
             }
         }
         eventBus.on(.matchEnd) { context in
+            guard context.sportFeature == .runningRace else { return }
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             let speedAvg_minkm = 60.0 / speedAvg_kmh
             if self.level >= 3 && speedAvg_minkm >= self.speed_from && speedAvg_minkm <= self.speed_skill1 {
@@ -696,9 +705,11 @@ class SpeedEffect_A_00000001: MagicCardEffect {
     
     func register(eventBus: MatchEventBus) {
         eventBus.on(.matchStart) { context in
+            guard context.sportFeature == .runningRace else { return }
             CompetitionManager.shared.startCompetitionWithTeamBonusCard(cardID: self.cardID)
         }
         eventBus.on(.matchCycleUpdate) { context in
+            guard context.sportFeature == .runningRace else { return }
             let speed_minkm = 60.0 / context.speed
             if speed_minkm >= self.speed_from && speed_minkm <= self.speed_to {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
@@ -706,6 +717,7 @@ class SpeedEffect_A_00000001: MagicCardEffect {
             }
         }
         eventBus.on(.matchEnd) { context in
+            guard context.sportFeature == .runningRace else { return }
             let speedAvg_kmh = 3.6 * context.distance / DataFusionManager.shared.elapsedTime
             let speedAvg_minkm = 60.0 / speedAvg_kmh
             if self.level >= 3 && speedAvg_minkm >= self.speed_from && speedAvg_minkm <= self.speed_skill1 {
@@ -788,6 +800,79 @@ class AltitudeEffect_B_00000001: MagicCardEffect {
     }
 }
 
+class AltitudeEffect_A_00000001: MagicCardEffect {
+    let cardID: String
+    let level: Int
+    let params: JSONValue
+    
+    let bonus_ratio: Double
+    let bonus_from_skill1: Double
+    let bonus_to_skill1: Double
+    let altitude_low: Double
+    let altitude_high: Double
+    let bonus_time_skill2: Double
+    let climb_gain: Int
+    let max_stack: Int
+    
+    var last_altitude: Double = 0
+    var cumulative_climb: Double = 0
+    var continuous_climb: Double = 0
+    var current_stack: Int = 0
+    var downhill_tolerance: Double = 3
+    var continuous_descent: Double = 0
+    
+    init(cardID: String, level: Int, with params: JSONValue) {
+        self.cardID = cardID
+        self.level = level
+        self.params = params
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        self.bonus_from_skill1 = params["compute_values", "bonus_from_skill1"]?.doubleValue ?? 0
+        self.bonus_to_skill1 = params["compute_values", "bonus_to_skill1"]?.doubleValue ?? 0
+        self.altitude_low = params["static_values", "altitude_low"]?.doubleValue ?? 10
+        self.altitude_high = params["static_values", "altitude_high"]?.doubleValue ?? 100
+        self.bonus_time_skill2 = params["compute_values", "bonus_time_skill2"]?.doubleValue ?? 0
+        self.climb_gain = params["static_values", "climb_gain"]?.intValue ?? 10
+        self.max_stack = params["static_values", "max_stack"]?.intValue ?? 5
+    }
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchCycleUpdate) { context in
+            let delta = context.altitude - self.last_altitude
+            if delta >= 0 {
+                self.cumulative_climb += delta
+                self.continuous_climb += delta
+                self.continuous_descent = 0
+                
+                // 基础爬坡奖励
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_ratio * 0.01 * 3)
+                
+                // 高级技能：连续爬坡叠加奖励
+                if self.level >= 6 && self.current_stack < self.max_stack {
+                    while self.continuous_climb >= Double(self.climb_gain) && self.current_stack < self.max_stack {
+                        self.continuous_climb -= Double(self.climb_gain)
+                        self.current_stack += 1
+                        context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_time_skill2)
+                    }
+                }
+            } else {
+                // 中断爬坡时重置连续爬升
+                self.continuous_descent += abs(delta)
+                if self.continuous_descent >= self.downhill_tolerance {
+                    self.continuous_climb = 0
+                    self.continuous_descent = 0
+                }
+            }
+            self.last_altitude = context.altitude
+        }
+        eventBus.on(.matchEnd) { context in
+            if self.level >= 3 && self.cumulative_climb >= self.altitude_low && self.cumulative_climb <= self.altitude_high {
+                let bonus = self.bonus_from_skill1 + (self.bonus_to_skill1 - self.bonus_from_skill1) * (self.cumulative_climb - self.altitude_low) / (self.altitude_high - self.altitude_low)
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
+            }
+        }
+    }
+}
+
 class HeartRateEffect_C_00000001: MagicCardEffect {
     let cardID: String
     let level: Int
@@ -807,20 +892,12 @@ class HeartRateEffect_C_00000001: MagicCardEffect {
     }
     
     func load() async -> Bool {
-        // 设置真实绑定方案
-        var sensorTypes: [SensorType] = []
-        if let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
-            sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
-        }
-        if let sensorLocation = params["sensor_location"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation >> 1, in: sensorTypes) {
-            CompetitionManager.shared.sensorRequest |= sensorLocation
-            return true
-        }
-        if let sensorLocation2 = params["sensor_location2"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation2 >> 1, in: sensorTypes) {
-            CompetitionManager.shared.sensorRequest |= sensorLocation2
-            return true
-        }
-        return false
+        guard let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) else { return false }
+        let sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        let sensorDevices = Array(Set(sensorTypes.flatMap { $0.devices }))
+        guard let defaultPos = DeviceManager.shared.defaultSensorPos, DeviceManager.shared.checkSensorLocation(at: 1 << defaultPos.rawValue, in: sensorDevices) else { return false }
+        CompetitionManager.shared.sensorRequest |= (1 << (defaultPos.rawValue + 1))
+        return true
     }
     
     func register(eventBus: MatchEventBus) {
@@ -860,20 +937,12 @@ class HeartRateEffect_B_00000001: MagicCardEffect {
     }
     
     func load() async -> Bool {
-        // 设置真实绑定方案
-        var sensorTypes: [SensorType] = []
-        if let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
-            sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
-        }
-        if let sensorLocation = params["sensor_location"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation >> 1, in: sensorTypes) {
-            CompetitionManager.shared.sensorRequest |= sensorLocation
-            return true
-        }
-        if let sensorLocation2 = params["sensor_location2"]?.intValue, DeviceManager.shared.checkSensorLocation(at: sensorLocation2 >> 1, in: sensorTypes) {
-            CompetitionManager.shared.sensorRequest |= sensorLocation2
-            return true
-        }
-        return false
+        guard let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) else { return false }
+        let sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        let sensorDevices = Array(Set(sensorTypes.flatMap { $0.devices }))
+        guard let defaultPos = DeviceManager.shared.defaultSensorPos, DeviceManager.shared.checkSensorLocation(at: 1 << defaultPos.rawValue, in: sensorDevices) else { return false }
+        CompetitionManager.shared.sensorRequest |= (1 << (defaultPos.rawValue + 1))
+        return true
     }
     
     func register(eventBus: MatchEventBus) {
@@ -881,6 +950,108 @@ class HeartRateEffect_B_00000001: MagicCardEffect {
             if let heartRate = context.latestHeartRate, heartRate >= self.heart_rate_low, heartRate <= self.heart_rate_high {
                 context.addOrUpdateBonus(cardID: self.cardID, bonus: 0.01 * self.bonus_ratio * 3)
                 self.aerobic_duration += 3
+            }
+        }
+        eventBus.on(.matchEnd) { context in
+            let aerobic_ratio = self.aerobic_duration /  DataFusionManager.shared.elapsedTime
+            if self.level >= 3 && aerobic_ratio >= self.aerobic_ratio_skill1 && aerobic_ratio <= 1 {
+                let bonus = (aerobic_ratio - self.aerobic_ratio_skill1) / (1 - self.aerobic_ratio_skill1) * self.bonus_time2_skill1
+                context.addOrUpdateBonus(cardID: self.cardID, bonus: bonus)
+            }
+            if let avgHeartRate = context.avgHeartRate {
+                if self.level >= 3 && avgHeartRate >= self.heart_rate_low && avgHeartRate <= self.heart_rate_high {
+                    context.addOrUpdateBonus(cardID: self.cardID, bonus: self.bonus_time_skill1)
+                }
+            }
+        }
+    }
+}
+
+class HeartRateEffect_A_00000001: MagicCardEffect {
+    let cardID: String
+    let level: Int
+    let params: JSONValue
+    
+    let bonus_ratio: Double
+    let aerobic_ratio_skill1: Double
+    let bonus_time_skill1: Double
+    let bonus_time2_skill1: Double
+    let heart_rate_low: Double
+    let heart_rate_high: Double
+    let continuous_time: Int
+    let break_time: Int
+    let bonus_ratio_skill2: Double
+    
+    var aerobic_duration: Double = 0
+    var continuousAerobicTime: Double = 0
+    var breakAerobicTime: Double = 0
+    var isEnergyMode: Bool = false
+    
+    init(cardID: String, level: Int, with params: JSONValue) {
+        self.cardID = cardID
+        self.level = level
+        self.params = params
+        self.bonus_ratio = params["compute_values", "bonus_ratio"]?.doubleValue ?? 0
+        let aerobic_per_skill1 = params["static_values", "aerobic_ratio_skill1"]?.doubleValue ?? 50
+        self.aerobic_ratio_skill1 = 0.01 * aerobic_per_skill1
+        self.bonus_time_skill1 = params["compute_values", "bonus_time_skill1"]?.doubleValue ?? 0
+        self.bonus_time2_skill1 = params["compute_values", "bonus_time2_skill1"]?.doubleValue ?? 0
+        self.heart_rate_low = params["static_values", "heart_rate_low"]?.doubleValue ?? 120
+        self.heart_rate_high = params["static_values", "heart_rate_high"]?.doubleValue ?? 160
+        self.continuous_time = params["static_values", "continuous_time"]?.intValue ?? 30
+        self.break_time = params["static_values", "break_time"]?.intValue ?? 10
+        self.bonus_ratio_skill2 = params["compute_values", "bonus_ratio_skill2"]?.doubleValue ?? 0
+    }
+    
+    func load() async -> Bool {
+        guard let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) else { return false }
+        let sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        let sensorDevices = Array(Set(sensorTypes.flatMap { $0.devices }))
+        guard let defaultPos = DeviceManager.shared.defaultSensorPos, DeviceManager.shared.checkSensorLocation(at: 1 << defaultPos.rawValue, in: sensorDevices) else { return false }
+        CompetitionManager.shared.sensorRequest |= (1 << (defaultPos.rawValue + 1))
+        return true
+    }
+    
+    func register(eventBus: MatchEventBus) {
+        eventBus.on(.matchCycleUpdate) { context in
+            guard let heartRate = context.latestHeartRate else { return }
+            let inAerobicZone = heartRate >= self.heart_rate_low && heartRate <= self.heart_rate_high
+            
+            if inAerobicZone {
+                // 基础有氧奖励
+                context.addOrUpdateBonus(
+                    cardID: self.cardID,
+                    bonus: 0.01 * self.bonus_ratio * 3
+                )
+                self.aerobic_duration += 3
+                // 连续时间累计
+                self.continuousAerobicTime += 3
+                // 回到有氧区后清空中断计时
+                self.breakAerobicTime = 0
+                // 激活高能状态
+                if self.level >= 6 &&
+                    !self.isEnergyMode &&
+                    self.continuousAerobicTime >= Double(self.continuous_time) {
+                    self.isEnergyMode = true
+                }
+                // 高能状态持续奖励
+                if self.level >= 6 && self.isEnergyMode {
+                    context.addOrUpdateBonus(
+                        cardID: self.cardID,
+                        bonus: 0.01 * self.bonus_ratio_skill2 * 3
+                    )
+                }
+            } else {
+                // 离开有氧区
+                self.continuousAerobicTime = 0
+                if self.isEnergyMode {
+                    self.breakAerobicTime += 3
+                    // 超过中断时间则退出高能状态
+                    if self.breakAerobicTime >= Double(self.break_time) {
+                        self.isEnergyMode = false
+                        self.breakAerobicTime = 0
+                    }
+                }
             }
         }
         eventBus.on(.matchEnd) { context in
@@ -925,7 +1096,7 @@ class XposeTestEffect: MagicCardEffect {
     }
     
     func load() async -> Bool {
-        var sensorTypes: [SensorType] = []
+        /*var sensorTypes: [SensorType] = []
         if let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) {
             sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
         }
@@ -942,7 +1113,16 @@ class XposeTestEffect: MagicCardEffect {
             } else {
                 return false
             }
-        }
+        }*/
+        
+        guard let sensorStrings = params["sensor_type"]?.arrayValue?.compactMap({ $0.stringValue }) else { return false }
+        let sensorTypes = sensorStrings.compactMap { SensorType(rawValue: $0) }
+        let sensorDevices = Array(Set(sensorTypes.flatMap { $0.devices }))
+        let sensorLocation = 1 << BodyPosition.posLH.rawValue
+        guard DeviceManager.shared.checkSensorLocation(at: sensorLocation, in: sensorDevices) else { return false }
+        CompetitionManager.shared.sensorRequest |= sensorLocation
+        
+        let sensor_location = sensorLocation << 1
         
         if predictModel == nil {
             if let model = await ModelManager.shared.loadModel(for: modelKey) {

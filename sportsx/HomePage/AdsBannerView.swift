@@ -49,7 +49,7 @@ struct AdsBannerView: View {
     let width: CGFloat
     let height: CGFloat
     
-    @State var ads: [AdInfo]
+    let ads: [AdInfo]
     @State var currentIndex = 1
     @State private var cancellable: AnyCancellable? = nil
     @State private var currentTask: Task<Void, Never>?

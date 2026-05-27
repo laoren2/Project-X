@@ -444,10 +444,10 @@ struct FriendListView: View {
             .ignoresSafeArea()
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableSwipeBackGesture()
         .background(Color.defaultBackground)
+        .enableSwipeBackGesture()
         .ignoresSafeArea(edges: .bottom)
-        .hideKeyboardOnScroll()
+        //.hideKeyboardOnScroll()
     }
 }
 

@@ -15,7 +15,6 @@ struct RunningFreeTrainingView: View {
     @ObservedObject var userManager = UserManager.shared
     @StateObject var viewModel = RunningFreeTrainingViewModel()
     @State var stateValue: Int = 0
-    @State private var polygons: [MKPolygon] = []
     @State private var explorationProgress: Double = 0
     @State private var isExplorationLoading: Bool = false
     @State private var isStateLoading: Bool = false
@@ -79,7 +78,10 @@ struct RunningFreeTrainingView: View {
                                     Text("\(stateValue)")
                                 }
                                 HStack {
-                                    Image(systemName: "flame.fill")
+                                    Image("momentum")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20)
                                     ProgressBar(progress: Double(stateValue) / 100)
                                         .frame(height: 20)
                                 }
@@ -98,9 +100,9 @@ struct RunningFreeTrainingView: View {
                                 .foregroundStyle(Color.gray.opacity(0.5))
                                 .frame(height: 25)
                         } else {
-                            if !polygons.isEmpty {
+                            if !locationManager.regionBoundary.isEmpty {
                                 ZStack {
-                                    RegionMapView(polygons: polygons)
+                                    RegionMapView(polygons: locationManager.regionBoundary)
                                         .frame(height: 250)
                                         .cornerRadius(12)
                                         .padding(.top, 20)
@@ -108,7 +110,7 @@ struct RunningFreeTrainingView: View {
                                         .fill(Color.clear)
                                         .contentShape(Rectangle())
                                         .exclusiveTouchTapGesture {
-                                            if let region = regionFromPolygons(polygons) {
+                                            if let region = regionFromPolygons(locationManager.regionBoundary) {
                                                 appState.navigationManager.append(
                                                     .runningTrainingMapView(
                                                         centerLat: region.center.latitude,
@@ -118,7 +120,7 @@ struct RunningFreeTrainingView: View {
                                                     )
                                                 )
                                             } else {
-                                                ToastManager.shared.show(toast: Toast(message: "training.exploration.region.not_supported"))
+                                                ToastManager.shared.show(toast: Toast(message: "error.region"))
                                             }
                                         }
                                 }
@@ -129,7 +131,7 @@ struct RunningFreeTrainingView: View {
                                         .foregroundStyle(Color.gray.opacity(0.5))
                                         .cornerRadius(12)
                                         .padding(.top, 20)
-                                    Text("training.exploration.region.not_supported")
+                                    Text("error.region")
                                         .foregroundStyle(Color.white)
                                 }
                             }
@@ -205,10 +207,12 @@ struct RunningFreeTrainingView: View {
                             .foregroundStyle(Color.white)
                             .padding(.vertical)
                             .frame(maxWidth: .infinity)
-                            .background(appState.competitionManager.isRecording ? Color.gray : Color.orange)
-                            .cornerRadius(10)
+                            .background(
+                                Capsule()
+                                    .fill((appState.competitionManager.isRecording || locationManager.regionBoundary.isEmpty) ? Color.gray : Color.orange)
+                            )
                     }
-                    .disabled(appState.competitionManager.isRecording)
+                    .disabled(appState.competitionManager.isRecording || locationManager.regionBoundary.isEmpty)
                 }
                 .padding(.top, 10)
                 .padding(.horizontal)
@@ -277,8 +281,10 @@ struct RunningFreeTrainingView: View {
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
         isStateLoading = true
-        NetworkService.sendRequest(with: request, decodingType: Int.self, showLoadingToast: true, showErrorToast: true) { result in
+        stateValue = 0
+        NetworkService.sendRequest(with: request, decodingType: Int.self, showLoadingToast: false, showErrorToast: true) { result in
             DispatchQueue.main.async {
+                isStateLoading = false
                 switch result {
                 case .success(let data):
                     if let unwrappedData = data {
@@ -286,7 +292,6 @@ struct RunningFreeTrainingView: View {
                     }
                 default: break
                 }
-                isStateLoading = false
             }
         }
     }
@@ -301,46 +306,23 @@ struct RunningFreeTrainingView: View {
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
         isExplorationLoading = true
-        polygons = []
+        explorationProgress = 0
         NetworkService.sendRequest(
             with: request,
             decodingType: RegionExploreResponse.self,
-            showLoadingToast: true,
+            showLoadingToast: false,
             showErrorToast: true
         ) { result in
             DispatchQueue.main.async {
+                isExplorationLoading = false
                 switch result {
                 case .success(let data):
                     guard let data else { return }
                     explorationProgress = max(0, min(1, Double(data.explored_grids) / Double(max(data.total_grids, 1))))
-                    polygons = parseGeoJSON(data.boundary)
                 default:
                     break
                 }
-                isExplorationLoading = false
             }
-        }
-    }
-    
-    func parseGeoJSON(_ boundary: JSONValue) -> [MKPolygon] {
-        guard let data = boundary.toData() else { return [] }
-        do {
-            let features = try MKGeoJSONDecoder().decode(data)
-            var polygons: [MKPolygon] = []
-            for feature in features {
-                guard let geoFeature = feature as? MKGeoJSONFeature else { continue }
-                for geometry in geoFeature.geometry {
-                    if let polygon = geometry as? MKPolygon {
-                        polygons.append(polygon)
-                    } else if let multi = geometry as? MKMultiPolygon {
-                        polygons.append(contentsOf: multi.polygons)
-                    }
-                }
-            }
-            return polygons
-        } catch {
-            print("GeoJSON parse error:", error)
-            return []
         }
     }
 }
@@ -480,7 +462,6 @@ struct RunningTrainingMapView: View {
             .padding(.trailing, 10)
         }
         .toolbar(.hidden, for: .navigationBar)
-        .enableSwipeBackGesture()
         .sheet(isPresented: $showSheet, onDismiss: {
             selectedGrid = nil
             showGrids = true
@@ -494,6 +475,66 @@ struct RunningTrainingMapView: View {
     }
 }
 
+struct RunningGridBuffCardView: View {
+    let grid: RunningGridDetailInfoCard
+    
+    var body: some View {
+        if let ccasset = grid.rewardType {
+            HStack {
+                // grid icon
+                ZStack(alignment: .topTrailing) {
+                    Image(ccasset.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                    if grid.conditionType == .distance {
+                        Image("buff_condition_distance")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 15)
+                            .offset(x: 4, y: -4)
+                    } else if grid.conditionType == .speed {
+                        Image("buff_condition_speed")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 15)
+                            .offset(x: 4, y: -4)
+                    }
+                }
+                .frame(width: 35, height: 35)
+                .background(
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(Color.orange.opacity(0.2))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(Color.orange.opacity(0.8), lineWidth: 1.5)
+                )
+                .fixedSize()
+                
+                Spacer()
+                
+                // description
+                RichTextLabel(
+                    templateKey: grid.description,
+                    items:
+                        [
+                            ("reward", .image(ccasset.iconName, width: 20)),
+                            ("reward", .text(" * \(grid.rewardCount)"))
+                        ],
+                    font: .systemFont(ofSize: 15)
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.white.opacity(0.3))
+            )
+        }
+    }
+}
+
 struct RunningGridDetailSheet: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var navigationManager = NavigationManager.shared
@@ -503,6 +544,7 @@ struct RunningGridDetailSheet: View {
     
     @State private var me: GridFamiliarityMeInfo?
     @State private var rankList: [GridFamiliarityRankInfo] = []
+    @State private var gridInfos: [RunningGridDetailInfoCard] = []
     @State private var hasMore: Bool = false
     @State private var isLoading: Bool = false
     @State private var page: Int = 1
@@ -510,16 +552,21 @@ struct RunningGridDetailSheet: View {
     
     @State var backgroundColor: Color = .defaultBackground
     
+    var gridSize: LocalizedStringKey {
+        if grid.level == 0 {
+            return "distance.m \(500)"
+        } else if grid.level == 1 {
+            return "distance.km \(1)"
+        } else if grid.level == 2 {
+            return "distance.km \(2)"
+        } else {
+            return "distance.km \(4)"
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Button(action: {}) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 30))
-                        .foregroundStyle(Color.clear)
-                }
-                Spacer()
-                Text("training.realtime.grid.title")
                 Spacer()
                 Button(action: {
                     showSheet = false
@@ -531,6 +578,44 @@ struct RunningGridDetailSheet: View {
             .padding()
             .foregroundStyle(Color.secondText)
             
+            // grid 信息
+            HStack {
+                Text("training.free.grid.info")
+                    .foregroundStyle(Color.white)
+                    .font(.headline)
+#if DEBUG
+                Text(verbatim: "(\(grid.gridX),\(grid.gridY),\(grid.level))")
+#endif
+                Spacer()
+                HStack(spacing: 4) {
+                    Text("training.free.grid.size")
+                    Text(gridSize)
+                }
+                .foregroundStyle(Color.secondText)
+                .font(.system(size: 12))
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.white.opacity(0.3))
+                )
+            }
+            .padding(.horizontal)
+            
+            if !gridInfos.isEmpty {
+                VStack(spacing: 10) {
+                    ForEach(gridInfos) { info in
+                        RunningGridBuffCardView(grid: info)
+                    }
+                }
+                .padding()
+            } else {
+                (Text("training.free.grid.common") + Text(gridSize) + Text(" * ") + Text(gridSize))
+                    .foregroundStyle(Color.thirdText)
+                    .font(.system(size: 15))
+                    .padding(.bottom)
+            }
+            
             HStack {
                 Text("training.realtime.grid.exploration_status")
                 Spacer()
@@ -541,7 +626,7 @@ struct RunningGridDetailSheet: View {
             // 我的数据
             if let me {
                 HStack {
-                    Text("#\(me.rank)")
+                    Text(me.rank > 0 ? "#\(me.rank)" : "#-")
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                     if let avatar = userManager.avatarImage {
                         Image(uiImage: avatar)
@@ -573,9 +658,15 @@ struct RunningGridDetailSheet: View {
             ScrollView(showsIndicators: false) {
                 LazyVStack {
                     if rankList.isEmpty {
-                        Text("training.realtime.grid.ranklist.no_data")
-                            .foregroundStyle(Color.thirdText)
-                            .padding(.top, 100)
+                        VStack {
+                            Image("no_data")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 60)
+                            Text("training.realtime.grid.ranklist.no_data")
+                                .foregroundStyle(Color.thirdText)
+                        }
+                        .padding(.top, 100)
                     } else {
                         ForEach(rankList) { info in
                             HStack {
@@ -591,11 +682,12 @@ struct RunningGridDetailSheet: View {
                                     }
                                 Text(info.nickName)
                                 if info.rank == 1 {
-                                    Text("training.realtime.grid.occupier")
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 5)
-                                        .background(Color.orange)
-                                        .cornerRadius(6)
+                                    Image(systemName: "crown")
+                                        .padding(10)
+                                        .background(
+                                            Circle()
+                                                .fill(Color.orange)
+                                        )
                                 }
                                 Spacer()
                                 Text("+\(info.count)")
@@ -623,8 +715,35 @@ struct RunningGridDetailSheet: View {
         }
         .background(backgroundColor)
         .onStableAppear {
+            fetchGridBuffInfo()
             fetchMeRankInfo()
             fetchRankListPage(grid: grid, reset: true)
+        }
+    }
+    
+    func fetchGridBuffInfo(){
+        guard var components = URLComponents(string: "/training/running/query_grid_info") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "grid_x", value: "\(grid.gridX)"),
+            URLQueryItem(name: "grid_y", value: "\(grid.gridY)"),
+            URLQueryItem(name: "level", value: "\(grid.level)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: RunningGridInfoResponse.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    for grid in unwrappedData.grids {
+                        //print(grid)
+                        gridInfos.append(RunningGridDetailInfoCard(from: grid))
+                    }
+                default:
+                    break
+                }
+            }
         }
     }
     
@@ -711,6 +830,103 @@ struct RunningGridDetailSheet: View {
     }
 }
 
+class RunningGridBuffAnnotation: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+
+    let gridX: Int
+    let gridY: Int
+    let level: Int
+
+    let rewardType: CCAssetType
+    let conditionType: RunningGridConditionType
+
+    init(
+        coordinate: CLLocationCoordinate2D,
+        gridX: Int,
+        gridY: Int,
+        level: Int,
+        rewardType: CCAssetType,
+        conditionType: RunningGridConditionType
+    ) {
+        self.coordinate = coordinate
+        self.gridX = gridX
+        self.gridY = gridY
+        self.level = level
+        self.rewardType = rewardType
+        self.conditionType = conditionType
+    }
+}
+
+final class RunningGridBuffAnnotationView: MKAnnotationView {
+    static let reuseID = "GridBuffAnnotationView"
+
+    private let container = UIView()
+    private let iconImageView = UIImageView()
+    private let badgeImageView = UIImageView()
+
+    override var annotation: MKAnnotation? {
+        didSet {
+            configure()
+        }
+    }
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+
+        setupUI()
+        configure()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    private func setupUI() {
+        frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+
+        backgroundColor = .clear
+        canShowCallout = false
+
+        container.frame = bounds
+        container.backgroundColor = .clear
+
+        // Centered, larger icon
+        iconImageView.frame = CGRect(x: 8, y: 8, width: 24, height: 24)
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.layer.shadowColor = UIColor.systemYellow.cgColor
+        iconImageView.layer.shadowRadius = 7
+        iconImageView.layer.shadowOpacity = 1
+        iconImageView.layer.shadowOffset = .zero
+        iconImageView.layer.masksToBounds = false
+
+        badgeImageView.frame = CGRect(x: 22, y: 4, width: 10, height: 10)
+        badgeImageView.contentMode = .scaleAspectFit
+
+        addSubview(container)
+        container.addSubview(iconImageView)
+        container.addSubview(badgeImageView)
+    }
+
+    private func configure() {
+        guard let annotation = annotation as? RunningGridBuffAnnotation else {
+            return
+        }
+        
+        iconImageView.image = UIImage(named: annotation.rewardType.iconName)
+
+        switch annotation.conditionType {
+        case .distance:
+            badgeImageView.isHidden = false
+            badgeImageView.image = UIImage(named: "buff_condition_distance")
+        case .speed:
+            badgeImageView.isHidden = false
+            badgeImageView.image = UIImage(named: "buff_condition_speed")
+        case .none:
+            badgeImageView.isHidden = true
+        }
+    }
+}
+
 struct TileBasedGridsRunningMapView: UIViewRepresentable {
     let centerLat: Double
     let centerLng: Double
@@ -746,6 +962,12 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
             }
             uiView.removeOverlays(removable)
             context.coordinator.renderedTiles.removeAll()
+            
+            let removableAnnotations = uiView.annotations.filter {
+                $0 is RunningGridBuffAnnotation
+            }
+            uiView.removeAnnotations(removableAnnotations)
+            context.coordinator.renderedBuffs.removeAll()
         } else {
             let selected = uiView.overlays.filter { $0 is SelectedGridOverlay }
             uiView.removeOverlays(selected)
@@ -777,9 +999,10 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
         }
 
         // Cache
-        var cache: [TileKey: [GridCell]] = [:]
+        var cache: [TileKey: RunningTrainingGridTile] = [:]
         var tileAccessOrder: [TileKey] = []
         var renderedTiles: Set<TileKey> = []
+        var renderedBuffs: Set<TileKey> = []
         
         // 捕捉 level 变化
         var lastLevel: Int = -1
@@ -815,6 +1038,29 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
             
             return MKOverlayRenderer(overlay: overlay)
         }
+        
+        func mapView(
+            _ mapView: MKMapView,
+            viewFor annotation: MKAnnotation
+        ) -> MKAnnotationView? {
+            guard annotation is RunningGridBuffAnnotation else {
+                return nil
+            }
+
+            let view = mapView.dequeueReusableAnnotationView(
+                withIdentifier: RunningGridBuffAnnotationView.reuseID
+            ) as? RunningGridBuffAnnotationView
+
+            if let view {
+                view.annotation = annotation
+                return view
+            }
+
+            return RunningGridBuffAnnotationView(
+                annotation: annotation,
+                reuseIdentifier: RunningGridBuffAnnotationView.reuseID
+            )
+        }
 
         // 主流程
         func updateVisibleTiles(mapView: MKMapView) {
@@ -834,6 +1080,12 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
                 }
                 mapView.removeOverlays(removable)
                 renderedTiles.removeAll()
+                
+                let removableAnnotations = mapView.annotations.filter {
+                    $0 is RunningGridBuffAnnotation
+                }
+                mapView.removeAnnotations(removableAnnotations)
+                renderedBuffs.removeAll()
                 return
             }
             
@@ -850,6 +1102,12 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
                 }
                 mapView.removeOverlays(removable)
                 renderedTiles.removeAll()
+                
+                let removableAnnotations = mapView.annotations.filter {
+                    $0 is RunningGridBuffAnnotation
+                }
+                mapView.removeAnnotations(removableAnnotations)
+                renderedBuffs.removeAll()
                 return
             }
 
@@ -927,27 +1185,27 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
         }
         
         func fetchTiles(mapView: MKMapView, tiles: [TileKey]) {
-            guard !tiles.isEmpty, tiles.count < 50 else { return }
+            guard !tiles.isEmpty, tiles.count < 50, let regionID = LocationManager.shared.regionID else { return }
             
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
-            let requestData = TrainingGridTileRequest(tiles: tiles)
+            let requestData = TrainingGridTileRequest(region_id: regionID, tiles: tiles)
             guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
             
             let request = APIRequest(path: "/training/running/query_grid_tiles", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
             
-            NetworkService.sendRequest(with: request, decodingType: TrainingGridTileResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            NetworkService.sendRequest(with: request, decodingType: RunningTrainingGridTileResponse.self, showLoadingToast: false, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
-                        var result: [TileKey: [GridCell]] = [:]
+                        var result: [TileKey: RunningTrainingGridTile] = [:]
                         for tile in unwrappedData.tiles {
-                            result[tile.key] = tile.cells
+                            result[tile.key] = tile
                         }
                         // 写 cache
-                        for (tile, cells) in result {
-                            self.cache[tile] = cells
+                        for (tile, tileData) in result {
+                            self.cache[tile] = tileData
                             self.tileAccessOrder.removeAll { $0 == tile }   // 去重
                             self.tileAccessOrder.append(tile)
                         }
@@ -978,6 +1236,12 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
                 }
                 mapView.removeOverlays(removable)
                 renderedTiles.removeAll()
+                
+                let removableAnnotations = mapView.annotations.filter {
+                    $0 is RunningGridBuffAnnotation
+                }
+                mapView.removeAnnotations(removableAnnotations)
+                renderedBuffs.removeAll()
             }
             
             let visibleRect = mapView.visibleMapRect
@@ -985,7 +1249,9 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
             let paddedRect = visibleRect.insetBy(dx: -padding, dy: -padding)
 
             for tile in tiles {
-                guard let cells = cache[tile] else { continue }
+                guard let tileData = cache[tile] else { continue }
+                let cells = tileData.cells
+                let buffs = tileData.buff_info
                 
                 // 避免重复添加同一个 tile overlay
                 if !removeAll && renderedTiles.contains(tile) {
@@ -1022,6 +1288,37 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
                     renderedTiles.insert(tile)
                     //print("new upsert tile: \(tile)")
                 }
+                
+                if renderedBuffs.contains(tile) { continue }
+                
+                for buff in buffs {
+                    //print(buff.grid_x, buff.grid_y)
+                    let polygon = makePolygon(
+                        gridX: buff.grid_x,
+                        gridY: buff.grid_y,
+                        level: tile.level
+                    )
+                    let rect = polygon.boundingMapRect
+
+                    let center = MKMapPoint(
+                        x: rect.midX,
+                        y: rect.midY
+                    ).coordinate
+                    
+                    guard let ccassetType = CCAssetType(rawValue: buff.reward_type) else { continue }
+                    
+                    let annotation = RunningGridBuffAnnotation(
+                        coordinate: center,
+                        gridX: buff.grid_x,
+                        gridY: buff.grid_y,
+                        level: tile.level,
+                        rewardType: ccassetType,
+                        conditionType: buff.condition_type
+                    )
+                    //print("addAnnotation \(buff.grid_x) \(buff.grid_y)")
+                    mapView.addAnnotation(annotation)
+                }
+                renderedBuffs.insert(tile)
             }
         }
         
@@ -1054,20 +1351,20 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
             let gy = Int(floor(y / gridSize))
             return (gx, gy)
         }
-        
-        func showSelectedGrid(mapView: MKMapView, gridX: Int, gridY: Int, level: Int) {
-            // 移除旧的选中
-            let removable = mapView.overlays.filter { $0 is SelectedGridOverlay }
-            mapView.removeOverlays(removable)
-
-            let polygon = makePolygon(gridX: gridX, gridY: gridY, level: level)
-            let overlay = SelectedGridOverlay(polygon: polygon)
-            mapView.addOverlay(overlay)
-        }
     }
 }
 
 extension TileBasedGridsRunningMapView.Coordinator {
+    func showSelectedGrid(mapView: MKMapView, gridX: Int, gridY: Int, level: Int) {
+        // 移除旧的选中
+        let removable = mapView.overlays.filter { $0 is SelectedGridOverlay }
+        mapView.removeOverlays(removable)
+
+        let polygon = makePolygon(gridX: gridX, gridY: gridY, level: level)
+        let overlay = SelectedGridOverlay(polygon: polygon)
+        mapView.addOverlay(overlay)
+    }
+    
     @objc func handleTap(_ gesture: UITapGestureRecognizer) {
         guard let mapView = mapViewRef, showGrids, !renderedTiles.isEmpty else { return }
         
@@ -1104,6 +1401,62 @@ extension TileBasedGridsRunningMapView.Coordinator {
 
 class RunningFreeTrainingViewModel: ObservableObject {
     @Published var didLoad: Bool = false
+}
+
+enum RunningGridConditionType: String, Codable {
+    case distance = "distance"
+    case speed = "speed"
+    case none = "none"
+}
+
+struct RunningGridBuffPreview: Codable {
+    let grid_x: Int
+    let grid_y: Int
+    let effect_type: GridEffectType
+    let condition_type: RunningGridConditionType
+    let reward_type: String
+}
+
+struct RunningTrainingGridTile: Codable {
+    let key: TileKey
+    let cells: [GridCell]
+    let buff_info: [RunningGridBuffPreview]
+}
+
+struct RunningTrainingGridTileResponse: Codable {
+    let tiles: [RunningTrainingGridTile]
+}
+
+struct RunningGridDetailInfoCard: Identifiable {
+    let id: UUID = UUID()
+    let description: String
+    let effectType: GridEffectType
+    let conditionType: RunningGridConditionType
+    let conditionParams: JSONValue
+    let rewardType: CCAssetType?
+    let rewardCount: Int
+    
+    init(from dto: RunningGridDetailInfo) {
+        self.description = dto.description
+        self.effectType = dto.effect_type
+        self.conditionType = dto.condition_type
+        self.conditionParams = dto.condition_params
+        self.rewardType = CCAssetType(rawValue: dto.reward_type)
+        self.rewardCount = dto.reward_count
+    }
+}
+
+struct RunningGridDetailInfo: Codable {
+    let description: String
+    let effect_type: GridEffectType
+    let condition_type: RunningGridConditionType
+    let condition_params: JSONValue
+    let reward_type: String
+    let reward_count: Int
+}
+
+struct RunningGridInfoResponse: Codable {
+    let grids: [RunningGridDetailInfo]
 }
 
 #Preview() {

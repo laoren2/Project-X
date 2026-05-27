@@ -20,7 +20,7 @@ struct SessionPageView: View {
             MetricsView().tag(1)
         }
         .navigationBarBackButtonHidden(true)
-        .onChange(of: workoutManager.running) {
+        .onChange(of: workoutManager.isRecording) {
             displayMetricsView()
         }
         .tabViewStyle(

@@ -15,6 +15,7 @@ import Foundation
 import CoreLocation
 import Combine
 import SwiftUI
+import MapKit
 
 
 enum GPSStrength: String {
@@ -48,6 +49,77 @@ struct Region: Identifiable, Equatable {
     
     static func == (lhs: Region, rhs: Region) -> Bool {
         return lhs.regionID == rhs.regionID
+    }
+}
+
+final class RegionBoundaryStore {
+    static let shared = RegionBoundaryStore()
+    private init() {}
+    
+    // 简单缓存
+    private var cache: [String: [MKPolygon]] = [:]
+    
+    func getBoundary(for regionID: String) async -> [MKPolygon] {
+        // 有缓存直接返回
+        if let cached = cache[regionID], !cached.isEmpty {
+            return cached
+        }
+        
+        // 没有就加载
+        let boundary = await fetchBoundary(regionID: regionID)
+        
+        // 写缓存（主线程写，避免线程问题）
+        await MainActor.run {
+            self.cache[regionID] = boundary
+        }
+        
+        return boundary
+    }
+    
+    func fetchBoundary(regionID: String) async -> [MKPolygon] {
+        var components = URLComponents(string: "/common/region_boundary")
+        components?.queryItems = [
+            URLQueryItem(name: "region_id", value: regionID)
+        ]
+        guard let urlPath = components?.url?.absoluteString else { return [] }
+        
+        let request = APIRequest(path: urlPath, method: .get)
+        
+        let result = await NetworkService.sendAsyncRequest(
+            with: request,
+            decodingType: JSONValue.self,
+            showLoadingToast: true,
+            showErrorToast: true
+        )
+        switch result {
+        case .success(let data):
+            guard let data else { return [] }
+            return parseGeoJSON(data)
+        default:
+            return []
+        }
+    }
+    
+    func parseGeoJSON(_ boundary: JSONValue) -> [MKPolygon] {
+        guard let data = boundary.toData() else { return [] }
+        do {
+            let features = try MKGeoJSONDecoder().decode(data)
+            var polygons: [MKPolygon] = []
+            for feature in features {
+                guard let geoFeature = feature as? MKGeoJSONFeature else { continue }
+                for geometry in geoFeature.geometry {
+                    if let polygon = geometry as? MKPolygon {
+                        polygons.append(polygon)
+                    } else if let multi = geometry as? MKMultiPolygon {
+                        polygons.append(contentsOf: multi.polygons)
+                    }
+                }
+            }
+            return polygons
+        } catch {
+            print("GeoJSON parse error:", error)
+            return []
+        }
     }
 }
 
@@ -546,6 +618,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard let regionID = regionID, let region = RegionStore.index[regionID] else { return nil }
         return LocalizedStringKey(region.regionName)
     }
+    @Published var regionBoundary: [MKPolygon] = []
     
     // 使用 @Published 来发布授权状态变化
     @Published var authorizationStatus: CLAuthorizationStatus
@@ -560,6 +633,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     // 全局锁，防止可能存在某些未知特殊情况下的订阅/取消订阅失败
     //let testLock = NSLock()
     
+    private var cancellables = Set<AnyCancellable>()
+
+    
     override private init() {
         // 初始化授权状态
         self.authorizationStatus = locationManager.authorizationStatus
@@ -570,6 +646,21 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.pausesLocationUpdatesAutomatically = true
         locationManager.allowsBackgroundLocationUpdates = false
         // 注意：此时并不立即开始更新位置，等待订阅者出现后再启动
+        
+        $regionID
+            .removeDuplicates()
+            .sink { [weak self] regionID in
+                guard let self else { return }
+                Task { @MainActor in
+                    guard let regionID else {
+                        self.regionBoundary = []
+                        return
+                    }
+                    let boundary = await RegionBoundaryStore.shared.getBoundary(for: regionID)
+                    self.regionBoundary = boundary
+                }
+            }
+            .store(in: &cancellables)
     }
     
     // 提供位置更新的Publisher

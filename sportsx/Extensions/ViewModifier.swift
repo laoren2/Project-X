@@ -357,6 +357,8 @@ extension UIColor {
 extension Color {
     static let defaultBackground = Color(red: 0.1, green: 0.1, blue: 0.1)
     
+    static let secondBackground = Color(hex: "#404040")
+    
     static let secondText: Color = .white.opacity(0.8)
     
     static let thirdText: Color = .white.opacity(0.5)
@@ -372,7 +374,8 @@ extension Color {
     )
     
     // 金色
-    static let gold = LinearGradient(
+    static let gold = Color(hex: "#FFD700")
+    static let goldGradient = LinearGradient(
         gradient: Gradient(colors: [
             Color(hex: "#FFD700"),
             Color(hex: "#FFB14E"),
@@ -384,7 +387,8 @@ extension Color {
     )
 
     // 银色
-    static let silver = LinearGradient(
+    static let silver = Color(hex: "#E8E8E8")
+    static let silverGradient = LinearGradient(
         gradient: Gradient(colors: [
             Color(hex: "#E8E8E8"),
             Color(hex: "#C0C0C0"),
@@ -396,7 +400,8 @@ extension Color {
     )
 
     // 铜色
-    static let bronze = LinearGradient(
+    static let bronze = Color(hex: "#CD7F32")
+    static let bronzeGradient = LinearGradient(
         gradient: Gradient(colors: [
             Color(hex: "#CD7F32"),
             Color(hex: "#B87333"),
@@ -813,14 +818,14 @@ extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
     }
 
     // 允许 interactivePopGestureRecognizer 与其他手势同时工作。
-    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    /*public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         viewControllers.count > 1
-    }
+    }*/
 
     // 当 interactivePopGestureRecognizer 开始时阻止其他手势
-    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    /*public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         viewControllers.count > 1
-    }
+    }*/
 }
 
 

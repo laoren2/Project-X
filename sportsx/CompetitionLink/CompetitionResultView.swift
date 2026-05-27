@@ -17,6 +17,7 @@ struct BikeRaceRecordDetailView: View {
     @State var isHeartDetail: Bool = false
     @State var isAltitudeDetail: Bool = false
     @State var isSpeedDetail: Bool = false
+    @State var isPedalCadenceDetail: Bool = false
     
     let formHeight: CGFloat = 80
     
@@ -42,6 +43,16 @@ struct BikeRaceRecordDetailView: View {
         let altitudes = viewModel.samplePath.compactMap { $0.speed_avg }
         let minVal = altitudes.min() ?? 0
         let maxVal = altitudes.max() ?? 0
+        return (minVal, maxVal)
+    }
+    
+    var overallPedalCadenceRange: (min: Double?, max: Double?) {
+        let pedals = viewModel.samplePath.compactMap { $0.pedal_cadence_avg }
+        if pedals.isEmpty {
+            return (nil, nil)
+        }
+        let minVal = pedals.min() ?? 0
+        let maxVal = pedals.max() ?? 0
         return (minVal, maxVal)
     }
     
@@ -73,8 +84,13 @@ struct BikeRaceRecordDetailView: View {
         return altitudes.reduce(0, +) / Double(altitudes.count)
     }
     
+    var pedalCadenceAvg: Double? {
+        let pedals = viewModel.pathData.compactMap { $0.pedal_cadence }
+        guard !pedals.isEmpty else { return nil }
+        return pedals.reduce(0, +) / Double(pedals.count)
+    }
+    
 #if DEBUG
-    var showEstimatePedalCount: Bool = true
     @State var isPedalDetail: Bool = false
     var overallPedalCountRange: (min: Double, max: Double) {
         let pedals = viewModel.samplePath.compactMap { $0.pedal_count_avg }
@@ -83,8 +99,8 @@ struct BikeRaceRecordDetailView: View {
         return (minVal, maxVal)
     }
     var pedalCountAvg: Double {
-        let steps = viewModel.pathData.compactMap { $0.estimate_pedal_count }
-        return steps.reduce(0, +) / Double(steps.count)
+        let pedals = viewModel.pathData.compactMap { $0.estimate_pedal_count }
+        return pedals.reduce(0, +) / Double(pedals.count)
     }
 #endif
     
@@ -122,7 +138,10 @@ struct BikeRaceRecordDetailView: View {
                     }
                 Spacer()
                 HStack {
-                    Text(LocalizedStringKey(SportName.Bike.name))
+                    Image(SportName.Bike.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
                     Text("competition.record.result")
                 }
                 .font(.system(size: 18, weight: .bold))
@@ -248,28 +267,6 @@ struct BikeRaceRecordDetailView: View {
                                 }
                                 .bold()
                                 HStack {
-                                    HStack(spacing: 2) {
-                                        Text("competition.record.valid_time")
-                                            .bold()
-                                        Image(systemName: "info.circle")
-                                            .font(.subheadline)
-                                            .exclusiveTouchTapGesture {
-                                                PopupWindowManager.shared.presentPopup(
-                                                    title: "competition.record.valid_time",
-                                                    message: "competition.record.valid_time.popup.content",
-                                                    bottomButtons: [
-                                                        .confirm()
-                                                    ]
-                                                )
-                                            }
-                                    }
-                                    .foregroundStyle(Color.secondText)
-                                    Spacer()
-                                    Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                        .foregroundStyle(Color.white)
-                                }
-                                HStack {
                                     (Text("  ") + Text("competition.result.bonus_time.magiccard"))
                                         .font(.system(size: 15))
                                     Spacer()
@@ -293,6 +290,28 @@ struct BikeRaceRecordDetailView: View {
                                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 }
                                 .foregroundStyle(Color.secondText)
+                                HStack {
+                                    HStack(spacing: 2) {
+                                        Text("competition.record.valid_time")
+                                            .bold()
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.record.valid_time",
+                                                    message: "competition.record.valid_time.popup.content",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                    }
+                                    .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
+                                        .font(.system(.body, design: .rounded, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                }
                             }
                             Divider()
                                 .environment(\.colorScheme, .dark)
@@ -456,7 +475,7 @@ struct BikeRaceRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("common.speed")
+                                                    Text("common.pace")
                                                     Spacer()
                                                     Text(String(format: "%.0f - %.0f ", overallSpeedRange.min, overallSpeedRange.max)) + Text("speed.km/h")
                                                 }
@@ -503,7 +522,7 @@ struct BikeRaceRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("common.speed")
+                                            Text("common.pace")
                                             Spacer()
                                             Text("common.average") + Text(String(format: " %.0f ", speedAvg)) + Text("speed.km/h")
                                         }
@@ -515,39 +534,54 @@ struct BikeRaceRecordDetailView: View {
                                             isSpeedDetail.toggle()
                                         }
                                     }
-#if DEBUG
-                                    if showEstimatePedalCount {
-                                        if isPedalDetail {
+                                    if let rangeMin = overallPedalCadenceRange.min, let rangeMax = overallPedalCadenceRange.max {
+                                        if isPedalCadenceDetail {
                                             VStack {
                                                 ZStack(alignment: .center) {
                                                     HStack {
-                                                        Text("测试踏频")
+                                                        Text("competition.result.pedalcadence")
                                                         Spacer()
-                                                        Text(String(format: "%.0f - %.0f 次/分", overallPedalCountRange.min, overallPedalCountRange.max))
+                                                        (Text(String(format: "%.0f - %.0f ", rangeMin, rangeMax)) + Text("pedalCadence.unit"))
                                                     }
                                                     .foregroundStyle(Color.pink)
                                                     .contentShape(Rectangle())
                                                     .onTapGesture {
-                                                        isPedalDetail.toggle()
+                                                        isPedalCadenceDetail.toggle()
                                                     }
-                                                    Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].pedal_count_avg))
-                                                        .padding(.horizontal)
-                                                        .padding(.vertical, 10)
-                                                        .font(.caption2)
-                                                        .foregroundColor(.white)
-                                                        .background(Color.pink.opacity(0.8))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    if let avg = viewModel.samplePath[progressIndex].pedal_cadence_avg {
+                                                        (Text(String(format: "%.0f ", avg)) + Text("pedalCadence.unit"))
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.pink.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    } else {
+                                                        Text("error.no_data")
+                                                            .padding(.horizontal)
+                                                            .padding(.vertical, 10)
+                                                            .font(.caption2)
+                                                            .foregroundColor(.white)
+                                                            .background(Color.gray.opacity(0.8))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    }
                                                 }
                                                 ZStack {
                                                     HStack(alignment: .bottom, spacing: spacingWidth) {
                                                         ForEach(viewModel.samplePath.indices, id: \.self) { i in
-                                                            let overall = (overallPedalCountRange.max - overallPedalCountRange.min)
-                                                            let ratio = overall > 0 ? (viewModel.samplePath[i].pedal_count_avg - overallPedalCountRange.min) / overall : 1/2
-                                                            let height = max(formHeight * ratio, 0) + 4
-                                                            
-                                                            RoundedRectangle(cornerRadius: 1)
-                                                                .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
-                                                                .frame(width: 2, height: height)
+                                                            if let pedal_avg = viewModel.samplePath[i].pedal_cadence_avg {
+                                                                let overall = rangeMax - rangeMin
+                                                                let ratio = overall > 0 ? (pedal_avg - rangeMin) / overall : 1/2
+                                                                let height = max(formHeight * ratio, 0) + 4
+                                                                
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                                    .frame(width: 2, height: height)
+                                                            } else {
+                                                                RoundedRectangle(cornerRadius: 1)
+                                                                    .frame(width: 2, height: 2)
+                                                                    .hidden()
+                                                            }
                                                         }
                                                     }
                                                     GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
@@ -559,7 +593,7 @@ struct BikeRaceRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
                                                         Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
                                                     }
                                                 }
@@ -568,17 +602,84 @@ struct BikeRaceRecordDetailView: View {
                                             }
                                         } else {
                                             HStack {
-                                                Text("测试踏频")
+                                                Text("competition.result.pedalcadence")
                                                 Spacer()
-                                                Text(String(format: "平均 %.0f 次/分", pedalCountAvg))
+                                                if let pedalAvg = pedalCadenceAvg {
+                                                    Text("common.average") + Text(String(format: " %.0f ", pedalAvg)) + Text("pedalCadence.unit")
+                                                }
                                             }
                                             .padding()
                                             .foregroundStyle(Color.white)
                                             .background(Color.pink.opacity(0.8))
                                             .clipShape(RoundedRectangle(cornerRadius: 10))
                                             .onTapGesture {
-                                                isPedalDetail.toggle()
+                                                isPedalCadenceDetail.toggle()
                                             }
+                                        }
+                                    }
+                                    
+#if DEBUG
+                                    if isPedalDetail {
+                                        VStack {
+                                            ZStack(alignment: .center) {
+                                                HStack {
+                                                    Text("测试踏频")
+                                                    Spacer()
+                                                    Text(String(format: "%.0f - %.0f 次/分", overallPedalCountRange.min, overallPedalCountRange.max))
+                                                }
+                                                .foregroundStyle(Color.pink)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    isPedalDetail.toggle()
+                                                }
+                                                Text(String(format: "%.0f 次/分", viewModel.samplePath[progressIndex].pedal_count_avg))
+                                                    .padding(.horizontal)
+                                                    .padding(.vertical, 10)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.white)
+                                                    .background(Color.pink.opacity(0.8))
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            }
+                                            ZStack {
+                                                HStack(alignment: .bottom, spacing: spacingWidth) {
+                                                    ForEach(viewModel.samplePath.indices, id: \.self) { i in
+                                                        let overall = (overallPedalCountRange.max - overallPedalCountRange.min)
+                                                        let ratio = overall > 0 ? (viewModel.samplePath[i].pedal_count_avg - overallPedalCountRange.min) / overall : 1/2
+                                                        let height = max(formHeight * ratio, 0) + 4
+                                                        
+                                                        RoundedRectangle(cornerRadius: 1)
+                                                            .fill(i == progressIndex ? Color.pink : Color.gray.opacity(0.5))
+                                                            .frame(width: 2, height: height)
+                                                    }
+                                                }
+                                                GestureOverlayView(pointsCount: viewModel.samplePath.count, progressIndex: $progressIndex)
+                                            }
+                                            .frame(height: formHeight)
+                                            Rectangle()
+                                                .foregroundStyle(Color.gray)
+                                                .frame(height: 1)
+                                            HStack {
+                                                Text("00:00")
+                                                Spacer()
+                                                if let EndTime = appState.competitionManager.basePathData.last?.timestamp, let startTime = appState.competitionManager.basePathData.first?.timestamp {
+                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
+                                                }
+                                            }
+                                            .font(.caption)
+                                            .foregroundStyle(Color.gray)
+                                        }
+                                    } else {
+                                        HStack {
+                                            Text("测试踏频")
+                                            Spacer()
+                                            Text(String(format: "平均 %.0f 次/分", pedalCountAvg))
+                                        }
+                                        .padding()
+                                        .foregroundStyle(Color.white)
+                                        .background(Color.pink.opacity(0.8))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .onTapGesture {
+                                            isPedalDetail.toggle()
                                         }
                                     }
 #endif
@@ -712,8 +813,14 @@ struct BikeRaceRecordDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("error.no_data")
-                        .foregroundStyle(.white)
+                    VStack(spacing: 20) {
+                        Image("no_data")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 60)
+                        Text("error.nothing_here")
+                            .foregroundStyle(.white)
+                    }
                     Spacer()
                 }
             }
@@ -888,7 +995,10 @@ struct RunningRaceRecordDetailView: View {
                     }
                 Spacer()
                 HStack {
-                    Text(LocalizedStringKey(SportName.Running.name))
+                    Image(SportName.Running.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
                     Text("competition.record.result")
                 }
                 .font(.system(size: 18, weight: .bold))
@@ -1014,28 +1124,6 @@ struct RunningRaceRecordDetailView: View {
                                         .foregroundStyle(Color.white)
                                 }
                                 HStack {
-                                    HStack(spacing: 2) {
-                                        Text("competition.record.valid_time")
-                                            .bold()
-                                        Image(systemName: "info.circle")
-                                            .font(.subheadline)
-                                            .exclusiveTouchTapGesture {
-                                                PopupWindowManager.shared.presentPopup(
-                                                    title: "competition.record.valid_time",
-                                                    message: "competition.record.valid_time.popup.content",
-                                                    bottomButtons: [
-                                                        .confirm()
-                                                    ]
-                                                )
-                                            }
-                                    }
-                                    .foregroundStyle(Color.secondText)
-                                    Spacer()
-                                    Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                        .foregroundStyle(Color.white)
-                                }
-                                HStack {
                                     (Text("  ") + Text("competition.result.bonus_time.magiccard"))
                                         .font(.system(size: 15))
                                     Spacer()
@@ -1059,6 +1147,28 @@ struct RunningRaceRecordDetailView: View {
                                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 }
                                 .foregroundStyle(Color.secondText)
+                                HStack {
+                                    HStack(spacing: 2) {
+                                        Text("competition.record.valid_time")
+                                            .bold()
+                                        Image(systemName: "info.circle")
+                                            .font(.subheadline)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    title: "competition.record.valid_time",
+                                                    message: "competition.record.valid_time.popup.content",
+                                                    bottomButtons: [
+                                                        .confirm()
+                                                    ]
+                                                )
+                                            }
+                                    }
+                                    .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(detailInfo.finalTime, showFraction: true))")
+                                        .font(.system(.body, design: .rounded, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                }
                             }
                             Divider()
                                 .environment(\.colorScheme, .dark)
@@ -1222,7 +1332,7 @@ struct RunningRaceRecordDetailView: View {
                                         VStack {
                                             ZStack(alignment: .center) {
                                                 HStack {
-                                                    Text("common.speed")
+                                                    Text("common.pace")
                                                     Spacer()
                                                     Text(SpeedHelper.paceString(from: overallSpeedRange.min)) + Text(" - ") + Text(SpeedHelper.paceString(from: overallSpeedRange.max)) + Text("/") + Text("distance.km")
                                                 }
@@ -1269,9 +1379,9 @@ struct RunningRaceRecordDetailView: View {
                                         }
                                     } else {
                                         HStack {
-                                            Text("common.speed")
+                                            Text("common.pace")
                                             Spacer()
-                                            Text("common.average") + Text(SpeedHelper.paceString(from: speedAvg)) + Text("/") + Text("distance.km")
+                                            Text("common.average") + Text(" ") + Text(SpeedHelper.paceString(from: speedAvg)) + Text("/") + Text("distance.km")
                                         }
                                         .padding()
                                         .foregroundStyle(Color.white)
@@ -1643,8 +1753,14 @@ struct RunningRaceRecordDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("error.no_data")
-                        .foregroundStyle(.white)
+                    VStack(spacing: 20) {
+                        Image("no_data")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 60)
+                        Text("error.nothing_here")
+                            .foregroundStyle(.white)
+                    }
                     Spacer()
                 }
             }
@@ -1674,6 +1790,7 @@ struct RunningRaceRecordDetailView: View {
 
 struct GestureOverlayView: View {
     @State private var lastHapticTime: TimeInterval = 0
+    @State private var lastUpdateTime: TimeInterval = 0
     let pointsCount: Int
     @Binding var progressIndex: Int
     let formWidth: CGFloat = UIScreen.main.bounds.width - 32
@@ -1690,6 +1807,12 @@ struct GestureOverlayView: View {
         .gesture(
             DragGesture(minimumDistance: 30)
                 .onChanged { value in
+                    let now = CACurrentMediaTime()
+                    // 30fps 节流
+                    guard now - lastUpdateTime > 0.03 else {
+                        return
+                    }
+                    lastUpdateTime = now
                     updateProgress(for: value.location.x)
                 }
                 .onEnded { _ in }

@@ -436,16 +436,16 @@ struct SignInSectionView: View {
                     HStack(spacing: 4) {
                         Text("home.sign_in.vip_tile")
                             .font(.caption)
-                            .foregroundColor(.secondText)
+                            .foregroundStyle(Color.white)
                         Image("vip_icon_on")
                             .resizable()
                             .scaledToFit()
                             .frame(height: 18)
                     }
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 5)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 10)
                     .background(Color.white.opacity(0.3))
-                    .cornerRadius(4)
+                    .cornerRadius(15)
                     .exclusiveTouchTapGesture {
                         guard userManager.isLoggedIn else {
                             userManager.showingLogin = true
@@ -484,6 +484,14 @@ struct SignInSectionView: View {
                         Spacer()
                         Text("toast.network_error")
                             .foregroundStyle(Color.secondText)
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .exclusiveTouchTapGesture {
+                                vm.fetchAnnouncements()
+                                vm.fetchAdsUrl()
+                                if userManager.isLoggedIn {
+                                    vm.fetchStatus()
+                                }
+                            }
                         Spacer()
                     }
                     .padding(.vertical)

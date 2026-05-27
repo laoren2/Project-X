@@ -148,10 +148,14 @@ struct CPAssetCreateView: View {
     @State var name_en: String = ""
     @State var name_hans: String = ""
     @State var name_hant: String = ""
+    @State var name_ko: String = ""
+    @State var name_ja: String = ""
     @State var type: String = ""
     @State var description_en: String = ""
     @State var description_hans: String = ""
     @State var description_hant: String = ""
+    @State var description_ko: String = ""
+    @State var description_ja: String = ""
     @State var key1: String = ""
     @State var value1: String = ""
     @State var key2: String = ""
@@ -169,10 +173,14 @@ struct CPAssetCreateView: View {
                     TextField("道具名称hans", text: $name_hans)
                     TextField("道具名称hant", text: $name_hant)
                     TextField("道具名称en", text: $name_en)
+                    TextField("道具名称ko", text: $name_ko)
+                    TextField("道具名称ja", text: $name_ja)
                     TextField("道具类型", text: $type)
                     TextField("道具描述hans", text: $description_hans)
                     TextField("道具描述hant", text: $description_hant)
                     TextField("道具描述en", text: $description_en)
+                    TextField("道具描述ko", text: $description_ko)
+                    TextField("道具描述ja", text: $description_ja)
                 }
                 Section(header: Text("道具特有属性字段")) {
                     TextField("字段1", text: $key1)
@@ -236,11 +244,15 @@ struct CPAssetCreateView: View {
         if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
         if !name_en.isEmpty { name_i18n["en"] = name_en }
+        if !name_ko.isEmpty { name_i18n["ko"] = name_ko }
+        if !name_ja.isEmpty { name_i18n["ja"] = name_ja }
 
         var des_i18n: [String: String] = [:]
         if !description_hans.isEmpty { des_i18n["zh-Hans"] = description_hans }
         if !description_hant.isEmpty { des_i18n["zh-Hant"] = description_hant }
         if !description_en.isEmpty { des_i18n["en"] = description_en }
+        if !description_ko.isEmpty { des_i18n["ko"] = description_ko }
+        if !description_ja.isEmpty { des_i18n["ja"] = description_ja }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -309,6 +321,14 @@ struct CPAssetUpdateView: View {
                         TextField("赛事名称en", text: $viewModel.name_en)
                     }
                     HStack {
+                        Text("道具名称ko")
+                        TextField("赛事名称ko", text: $viewModel.name_ko)
+                    }
+                    HStack {
+                        Text("道具名称ja")
+                        TextField("赛事名称ja", text: $viewModel.name_ja)
+                    }
+                    HStack {
                         Text("道具描述hans")
                         TextField("描述hans", text: $viewModel.description_hans)
                     }
@@ -319,6 +339,14 @@ struct CPAssetUpdateView: View {
                     HStack {
                         Text("道具描述en")
                         TextField("描述en", text: $viewModel.description_en)
+                    }
+                    HStack {
+                        Text("道具描述ko")
+                        TextField("描述ko", text: $viewModel.description_ko)
+                    }
+                    HStack {
+                        Text("道具描述ja")
+                        TextField("描述ja", text: $viewModel.description_ja)
                     }
                 }
                 Section(header: Text("封面图片")) {
@@ -378,11 +406,15 @@ struct CPAssetUpdateView: View {
         if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
         if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
         if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+        if !viewModel.name_ko.isEmpty { name_i18n["ko"] = viewModel.name_ko }
+        if !viewModel.name_ja.isEmpty { name_i18n["ja"] = viewModel.name_ja }
 
         var des_i18n: [String: String] = [:]
         if !viewModel.description_hans.isEmpty { des_i18n["zh-Hans"] = viewModel.description_hans }
         if !viewModel.description_hant.isEmpty { des_i18n["zh-Hant"] = viewModel.description_hant }
         if !viewModel.description_en.isEmpty { des_i18n["en"] = viewModel.description_en }
+        if !viewModel.description_ko.isEmpty { des_i18n["ko"] = viewModel.description_ko }
+        if !viewModel.description_ja.isEmpty { des_i18n["ja"] = viewModel.description_ja }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -457,9 +489,13 @@ struct CPAssetDefView: View {
         viewModel.name_en = asset.name_en
         viewModel.name_hans = asset.name_hans
         viewModel.name_hant = asset.name_hant
+        viewModel.name_ko = asset.name_ko
+        viewModel.name_ja = asset.name_ja
         viewModel.description_en = asset.description_en
         viewModel.description_hans = asset.description_hans
         viewModel.description_hant = asset.description_hant
+        viewModel.description_ko = asset.description_ko
+        viewModel.description_ja = asset.description_ja
         viewModel.image_url = asset.image_url
     }
 }

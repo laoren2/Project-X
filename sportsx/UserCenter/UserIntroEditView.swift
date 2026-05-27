@@ -464,6 +464,9 @@ struct GenderEditorView: View {
                 }
                 
                 VStack{
+                    Text("user.intro.gender.info")
+                        .foregroundStyle(Color.pink)
+                        .font(.system(size: 12))
                     HStack {
                         Text("user.intro.title.gender")
                             .font(.system(size: 16))
@@ -479,11 +482,11 @@ struct GenderEditorView: View {
                         }
                         .font(.system(size: 16))
                         .onTapGesture {
-                            if tempGender == .male {
-                                tempGender = .female
-                            } else {
-                                tempGender = .male
+                            guard viewModel.currentUser.gender == nil else {
+                                ToastManager.shared.show(toast: Toast(message: "user.intro.gender.toast"))
+                                return
                             }
+                            tempGender = tempGender == .male ? .female : .male
                         }
                     }
                     Divider()

@@ -12,10 +12,10 @@ struct CompetitionRealtimeView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var dataFusionManager = DataFusionManager.shared
     @ObservedObject var locationManager = LocationManager.shared
-    @State var isReverse: Bool = false
+    //@State var isReverse: Bool = false
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
-    @State private var assertInfo: Bool = false
+    //@State private var assertInfo: Bool = false
     @State private var mapMode: MapViewMode = .followUser
     
     
@@ -33,7 +33,9 @@ struct CompetitionRealtimeView: View {
         // 距离
         temp.append(("competition.realtime.distance", String(format: "%.2f ", data.distance / 1000), "distance.km", Color.orange))
         // 均速
-        temp.append(("competition.realtime.avgspeed", String(format: "%.1f ", data.avgSpeed), "speed.km/h", Color.yellow))
+        temp.append(("competition.realtime.avgspeed", appState.competitionManager.sport == .Bike ? String(format: "%.1f ", data.avgSpeed) : SpeedHelper.paceString(from: data.avgSpeed), appState.competitionManager.sport == .Bike ? "speed.km/h" : "/km", Color.yellow))
+        // 累计爬升
+        temp.append(("competition.realtime.elev_gain", String(format: "%.1f ", data.elevationGain), "distance.m", Color.purple))
         // 心率
         if let heartRate = data.heartRate {
             temp.append(("competition.realtime.heartrate", "\(Int(heartRate)) ", "heartrate.unit", Color.red))
@@ -50,6 +52,10 @@ struct CompetitionRealtimeView: View {
         if let stepCadence = data.stepCadence {
             temp.append(("competition.result.stepcadence", "\(Int(stepCadence)) ", "stepCadence.unit", Color.pink))
         }
+        // 踏频
+        if let pedalCadence = data.pedalCadence {
+            temp.append(("competition.result.stepcadence", "\(Int(pedalCadence)) ", "pedalCadence.unit", Color.pink))
+        }
         return temp
     }
     
@@ -63,7 +69,7 @@ struct CompetitionRealtimeView: View {
                     startRadius: appState.competitionManager.startRadius,
                     endRadius: appState.competitionManager.endRadius,
                     path: appState.competitionManager.basePathData,
-                    isReverse: isReverse,
+                    isShowSheet: !chevronDirection,
                     mapMode: $mapMode,
                     userLocation: $appState.competitionManager.userLocation
                 )
@@ -81,74 +87,56 @@ struct CompetitionRealtimeView: View {
                                 .clipShape(Circle())
                         }
                         Spacer()
-                        Button(action: {
-                            withAnimation(.easeIn(duration: 0.2)) {
-                                assertInfo.toggle()
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "info")
-                                    .font(.system(size: 20))
-                                    .bold()
-                                    .foregroundColor(.white)
-                                if assertInfo {
-                                    Text("competition.realtime.switch_info")
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(Color.secondText)
-                                        .multilineTextAlignment(.leading)
-                                    Spacer()
-                                    Text("competition.realtime.switch")
-                                        .foregroundStyle(Color.white)
-                                        .onTapGesture {
-                                            isReverse.toggle()
-                                        }
-                                }
-                            }
-                            .padding()
-                            .background(Color.black.opacity(0.3))
-                            .clipShape(.rect(cornerRadius: 10))
-                        }
                     }
-                    .padding(.bottom, 40)
-                    HStack {
-                        Spacer()
-                        Button {
-                            mapMode = .overview
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.black.opacity(0.3))
-                                    .frame(width: 50, height: 50)
-                                Image("location2")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 25, height: 25)
-                            }
-                            .contentShape(Circle())
-                        }
-                    }
-                    HStack {
-                        Spacer()
-                        Button {
-                            mapMode = .followUser
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.black.opacity(0.3))
-                                    .frame(width: 50, height: 50)
-                                Image("location")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
-                            }
-                            .contentShape(Circle())
-                        }
-                    }
+                    .padding(.horizontal)
                     Spacer()
                 }
-                .padding(.horizontal)
             }
             VStack {
+                HStack {
+                    Spacer()
+                    ZStack {
+                        Circle()
+                            .fill(mapMode == .overview ? Color.defaultBackground : Color.black.opacity(0.6))
+                            .frame(width: 50, height: 50)
+                            .overlay(
+                                Circle()
+                                    .stroke(mapMode == .overview ? Color.orange : Color.clear, lineWidth: 2)
+                            )
+                        Image("location2")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 25, height: 25)
+                    }
+                    .contentShape(Circle())
+                    .exclusiveTouchTapGesture {
+                        mapMode = .overview
+                    }
+                }
+                .padding(.horizontal)
+                
+                HStack {
+                    Spacer()
+                    ZStack {
+                        Circle()
+                            .fill(mapMode == .followUser ? Color.defaultBackground : Color.black.opacity(0.6))
+                            .frame(width: 50, height: 50)
+                            .overlay(
+                                Circle()
+                                    .stroke(mapMode == .followUser ? Color.orange : Color.clear, lineWidth: 2)
+                            )
+                        Image("location")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                    }
+                    .contentShape(Circle())
+                    .exclusiveTouchTapGesture {
+                        mapMode = .followUser
+                    }
+                }
+                .padding(.horizontal)
+                
                 ZStack {
                     HStack {
                         if let sport = appState.competitionManager.sport {
@@ -232,21 +220,16 @@ struct CompetitionRealtimeView: View {
                                 let isGray = (!appState.competitionManager.isInValidArea) || isDisabledInTeamMode || locationManager.signalStrength.bars < 2
                                 Spacer()
                                 if appState.competitionManager.isRecording {
-                                    VStack {
-                                        (Text("user.page.tab.current_record") + Text(":"))
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondText)
-                                        Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
-                                            .font(.largeTitle)
-                                            .foregroundColor(.white)
-                                    }
-                                    .frame(width: 120)
+                                    Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
+                                        .font(.system(size: 35, weight: .heavy, design: .rounded))
                                     Spacer()
                                     // 背景按钮
                                     Text("competition.realtime.action.finish")
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                        .frame(width: 100, height: 50)
+                                        .font(.system(size: 20))
+                                        .padding(.vertical, 12)
+                                        .padding(.horizontal, 20)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                         .background(Color.red)
                                         .clipShape(Capsule())
                                         .exclusiveTouchTapGesture {
@@ -264,7 +247,6 @@ struct CompetitionRealtimeView: View {
                                 } else {
                                     Text("competition.realtime.action.start")
                                         .font(.title)
-                                        .foregroundColor(.white)
                                         .frame(width: 100, height: 100)
                                         .background(isGray ? Color.gray : Color.green)
                                         .clipShape(Circle())
@@ -274,6 +256,8 @@ struct CompetitionRealtimeView: View {
                                 }
                                 Spacer()
                             }
+                            .foregroundStyle(Color.white)
+                            
                             if appState.competitionManager.isRecording {
                                 LazyVGrid(columns: columns, spacing: 16) {
                                     ForEach(items, id: \.0) { title, value, unit, color in
@@ -341,12 +325,12 @@ struct CompetitionRealtimeView: View {
                             }
                         }
                     }
-                    .frame(height: 550)
+                    .frame(height: 450)
                 }
                 .background(Color.defaultBackground.opacity(0.8))
                 .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
             }
-            .offset(y: chevronDirection ? 350 : 0)
+            .offset(y: chevronDirection ? 300 : 0)
         }
         .ignoresSafeArea(edges: .bottom)
         .toolbar(.hidden, for: .navigationBar)
@@ -371,7 +355,9 @@ struct CompetitionRealtimeView: View {
             }
         }
         .onStableAppear() {
-            appState.competitionManager.isShowWidget = false
+            DispatchQueue.main.async {
+                appState.competitionManager.isShowWidget = false
+            }
             appState.competitionManager.requestLocationAlwaysAuthorization()
             if !appState.competitionManager.isRecording {
                 LocationManager.shared.changeToMediumUpdate()
@@ -379,7 +365,9 @@ struct CompetitionRealtimeView: View {
             }
         }
         .onStableDisappear() {
-            appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
+            DispatchQueue.main.async {
+                appState.competitionManager.isShowWidget = appState.competitionManager.isRecording
+            }
             if !appState.competitionManager.isRecording {
                 appState.competitionManager.deleteCompetitionLocationSubscription()
             }

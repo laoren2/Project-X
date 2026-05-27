@@ -95,10 +95,12 @@ struct CompetitionWidget: View {
                         }
                 )
                 .onTapGesture {
-                    if appState.competitionManager.sportFeature == .bikeRace || appState.competitionManager.sportFeature == .runningRace {
+                    if appState.competitionManager.sportFeature?.featureType == .race {
                         appState.navigationManager.append(.competitionRealtimeView)
-                    } else if appState.competitionManager.sportFeature == .bikeFreeTraining || appState.competitionManager.sportFeature == .runningFreeTraining {
+                    } else if appState.competitionManager.sportFeature?.featureType == .freeTraining {
                         appState.navigationManager.append(.freeTrainingRealtimeView)
+                    } else if appState.competitionManager.sportFeature?.featureType == .routeTraining {
+                        appState.navigationManager.append(.routeTrainingRealtimeView)
                     }
                 }
             }

@@ -83,6 +83,24 @@
       "idiom" : "universal",
       "locale" : "ko",
       "scale" : "3x"
+    },
+    {
+      "filename" : "usage_ad_ja.jpeg",
+      "idiom" : "universal",
+      "locale" : "ja",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "usage_ad_ja 1.jpeg",
+      "idiom" : "universal",
+      "locale" : "ja",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "usage_ad_ja 2.jpeg",
+      "idiom" : "universal",
+      "locale" : "ja",
+      "scale" : "3x"
     }
   ],
   "info" : {
