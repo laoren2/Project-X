@@ -17,20 +17,25 @@
 "common.female" = "여성";
 "common.user" = "사용자";
 "common.average" = "평균";
-"common.speed" = "속도";
+"common.pace" = "페이스";
 "common.empty" = "비어 있음";
 "common.history" = "기록";
 "common.duration" = "시간";
 "common.times" = "횟수";
 "common.current" = "현재";
+"common.total" = "합계";
+"common.left" = "남음";
+"common.radius" = "반지름";
+"common.popularity" = "인기";
 
 "app.slogan" = "열정을 플레이하다";
 
 "sport.bike" = "자전거";
 "sport.running" = "러닝";
 
-"sport.feature.race" = "경기장";
-"sport.feature.free_training" = "자유 운동";
+"sport.feature.race" = "아레나";
+"sport.feature.free_training" = "자유 훈련";
+"sport.feature.route_training" = "코스 훈련";
 
 "tier.bronze" = "브론즈";
 "tier.silver" = "실버";
@@ -322,10 +327,12 @@
 "error.unknown" = "알 수 없음";
 "error.unknown.2" = "알 수 없는 오류";
 "error.no_data" = "데이터 없음";
+"error.nothing_here" = "여기엔 아무것도 없어요.";
 "error.data" = "데이터 오류";
 "error.server" = "서버 오류";
 "error.client_version" = "앱 버전이 낮습니다. 업데이트 후 이용해주세요.";
 "error.network_error" = "네트워크 오류. 잠시 후 다시 시도해주세요.";
+"error.region" = "현재 지역은 지원되지 않습니다. 지역을 변경하여 다시 시도해 주세요.";
 
 "time.today" = "오늘";
 "time.per_day %@" = "약 %@/일";
@@ -335,6 +342,8 @@
 "time.date" = "날짜";
 
 "distance.km.a/b %lf %lf" = "%.1lf/%.0lf ";
+"distance.km %lld" = "%lld km";
+"distance.m %lld" = "%lld m";
 "distance.km" = "km";
 "distance.m" = "m";
 
@@ -344,16 +353,19 @@
 "energy.unit" = "kcal";
 "power.unit" = "W";
 "stepCadence.unit" = "spm";
+"pedalCadence.unit" = "rpm";
 
 "toast.placehold" = "알림";
 "toast.no_login" = "로그인이 필요합니다";
 "toast.network_error" = "네트워크 오류";
 "toast.copied" = "복사 완료";
 "toast.no_login.2" = "로그인 후 확인 가능";
+"toast.created.success" = "생성 완료";
 
 "popup.no_reminder" = "다시 표시 안 함";
 "popup.claim_reward.title" = "수령 완료";
 "popup.claim_reward.content" = "다음 보상을 획득했습니다:";
+"popup.tips" = "유용한 팁";
 
 "home.sign_in.tile" = "출석 체크";
 "home.sign_in.subtile" = "연속 출석 시 더 많은 보상을 받을 수 있어요";
@@ -375,6 +387,9 @@
 "home.skill.title.3" = "장비 카드";
 "home.skill.title.4" = "보상 정산";
 "home.skill.title.5" = "대회 기록";
+"home.skill.title.6" = "그리드 시스템";
+"home.skill.title.7" = "프리 트레이닝 모드";
+"home.skill.title.8" = "루트 트레이닝 모드";
 "home.skill.title.1.subtitle.1" = "경기 기록";
 "home.skill.title.1.subtitle.2" = "데이터 검증";
 "home.skill.title.2.subtitle.1" = "팀 생성 및 참가";
@@ -389,6 +404,9 @@
 "home.skill.title.5.subtitle.1" = "원본 기록";
 "home.skill.title.5.subtitle.2" = "유효 기록";
 "home.skill.title.5.subtitle.3" = "기록 상태";
+"home.skill.title.6.subtitle.1" = "탐험 횟수";
+"home.skill.title.7.subtitle.1" = "버프 그리드";
+"home.skill.title.8.subtitle.1" = "루트 생성";
 "home.skill.title.1.subtitle.1.content" = "경기 참가 신청이 완료되면 자동으로 경기 기록이 생성되며, 운동 센터의 기록 관리 페이지에서 확인할 수 있습니다. 기록 상태는 ‘시작 전 / 진행 중 / 완료 / 검증 대기 / 만료’의 5가지로 구분됩니다.\n유효 시간 내에는 언제든지 경기를 시작할 수 있습니다. 개인 경기는 코스 유효 기간 내 자유롭게 시작할 수 있으며, 팀 경기는 팀 경기 시간 창 내에서만 시작할 수 있습니다.\n경기 종료는 자동 종료와 수동 종료 두 가지 방식이 있습니다. 결승 구역에 진입하면 시스템이 자동으로 종료하며, 자동 종료되지 않을 경우 결승 근처에서 수동으로 종료할 수 있습니다.\n기록을 취소하면 참가 비용이 환불되지만, 마감 시간이 지난 경우 취소할 수 없습니다. 개인 기록은 코스 마감 시간, 팀 기록은 팀 경기 시간 창 마감이 기준입니다.\n또한, 시스템은 만료된 기록을 자동 처리하며, 경기 시간이 2시간을 초과하면 만료로 간주됩니다.";
 "home.skill.title.1.subtitle.2.content" = "현재 자전거 및 러닝 경기에서는 데이터 검증을 위해 스마트폰을 반드시 허벅지 바깥쪽에 고정해야 합니다. 운동 중 기기를 자주 이동하면 검증 실패로 이어질 수 있습니다.\n데이터 검증은 ‘실시간 검증’과 ‘사후 검증’ 두 단계로 진행되며, 시스템 자원 제한으로 인해 검증 결과 반영까지 수 분에서 수 시간까지 지연될 수 있습니다.";
 "home.skill.title.1.subtitle.3.content" = "각 코스에는 별도의 보상 풀(상금 풀)이 존재합니다. 완료된 경기 기록이 하나 추가될 때마다 참가 비용의 일정 비율이 보상 풀에 누적됩니다.";
@@ -405,6 +423,9 @@
 "home.skill.title.5.subtitle.1.content" = "원본 기록은 ‘운동 종료 시각 - 시작 시각’으로 계산된 순수 기록이며, 어떤 보너스나 패널티도 적용되지 않은 값입니다.\n시작 시각은 유효 출발 구역 내에서 시작 버튼을 누른 시점이며,\n종료 시각은 시스템이 수집한 마지막 구간 데이터를 기반으로 보정됩니다.\n따라서 자동 종료 또는 수동 종료 타이밍에 크게 영향을 받지 않으며,\n수동 종료 시에는 가능한 한 결승 구역 근처에서 종료하는 것이 중요합니다.";
 "home.skill.title.5.subtitle.2.content" = "유효 기록은 원본 기록에 장착된 카드 및 연관 카드 효과가 모두 적용된 결과입니다.\n이 기록은 랭킹에 반영되며 개인 운동 기록으로 저장됩니다.\n총 보너스 상한은 원본 기록의 20%이며,\n즉, 유효 기록의 최소치는 원본 기록의 80%입니다.";
 "home.skill.title.5.subtitle.3.content" = "기록 상태는 경기 기록 상태와 유사하지만 ‘데이터 계산 중’ 상태가 추가됩니다.\n이는 일부 보너스가 아직 계산 중임을 의미하며,\n상황에 따라 수 분에서 수 시간까지 지연될 수 있습니다.";
+"home.skill.title.6.subtitle.1.content" = "지도는 일정한 비율로 그리드로 나뉘며, 프리 트레이닝과 루트 트레이닝 종료 후 지나간 그리드 정보가 집계됩니다. 운동 중 새로운 그리드를 탐험하면 추가 코인 및 보급 보상을 획득할 수 있으며, 가장 많이 방문한 플레이어가 해당 그리드를 점령하게 됩니다. 각 그리드의 점령 상태는 언제든지 확인할 수 있습니다.";
+"home.skill.title.7.subtitle.1.content" = "프리 트레이닝 모드에서는 매일 무작위로 버프 효과가 있는 그리드가 생성됩니다. 조건을 만족한 상태로 지나가면 버프가 발동되며, 동일한 버프는 중복 발동되지 않습니다.";
+"home.skill.title.8.subtitle.1.content" = "현재 루트는 도착 지점과 체크포인트 두 가지 모드를 지원합니다. 경로 포인트의 범위 반경과 패널티 시간을 조정할 수 있으며, 루트 생성 페이지에서 지도를 탭하면 루트 에디터로 진입할 수 있습니다. 루트가 비공개 상태일 때는 본인만 볼 수 있으며, 공개 후에는 수정할 수 없습니다. 기본 루트 랭킹은 남녀 분리 랭킹을 지원하지 않으며 최대 100명까지 기록됩니다. 장비 카드 시스템을 활성화하면 운동 중 자신의 카드를 사용할 수 있고, 그렇지 않으면 카드 기능이 비활성화됩니다.";
 
 "shop.tab.props" = "아이템";
 "shop.tab.equip_card" = "장비 카드";
@@ -429,10 +450,43 @@
 "training.exploration" = "탐색도";
 "training.exploration.2" = "탐색";
 "training.exploration.description" = "탐색도 이번 시즌 훈련을 통해 해당 지역을 얼마나 탐색했는지 보여줍니다.";
-"training.exploration.region.not_supported" = "현재 지역에서는 지원하지 않습니다";
 "training.error.no_login" = "로그인 후 운동 상태 및 탐색 지역을 확인하세요";
 "training.action.ready" = "준비 완료";
 "training.action.ready.no_login" = "로그인 후 계속 진행";
+
+"training.free.grid.info" = "그리드 정보";
+"training.free.grid.size" = "크기";
+"training.free.grid.common" = "일반 그리드 ";
+
+"training.route.info" = "루트 정보";
+"training.route.delete.title" = "루트 삭제";
+"training.route.delete.content" = "이 루트를 삭제하시겠습니까?";
+"training.route.manage" = "루트 관리";
+"training.route.create" = "루트 생성";
+"training.route.title" = "루트 이름";
+"training.route.title.enter" = "루트 이름 입력";
+"training.route.edit_on_tap" = "탭하여 루트 편집";
+"training.route.mode" = "모드";
+"training.route.distance.over %lld" = "%lldkm가 넘습니다";
+"training.route.distance.less %lld" = "%lldm 미만";
+"training.route.is_public" = "공개 루트";
+"training.route.is_public.content" = "공개 루트로 설정하면 모든 플레이어가 루트를 확인하고 참가할 수 있습니다. 비공개 루트는 본인만 이용할 수 있습니다. 공개 후에는 루트 정보를 수정할 수 없습니다.";
+"training.route.enable_leaderboard" = "랭킹 활성화";
+"training.route.unlock_leaderboard" = "전체 랭킹 해금";
+"training.route.enable_magiccard" = "카드 모드 활성화";
+"training.route.create.content" = "루트 카드 ×1을 사용해 새 루트를 생성하시겠습니까?";
+"training.route.create.toast.over_points %lld" = "경로 포인트는 최대 %lld개까지 추가할 수 있습니다";
+"training.route.create.toast.save_error.1" = "최소 2개의 경로 포인트가 필요합니다";
+"training.route.create.toast.save_error.2" = "잘못된 루트 구조입니다";
+"training.route.create.toast.save_error.3" = "체크포인트 간 거리가 너무 가깝습니다";
+"training.route.create.toast.save_error.4" = "현재 지역 경계를 초과했습니다";
+"training.route.create.unlock_points" = "최대 100개의 경로 포인트 생성";
+"training.route.create.pathpoint" = "경로 지점";
+"training.route.create.penalty_time" = "패널티 시간";
+"training.route.create.placeholder" = "지도를 길게 눌러 순서대로 경로 포인트 추가";
+"training.route.mode.direct" = "도착 모드";
+"training.route.mode.multi-points" = "체크포인트 모드";
+"training.route.create.popup.tips" = "길게 눌러 경로 포인트의 위치와 순서를 조정할 수 있습니다";
 
 "training.history.title" = "훈련 이력";
 "training.history.no_record" = "훈련 기록 없음";
@@ -444,12 +498,15 @@
 "training.realtime.popup.cannot_save.button" = "계속 종료";
 "training.realtime.grid.title" = "그리드 정보";
 "training.realtime.grid.occupier" = "점령자";
-"training.realtime.grid.exploration_status" = "현재 시즌 탐사 현황";
+"training.realtime.grid.exploration_status" = "탐사 현황";
 "training.realtime.grid.ranklist.no_data" = "여기는 아무도 와본 적이 없어요";
 
 "training.result.record" = "훈련 기록";
 "training.result.complete" = "훈련 종료";
-"training.result.popup.content %lld" = "새로운 지역을 %lld개 성공적으로 탐험하셨습니다!";
+"training.result.popup.content.new_area %lld" = "새로운 지역을 %lld개 성공적으로 탐험하셨습니다!";
+"training.result.popup.content.buff %lld" = "%lld개의 버프 영역을 성공적으로 활성화하셨습니다!";
+"training.result.popup.content.new_area_buff %lld %lld" = "새로운 지역을 %lld개 성공적으로 탐험하셨습니다, 그리고 %lld개의 버프 영역을 활성화했습니다!";
+"training.result.grid_reward" = "활성화된 그리드";
 
 "competition.season.info" = "시즌 정보";
 "competition.season.data" = "시즌 데이터";
@@ -499,7 +556,7 @@
 "competition.record.status.computing" = "계산 중";
 "competition.record.original_time" = "원본 기록";
 "competition.record.valid_time" = "유효 기록";
-"competition.record.valid_time.popup.content" = "유효 기록은 원본 기록에 장착된 카드 및 연관 카드 효과가 적용된 최종 결과입니다.\n해당 기록은 경기 완료 후 랭킹에 반영되며 개인 운동 기록에 저장됩니다.";
+"competition.record.valid_time.popup.content" = "유효 점수란 장비 카드 및 페널티와 같은 추가 효과를 원래 점수에 적용하여 계산한 점수를 말하며, 순위표 및 선수 경력 기록 입력 시 통계의 기초로 사용됩니다.";
 "competition.record.settlement_rewards" = "정산 정보";
 "competition.record.time_and_data" = "데이터 통계";
 "competition.record.result" = "경기 결과";
@@ -522,8 +579,8 @@
 "competition.cardselect.magiccard.equipped" = "장착됨";
 "competition.cardselect.magiccard.empty_slot" = "빈 슬롯";
 "competition.cardselect.magiccard.vipslot" = "전용 슬롯";
-"competition.cardselect.popup.content.bike" = "자전거 경기를 진행할 때는 데이터 검증을 위해 스마트폰을 반드시 허벅지에 고정해야 합니다.\n운동 중 기기를 자주 이동하면 데이터 검증 실패로 이어질 수 있습니다.\n또한 부정행위가 적발될 경우 계정이 제재될 수 있습니다.";
-"competition.cardselect.popup.content.running" = "러닝 경기를 진행할 때는 데이터 검증을 위해 스마트폰을 반드시 허벅지에 고정해야 합니다.\n운동 중 기기를 자주 이동하면 데이터 검증 실패로 이어질 수 있습니다.\n또한 부정행위가 적발될 경우 계정이 제재될 수 있습니다.";
+"competition.cardselect.popup.content.bike" = "사이클 경기 중에는 다음 두 가지 방법 중 하나를 선택하여 자동 검증을 진행할 수 있습니다:\n\n1. 운동 중 케이던스 센서를 사용하여 케이던스 데이터를 기록\n2. 운동 중 휴대전화를 허벅지에 고정하고 잦은 움직임을 최소화\n\n주의: 경기 중 부정행위가 적발될 경우 계정이 정지될 수 있습니다.";
+"competition.cardselect.popup.content.running" = "러닝 경기 중에는 다음 두 가지 방법 중 하나를 선택하여 자동 검증을 진행할 수 있습니다:\n\n1. 운동 중 지원되는 장치를 사용하여 보폭 빈도 데이터를 기록\n2. 운동 중 휴대전화를 허벅지에 고정하고 잦은 움직임을 최소화\n\n주의: 경기 중 부정행위가 적발될 경우 계정이 정지될 수 있습니다.";
 "competition.cardselect.healthkit.title" = "건강 데이터 접근 필요";
 "competition.cardselect.healthkit.content" = "Apple Watch 또는 기타 외부 센서를 사용하여 경기를 기록할 경우,\n운동 데이터를 동기화하기 위해 Apple Health(HealthKit) 데이터에 접근할 수 있습니다.\n언제든지 시스템의 ‘건강’ 앱에서 권한을 해제할 수 있습니다.";
 "competition.cardselect.familiarity_buff" = "숙련도 버프";
@@ -536,6 +593,7 @@
 "competition.realtime.popup.finish" = "수동으로 경기를 종료하시겠습니까？";
 "competition.realtime.distance" = "거리";
 "competition.realtime.avgspeed" = "평균 속도";
+"competition.realtime.elev_gain" = "누적 상승 고도";
 "competition.realtime.heartrate" = "심박수";
 "competition.realtime.energy" = "칼로리";
 "competition.realtime.power" = "파워";
@@ -543,7 +601,7 @@
 "competition.realtime.switch_info" = "표시 영역 오류가 발생할 경우 수동으로 좌표계를 전환하세요";
 "competition.realtime.out_window" = "팀 유효 시간 창이 종료되어 참가할 수 없습니다";
 "competition.realtime.remaining_time %lld" = "남은 참가 시간: %lld초";
-"competition.realtime.start.out_of_area" = "출발 지점에 있지 않아 경기를 시작할 수 없습니다";
+"competition.realtime.start.out_of_area" = "당신은 출발점에 있는 것이 아닙니다.";
 "competition.realtime.start.popup.no_auth" = "경기를 시작할 수 없습니다";
 "competition.realtime.start.popup.no_auth.content" = "백그라운드 위치 권한이 필요합니다. 지속적인 기록을 위해 ‘항상 허용’으로 설정해주세요.";
 "competition.realtime.start.toast.record_error" = "참가 데이터 오류입니다. 다시 시도해주세요";
@@ -562,7 +620,8 @@
 "competition.realtime.popup.familiar_route" = "정식 경기를 시작하기 전에 최소 한 번 전체 코스를 주행하여 경로를 익히는 것을 권장합니다。";
 
 "competition.result.stepcadence" = "케이던스";
-"competition.result.bonus_time.magiccard" = "모든 장비 카드 보상";
+"competition.result.pedalcadence" = "케이던스";
+"competition.result.bonus_time.magiccard" = "장비 카드 보상";
 "competition.result.bonus_time.familiarity" = "친숙함의 보상";
 "competition.result.bonus_time.training_state" = "활동도 보상";
 
@@ -680,7 +739,7 @@
 "competition.terrain.downHill" = "다운힐";
 "competition.terrain.other" = "기타";
 
-"competition.magiccard.select" = "카드 선택";
+"competition.magiccard.select" = "장비 카드";
 "competition.magiccard.selected" = "선택됨";
 "competition.magiccard.search" = "카드 검색";
 "competition.magiccard.error.sporttype" = "운동 유형 불일치";
@@ -708,7 +767,7 @@
 "competition.applewatch.error.finish" = "Watch 연결 실패, Watch에서 직접 종료해주세요";
 
 "competition.slidebar.title" = "운동 센터";
-"competition.slidebar.subtitle" = "더 많은 운동을 발견하세요";
+"competition.slidebar.subtitle" = "함께 움직이고, 함께 즐기고";
 
 "user.page.friend" = "친구";
 "user.page.following" = "팔로잉";
@@ -742,6 +801,8 @@
 "user.page.bind_device.popup.applewatch" = "Apple Watch를 사용하는 경우, 스마트폰에서 경기를 시작하면 Watch 앱이 자동으로 실행되어 동기화됩니다.\n자동 실행되지 않을 경우 Watch 앱을 수동으로 실행하고 30초 이내에 ‘동기화’ 버튼을 눌러주세요.";
 "user.page.bind_device.popup.default.title" = "기본 데이터 소스 기기";
 "user.page.bind_device.popup.default.content" = "지원되는 센서 장치를 연결하면 운동 기록을 도울 수 있습니다. 기본 데이터 소스 장치는 운동하는 동안 운동 데이터를 지속적으로 수집합니다.";
+"user.page.bind_device.action.connect" = "연결";
+"user.page.bind_device.connected" = "연결됨";
 "user.page.features.institute" = "연구소";
 "user.page.features.email_box" = "메일함";
 "user.page.tab.career" = "커리어";
@@ -754,6 +815,7 @@
 "user.page.dailytask.go_complete" = "완료하러 가기";
 "user.page.popup.complete_info.title" = "완전한 정보";
 "user.page.popup.complete_info.content" = "프로필을 완성하여 친구들이 당신을 더 잘 알 수 있도록 하세요!";
+
 "user.sidebar.select_sport" = "운동 선택";
 "user.sidebar.default_sport" = "프로필 기본 표시 운동:";
 
@@ -844,6 +906,8 @@
 "user.intro.go_auth" = "인증하기";
 "user.intro.no_auth" = "미인증";
 "user.intro.gender_info" = "실명 정보상의 성별";
+"user.intro.gender.info" = "성별은 설정 후 변경할 수 없습니다";
+"user.intro.gender.toast" = "현재 성별을 변경할 수 없습니다";
 "user.intro.birthday_info" = "실명 정보상의 나이";
 "user.intro.auto_location" = "위치 자동 업데이트";
 "user.intro.current_location" = "현재 위치";
@@ -879,11 +943,12 @@
 
 "iap.coupon.title" = "프리미엄 캐시 상점";
 "iap.coupon.failed" = "구매 실패";
-"iap.coupon.success" = "구매 성공";
+"iap.coupon.success" = "구매 완료";
 "iap.coupon.cancel" = "구매 취소됨";
 "iap.coupon.pendding" = "구매 보류됨";
 "iap.coupon.feedback" = "결제 문제가 발생했나요? 바로 문의하세요";
 "iap.coupon.popup.content" = "프리미엄 캐시 은 앱 내 가상 자산으로, 온라인 경기 참여 및 관련 아이템 구매에만 사용할 수 있으며 현금으로 환전할 수 없습니다.";
+
 "iap.subscription.failed" = "구독 실패";
 "iap.subscription.success" = "구독 성공";
 "iap.subscription.cancel" = "구독 취소됨";
@@ -900,6 +965,7 @@
 "iap.subscription.benefits.1" = "추가 장비 카드 슬롯";
 "iap.subscription.benefits.2" = "풍부한 전용 출석 보상";
 "iap.subscription.benefits.3" = "빠른 데이터 검증";
+"iap.subscription.benefits.4" = "고급 경로 편집 기능";
 "iap.subscription.action.purchase" = "지금 구독";
 "iap.subscription.action.update_purchase" = "구독 업데이트";
 "iap.subscription.toast.purchase.failed.sub_off" = "해당 Apple ID에 연결된 다른 계정이 이미 구독 중이므로 중복 구독이 불가능합니다";
@@ -941,7 +1007,7 @@
 
 "magiccard.detail" = "카드 상세";
 "magiccard.detail.lucky" = "행운 수치";
-"magiccard.detail.description" = "카드 설명";
+"magiccard.detail.description" = "설명";
 "magiccard.detail.sensor.type" = "센서 유형";
 "magiccard.detail.sensor.pos" = "센서 위치";
 "magiccard.detail.skill.unlock" = "해금";

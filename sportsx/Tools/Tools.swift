@@ -140,15 +140,37 @@ struct DateParser {
     }
 }
 
+enum DateDisplayPart {
+    case date
+    case time
+    case all
+}
+
 struct DateDisplay {
-    static func formattedDate(_ date: Date?) -> String {
+    static func formattedDate(_ date: Date?, part: DateDisplayPart = .all) -> String {
         guard let date = date else {
-            return "----/--/-- --:--:--"
+            switch part {
+            case .date:
+                return "----/--/--"
+            case .time:
+                return "--:--:--"
+            case .all:
+                return "----/--/-- --:--:--"
+            }
         }
+
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
         formatter.locale = Locale(identifier: "zh_CN")
-        
+
+        switch part {
+        case .date:
+            formatter.dateFormat = "yyyy/MM/dd"
+        case .time:
+            formatter.dateFormat = "HH:mm:ss"
+        case .all:
+            formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
+        }
+
         return formatter.string(from: date)
     }
 }
@@ -419,5 +441,14 @@ struct SpeedHelper {
         let seconds = totalSeconds % 60
         
         return String(format: "%d'%02d''", minutes, seconds)
+    }
+}
+
+struct DistanceHelper {
+    static func paceString(from distance: Double) -> String {
+        guard distance > 0 else {
+            return "-"
+        }
+        return distance < 1 ? "\(Int(distance * 1000)) m" : String(format: "%.1f km", distance)
     }
 }

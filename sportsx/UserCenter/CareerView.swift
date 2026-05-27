@@ -11,39 +11,51 @@ struct CareerView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
-    //let abilities = ["技巧", "装备", "心肺", "有氧", "爆发"]
-    //let abilityValues: [Float] = [80.0, 65.7, 70.4, 90.9, 75.3] // 示例数据
+    
+    @State private var onSeasonSwitch: Bool = false
     
     var body: some View {
         VStack(spacing: 20) {
-            // 暂时为适配 iOS16+ 的写法
-            // todo: 替换为更稳定的自定义menu
             HStack {
-                if let seasonName = viewModel.selectedSeason?.seasonName {
-                    Menu {
-                        ForEach(viewModel.seasons) { season in
-                            Button(action: {
-                                viewModel.selectedSeason = season
-                            }) {
-                                Text(LocalizedStringKey(season.seasonName))
+                if let selectedSeason = viewModel.selectedSeason {
+                    if onSeasonSwitch {
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 8) {
+                                ForEach(viewModel.seasons) { season in
+                                    Text(LocalizedStringKey(season.seasonName))
+                                        .font(.subheadline)
+                                        .foregroundStyle(selectedSeason == season ? Color.white : Color.thirdText)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule()
+                                                .fill(selectedSeason == season ? Color.orange : Color.gray)
+                                        )
+                                        .exclusiveTouchTapGesture {
+                                            onSeasonSwitch.toggle()
+                                            viewModel.selectedSeason = season
+                                        }
+                                }
                             }
                         }
-                    } label: {
-                        HStack {
-                            Text(LocalizedStringKey(seasonName))
-                                .font(.subheadline)
+                    } else {
+                        HStack(spacing: 4) {
+                            Text(LocalizedStringKey(selectedSeason.seasonName))
                                 .foregroundStyle(Color.white)
-                                .fixedSize(horizontal: true, vertical: false)
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.8))
+                                .font(.subheadline)
+                            Image(systemName: "arrow.left.arrow.right")
+                                .foregroundStyle(Color.secondText)
+                                .font(.system(size: 12))
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.orange, lineWidth: 2)
                         )
+                        .exclusiveTouchTapGesture {
+                            onSeasonSwitch.toggle()
+                        }
                     }
                 } else {
                     Text("error.unknown")
@@ -58,66 +70,6 @@ struct CareerView: View {
             }
             .padding(.horizontal)
             .padding(.top, 10)
-            
-            // 积分排名和能力图区域
-            /*HStack(alignment: .top, spacing: 15) {
-             // 积分排名区域
-             VStack(spacing: 15) {
-             // todo: 荣誉展示
-             VStack(alignment: .leading, spacing: 10) {
-             Text("赛季荣誉")
-             .font(.headline)
-             .foregroundColor(.secondText)
-             
-             HStack {
-             ForEach(viewModel.cups) { cup in
-             Image(systemName: cup.image)
-             .font(.title)
-             .foregroundColor(.yellow)
-             }
-             Spacer()
-             if viewModel.cups.isEmpty {
-             Text("暂无荣誉")
-             .font(.subheadline)
-             .foregroundColor(.secondText)
-             }
-             }
-             }
-             .padding()
-             .background(.gray.opacity(0.5))
-             .cornerRadius(12)
-             }
-             .frame(maxWidth: .infinity)
-             
-             // todo: 五边形能力图
-             VStack(spacing: 15) {
-             ZStack {
-             // 五边形背景
-             PolygonShape(sides: 5)
-             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-             .frame(width: 150, height: 150)
-             
-             // 能力值五边形
-             AbilityPolygon(values: abilityValues)
-             .fill(Color.blue.opacity(0.3))
-             .frame(width: 150, height: 150)
-             
-             // 能力点
-             AbilityPolygon(values: abilityValues)
-             .stroke(Color.blue, lineWidth: 2)
-             .frame(width: 150, height: 150)
-             }
-             
-             // 能力值条
-             VStack(spacing: 8) {
-             ForEach(0..<abilities.count, id: \.self) { index in
-             abilityBar(ability: abilities[index], value: abilityValues[index])
-             }
-             }
-             }
-             .frame(maxWidth: .infinity)
-             }
-             .padding(.horizontal)*/
             
             // 参与数据区域
             if viewModel.isCareerDataLoading {
@@ -235,12 +187,14 @@ struct CareerView: View {
                     if viewModel.competitionScoreRecords.isEmpty {
                         Spacer()
                         VStack(spacing: 20) {
-                            Image(systemName: "doc.text.magnifyingglass")
-                                .font(.system(size: 60))
-                            Text("error.no_data")
+                            Image("no_data")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 100)
+                            Text("error.nothing_here")
                                 .font(.headline)
+                                .foregroundStyle(Color.secondText)
                         }
-                        .foregroundStyle(Color.white.opacity(0.3))
                         Spacer()
                     } else {
                         LazyVStack(spacing: 15) {
@@ -294,7 +248,8 @@ struct LocalCareerView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: LocalUserViewModel
-    @State private var showTierDetail = false
+    @State private var showTierDetail: Bool = false
+    @State private var onSeasonSwitch: Bool = false
     
     var body: some View {
         VStack(spacing: 20) {
@@ -305,32 +260,45 @@ struct LocalCareerView: View {
                     .padding(.top, 100)
             } else {
                 HStack {
-                    // todo: 替换为更稳定的自定义menu
-                    if let seasonName = viewModel.selectedSeason?.seasonName {
-                        Menu {
-                            ForEach(viewModel.seasons) { season in
-                                Button(action: {
-                                    viewModel.selectedSeason = season
-                                }) {
-                                    Text(LocalizedStringKey(season.seasonName))
+                    if let selectedSeason = viewModel.selectedSeason {
+                        if onSeasonSwitch {
+                            ScrollView(.horizontal) {
+                                HStack(spacing: 8) {
+                                    ForEach(viewModel.seasons) { season in
+                                        Text(LocalizedStringKey(season.seasonName))
+                                            .font(.subheadline)
+                                            .foregroundStyle(selectedSeason == season ? Color.white : Color.thirdText)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                Capsule()
+                                                    .fill(selectedSeason == season ? Color.orange : Color.gray)
+                                            )
+                                            .exclusiveTouchTapGesture {
+                                                onSeasonSwitch.toggle()
+                                                viewModel.selectedSeason = season
+                                            }
+                                    }
                                 }
                             }
-                        } label: {
-                            HStack {
-                                Text(LocalizedStringKey(seasonName))
+                        } else {
+                            HStack(spacing: 4) {
+                                Text(LocalizedStringKey(selectedSeason.seasonName))
+                                    .foregroundStyle(Color.white)
                                     .font(.subheadline)
-                                    .foregroundColor(.white)
-                                
-                                Image(systemName: "chevron.down")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.8))
+                                Image(systemName: "arrow.left.arrow.right")
+                                    .foregroundStyle(Color.secondText)
+                                    .font(.system(size: 12))
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.orange, lineWidth: 2)
                             )
+                            .exclusiveTouchTapGesture {
+                                onSeasonSwitch.toggle()
+                            }
                         }
                     } else {
                         Text("error.unknown")
@@ -338,8 +306,10 @@ struct LocalCareerView: View {
                             .foregroundStyle(Color.secondText)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
-                            .background(Color.white.opacity(0.4))
-                            .cornerRadius(8)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.orange, lineWidth: 2)
+                            )
                     }
                     Spacer()
                 }
@@ -518,12 +488,14 @@ struct LocalCareerView: View {
                         if viewModel.competitionScoreRecords.isEmpty {
                             Spacer()
                             VStack(spacing: 20) {
-                                Image(systemName: "doc.text.magnifyingglass")
-                                    .font(.system(size: 60))
-                                Text("error.no_data")
+                                Image("no_data")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 100)
+                                Text("error.nothing_here")
                                     .font(.headline)
+                                    .foregroundStyle(Color.secondText)
                             }
-                            .foregroundStyle(Color.white.opacity(0.3))
                             Spacer()
                         } else {
                             LazyVStack(spacing: 15) {

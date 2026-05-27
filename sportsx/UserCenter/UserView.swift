@@ -367,35 +367,49 @@ struct MainUserView: View {
                                         
                                         HStack {
                                             if user.isDisplayGender == true, let gender = user.gender {
-                                                Text(LocalizedStringKey(gender.displayName))
+                                                Image(gender.icon)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             
                                             if user.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: user.birthday ?? "xxxx-xx-xx") {
                                                 Text("time.year_old \(age)")
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             
                                             if user.isDisplayLocation == true, let region = userRegion {
                                                 Text(region)
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             
                                             if user.isDisplayIdentity == true, let identity = user.identityAuthName {
                                                 Text(identity)
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             Spacer()
                                         }
@@ -819,7 +833,7 @@ struct LocalUserView: View {
                 .offset(x: (viewModel.showSidebar ? 0 : -viewModel.sidebarWidth))
         }
         .onFirstAppear {
-            if userManager.user.gender == nil || userManager.user.birthday == nil {
+            if userManager.user.gender == nil {
                 PopupWindowManager.shared.presentPopup(
                     title: "user.page.popup.complete_info.title",
                     message: "user.page.popup.complete_info.content",
@@ -995,35 +1009,49 @@ struct LocalMainUserView: View {
                                         
                                         HStack {
                                             if userManager.user.isDisplayGender == true, let gender = userManager.user.gender {
-                                                Text(LocalizedStringKey(gender.displayName))
+                                                Image(gender.icon)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             
                                             if userManager.user.isDisplayAge == true, let age = AgeDisplay.calculateAge(from: userManager.user.birthday ?? "xxxx-xx-xx") {
                                                 Text(LocalizedStringKey("time.year_old \(age)"))
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             
                                             if userManager.user.isDisplayLocation == true, let region = userManager.userRegion {
                                                 Text(region)
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             
                                             if userManager.user.isDisplayIdentity == true, let identity = userManager.user.identityAuthName {
                                                 Text(identity)
+                                                    .frame(height: 16)
                                                     .padding(.vertical, 4)
                                                     .padding(.horizontal, 8)
-                                                    .background(.ultraThinMaterial)
-                                                    .cornerRadius(6)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(Color.white.opacity(0.3))
+                                                    )
                                             }
                                             Spacer()
                                         }
@@ -1415,7 +1443,7 @@ struct LocalMainUserView: View {
                                     
                                     Spacer()
                                     
-                                    if userManager.user.gender == nil || userManager.user.birthday == nil {
+                                    if userManager.user.gender == nil {
                                         HStack(spacing: 4) {
                                             Image(systemName: "exclamationmark.circle")
                                                 .foregroundStyle(Color.pink)

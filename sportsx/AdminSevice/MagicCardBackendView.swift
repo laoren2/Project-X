@@ -167,22 +167,34 @@ struct MagicCardCreateView: View {
     @State var name_en: String = ""
     @State var name_hans: String = ""
     @State var name_hant: String = ""
+    @State var name_ko: String = ""
+    @State var name_ja: String = ""
     
     @State var sportType: String = SportName.Bike.rawValue
     
     @State var description_en: String = ""
     @State var description_hans: String = ""
     @State var description_hant: String = ""
+    @State var description_ko: String = ""
+    @State var description_ja: String = ""
     
     @State var description1_en: String = ""
     @State var description1_hans: String = ""
     @State var description1_hant: String = ""
+    @State var description1_ko: String = ""
+    @State var description1_ja: String = ""
+    
     @State var description2_en: String = ""
     @State var description2_hans: String = ""
     @State var description2_hant: String = ""
+    @State var description2_ko: String = ""
+    @State var description2_ja: String = ""
+    
     @State var description3_en: String = ""
     @State var description3_hans: String = ""
     @State var description3_hant: String = ""
+    @State var description3_ko: String = ""
+    @State var description3_ja: String = ""
     
     @State var defID: String = "equipcard_"
     @State var rarity: String = ""
@@ -208,6 +220,8 @@ struct MagicCardCreateView: View {
                     TextField("卡牌名称hans", text: $name_hans)
                     TextField("卡牌名称hant", text: $name_hant)
                     TextField("卡牌名称en", text: $name_en)
+                    TextField("卡牌名称ko", text: $name_ko)
+                    TextField("卡牌名称ja", text: $name_ja)
                     Menu {
                         ForEach(sportTypes, id: \.self) { type in
                             Button(type.rawValue) {
@@ -228,16 +242,26 @@ struct MagicCardCreateView: View {
                     TextField("卡牌描述hans", text: $description_hans)
                     TextField("卡牌描述hant", text: $description_hant)
                     TextField("卡牌描述en", text: $description_en)
+                    TextField("卡牌描述ko", text: $description_ko)
+                    TextField("卡牌描述ja", text: $description_ja)
                     
                     TextField("技能1描述hans(选填)", text: $description1_hans)
                     TextField("技能1描述hant(选填)", text: $description1_hant)
                     TextField("技能1描述en(选填)", text: $description1_en)
+                    TextField("技能1描述ko(选填)", text: $description1_ko)
+                    TextField("技能1描述ja(选填)", text: $description1_ja)
+                    
                     TextField("技能2描述hans(选填)", text: $description2_hans)
                     TextField("技能2描述hant(选填)", text: $description2_hant)
                     TextField("技能2描述en(选填)", text: $description2_en)
+                    TextField("技能2描述ko(选填)", text: $description2_ko)
+                    TextField("技能2描述ja(选填)", text: $description2_ja)
+                    
                     TextField("技能3描述hans(选填)", text: $description3_hans)
                     TextField("技能3描述hant(选填)", text: $description3_hant)
                     TextField("技能3描述en(选填)", text: $description3_en)
+                    TextField("技能3描述ko(选填)", text: $description3_ko)
+                    TextField("技能3描述ja(选填)", text: $description3_ja)
                     
                     TextField("def_id", text: $defID)
                     TextField("稀有度", text: $rarity)
@@ -299,26 +323,36 @@ struct MagicCardCreateView: View {
         if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
         if !name_en.isEmpty { name_i18n["en"] = name_en }
+        if !name_ko.isEmpty { name_i18n["ko"] = name_ko }
+        if !name_ja.isEmpty { name_i18n["ja"] = name_ja }
 
         var des_i18n: [String: String] = [:]
         if !description_hans.isEmpty { des_i18n["zh-Hans"] = description_hans }
         if !description_hant.isEmpty { des_i18n["zh-Hant"] = description_hant }
         if !description_en.isEmpty { des_i18n["en"] = description_en }
+        if !description_ko.isEmpty { des_i18n["ko"] = description_ko }
+        if !description_ja.isEmpty { des_i18n["ja"] = description_ja }
         
         var des1_i18n: [String: String] = [:]
         if !description1_hans.isEmpty { des1_i18n["zh-Hans"] = description1_hans }
         if !description1_hant.isEmpty { des1_i18n["zh-Hant"] = description1_hant }
         if !description1_en.isEmpty { des1_i18n["en"] = description1_en }
+        if !description1_ko.isEmpty { des1_i18n["ko"] = description1_ko }
+        if !description1_ja.isEmpty { des1_i18n["ja"] = description1_ja }
         
         var des2_i18n: [String: String] = [:]
         if !description2_hans.isEmpty { des2_i18n["zh-Hans"] = description2_hans }
         if !description2_hant.isEmpty { des2_i18n["zh-Hant"] = description2_hant }
         if !description2_en.isEmpty { des2_i18n["en"] = description2_en }
+        if !description2_ko.isEmpty { des2_i18n["ko"] = description2_ko }
+        if !description2_ja.isEmpty { des2_i18n["ja"] = description2_ja }
         
         var des3_i18n: [String: String] = [:]
         if !description3_hans.isEmpty { des3_i18n["zh-Hans"] = description3_hans }
         if !description3_hant.isEmpty { des3_i18n["zh-Hant"] = description3_hant }
         if !description3_en.isEmpty { des3_i18n["en"] = description3_en }
+        if !description3_ko.isEmpty { des3_i18n["ko"] = description3_ko }
+        if !description3_ja.isEmpty { des3_i18n["ja"] = description3_ja }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -406,6 +440,14 @@ struct MagicCardUpdateView: View {
                         TextField("赛事名称en", text: $viewModel.name_en)
                     }
                     HStack {
+                        Text("卡牌名称ko")
+                        TextField("赛事名称ko", text: $viewModel.name_ko)
+                    }
+                    HStack {
+                        Text("卡牌名称ja")
+                        TextField("赛事名称ja", text: $viewModel.name_ja)
+                    }
+                    HStack {
                         Text("卡牌描述hans")
                         TextField("描述hans", text: $viewModel.description_hans)
                     }
@@ -416,6 +458,14 @@ struct MagicCardUpdateView: View {
                     HStack {
                         Text("卡牌描述en")
                         TextField("描述en", text: $viewModel.description_en)
+                    }
+                    HStack {
+                        Text("卡牌描述ko")
+                        TextField("描述ko", text: $viewModel.description_ko)
+                    }
+                    HStack {
+                        Text("卡牌描述ja")
+                        TextField("描述ja", text: $viewModel.description_ja)
                     }
                     HStack {
                         Text("卡牌技能一描述hans")
@@ -430,6 +480,14 @@ struct MagicCardUpdateView: View {
                         TextField("描述en", text: $viewModel.skill1_description_en)
                     }
                     HStack {
+                        Text("卡牌技能一描述ko")
+                        TextField("描述ko", text: $viewModel.skill1_description_ko)
+                    }
+                    HStack {
+                        Text("卡牌技能一描述ja")
+                        TextField("描述ja", text: $viewModel.skill1_description_ja)
+                    }
+                    HStack {
                         Text("卡牌技能二描述hans")
                         TextField("描述hans", text: $viewModel.skill2_description_hans)
                     }
@@ -442,6 +500,14 @@ struct MagicCardUpdateView: View {
                         TextField("描述en", text: $viewModel.skill2_description_en)
                     }
                     HStack {
+                        Text("卡牌技能二描述ko")
+                        TextField("描述ko", text: $viewModel.skill2_description_ko)
+                    }
+                    HStack {
+                        Text("卡牌技能二描述ja")
+                        TextField("描述ja", text: $viewModel.skill2_description_ja)
+                    }
+                    HStack {
                         Text("卡牌技能三描述hans")
                         TextField("描述hans", text: $viewModel.skill3_description_hans)
                     }
@@ -452,6 +518,14 @@ struct MagicCardUpdateView: View {
                     HStack {
                         Text("卡牌技能三描述en")
                         TextField("描述en", text: $viewModel.skill3_description_en)
+                    }
+                    HStack {
+                        Text("卡牌技能三描述ko")
+                        TextField("描述ko", text: $viewModel.skill3_description_ko)
+                    }
+                    HStack {
+                        Text("卡牌技能三描述ja")
+                        TextField("描述ja", text: $viewModel.skill3_description_ja)
                     }
                 }
                 Section(header: Text("封面图片")) {
@@ -511,26 +585,36 @@ struct MagicCardUpdateView: View {
         if !viewModel.name_hans.isEmpty { name_i18n["zh-Hans"] = viewModel.name_hans }
         if !viewModel.name_hant.isEmpty { name_i18n["zh-Hant"] = viewModel.name_hant }
         if !viewModel.name_en.isEmpty { name_i18n["en"] = viewModel.name_en }
+        if !viewModel.name_ko.isEmpty { name_i18n["ko"] = viewModel.name_ko }
+        if !viewModel.name_ja.isEmpty { name_i18n["ja"] = viewModel.name_ja }
 
         var des_i18n: [String: String] = [:]
         if !viewModel.description_hans.isEmpty { des_i18n["zh-Hans"] = viewModel.description_hans }
         if !viewModel.description_hant.isEmpty { des_i18n["zh-Hant"] = viewModel.description_hant }
         if !viewModel.description_en.isEmpty { des_i18n["en"] = viewModel.description_en }
+        if !viewModel.description_ko.isEmpty { des_i18n["ko"] = viewModel.description_ko }
+        if !viewModel.description_ja.isEmpty { des_i18n["ja"] = viewModel.description_ja }
         
         var des1_i18n: [String: String] = [:]
         if !viewModel.skill1_description_hans.isEmpty { des1_i18n["zh-Hans"] = viewModel.skill1_description_hans }
         if !viewModel.skill1_description_hant.isEmpty { des1_i18n["zh-Hant"] = viewModel.skill1_description_hant }
         if !viewModel.skill1_description_en.isEmpty { des1_i18n["en"] = viewModel.skill1_description_en }
+        if !viewModel.skill1_description_ko.isEmpty { des1_i18n["ko"] = viewModel.skill1_description_ko }
+        if !viewModel.skill1_description_ja.isEmpty { des1_i18n["ja"] = viewModel.skill1_description_ja }
         
         var des2_i18n: [String: String] = [:]
         if !viewModel.skill2_description_hans.isEmpty { des2_i18n["zh-Hans"] = viewModel.skill2_description_hans }
         if !viewModel.skill2_description_hant.isEmpty { des2_i18n["zh-Hant"] = viewModel.skill2_description_hant }
         if !viewModel.skill2_description_en.isEmpty { des2_i18n["en"] = viewModel.skill2_description_en }
+        if !viewModel.skill2_description_ko.isEmpty { des2_i18n["ko"] = viewModel.skill2_description_ko }
+        if !viewModel.skill2_description_ja.isEmpty { des2_i18n["ja"] = viewModel.skill2_description_ja }
         
         var des3_i18n: [String: String] = [:]
         if !viewModel.skill3_description_hans.isEmpty { des3_i18n["zh-Hans"] = viewModel.skill3_description_hans }
         if !viewModel.skill3_description_hant.isEmpty { des3_i18n["zh-Hant"] = viewModel.skill3_description_hant }
         if !viewModel.skill3_description_en.isEmpty { des3_i18n["en"] = viewModel.skill3_description_en }
+        if !viewModel.skill3_description_ko.isEmpty { des3_i18n["ko"] = viewModel.skill3_description_ko }
+        if !viewModel.skill3_description_ja.isEmpty { des3_i18n["ja"] = viewModel.skill3_description_ja }
         
         // 文字字段
         var textFields: [String : String] = [
@@ -565,7 +649,7 @@ struct MagicCardUpdateView: View {
             ("image", cardImage, "cover.jpg")
         ]
         for (name, image, filename) in images {
-            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage) {
+            if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 200) {
                 body.append("--\(boundary)\r\n")
                 body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
                 body.append("Content-Type: image/jpg\r\n\r\n")
@@ -614,18 +698,28 @@ struct MagicCardDefView: View {
         viewModel.name_en = card.name_en
         viewModel.name_hans = card.name_hans
         viewModel.name_hant = card.name_hant
+        viewModel.name_ko = card.name_ko
+        viewModel.name_ja = card.name_ja
         viewModel.description_en = card.description_en
         viewModel.description_hans = card.description_hans
         viewModel.description_hant = card.description_hant
+        viewModel.description_ko = card.description_ko
+        viewModel.description_ja = card.description_ja
         viewModel.skill1_description_en = card.skill1_description_en
         viewModel.skill1_description_hans = card.skill1_description_hans
         viewModel.skill1_description_hant = card.skill1_description_hant
+        viewModel.skill1_description_ko = card.skill1_description_ko
+        viewModel.skill1_description_ja = card.skill1_description_ja
         viewModel.skill2_description_en = card.skill2_description_en
         viewModel.skill2_description_hans = card.skill2_description_hans
         viewModel.skill2_description_hant = card.skill2_description_hant
+        viewModel.skill2_description_ko = card.skill2_description_ko
+        viewModel.skill2_description_ja = card.skill2_description_ja
         viewModel.skill3_description_en = card.skill3_description_en
         viewModel.skill3_description_hans = card.skill3_description_hans
         viewModel.skill3_description_hant = card.skill3_description_hant
+        viewModel.skill3_description_ko = card.skill3_description_ko
+        viewModel.skill3_description_ja = card.skill3_description_ja
         viewModel.image_url = card.image_url
         viewModel.version = card.version
     }

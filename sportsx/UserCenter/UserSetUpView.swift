@@ -1137,7 +1137,7 @@ struct FeedbackView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .hideKeyboardOnScroll()
+        .hideKeyboardOnTap()
         .ignoresSafeArea(.keyboard)
         .photosPicker(isPresented: $showImagePicker, selection: $selectedImageItem, matching: .images)
         .onValueChange(of: selectedImageItem) { _, newState in

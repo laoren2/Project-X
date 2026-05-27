@@ -43,43 +43,50 @@ struct BikeCompetitionView: View {
                             appState.navigationManager.append(.bikeTeamManagementView)
                         }
                         Spacer()
-                        if viewModel.events.isEmpty {
-                            Text("competition.event.error.no_events")
-                                .foregroundColor(.secondText)
-                                .padding()
+                        if viewModel.isEventsLoading {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.gray)
+                                .frame(height: 80)
+                                .frame(maxWidth: .infinity)
                         } else {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(viewModel.events) { event in
-                                        Text(event.name)
-                                            .font(.system(size: 15))
-                                            .foregroundColor(.white)
-                                            .fontWeight(.semibold)
-                                            .frame(width: 100, height: 50)
-                                            .padding(.vertical, 8)
-                                            .padding(.horizontal, 12)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .fill(viewModel.selectedEvent?.eventID == event.eventID ?
-                                                          Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
-                                            )
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(viewModel.selectedEvent?.eventID == event.eventID ?
-                                                            Color.orange.opacity(0.6) : Color.clear, lineWidth: 2)
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                // 防止频繁刷新
-                                                if viewModel.selectedEvent?.eventID != event.eventID {
-                                                    //withAnimation {
-                                                    viewModel.switchEvent(to: event)
-                                                    //}
+                            if viewModel.events.isEmpty {
+                                Text("competition.event.error.no_events")
+                                    .foregroundColor(.secondText)
+                                    .padding()
+                            } else {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        ForEach(viewModel.events) { event in
+                                            Text(event.name)
+                                                .font(.system(size: 15))
+                                                .foregroundColor(.white)
+                                                .fontWeight(.semibold)
+                                                .frame(width: 100, height: 50)
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 12)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(viewModel.selectedEvent?.eventID == event.eventID ?
+                                                              Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
+                                                )
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .stroke(viewModel.selectedEvent?.eventID == event.eventID ?
+                                                                Color.orange.opacity(0.6) : Color.clear, lineWidth: 2)
+                                                )
+                                                .exclusiveTouchTapGesture {
+                                                    // 防止频繁刷新
+                                                    if viewModel.selectedEvent?.eventID != event.eventID {
+                                                        //withAnimation {
+                                                        viewModel.switchEvent(to: event)
+                                                        //}
+                                                    }
                                                 }
-                                            }
+                                        }
                                     }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 2)
                                 }
-                                .padding(.horizontal)
-                                .padding(.vertical, 2)
                             }
                         }
                         Spacer()
@@ -98,7 +105,12 @@ struct BikeCompetitionView: View {
                     }
                     .padding(.horizontal, 4)
                     
-                    ScrollView {
+                    if viewModel.isEventsLoading {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.gray)
+                            .frame(height: 120)
+                            .frame(maxWidth: .infinity)
+                    } else {
                         if let event = viewModel.selectedEvent {
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack(alignment: .top) {
@@ -144,365 +156,377 @@ struct BikeCompetitionView: View {
                     }
                     
                     // 赛道选择
-                    if viewModel.tracks.isEmpty {
-                        Text("competition.track.error.no_tracks")
-                            .foregroundColor(.secondText)
-                            .padding()
-                            .offset(y: chevronDirection ? 0 : -310) // 控制视图滑出/滑入
+                    if viewModel.isEventsLoading || viewModel.isTracksLoading {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.gray)
+                            .frame(height: 50)
+                            .frame(maxWidth: .infinity)
                     } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(viewModel.tracks) { track in
-                                    Text(track.name)
-                                        .padding(.vertical, 10)
-                                        .padding(.horizontal, 20)
-                                        .font(.system(size: 15))
-                                        .foregroundStyle(viewModel.selectedTrack?.trackID == track.trackID ? .white : .thirdText)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(viewModel.selectedTrack?.trackID == track.trackID ?
-                                                      Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(viewModel.selectedTrack?.trackID == track.trackID ?
-                                                        Color.orange.opacity(0.6) : Color.clear, lineWidth: 1)
-                                        )
-                                        .exclusiveTouchTapGesture {
-                                            // 防止频繁刷新
-                                            if viewModel.selectedTrack?.trackID != track.trackID {
-                                                viewModel.switchTrack(to: track)
+                        if viewModel.tracks.isEmpty {
+                            Text("competition.track.error.no_tracks")
+                                .foregroundColor(.secondText)
+                                .padding()
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(viewModel.tracks) { track in
+                                        Text(track.name)
+                                            .padding(.vertical, 10)
+                                            .padding(.horizontal, 20)
+                                            .font(.system(size: 15))
+                                            .foregroundStyle(viewModel.selectedTrack?.trackID == track.trackID ? .white : .thirdText)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(viewModel.selectedTrack?.trackID == track.trackID ?
+                                                          Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
+                                            )
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(viewModel.selectedTrack?.trackID == track.trackID ?
+                                                            Color.orange.opacity(0.6) : Color.clear, lineWidth: 1)
+                                            )
+                                            .exclusiveTouchTapGesture {
+                                                // 防止频繁刷新
+                                                if viewModel.selectedTrack?.trackID != track.trackID {
+                                                    viewModel.switchTrack(to: track)
+                                                }
                                             }
-                                        }
+                                    }
                                 }
+                                .padding(.vertical, 1)
+                                .padding(.horizontal, 1)
                             }
-                            .padding(.vertical, 1)
-                            .padding(.horizontal, 1)
                         }
                     }
                     
                     // 赛道信息
-                    if let track = viewModel.selectedTrack {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ScrollView {
-                                ZStack {
-                                    TrackMapView(
-                                        fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
-                                        toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to),
-                                        startRadius: CLLocationDistance(track.fromRadius),
-                                        endRadius: CLLocationDistance(track.toRadius)
-                                    )
-                                    .frame(height: 300)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                    )
-                                    .shadow(radius: 2)
-                                    .disabled(true)
-
-                                    Rectangle()
-                                        .fill(Color.clear)
-                                        .contentShape(Rectangle())
-                                        .exclusiveTouchTapGesture {
-                                            selectedTrackForFullMap = track
-                                        }
-                                }
-                                .offset(y: chevronDirection ? 0 : -310)
-                            }
-                            
-                            VStack(spacing: 12) {
-                                HStack {
-                                    Spacer()
-                                    Image(systemName: chevronDirection2 ? "chevron.up" : "chevron.down")
-                                        .foregroundStyle(.white)
-                                    Spacer()
-                                }
-                                .contentShape(Rectangle()) // 将整个 HStack 设为可点击区域
-                                .exclusiveTouchTapGesture {
-                                    chevronDirection2.toggle()
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                        withAnimation {
-                                            chevronDirection.toggle()
-                                        }
+                    if viewModel.isEventsLoading || viewModel.isTracksLoading {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.gray)
+                            .frame(height: 300)
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        if let track = viewModel.selectedTrack {
+                            VStack(alignment: .leading, spacing: 12) {
+                                ScrollView {
+                                    ZStack {
+                                        TrackMapView(
+                                            fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
+                                            toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to),
+                                            startRadius: CLLocationDistance(track.fromRadius),
+                                            endRadius: CLLocationDistance(track.toRadius)
+                                        )
+                                        .frame(height: 300)
+                                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                        )
+                                        .disabled(true)
+                                        
+                                        Rectangle()
+                                            .fill(Color.clear)
+                                            .contentShape(Rectangle())
+                                            .exclusiveTouchTapGesture {
+                                                selectedTrackForFullMap = track
+                                            }
                                     }
+                                    .offset(y: chevronDirection ? 0 : -310)
                                 }
                                 
-                                // 赛道信息卡片
-                                VStack(alignment: .leading, spacing: 10) {
-                                    // 赛道标题
+                                VStack(spacing: 12) {
                                     HStack {
-                                        Text("competition.track.info")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                            .lineLimit(1)
-                                            .foregroundColor(.white)
-                                        
                                         Spacer()
-                                        
-                                        // 参与人数信息
-                                        Text("competition.track.total_number \(track.totalParticipants)")
-                                            .font(.caption)
-                                            .foregroundColor(.secondText)
-                                            .lineLimit(1)
+                                        Image(systemName: chevronDirection2 ? "chevron.up" : "chevron.down")
+                                            .foregroundStyle(.white)
+                                        Spacer()
                                     }
-                                    
-                                    Divider()
-                                    
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "calendar")
-                                        Text("competition.begin_date") + Text(": ")
-                                        Spacer()
-                                        Text(LocalizedStringKey(DateDisplay.formattedDate(track.startDate)))
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondText)
-                                    
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "flag.checkered")
-                                        Text("competition.end_date") + Text(": ")
-                                        Spacer()
-                                        Text(LocalizedStringKey(DateDisplay.formattedDate(track.endDate)))
-                                    }
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondText)
-                                    
-                                    Divider()
-                                    
-                                    // 赛道详细信息
-                                    let infoItems: [(icon: String, text: String, value: String, unit: String?, isSysIcon: Bool)] = [
-                                        ("terrain", "competition.track.terrain", track.terrainType.displayName, nil, false),
-                                        (track.elevationDifference >= 0 ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill", "competition.track.altitude", "\(track.elevationDifference)", "distance.m", true),
-                                        ("voucher", "competition.track.prize_pool", "\(track.prizePool)", nil, false),
-                                        ("sub_region", "competition.track.sub_region", track.regionName, nil, false),
-                                        ("season_points", "competition.track.score", "\(track.score)", nil, false),
-                                        ("total_distance", "competition.track.distance", "\(track.distance)", "distance.km", false)
-                                    ]
-                                    HStack(alignment: .top) {
-                                        Spacer()
-                                        VStack(alignment: .leading, spacing: 10) {
-                                            ForEach(0..<infoItems.count, id: \.self) { index in
-                                                if index <= (infoItems.count - 1) / 2 {
-                                                    InfoItemView(
-                                                        iconName: infoItems[index].icon,
-                                                        text: infoItems[index].text,
-                                                        param: infoItems[index].value,
-                                                        unit: infoItems[index].unit,
-                                                        isSysIcon: infoItems[index].isSysIcon
-                                                    )
-                                                }
+                                    .contentShape(Rectangle()) // 将整个 HStack 设为可点击区域
+                                    .exclusiveTouchTapGesture {
+                                        chevronDirection2.toggle()
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                            withAnimation {
+                                                chevronDirection.toggle()
                                             }
                                         }
-                                        Spacer()
-                                        VStack(alignment: .leading, spacing: 10) {
-                                            ForEach(0..<infoItems.count, id: \.self) { index in
-                                                if index > (infoItems.count - 1) / 2 {
-                                                    InfoItemView(
-                                                        iconName: infoItems[index].icon,
-                                                        text: infoItems[index].text,
-                                                        param: infoItems[index].value,
-                                                        unit: infoItems[index].unit,
-                                                        isSysIcon: infoItems[index].isSysIcon
-                                                    )
+                                    }
+                                    
+                                    // 赛道信息卡片
+                                    VStack(alignment: .leading, spacing: 10) {
+                                        // 赛道标题
+                                        HStack {
+                                            Text("competition.track.info")
+                                                .font(.headline)
+                                                .fontWeight(.bold)
+                                                .lineLimit(1)
+                                                .foregroundColor(.white)
+                                            
+                                            Spacer()
+                                            
+                                            // 参与人数信息
+                                            Text("competition.track.total_number \(track.totalParticipants)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondText)
+                                                .lineLimit(1)
+                                        }
+                                        
+                                        Divider()
+                                        
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "calendar")
+                                            Text("competition.begin_date") + Text(": ")
+                                            Spacer()
+                                            Text(LocalizedStringKey(DateDisplay.formattedDate(track.startDate)))
+                                        }
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondText)
+                                        
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "flag.checkered")
+                                            Text("competition.end_date") + Text(": ")
+                                            Spacer()
+                                            Text(LocalizedStringKey(DateDisplay.formattedDate(track.endDate)))
+                                        }
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondText)
+                                        
+                                        Divider()
+                                        
+                                        // 赛道详细信息
+                                        let infoItems: [(icon: String, text: String, value: String, unit: String?, isSysIcon: Bool)] = [
+                                            ("terrain", "competition.track.terrain", track.terrainType.displayName, nil, false),
+                                            (track.elevationDifference >= 0 ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill", "competition.track.altitude", "\(track.elevationDifference)", "distance.m", true),
+                                            ("voucher", "competition.track.prize_pool", "\(track.prizePool)", nil, false),
+                                            ("sub_region", "competition.track.sub_region", track.regionName, nil, false),
+                                            ("season_points", "competition.track.score", "\(track.score)", nil, false),
+                                            ("total_distance", "competition.track.distance", "\(track.distance)", "distance.km", false)
+                                        ]
+                                        HStack(alignment: .top) {
+                                            Spacer()
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                ForEach(0..<infoItems.count, id: \.self) { index in
+                                                    if index <= (infoItems.count - 1) / 2 {
+                                                        InfoItemView(
+                                                            iconName: infoItems[index].icon,
+                                                            text: infoItems[index].text,
+                                                            param: infoItems[index].value,
+                                                            unit: infoItems[index].unit,
+                                                            isSysIcon: infoItems[index].isSysIcon
+                                                        )
+                                                    }
                                                 }
                                             }
                                             Spacer()
+                                            VStack(alignment: .leading, spacing: 10) {
+                                                ForEach(0..<infoItems.count, id: \.self) { index in
+                                                    if index > (infoItems.count - 1) / 2 {
+                                                        InfoItemView(
+                                                            iconName: infoItems[index].icon,
+                                                            text: infoItems[index].text,
+                                                            param: infoItems[index].value,
+                                                            unit: infoItems[index].unit,
+                                                            isSysIcon: infoItems[index].isSysIcon
+                                                        )
+                                                    }
+                                                }
+                                                Spacer()
+                                            }
+                                            Spacer()
                                         }
-                                        Spacer()
+                                        .padding(.vertical, 6)
                                     }
-                                    .padding(.vertical, 6)
-                                }
-                                .padding()
-                                .background(Color.black.opacity(0.2))
-                                .cornerRadius(20)
-                                
-                                VStack(spacing: 10) {
-                                    HStack {
-                                        Text("competition.track.familiarity")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
-                                        Spacer()
-                                    }
-                                    if let familiarity = track.familiarity {
-                                        ZStack {
-                                            ProgressBar(progress: familiarity)
-                                            Text(String(format: "%.1f %%", familiarity * 100))
+                                    .padding()
+                                    .background(Color.black.opacity(0.2))
+                                    .cornerRadius(20)
+                                    
+                                    VStack(spacing: 10) {
+                                        HStack {
+                                            Text("competition.track.familiarity")
+                                                .font(.headline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                            Spacer()
+                                        }
+                                        if let familiarity = track.familiarity {
+                                            ZStack {
+                                                ProgressBar(progress: familiarity)
+                                                Text(String(format: "%.1f %%", familiarity * 100))
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondText)
+                                            }
+                                        } else {
+                                            Text(userManager.isLoggedIn ? "error.no_data" : "toast.no_login.2")
                                                 .font(.subheadline)
                                                 .foregroundColor(.secondText)
                                         }
-                                    } else {
-                                        Text("toast.no_login.2")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondText)
                                     }
-                                }
-                                .padding()
-                                .background(Color.black.opacity(0.2))
-                                .cornerRadius(20)
-                                
-                                VStack(alignment: .leading, spacing: 10) {
-                                    HStack {
-                                        Text("competition.team.info")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                            .lineLimit(1)
-                                            .foregroundColor(.white)
-                                        
-                                        Spacer()
-                                        
+                                    .padding()
+                                    .background(Color.black.opacity(0.2))
+                                    .cornerRadius(20)
+                                    
+                                    VStack(alignment: .leading, spacing: 10) {
                                         HStack {
-                                            Text("common.my")
-                                            Image(systemName: "chevron.right")
-                                        }
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondText)
-                                        .lineLimit(1)
-                                        .exclusiveTouchTapGesture {
-                                            appState.navigationManager.append(.bikeTeamManagementView)
-                                        }
-                                    }
-                                    Divider()
-                                    HStack(spacing: 12) {
-                                        Text("competition.team.create")
-                                            .font(.system(size: 15))
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 8)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .fill(Color.white.opacity(0.1))
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 8)
-                                                            .stroke(Color.secondText, lineWidth: 2)
-                                                    )
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                guard let competitionDate = track.endDate, competitionDate > Date() else {
-                                                    let toast = Toast(message: "competition.track.error.closed")
-                                                    ToastManager.shared.show(toast: toast)
-                                                    return
-                                                }
-                                                appState.navigationManager.append(.bikeTeamCreateView(trackID: track.trackID, competitionDate: competitionDate))
-                                            }
-                                        
-                                        Text("competition.team.join")
-                                            .font(.system(size: 15))
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 8)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .fill(Color.white.opacity(0.1))
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 8)
-                                                            .stroke(Color.secondText, lineWidth: 2)
-                                                    )
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                guard let competitionDate = track.endDate, competitionDate > Date() else {
-                                                    let toast = Toast(message: "competition.track.error.closed")
-                                                    ToastManager.shared.show(toast: toast)
-                                                    return
-                                                }
-                                                appState.navigationManager.append(.bikeTeamJoinView(trackID: track.trackID))
-                                            }
-                                    }
-                                    .foregroundStyle(Color.white)
-                                }
-                                .padding()
-                                .background(Color.black.opacity(0.2))
-                                .cornerRadius(20)
-                                
-                                if let rankInfo = viewModel.selectedRankInfo {
-                                    VStack(spacing: 10) {
-                                        HStack(alignment: .top) {
-                                            Text("competition.track.my_score")
+                                            Text("competition.team.info")
                                                 .font(.headline)
                                                 .fontWeight(.bold)
+                                                .lineLimit(1)
+                                                .foregroundColor(.white)
+                                            
                                             Spacer()
+                                            
                                             HStack {
-                                                Text("competition.track.leaderboard")
+                                                Text("common.my")
                                                 Image(systemName: "chevron.right")
                                             }
                                             .font(.subheadline)
+                                            .foregroundColor(.secondText)
+                                            .lineLimit(1)
                                             .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.bikeRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                                appState.navigationManager.append(.bikeTeamManagementView)
                                             }
                                         }
-                                        .foregroundColor(.white)
                                         Divider()
-                                        HStack {
-                                            Text("competition.record.valid_time") + Text(": \(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))")
-                                            Spacer()
-                                            if let rank = rankInfo.rank {
-                                                Text("competition.track.leaderboard.ranking") + Text(": \(rank)")
-                                            } else {
-                                                Text("competition.track.leaderboard.ranking") + Text(": ") + Text("error.no_data")
-                                            }
-                                            Spacer()
-                                            HStack(spacing: 4) {
-                                                Image("season_points")
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 20)
-                                                Text("\(rankInfo.score ?? 0)")
-                                            }
+                                        HStack(spacing: 12) {
+                                            Text("competition.team.create")
+                                                .font(.system(size: 15))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 8)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .fill(Color.white.opacity(0.1))
+                                                        .overlay(
+                                                            RoundedRectangle(cornerRadius: 8)
+                                                                .stroke(Color.secondText, lineWidth: 2)
+                                                        )
+                                                )
+                                                .exclusiveTouchTapGesture {
+                                                    guard let competitionDate = track.endDate, competitionDate > Date() else {
+                                                        let toast = Toast(message: "competition.track.error.closed")
+                                                        ToastManager.shared.show(toast: toast)
+                                                        return
+                                                    }
+                                                    appState.navigationManager.append(.bikeTeamCreateView(trackID: track.trackID, competitionDate: competitionDate))
+                                                }
+                                            
+                                            Text("competition.team.join")
+                                                .font(.system(size: 15))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 8)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .fill(Color.white.opacity(0.1))
+                                                        .overlay(
+                                                            RoundedRectangle(cornerRadius: 8)
+                                                                .stroke(Color.secondText, lineWidth: 2)
+                                                        )
+                                                )
+                                                .exclusiveTouchTapGesture {
+                                                    guard let competitionDate = track.endDate, competitionDate > Date() else {
+                                                        let toast = Toast(message: "competition.track.error.closed")
+                                                        ToastManager.shared.show(toast: toast)
+                                                        return
+                                                    }
+                                                    appState.navigationManager.append(.bikeTeamJoinView(trackID: track.trackID))
+                                                }
                                         }
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondText)
-                                        Divider()
-                                        HStack(spacing: 4) {
-                                            Text("competition.track.leaderboard.reference_reward") + Text(":")
-                                            Image(CCAssetType.voucher.iconName)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 15)
-                                            Text("\(rankInfo.voucherAmount ?? 0)")
-                                            Spacer()
-                                            if let recordID = rankInfo.recordID {
-                                                HStack(spacing: 4) {
-                                                    Text("competition.record.detail")
+                                        .foregroundStyle(Color.white)
+                                    }
+                                    .padding()
+                                    .background(Color.black.opacity(0.2))
+                                    .cornerRadius(20)
+                                    
+                                    if let rankInfo = viewModel.selectedRankInfo {
+                                        VStack(spacing: 10) {
+                                            HStack(alignment: .top) {
+                                                Text("competition.track.my_score")
+                                                    .font(.headline)
+                                                    .fontWeight(.bold)
+                                                Spacer()
+                                                HStack {
+                                                    Text("competition.track.leaderboard")
                                                     Image(systemName: "chevron.right")
                                                 }
+                                                .font(.subheadline)
                                                 .exclusiveTouchTapGesture {
-                                                    appState.navigationManager.append(.bikeRaceRecordDetailView(recordID: recordID))
+                                                    appState.navigationManager.append(.bikeRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
                                                 }
-                                            } else {
-                                                Text("competition.record.no_data")
                                             }
-                                        }
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondText)
-                                    }
-                                    .padding()
-                                    .background(Color.black.opacity(0.2))
-                                    .cornerRadius(20)
-                                } else {
-                                    VStack {
-                                        HStack(alignment: .top) {
-                                            Text("competition.track.my_score")
-                                                .font(.headline)
-                                                .fontWeight(.bold)
-                                            Spacer()
+                                            .foregroundColor(.white)
+                                            Divider()
                                             HStack {
-                                                Text("competition.track.leaderboard")
-                                                Image(systemName: "chevron.right")
+                                                Text("competition.record.valid_time") + Text(": \(TimeDisplay.formattedTime(rankInfo.duration, showFraction: true))")
+                                                Spacer()
+                                                if let rank = rankInfo.rank {
+                                                    Text("competition.track.leaderboard.ranking") + Text(": \(rank)")
+                                                } else {
+                                                    Text("competition.track.leaderboard.ranking") + Text(": -")
+                                                }
+                                                Spacer()
+                                                HStack(spacing: 4) {
+                                                    Image("season_points")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 20)
+                                                    Text("\(rankInfo.score ?? 0)")
+                                                }
                                             }
-                                            .font(.subheadline)
-                                            .exclusiveTouchTapGesture {
-                                                appState.navigationManager.append(.bikeRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
-                                            }
-                                        }
-                                        Text("toast.no_login.2")
                                             .font(.subheadline)
                                             .foregroundColor(.secondText)
+                                            Divider()
+                                            HStack(spacing: 4) {
+                                                Text("competition.track.leaderboard.reference_reward") + Text(":")
+                                                Image(CCAssetType.voucher.iconName)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 15)
+                                                Text("\(rankInfo.voucherAmount ?? 0)")
+                                                Spacer()
+                                                if let recordID = rankInfo.recordID {
+                                                    HStack(spacing: 4) {
+                                                        Text("competition.record.detail")
+                                                        Image(systemName: "chevron.right")
+                                                    }
+                                                    .exclusiveTouchTapGesture {
+                                                        appState.navigationManager.append(.bikeRaceRecordDetailView(recordID: recordID))
+                                                    }
+                                                } else {
+                                                    Text("competition.record.no_data")
+                                                }
+                                            }
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondText)
+                                        }
+                                        .padding()
+                                        .background(Color.black.opacity(0.2))
+                                        .cornerRadius(20)
+                                    } else {
+                                        VStack {
+                                            HStack(alignment: .top) {
+                                                Text("competition.track.my_score")
+                                                    .font(.headline)
+                                                    .fontWeight(.bold)
+                                                Spacer()
+                                                HStack {
+                                                    Text("competition.track.leaderboard")
+                                                    Image(systemName: "chevron.right")
+                                                }
+                                                .font(.subheadline)
+                                                .exclusiveTouchTapGesture {
+                                                    appState.navigationManager.append(.bikeRankingListView(trackID: track.trackID, gender: UserManager.shared.user.gender ?? .male))
+                                                }
+                                            }
+                                            Text(userManager.isLoggedIn ? "error.no_data" : "toast.no_login.2")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondText)
+                                        }
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .background(Color.black.opacity(0.2))
+                                        .cornerRadius(20)
                                     }
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .background(Color.black.opacity(0.2))
-                                    .cornerRadius(20)
                                 }
+                                .offset(y: chevronDirection ? 0 : -310)
                             }
-                            .offset(y: chevronDirection ? 0 : -310)
                         }
                     }
                 }
@@ -620,7 +644,7 @@ struct BikeCompetitionView: View {
             }
         }
         .onStableAppear {
-            if !viewModel.didLoad && userManager.isLoggedIn && (userManager.user.gender == nil || userManager.user.birthday == nil) {
+            if !viewModel.didLoad && userManager.isLoggedIn && userManager.user.gender == nil {
                 DispatchQueue.main.async {
                     PopupWindowManager.shared.presentPopup(
                         title: "user.setup.profile.undone",
@@ -792,9 +816,15 @@ struct BikeEventDetailView: View {
             } else {
                 VStack {
                     Spacer()
-                    Text("error.no_data")
-                        .foregroundStyle(Color.thirdText)
-                        .frame(maxWidth: .infinity)
+                    VStack(spacing: 20) {
+                        Image("no_data")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 60)
+                        Text("error.nothing_here")
+                            .foregroundStyle(Color.thirdText)
+                            .frame(maxWidth: .infinity)
+                    }
                     Spacer()
                 }
             }
@@ -1000,7 +1030,7 @@ struct BikeTeamCreateView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
         .background(Color.defaultBackground)
-        .hideKeyboardOnScroll()
+        .hideKeyboardOnTap()
         .ignoresSafeArea(.keyboard)
         .environment(\.colorScheme, .dark)
     }
@@ -1161,7 +1191,7 @@ struct BikeTeamJoinView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .hideKeyboardOnScroll()
+        .hideKeyboardOnTap()
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $viewModel.showDetailSheet) {
             TeamDescriptionView(showDetailSheet: $viewModel.showDetailSheet, selectedDescription: $viewModel.selectedDescription)

@@ -251,8 +251,12 @@ struct MailBoxDetailView: View {
                     .padding()
                 }
             } else {
-                VStack {
-                    Text("error.no_data")
+                VStack(spacing: 20) {
+                    Image("no_data")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 60)
+                    Text("error.nothing_here")
                         .foregroundStyle(Color.secondText)
                 }
             }

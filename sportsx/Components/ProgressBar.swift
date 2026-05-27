@@ -300,8 +300,10 @@ struct TrainingStateProgressView: View {
         VStack {
             HStack {
                 HStack(spacing: 4) {
-                    Image(systemName: "flame.fill")
-                        .foregroundStyle(Color.secondText)
+                    Image("momentum")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
                     Text("training.sport_state")
                         .foregroundStyle(Color.secondText)
                     (Text("(") + Text("training.sport_state.limit") + Text(")"))

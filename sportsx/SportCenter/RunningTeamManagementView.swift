@@ -25,9 +25,15 @@ struct RunningTeamManagementView: View {
                 
                 Spacer()
                 
-                (Text(LocalizedStringKey(SportName.Running.name)) + Text("competition.team.manage"))
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.white)
+                HStack {
+                    Image("running")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                    Text("competition.team.manage")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color.white)
+                }
                 
                 Spacer()
                 
@@ -1304,7 +1310,7 @@ struct RunningTeamEditorView: View {
         .environment(\.colorScheme, .dark)
         .background(Color.defaultBackground)
         .ignoresSafeArea(.keyboard)
-        .hideKeyboardOnScroll()
+        .hideKeyboardOnTap()
         .onValueChange(of: viewModel.showTeamEditor) { _, newState in
             if newState {
                 viewModel.tempTitle = viewModel.teamInfo?.title ?? ""

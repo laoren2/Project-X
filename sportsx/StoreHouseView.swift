@@ -39,7 +39,7 @@ struct StoreHouseView: View {
                     Spacer()
                     VStack(spacing: 10) {
                         Text("shop.tab.props")
-                            .font(.system(size: 16, weight: selectedTab == 0 ? .semibold : .regular))
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -53,7 +53,7 @@ struct StoreHouseView: View {
                     Spacer()
                     VStack(spacing: 10) {
                         Text("shop.tab.equip_card")
-                            .font(.system(size: 16, weight: selectedTab == 1 ? .semibold : .regular))
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -78,9 +78,11 @@ struct StoreHouseView: View {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 20) {
-                                    Image(systemName: "doc.text.magnifyingglass")
-                                        .font(.system(size: 60))
-                                    Text("error.no_data")
+                                    Image("no_data")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 60)
+                                    Text("error.nothing_here")
                                         .font(.headline)
                                 }
                                 .foregroundStyle(Color.white.opacity(0.3))
@@ -126,9 +128,11 @@ struct StoreHouseView: View {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 20) {
-                                    Image(systemName: "doc.text.magnifyingglass")
-                                        .font(.system(size: 60))
-                                    Text("error.no_data")
+                                    Image("no_data")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 60)
+                                    Text("error.nothing_here")
                                         .font(.headline)
                                 }
                                 .foregroundStyle(Color.white.opacity(0.3))
@@ -210,8 +214,9 @@ struct StoreHouseView: View {
                     if asset.assetType == .cpasset {
                         Text("warehouse.action.goBuy")
                             .foregroundColor(.white)
+                            .font(.system(size: 15, weight: .bold))
                             .frame(height: 60)
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, 12)
                             .background(Color.orange)
                             .cornerRadius(8)
                             .onTapGesture {
@@ -220,8 +225,9 @@ struct StoreHouseView: View {
                     } else if asset.assetType == .magiccard {
                         Text("warehouse.action.goUpgrade")
                             .foregroundColor(.white)
+                            .font(.system(size: 15, weight: .bold))
                             .frame(height: 60)
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, 12)
                             .background(Color.green)
                             .cornerRadius(8)
                             .onTapGesture {

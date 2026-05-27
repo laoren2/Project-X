@@ -27,9 +27,15 @@ struct BikeRaceRecordManagementView: View {
                 
                 Spacer()
                 
-                (Text(LocalizedStringKey(SportName.Bike.name)) + Text("competition.record.title"))
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.white)
+                HStack {
+                    Image("bike")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                    Text("competition.record.title")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color.white)
+                }
                 
                 Spacer()
                 

@@ -14,243 +14,384 @@ struct ShopView: View {
     @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject var shopManager = ShopManager.shared
     @State var selectedTab: Int = 0
+    @State private var rewardCard: MagicCard? = nil     // 动画效果
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
-                            .defaultBackground
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
+        ZStack {
+            ZStack(alignment: .bottom) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                .defaultBackground.softenColor(blendWithWhiteRatio: 0.2),
+                                .defaultBackground
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // 顶部资产栏
-                HStack {
-                    Spacer()
-                    HStack(spacing: 10) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.secondText)
-                            .onTapGesture {
-                                Task {
-                                    await assetManager.queryCCAssets()
-                                }
-                            }
-                        HStack(spacing: 4) {
-                            AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
-                            Button(action:{
-                                PopupWindowManager.shared.presentPopup(
-                                    bottomButtons: []
-                                ) {
-                                    CoinPurchaseView()
-                                }
-                            }) {
-                                Image(systemName: "plus.rectangle.fill")
-                                    .foregroundStyle(Color.white)
-                                    .font(.system(size: 18))
-                            }
-                        }
-                        AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
-                        HStack(spacing: 4) {
-                            AssetCounterView(icon: CCAssetType.coupon.iconName, amount: assetManager.coupon)
-                            Button(action:{
-                                guard UserManager.shared.isLoggedIn else {
-                                    UserManager.shared.showingLogin = true
-                                    return
-                                }
-                                appState.navigationManager.append(.iapCouponView)
-                            }) {
-                                Image(systemName: "plus.rectangle.fill")
-                                    .foregroundStyle(Color.white)
-                                    .font(.system(size: 18))
-                            }
-                        }
-                    }
-                }
-                .padding(15)
+                    .ignoresSafeArea()
                 
-                HStack {
-                    Spacer()
-                    VStack(spacing: 10) {
-                        Text("shop.tab.props")
-                            .font(.system(size: 16, weight: selectedTab == 0 ? .semibold : .regular))
-                            .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
-                        Rectangle()
-                            .fill(selectedTab == 0 ? Color.white : Color.clear)
-                            .frame(width: 40, height: 2)
-                    }
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = 0
-                        }
-                    }
-                    Spacer()
-                    VStack(spacing: 10) {
-                        Text("shop.tab.equip_card")
-                            .font(.system(size: 16, weight: selectedTab == 1 ? .semibold : .regular))
-                            .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
-                        Rectangle()
-                            .fill(selectedTab == 1 ? Color.white : Color.clear)
-                            .frame(width: 40, height: 2)
-                    }
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            selectedTab = 1
-                        }
-                    }
-                    Spacer()
-                }
-                
-                Divider()
-                
-                TabView(selection: $selectedTab) {
-                    let cpSpacing: CGFloat = 10
-                    let cpCount = 4
-                    
-                    ScrollView {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
-                            ForEach(shopManager.cpassets) { asset in
-                                CPAssetShopCardView(asset: asset)
-                                //.frame(width: itemWidth)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(shopManager.selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
-                                    )
-                                    .onTapGesture {
-                                        if shopManager.selectedAsset?.id == asset.id {
-                                            shopManager.selectedAsset = nil
-                                        } else {
-                                            shopManager.selectedAsset = CommonAssetShopInfo(from: asset)
-                                        }
+                VStack(spacing: 0) {
+                    // 顶部资产栏
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 10) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 15))
+                                .foregroundStyle(Color.secondText)
+                                .onTapGesture {
+                                    Task {
+                                        await assetManager.queryCCAssets()
                                     }
+                                }
+                            HStack(spacing: 4) {
+                                AssetCounterView(icon: CCAssetType.coin.iconName, amount: assetManager.coin)
+                                Button(action:{
+                                    PopupWindowManager.shared.presentPopup(
+                                        bottomButtons: []
+                                    ) {
+                                        CoinPurchaseView()
+                                    }
+                                }) {
+                                    Image(systemName: "plus.rectangle.fill")
+                                        .foregroundStyle(Color.white)
+                                        .font(.system(size: 18))
+                                }
+                            }
+                            AssetCounterView(icon: CCAssetType.voucher.iconName, amount: assetManager.voucher)
+                            HStack(spacing: 4) {
+                                AssetCounterView(icon: CCAssetType.coupon.iconName, amount: assetManager.coupon)
+                                Button(action:{
+                                    guard UserManager.shared.isLoggedIn else {
+                                        UserManager.shared.showingLogin = true
+                                        return
+                                    }
+                                    appState.navigationManager.append(.iapCouponView)
+                                }) {
+                                    Image(systemName: "plus.rectangle.fill")
+                                        .foregroundStyle(Color.white)
+                                        .font(.system(size: 18))
+                                }
                             }
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.top, 10)
-                        .padding(.bottom, 100)
                     }
-                    .refreshable {
-                        await shopManager.queryCPAssets(withLoadingToast: false)
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 10)
+                    
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 10) {
+                            Text("shop.tab.props")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(selectedTab == 0 ? Color.white : Color.thirdText)
+                            Rectangle()
+                                .fill(selectedTab == 0 ? Color.white : Color.clear)
+                                .frame(width: 40, height: 2)
+                        }
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedTab = 0
+                            }
+                        }
+                        Spacer()
+                        VStack(spacing: 10) {
+                            Text("shop.tab.equip_card")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(selectedTab == 1 ? Color.white : Color.thirdText)
+                            Rectangle()
+                                .fill(selectedTab == 1 ? Color.white : Color.clear)
+                                .frame(width: 40, height: 2)
+                        }
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedTab = 1
+                            }
+                        }
+                        Spacer()
                     }
-                    .tag(0)
                     
-                    let cardSpacing: CGFloat = 20
-                    let cardCount = 3
+                    Divider()
                     
-                    ScrollView {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
-                            ForEach(shopManager.magicCards) { card in
-                                ZStack {
-                                    MagicCardShopCardView(card: card)
+                    TabView(selection: $selectedTab) {
+                        let cpSpacing: CGFloat = 10
+                        let cpCount = 4
+                        
+                        ScrollView {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
+                                ForEach(shopManager.cpassets) { asset in
+                                    CPAssetShopCardView(asset: asset)
                                     //.frame(width: itemWidth)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .stroke(shopManager.selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
+                                                .stroke(shopManager.selectedAsset?.id == asset.id ? Color.orange : Color.clear, lineWidth: 2)
                                         )
-                                }
-                                .onTapGesture {
-                                    if shopManager.selectedAsset?.id == card.id {
-                                        shopManager.selectedAsset = nil
-                                    } else {
-                                        shopManager.selectedAsset = CommonAssetShopInfo(from: card)
-                                    }
+                                        .onTapGesture {
+                                            if shopManager.selectedAsset?.id == asset.id {
+                                                shopManager.selectedAsset = nil
+                                            } else {
+                                                shopManager.selectedAsset = CommonAssetShopInfo(from: asset)
+                                            }
+                                        }
                                 }
                             }
+                            .padding(.horizontal, 10)
+                            .padding(.top, 10)
+                            .padding(.bottom, 100)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
-                        .padding(.bottom, 100)
-                    }
-                    .refreshable {
-                        await shopManager.queryMagicCards(withLoadingToast: false)
-                    }
-                    .tag(1)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .background(Color.gray.opacity(0.2))
-            }
-            
-            if let asset = shopManager.selectedAsset {
-                HStack(alignment: .bottom, spacing: 20) {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text(asset.name)
-                                .bold()
-                            if let version = asset.version, !AppVersionManager.shared.checkMinimumVersion(version) {
-                                Text("warehouse.equipcard.unavailable.detail")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.red)
-                            }
-                            Spacer()
-                            Image(asset.ccassetType.iconName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20)
-                            Text("\(asset.price)")
+                        .refreshable {
+                            await shopManager.queryCPAssets(withLoadingToast: false)
                         }
-                        .font(.system(size: 15))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 5)
+                        .tag(0)
+                        
+                        let cardSpacing: CGFloat = 20
+                        let cardCount = 3
                         
                         ScrollView {
-                            Text(asset.description)
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(4)
-                        }
-                        .frame(height: 48)
-                        .padding(6)
-                        .background(Color.gray.opacity(0.8))
-                        .cornerRadius(10)
-                    }
-                    Text("shop.action.buy")
-                        .foregroundColor(.white)
-                        .frame(height: 60)
-                        .padding(.horizontal, 16)
-                        .background(Color.orange)
-                        .cornerRadius(8)
-                        .exclusiveTouchTapGesture {
-                            PopupWindowManager.shared.presentPopup(
-                                title: "shop.action.buy",
-                                bottomButtons: [
-                                    .cancel(),
-                                    .confirm {
-                                        if asset.assetType == .cpasset {
-                                            assetManager.purchaseCPWithCC(assetID: asset.asset_id, amount: 1)
-                                        } else if asset.assetType == .magiccard {
-                                            assetManager.purchaseMCWithCC(cardID: asset.asset_id)
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
+                                ForEach(shopManager.magicCards) { card in
+                                    ZStack {
+                                        MagicCardShopCardView(card: card)
+                                        //.frame(width: itemWidth)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(shopManager.selectedAsset?.id == card.id ? Color.orange : Color.clear, lineWidth: 2)
+                                            )
+                                    }
+                                    .onTapGesture {
+                                        if shopManager.selectedAsset?.id == card.id {
+                                            shopManager.selectedAsset = nil
+                                        } else {
+                                            shopManager.selectedAsset = CommonAssetShopInfo(from: card)
                                         }
                                     }
-                                ]
-                            ) {
-                                RichTextLabel(
-                                    templateKey: "shop.popup.buy.cpasset",
-                                    items:
-                                        [
-                                            ("MONEY", .image(asset.ccassetType.iconName, width: 20)),
-                                            ("MONEY", .text(" * \(asset.price)")),
-                                            ("ASSET", .text(asset.name))
-                                        ]
-                                )
+                                }
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 100)
                         }
+                        .refreshable {
+                            await shopManager.queryMagicCards(withLoadingToast: false)
+                        }
+                        .tag(1)
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .background(Color.gray.opacity(0.2))
                 }
-                .padding()
-                .background(Color.black)
-                .padding(.bottom, 85)
+                
+                if let asset = shopManager.selectedAsset {
+                    HStack(alignment: .bottom, spacing: 20) {
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text(asset.name)
+                                    .bold()
+                                if let version = asset.version, !AppVersionManager.shared.checkMinimumVersion(version) {
+                                    Text("warehouse.equipcard.unavailable.detail")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.red)
+                                }
+                                Spacer()
+                                Image(asset.ccassetType.iconName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20)
+                                Text("\(asset.price)")
+                            }
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 5)
+                            
+                            ScrollView {
+                                Text(asset.description)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(4)
+                            }
+                            .frame(height: 48)
+                            .padding(6)
+                            .background(Color.gray.opacity(0.8))
+                            .cornerRadius(10)
+                        }
+                        Text("shop.action.buy")
+                            .foregroundColor(.white)
+                            .font(.system(size: 15, weight: .bold))
+                            .frame(height: 60)
+                            .padding(.horizontal, 12)
+                            .background(Color.orange)
+                            .cornerRadius(8)
+                            .exclusiveTouchTapGesture {
+                                PopupWindowManager.shared.presentPopup(
+                                    title: "shop.action.buy",
+                                    bottomButtons: [
+                                        .cancel(),
+                                        .confirm {
+                                            if asset.assetType == .cpasset {
+                                                assetManager.purchaseCPWithCC(assetID: asset.asset_id, amount: 1)
+                                            } else if asset.assetType == .magiccard {
+                                                assetManager.purchaseMCWithCC(cardID: asset.asset_id) { card in
+                                                    rewardCard = card
+                                                }
+                                            }
+                                        }
+                                    ]
+                                ) {
+                                    RichTextLabel(
+                                        templateKey: "shop.popup.buy.cpasset",
+                                        items:
+                                            [
+                                                ("MONEY", .image(asset.ccassetType.iconName, width: 20)),
+                                                ("MONEY", .text(" * \(asset.price)")),
+                                                ("ASSET", .text(asset.name))
+                                            ]
+                                    )
+                                }
+                            }
+                    }
+                    .padding()
+                    .background(Color.black)
+                    .padding(.bottom, 85)
+                }
+            }
+            .ignoresSafeArea(edges: .bottom)
+            
+            if let rewardCard {
+                MagicCardRewardPopup(
+                    card: rewardCard,
+                    onDismiss: {
+                        withAnimation {
+                            self.rewardCard = nil
+                        }
+                    }
+                )
+                .zIndex(999)
+                .transition(.opacity)
             }
         }
-        .ignoresSafeArea(edges: .bottom)
         .onStableAppear {
             // empty, for fix TabView + ScrollView offset sync issue
+        }
+    }
+}
+
+struct MagicCardRewardPopup: View {
+    let card: MagicCard
+    let onDismiss: () -> Void
+
+    @State private var revealCard = false
+    @State private var cardScale: CGFloat = 0.7
+    @State private var cardBlur: CGFloat = 18
+    @State private var glowOpacity: CGFloat = 0.3
+    @State private var shineOffset: CGFloat = -300
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.82)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    onDismiss()
+                }
+            VStack(spacing: 0) {
+                VStack(spacing: 8) {
+                    Text("NEW CARD!")
+                        .font(.system(size: 14, weight: .bold))
+                        .tracking(4)
+                        .foregroundStyle(Color.orange)
+                    Text(card.name)
+                        .font(.system(size: 30, weight: .black))
+                        .foregroundStyle(Color.white)
+                }
+                ZStack {
+                    // 外圈金色 glow
+                    Circle()
+                        .fill(gradeColor(for: card.rarity).opacity(glowOpacity))
+                        .frame(width: 280)
+                        .blur(radius: 45)
+
+                    // 卡牌轮廓
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 220, height: 320)
+                        .overlay {
+                            Image("single_app_icon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 50)
+                        }
+                        .opacity(revealCard ? 0 : 1)
+                    // 真正卡牌
+                    MagicCardView(card: card, showDetailButton: false)
+                        .frame(width: 220)
+                        .scaleEffect(cardScale)
+                        .blur(radius: cardBlur)
+                        .opacity(revealCard ? 1 : 0)
+                    // 金光扫描
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    .clear,
+                                    .white.opacity(0.15),
+                                    .yellow.opacity(0.95),
+                                    .white.opacity(0.15),
+                                    .clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 80, height: 400)
+                        .rotationEffect(.degrees(18))
+                        .offset(x: shineOffset)
+                        .blendMode(.screen)
+                }
+            }
+            .padding(.horizontal, 30)
+        }
+        .onAppear {
+            // glow 呼吸
+            withAnimation(
+                .easeInOut(duration: 1.2)
+                .repeatForever(autoreverses: true)
+            ) {
+                glowOpacity = 0.55
+            }
+            // 金光扫过
+            withAnimation(
+                .easeInOut(duration: 0.8)
+            ) {
+                shineOffset = 350
+            }
+            // 卡牌 reveal
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                withAnimation(
+                    .spring(
+                        response: 0.35,
+                        dampingFraction: 0.72
+                    )
+                ) {
+                    revealCard = true
+                    cardScale = 1
+                    cardBlur = 0
+                }
+            }
+        }
+    }
+    
+    private func gradeColor(for grade: String) -> Color {
+        let firstChar = grade.first ?? "C"
+        switch firstChar {
+        case "S":
+            return Color.orange
+        case "A":
+            return Color.gold
+        case "B":
+            return Color.silver
+        case "C":
+            return Color.bronze
+        default:
+            return Color.bronze
         }
     }
 }
@@ -505,6 +646,8 @@ struct IAPCouponView: View {
                                 )
                             }
                     }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                     Spacer()
                     HStack(spacing: 0) {
                         Image("coupon")
@@ -513,6 +656,7 @@ struct IAPCouponView: View {
                             .frame(width: 20)
                         Text("：\(assetManager.coupon)")
                     }
+                    .lineLimit(1)
                 }
                 .foregroundStyle(Color.white)
                 LazyVGrid(

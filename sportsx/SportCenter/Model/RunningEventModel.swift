@@ -10,10 +10,10 @@ import CoreLocation
 
 
 // 跑步赛道地形类型
-enum RunningTrackTerrainType: String, Codable {
+enum RunningTrackTerrainType: String, Codable, CaseIterable {
     case road = "road"
     case mountain = "mountain"
-    case other = "other"
+    //case other = "other"
     
     var displayName: String {
         switch self {
@@ -21,8 +21,8 @@ enum RunningTrackTerrainType: String, Codable {
             return "competition.terrain.road"
         case .mountain:
             return "competition.terrain.mountain"
-        case .other:
-            return "competition.terrain.other"
+        //case .other:
+        //    return "competition.terrain.other"
         }
     }
 }

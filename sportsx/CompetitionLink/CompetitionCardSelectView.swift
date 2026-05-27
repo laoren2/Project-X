@@ -22,6 +22,21 @@ struct CompetitionCardSelectView: View {
     //private let cardHeight: CGFloat = 140
     private var maxCards: Int { return userManager.user.isVip ? 4 : 3}
     
+    private var enableMagicCard: Bool {
+        if appState.competitionManager.sportFeature == .bikeRace ||
+            appState.competitionManager.sportFeature == .runningRace {
+            return true
+        } else if appState.competitionManager.sportFeature == .bikeRouteTraining,
+                  appState.competitionManager.currentBikeRoute?.enableMagicCard == true {
+            return true
+        } else if appState.competitionManager.sportFeature == .runningRouteTraining,
+                  appState.competitionManager.currentRunningRoute?.enableMagicCard == true {
+            return true
+        } else {
+            return false
+        }
+    }
+    
     var body: some View {
         VStack {
             HStack(spacing: 4) {
@@ -83,35 +98,38 @@ struct CompetitionCardSelectView: View {
                         }
                     }
                     
-                    HStack {
-                        HStack(spacing: 4) {
-                            Text("competition.cardselect.familiarity_buff")
-                                .font(.headline)
-                            Image(systemName: "info.circle")
-                                .foregroundStyle(Color.thirdText)
-                                .font(.subheadline)
-                                .exclusiveTouchTapGesture {
-                                    PopupWindowManager.shared.presentPopup(
-                                        title: "competition.cardselect.familiarity_buff",
-                                        message: "competition.cardselect.familiarity_buff.description",
-                                        bottomButtons: [.confirm()]
-                                    )
-                                }
+                    if appState.competitionManager.sportFeature == .bikeRace ||
+                        appState.competitionManager.sportFeature == .runningRace {
+                        HStack {
+                            HStack(spacing: 4) {
+                                Text("competition.cardselect.familiarity_buff")
+                                    .font(.headline)
+                                Image(systemName: "info.circle")
+                                    .foregroundStyle(Color.thirdText)
+                                    .font(.subheadline)
+                                    .exclusiveTouchTapGesture {
+                                        PopupWindowManager.shared.presentPopup(
+                                            title: "competition.cardselect.familiarity_buff",
+                                            message: "competition.cardselect.familiarity_buff.description",
+                                            bottomButtons: [.confirm()]
+                                        )
+                                    }
+                            }
+                            Spacer()
+                            Text(String(format: "%.2f %%", Double(familiarityValue) * 2))
+                                .font(.system(.body, design: .rounded, weight: .bold))
                         }
-                        Spacer()
-                        Text(String(format: "%.2f %%", Double(familiarityValue) * 2))
-                            .font(.system(.body, design: .rounded, weight: .bold))
+                        .foregroundStyle(Color.white)
+                        
+                        HStack {
+                            Text("competition.cardselect.sport_state_buff")
+                                .font(.headline)
+                            Spacer()
+                            Text(String(format: "%.2f %%", Double(stateValue) * 2 / 100))
+                                .font(.system(.body, design: .rounded, weight: .bold))
+                        }
+                        .foregroundStyle(Color.white)
                     }
-                    .foregroundStyle(Color.white)
-                    
-                    HStack {
-                        Text("competition.cardselect.sport_state_buff")
-                            .font(.headline)
-                        Spacer()
-                        Text(String(format: "%.2f %%", Double(stateValue) * 2 / 100))
-                            .font(.system(.body, design: .rounded, weight: .bold))
-                    }
-                    .foregroundStyle(Color.white)
                     
                     HStack {
                         if userManager.user.isVip {
@@ -143,59 +161,69 @@ struct CompetitionCardSelectView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 10)
                     
-                    VStack {
-                        // 卡牌位
-                        if userManager.user.isVip {
-                            ScrollView(.horizontal, showsIndicators: false) {
+                    ZStack {
+                        VStack {
+                            // 卡牌位
+                            if userManager.user.isVip {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 20) {
+                                        ForEach(appState.competitionManager.selectedCards) { card in
+                                            MagicCardView(card: card)
+                                                .frame(width: cardWidth)
+                                        }
+                                        ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
+                                            if index == 3 {
+                                                EmptyCardVipSlot()
+                                                    .frame(width: cardWidth)
+                                            } else {
+                                                EmptyCardSlot()
+                                                    .frame(width: cardWidth)
+                                            }
+                                        }
+                                    }
+                                    .padding(2)
+                                }
+                                .padding(.bottom)
+                            } else {
                                 HStack(spacing: 20) {
                                     ForEach(appState.competitionManager.selectedCards) { card in
                                         MagicCardView(card: card)
-                                            .frame(width: cardWidth)
+                                        //.frame(width: cardWidth)
                                     }
                                     ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
-                                        if index == 3 {
-                                            EmptyCardVipSlot()
-                                                .frame(width: cardWidth)
-                                        } else {
-                                            EmptyCardSlot()
-                                                .frame(width: cardWidth)
-                                        }
+                                        EmptyCardSlot()
                                     }
                                 }
-                                .padding(2)
+                                .padding(.bottom)
                             }
-                            .padding(.bottom)
-                        } else {
-                            HStack(spacing: 20) {
-                                ForEach(appState.competitionManager.selectedCards) { card in
-                                    MagicCardView(card: card)
-                                    //.frame(width: cardWidth)
+                            
+                            Text("competition.cardselect.action.choose")
+                                .padding(.horizontal, 30)
+                                .padding(.vertical, 12)
+                                .foregroundColor(.white)
+                                .background(Color.defaultBackground)
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.orange, lineWidth: 2)
+                                )
+                                .exclusiveTouchTapGesture {
+                                    showCardSelection = true
                                 }
-                                ForEach(appState.competitionManager.selectedCards.count..<maxCards, id: \.self) { index in
-                                    EmptyCardSlot()
-                                }
-                            }
-                            .padding(.bottom)
+                                .disabled(appState.competitionManager.isRecording)
                         }
+                        .padding()
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(10)
                         
-                        Text("competition.cardselect.action.choose")
-                            .padding(.horizontal, 30)
-                            .padding(.vertical, 12)
-                            .foregroundColor(.white)
-                            .background(Color.defaultBackground)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.orange, lineWidth: 2)
-                            )
-                            .exclusiveTouchTapGesture {
-                                showCardSelection = true
-                            }
-                            .disabled(appState.competitionManager.isRecording)
+                        if !enableMagicCard {
+                            RoundedRectangle(cornerRadius: 10)
+                                .foregroundStyle(Color.gray.opacity(0.5))
+                            Image(systemName: "nosign")
+                                .foregroundColor(.pink.opacity(0.6))
+                                .font(.system(size: 100, weight: .bold))
+                        }
                     }
-                    .padding()
-                    .background(Color.white.opacity(0.2))
-                    .cornerRadius(10)
                     
                     HStack(spacing: 4) {
                         Image("healthkit")
@@ -221,25 +249,27 @@ struct CompetitionCardSelectView: View {
                     .foregroundStyle(Color.thirdText)
                     .font(.subheadline)
                     
-                    HStack {
-                        Text("competition.cardselect.action.next_step")
-                        Image(systemName: "arrowshape.right")
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 15)
-                    .background(Color.orange)
-                    .cornerRadius(12)
-                    .padding(.top, 50)
-                    .exclusiveTouchTapGesture {
+                    Button(action: {
                         appState.competitionManager.loadMatchEnv()
+                    }) {
+                        HStack {
+                            Text("competition.cardselect.action.next_step")
+                            Image(systemName: "arrowshape.right")
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(
+                            Capsule()
+                                .fill(Color.orange)
+                        )
+                        .padding(.top, 50)
                     }
                     .disabled(appState.competitionManager.isRecording)
                 }
                 .padding()
             }
         }
-        .ignoresSafeArea(.keyboard)
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
@@ -248,24 +278,32 @@ struct CompetitionCardSelectView: View {
             if appState.competitionManager.isTeam {
                 appState.competitionManager.startTeamJoinTimerA()
             }
-            if appState.competitionManager.sport == .Bike {
+            if appState.competitionManager.sportFeature == .bikeRace {
                 PopupWindowManager.shared.presentPopup(
                     title: "competition.event.precautions",
-                    message: "competition.cardselect.popup.content.bike",
                     doNotShowAgainKey: "CompetitionCardSelectView.phone_pos.bike",
                     bottomButtons: [
                         .confirm()
                     ]
-                )
-            } else if appState.competitionManager.sport == .Running {
+                ) {
+                    Text("competition.cardselect.popup.content.bike")
+                        .multilineTextAlignment(.leading)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondText)
+                }
+            } else if appState.competitionManager.sportFeature == .runningRace {
                 PopupWindowManager.shared.presentPopup(
                     title: "competition.event.precautions",
-                    message: "competition.cardselect.popup.content.running",
                     doNotShowAgainKey: "CompetitionCardSelectView.phone_pos.running",
                     bottomButtons: [
                         .confirm()
                     ]
-                )
+                ) {
+                    Text("competition.cardselect.popup.content.running")
+                        .multilineTextAlignment(.leading)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondText)
+                }
             }
             queryTrackFamiliarity()
             queryTrainingState()
@@ -273,21 +311,22 @@ struct CompetitionCardSelectView: View {
         .bottomSheet(isPresented: $showCardSelection, size: .large, destroyOnDismiss: true) {
             CardSelectionView(showCardSelection: $showCardSelection)
         }
+        .ignoresSafeArea(.keyboard)
     }
     
     func queryTrackFamiliarity() {
-        guard let sport = appState.competitionManager.sport else { return }
+        guard let sportFeature = appState.competitionManager.sportFeature else { return }
         var recordID: String = ""
         
-        if sport == .Bike, let record = appState.competitionManager.currentBikeRecord {
+        if sportFeature == .bikeRace, let record = appState.competitionManager.currentBikeRecord {
             recordID = record.record_id
-        } else if sport == .Running, let record = appState.competitionManager.currentRunningRecord {
+        } else if sportFeature == .runningRace, let record = appState.competitionManager.currentRunningRecord {
             recordID = record.record_id
         } else {
             return
         }
         
-        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_record_familiarity") else { return }
+        guard var components = URLComponents(string: "/competition/\(sportFeature.sportType.rawValue)/query_record_familiarity") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
@@ -309,9 +348,10 @@ struct CompetitionCardSelectView: View {
     }
     
     func queryTrainingState() {
-        guard let sport = appState.competitionManager.sport else { return }
+        guard let sportFeature = appState.competitionManager.sportFeature,
+        (sportFeature == .bikeRace || sportFeature == .runningRace) else { return }
         
-        guard let components = URLComponents(string: "/training/\(sport.rawValue)/training_states/me") else { return }
+        guard let components = URLComponents(string: "/training/\(sportFeature.sportType.rawValue)/training_states/me") else { return }
         guard let urlPath = components.url?.absoluteString else { return }
         
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)

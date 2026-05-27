@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct UpgradeEffectInstance: Identifiable, Equatable {
+    let id = UUID()
+}
+
 struct InstituteView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
@@ -20,6 +24,12 @@ struct InstituteView: View {
     @State var skill1Price: CCUpdateResponse = CCUpdateResponse(ccasset_type: .coin, new_ccamount: 0)
     @State var skill2Price: CCUpdateResponse = CCUpdateResponse(ccasset_type: .coin, new_ccamount: 0)
     @State var skill3Price: CCUpdateResponse = CCUpdateResponse(ccasset_type: .coin, new_ccamount: 0)
+    
+    @State private var activeEffects: [UpgradeEffectInstance] = []
+    @State private var cardPulse = false
+    @State private var skill1Pulse = false
+    @State private var skill2Pulse = false
+    @State private var skill3Pulse = false
     
     var body: some View {
         VStack(spacing: 10) {
@@ -107,14 +117,14 @@ struct InstituteView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 
-                // 提示文本
-                Text(upgradeMethod == 0 ? "institute.upgrade.upgradeway.mat.content" : "institute.upgrade.upgradeway.fusion.content")
-                    .foregroundStyle(Color.secondText)
-                    .padding(.horizontal)
-                
                 // 当前选择的卡牌展示
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 20) {
+                        // 提示文本
+                        Text(upgradeMethod == 0 ? "institute.upgrade.upgradeway.mat.content" : "institute.upgrade.upgradeway.fusion.content")
+                            .foregroundStyle(Color.secondText)
+                            .padding(.horizontal)
+                        
                         if let card = selectedCard {
                             HStack(spacing: 30) {
                                 ZStack(alignment: .topTrailing) {
@@ -132,9 +142,31 @@ struct InstituteView: View {
                                     }
                                     .offset(x: 8, y: -8)
                                 }
+                                .scaleEffect(cardPulse ? 1.08 : 1)
+                                .shadow(
+                                    color: cardPulse ?
+                                    Color.gold.opacity(0.7) :
+                                            .clear,
+                                    radius: cardPulse ? 20 : 0
+                                )
+                                .overlay(
+                                    ZStack {
+                                        ForEach(activeEffects) { effect in
+                                            CardUpgradeExplosionView()
+                                        }
+                                    }
+                                )
+                                
                                 if let level1 = card.levelSkill1 {
                                     VStack {
                                         SkillUpgradeView(skillLevel: 1, unlockLevel: 3, currentLevel: level1, cardLevel: card.level, price: skill1Price)
+                                            .scaleEffect(skill1Pulse ? 1.08 : 1)
+                                            .shadow(
+                                                color: skill1Pulse ?
+                                                    Color.gold.opacity(0.7) :
+                                                    .clear,
+                                                radius: skill1Pulse ? 10 : 0
+                                            )
                                             .exclusiveTouchTapGesture {
                                                 guard card.level >= 3 else {
                                                     ToastManager.shared.show(toast: Toast(message: "institute.upgrade.lock"))
@@ -164,6 +196,13 @@ struct InstituteView: View {
                                             }
                                         if let level2 = card.levelSkill2 {
                                             SkillUpgradeView(skillLevel: 2, unlockLevel: 6, currentLevel: level2, cardLevel: card.level, price: skill2Price)
+                                                .scaleEffect(skill2Pulse ? 1.08 : 1)
+                                                .shadow(
+                                                    color: skill2Pulse ?
+                                                        Color.gold.opacity(0.7) :
+                                                        .clear,
+                                                    radius: skill2Pulse ? 10 : 0
+                                                )
                                                 .exclusiveTouchTapGesture {
                                                     guard card.level >= 6 else {
                                                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.lock"))
@@ -194,6 +233,13 @@ struct InstituteView: View {
                                         }
                                         if let level3 = card.levelSkill3 {
                                             SkillUpgradeView(skillLevel: 3, unlockLevel: 10, currentLevel: level3, cardLevel: card.level, price: skill3Price)
+                                                .scaleEffect(skill3Pulse ? 1.08 : 1)
+                                                .shadow(
+                                                    color: skill3Pulse ?
+                                                        Color.gold.opacity(0.7) :
+                                                        .clear,
+                                                    radius: skill3Pulse ? 10 : 0
+                                                )
                                                 .exclusiveTouchTapGesture {
                                                     guard card.level == 10 else {
                                                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.lock"))
@@ -237,9 +283,29 @@ struct InstituteView: View {
                         } else {
                             fusionUpgradeView
                         }
+                        /*Button("test") {
+                            let effect = UpgradeEffectInstance()
+                            activeEffects.append(effect)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                                activeEffects.removeAll { $0.id == effect.id }
+                            }
+                            
+                            withAnimation(
+                                .spring(response: 0.35, dampingFraction: 0.55)
+                            ) {
+                                cardPulse = true
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                                withAnimation(
+                                    .spring(response: 0.4, dampingFraction: 0.8)
+                                ) {
+                                    cardPulse = false
+                                }
+                            }
+                        }*/
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(20)
                 }
             }
         }
@@ -326,6 +392,7 @@ struct InstituteView: View {
                     .cornerRadius(10)
             }
         }
+        .padding(.top, 10)
     }
     
     // 卡牌融合 UI
@@ -419,6 +486,7 @@ struct InstituteView: View {
                     .cornerRadius(10)
             }
         }
+        .padding(.top, 10)
     }
     
     func queryUpgradePrice(cardID: String) {
@@ -537,6 +605,25 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        // 动画效果
+                        let effect = UpgradeEffectInstance()
+                        activeEffects.append(effect)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                            activeEffects.removeAll { $0.id == effect.id }
+                        }
+                        
+                        withAnimation(
+                            .spring(response: 0.35, dampingFraction: 0.55)
+                        ) {
+                            cardPulse = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            withAnimation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                            ) {
+                                cardPulse = false
+                            }
+                        }
                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
@@ -569,6 +656,25 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        // 动画效果
+                        let effect = UpgradeEffectInstance()
+                        activeEffects.append(effect)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                            activeEffects.removeAll { $0.id == effect.id }
+                        }
+                        
+                        withAnimation(
+                            .spring(response: 0.35, dampingFraction: 0.55)
+                        ) {
+                            cardPulse = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            withAnimation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                            ) {
+                                cardPulse = false
+                            }
+                        }
                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
@@ -596,6 +702,18 @@ struct InstituteView: View {
                         if let index = assetManager.magicCards.firstIndex(where: { $0.cardID == unwrappedData.card.card_id }) {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
+                        }
+                        withAnimation(
+                            .spring(response: 0.35, dampingFraction: 0.55)
+                        ) {
+                            skill1Pulse = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            withAnimation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                            ) {
+                                skill1Pulse = false
+                            }
                         }
                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
@@ -625,6 +743,18 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        withAnimation(
+                            .spring(response: 0.35, dampingFraction: 0.55)
+                        ) {
+                            skill2Pulse = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            withAnimation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                            ) {
+                                skill2Pulse = false
+                            }
+                        }
                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
@@ -653,10 +783,100 @@ struct InstituteView: View {
                             assetManager.magicCards[index] = MagicCard(from: unwrappedData.card)
                             selectedCard = assetManager.magicCards[index]
                         }
+                        withAnimation(
+                            .spring(response: 0.35, dampingFraction: 0.55)
+                        ) {
+                            skill3Pulse = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            withAnimation(
+                                .spring(response: 0.4, dampingFraction: 0.8)
+                            ) {
+                                skill3Pulse = false
+                            }
+                        }
                         ToastManager.shared.show(toast: Toast(message: "institute.upgrade.toast.success"))
                     }
                 }
             default: break
+            }
+        }
+    }
+}
+
+struct CardUpgradeExplosionView: View {
+    //let trigger: UUID
+    //@State private var lastTrigger: UUID?
+    @State private var animate = false
+
+    var body: some View {
+        ZStack {
+            // 中心闪光
+            Circle()
+                .fill(Color.white.opacity(0.9))
+                .frame(
+                    width: animate ? 180 : 20,
+                    height: animate ? 180 : 20
+                )
+                .blur(radius: 30)
+                .opacity(animate ? 0 : 0.9)
+            // 彩色能量环
+            Circle()
+                .stroke(
+                    AngularGradient(
+                        colors: [
+                            .orange,
+                            .yellow,
+                            .pink,
+                            .purple,
+                            .blue,
+                            .orange
+                        ],
+                        center: .center
+                    ),
+                    lineWidth: 5
+                )
+                .frame(
+                    width: animate ? 240 : 80,
+                    height: animate ? 240 : 80
+                )
+                .blur(radius: 1)
+                .opacity(animate ? 0 : 1)
+                .rotationEffect(
+                    .degrees(animate ? 180 : 0)
+                )
+            // 粒子
+            ForEach(0..<24, id: \.self) { index in
+                let angle = Double(index) / 24 * 360
+                Circle()
+                    .fill(
+                        [
+                            Color.orange,
+                            Color.yellow,
+                            Color.pink,
+                            Color.cyan,
+                            Color.white
+                        ][index % 5]
+                    )
+                    .frame(width: 8, height: 8)
+                    .offset(
+                        x: animate ?
+                            cos(angle * .pi / 180) * 150 :
+                            0,
+                        y: animate ?
+                            sin(angle * .pi / 180) * 150 :
+                            0
+                    )
+                    .opacity(animate ? 0 : 1)
+                    .blur(radius: animate ? 1 : 0)
+            }
+        }
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(
+                .easeOut(duration: 0.9)
+            ) {
+                animate = true
             }
         }
     }

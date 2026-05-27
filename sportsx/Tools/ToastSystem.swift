@@ -11,14 +11,29 @@ import Foundation
 struct Toast: Identifiable, Equatable {
     let id = UUID()
     var message: String
+    var args: [CVarArg] = []
     var duration: TimeInterval
     
     init(
         message: String = "toast.placehold",
+        args: [CVarArg] = [],
         duration: TimeInterval = 2
     ) {
         self.message = message
+        self.args = args
         self.duration = duration
+    }
+    
+    var localizedMessage: String {
+        let format = NSLocalizedString(message, comment: "")
+        guard !args.isEmpty else {
+            return format
+        }
+        return String(format: format, arguments: args)
+    }
+    
+    static func == (lhs: Toast, rhs: Toast) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
@@ -75,7 +90,7 @@ struct ToastView: View {
     let toast: Toast
 
     var body: some View {
-        Text(LocalizedStringKey(toast.message))
+        Text(toast.localizedMessage)
             .padding()
             .background(Color.black.opacity(0.8))
             .foregroundColor(.white)

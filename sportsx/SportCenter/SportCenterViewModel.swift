@@ -8,6 +8,57 @@
 import Foundation
 import CoreLocation
 import Combine
+import MapKit
+
+
+enum RoutePoint {
+    case checkpoint(Checkpoint)
+    case segment(Segment)
+    
+    func toRealtimePoint() -> RoutePointRealtime {
+        switch self {
+        case .checkpoint(let checkpoint):
+            let point = CheckpointRealtime(lat: checkpoint.lat, lng: checkpoint.lng, radius: checkpoint.radius, isCheck: false, isMiss: false, penalty: checkpoint.penalty)
+            return .checkpoint(point)
+        case .segment(let segment):
+            let curve = SegmentRealtime(points: segment.points, width: segment.width, checkProgress: 0)
+            return .segment(curve)
+        }
+    }
+}
+
+struct Checkpoint {
+    let lat: Double
+    let lng: Double
+    let radius: Double
+    let penalty: Int?
+}
+
+struct Segment {
+    let points: [CLLocationCoordinate2D]
+    let width: Double
+}
+
+enum RoutePointRealtime {
+    case checkpoint(CheckpointRealtime)
+    case segment(SegmentRealtime)
+}
+
+struct CheckpointRealtime {
+    let lat: Double
+    let lng: Double
+    let radius: Double
+    var isCheck: Bool
+    var isMiss: Bool
+    var penalty: Int?
+}
+
+struct SegmentRealtime {
+    let points: [CLLocationCoordinate2D]
+    let width: Double
+    var checkProgress: Double
+}
+
 
 class CompetitionCenterViewModel: ObservableObject {
     let locationManager = LocationManager.shared
@@ -145,6 +196,249 @@ class CompetitionCenterViewModel: ObservableObject {
     }
 }
 
+final class MapCameraState: ObservableObject {
+    weak var mapView: MKMapView?
+    // 发布给 SwiftUI
+    @Published var metersPerPoint: Double = 1.0
+
+    func update(from mapView: MKMapView) {
+        self.mapView = mapView
+        
+        let p1 = CGPoint(x: mapView.bounds.midX, y: mapView.bounds.midY)
+        let p2 = CGPoint(x: mapView.bounds.midX + 1, y: mapView.bounds.midY)
+        
+        let c1 = mapView.convert(p1, toCoordinateFrom: mapView)
+        let c2 = mapView.convert(p2, toCoordinateFrom: mapView)
+        
+        let l1 = CLLocation(latitude: c1.latitude, longitude: c1.longitude)
+        let l2 = CLLocation(latitude: c2.latitude, longitude: c2.longitude)
+        
+        metersPerPoint = l1.distance(from: l2)
+    }
+
+    func project(_ coordinate: CLLocationCoordinate2D) -> CGPoint {
+        guard let mapView else { return .zero }
+        return mapView.convert(coordinate, toPointTo: mapView)
+    }
+
+    func coordinate(from point: CGPoint) -> CLLocationCoordinate2D {
+        guard let mapView else { return CLLocationCoordinate2D() }
+        return mapView.convert(point, toCoordinateFrom: mapView)
+    }
+}
+
+final class RouteEditorStore: ObservableObject, NavigationStore {
+    @Published var routePoints: [EditableRoutePoint] = []
+    @Published var tempRoutePoints: [EditableRoutePoint] = []
+    @Published var selectedType: RouteType = .pointToPoint
+    @Published var tempSelectedType: RouteType = .pointToPoint
+    
+    @Published var routeElevationDiff: Int? = nil       // 海拔差/m
+    @Published var isLoadingElevation = false
+    
+    lazy var id: UUID = {
+        NavigationStoreManager.shared.register(self)
+    }()
+    
+    enum RouteValidationError {
+        case notEnoughPoints
+        case invalidStructure
+        case radiusOverlap
+        case outOfBounds
+    }
+    
+    func saveValidPath() -> RouteValidationError? {
+        // 基础数量校验
+        guard tempRoutePoints.count >= 2 else { return .notEnoughPoints }
+        
+        // 统计类型
+        let starts = tempRoutePoints.filter {
+            if case .start = $0.type { return true }
+            return false
+        }
+        let ends = tempRoutePoints.filter {
+            if case .end = $0.type { return true }
+            return false
+        }
+        
+        // 起点终点必须唯一
+        guard starts.count == 1, ends.count == 1 else { return .invalidStructure }
+        
+        // 顺序校验
+        guard case .start = tempRoutePoints.first?.type,
+              case .end = tempRoutePoints.last?.type else {
+            return .invalidStructure
+        }
+        
+        switch tempSelectedType {
+        case .pointToPoint:
+            // 必须只有两个点：start -> end
+            guard tempRoutePoints.count == 2 else { return .invalidStructure }
+            
+        case .multiPoints:
+            // 至少三个点（start + checkPoint(s) + end）
+            guard tempRoutePoints.count >= 3 else { return .invalidStructure }
+            
+            // 中间点必须都是 checkPoint
+            let middlePoints = tempRoutePoints.dropFirst().dropLast()
+            let allCheckPoint = middlePoints.allSatisfy {
+                if case .checkPoint = $0.type { return true }
+                return false
+            }
+            guard allCheckPoint else { return .invalidStructure }
+        }
+
+        // 半径校验：任意两个点的距离必须大于半径之和
+        for i in 0..<tempRoutePoints.count {
+            for j in (i + 1)..<tempRoutePoints.count {
+                let p1 = tempRoutePoints[i]
+                let p2 = tempRoutePoints[j]
+                
+                let loc1 = CLLocation(latitude: p1.coordinate.latitude, longitude: p1.coordinate.longitude)
+                let loc2 = CLLocation(latitude: p2.coordinate.latitude, longitude: p2.coordinate.longitude)
+                
+                let distance = loc1.distance(from: loc2)
+                let minAllowed = p1.radius + p2.radius + 10
+                
+                if distance <= minAllowed {
+                    return .radiusOverlap
+                }
+            }
+        }
+        
+        // 边界校验
+        let polygons = LocationManager.shared.regionBoundary
+        for point in tempRoutePoints {
+            if !isCoordinate(point.coordinate, inside: polygons) {
+                return .outOfBounds
+            }
+        }
+        
+        // 校验通过，提交
+        routePoints = tempRoutePoints
+        selectedType = tempSelectedType
+        return nil
+    }
+    
+    func fetchElevation() {
+        guard tempRoutePoints.count >= 2 else { return }
+        
+        guard let lat1 = tempRoutePoints.first?.coordinate.latitude,
+              let lng1 = tempRoutePoints.first?.coordinate.longitude,
+              let lat2 = tempRoutePoints.last?.coordinate.latitude,
+              let lng2 = tempRoutePoints.last?.coordinate.longitude else { return }
+        
+        guard var components = URLComponents(string: "/common/elevation_diff") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "lat1", value: "\(lat1)"),
+            URLQueryItem(name: "lng1", value: "\(lng1)"),
+            URLQueryItem(name: "lat2", value: "\(lat2)"),
+            URLQueryItem(name: "lng2", value: "\(lng2)")
+        ]
+        guard let urlPath = components.string else { return }
+        
+        let request = APIRequest(path: urlPath, method: .get)
+        DispatchQueue.main.async {
+            self.isLoadingElevation  = true
+        }
+        NetworkService.sendRequest(with: request, decodingType: Int?.self) { result in
+            DispatchQueue.main.async {
+                self.isLoadingElevation = false
+                switch result {
+                case .success(let data):
+                    if let unwrappedData = data {
+                        self.routeElevationDiff = unwrappedData
+                    }
+                default: break
+                }
+            }
+        }
+    }
+    
+    func isPointOverlapping(id: UUID) -> Bool {
+        guard let p1 = tempRoutePoints.first(where: { $0.id == id }) else {
+            return false
+        }
+
+        for p2 in tempRoutePoints where p2.id != id {
+            let loc1 = CLLocation(latitude: p1.coordinate.latitude, longitude: p1.coordinate.longitude)
+            let loc2 = CLLocation(latitude: p2.coordinate.latitude, longitude: p2.coordinate.longitude)
+
+            let distance = loc1.distance(from: loc2)
+            let minAllowed = p1.radius + p2.radius + 10
+
+            if distance <= minAllowed {
+                return true
+            }
+        }
+        return false
+    }
+    
+    func isCoordinate(_ coord: CLLocationCoordinate2D, inside polygons: [MKPolygon]) -> Bool {
+        let point = MKMapPoint(coord)
+        for polygon in polygons {
+            var isInside = false
+            let points = polygon.points()
+            let count = polygon.pointCount
+            
+            var j = count - 1
+            for i in 0..<count {
+                let pi = points[i]
+                let pj = points[j]
+                
+                let intersect = ((pi.y > point.y) != (pj.y > point.y)) &&
+                (point.x < (pj.x - pi.x) * (point.y - pi.y) / (pj.y - pi.y + 0.0000001) + pi.x)
+                
+                if intersect {
+                    isInside.toggle()
+                }
+                j = i
+            }
+            if isInside { return true }
+        }
+        return false
+    }
+}
+
+struct EditableRoutePoint: Identifiable {
+    let id = UUID()
+    var coordinate: CLLocationCoordinate2D
+    var radius: Double = 20
+    var penalty: Int? = nil
+    var type: EditableCheckPointType
+    //var isOverlapping: Bool = false
+    var isOutOfBounds: Bool = false
+    
+    func toRoutePoint() -> RoutePoint {
+        .checkpoint(
+            Checkpoint(
+                lat: coordinate.latitude,
+                lng: coordinate.longitude,
+                radius: radius,
+                penalty: penalty
+            )
+        )
+    }
+}
+
+extension Array where Element == EditableRoutePoint {
+    func toRoutePoints() -> [RoutePoint] {
+        map { $0.toRoutePoint() }
+    }
+}
+
+extension Array where Element == RoutePoint {
+    func toRealtimePoints() -> [RoutePointRealtime] {
+        map { $0.toRealtimePoint() }
+    }
+}
+
+enum EditableCheckPointType: Equatable {
+    case start
+    case end
+    case checkPoint(Int)
+}
+
 struct SeasonInfo {
     let name: String
     let startDate: Date?
@@ -169,16 +463,8 @@ struct RegionResponse: Codable {
 }
 
 struct TrainingGridTileRequest: Codable {
+    let region_id: String
     let tiles: [TileKey]
-}
-
-struct TrainingGridTile: Codable {
-    let key: TileKey
-    let cells: [GridCell]
-}
-
-struct TrainingGridTileResponse: Codable {
-    let tiles: [TrainingGridTile]
 }
 
 struct GridBboxConfig: Codable, Equatable, Hashable {
@@ -203,7 +489,6 @@ struct TileKey: Hashable, Codable {
 struct RegionExploreResponse: Codable {
     let explored_grids: Int
     let total_grids: Int
-    let boundary: JSONValue
 }
 
 struct GridSelection: Identifiable {
@@ -244,3 +529,43 @@ struct GridFamiliarityRankInfo: Identifiable {
         self.rank = dto.rank
     }
 }
+
+enum GridEffectType: String, Codable {
+    case buff = "buff"
+    case debuff = "debuff"
+}
+
+
+enum RouteSortType: String, CaseIterable {
+    case distance = "distance"
+    case participation = "participation"
+    
+    var displayName: String {
+        switch self {
+        case .distance: return "competition.realtime.distance"
+        case .participation: return "common.popularity"
+        }
+    }
+}
+
+enum RouteType: String, CaseIterable, Codable {
+    case pointToPoint = "pointToPoint"
+    case multiPoints = "multiPoints"
+    //case curve = "curve"
+    //case mixed = "mixed"
+    
+    var displayName: String {
+        switch self {
+        case .pointToPoint: return "training.route.mode.direct"
+        case .multiPoints: return "training.route.mode.multi-points"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .pointToPoint: return "route_p2p"
+        case .multiPoints: return "route_multipoints"
+        }
+    }
+}
+

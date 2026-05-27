@@ -17,12 +17,16 @@
 "common.female" = "Female";
 "common.user" = "User";
 "common.average" = "Average";
-"common.speed" = "Speed";
+"common.pace" = "Pace";
 "common.empty" = "Empty";
 "common.history" = "History";
 "common.duration" = "Duration";
 "common.times" = "Times";
 "common.current" = "Current";
+"common.total" = "Total";
+"common.left" = "left";
+"common.radius" = "Radius";
+"common.popularity" = "Popularity";
 
 "app.slogan" = "Play for Passion";
 
@@ -31,6 +35,7 @@
 
 "sport.feature.race" = "Arena";
 "sport.feature.free_training" = "Free training";
+"sport.feature.route_training" = "Route training";
 
 "tier.bronze" = "Bronze";
 "tier.silver" = "Silver";
@@ -322,10 +327,12 @@
 "error.unknown" = "Unknown";
 "error.unknown.2" = "Unknown error";
 "error.no_data" = "No data";
+"error.nothing_here" = "There's nothing here.";
 "error.data" = "Data error";
 "error.server" = "Server error";
 "error.client_version" = "The client version is too low, please upgrade and continue using it.";
 "error.network_error" = "Network connection failed, please try again later.";
+"error.region" = "The current region is not supported, please switch regions and try again.";
 
 "time.today" = "today";
 "time.per_day %@" = "≈ %@/day";
@@ -335,6 +342,8 @@
 "time.date" = "Date";
 
 "distance.km.a/b %lf %lf" = "%.1lf/%.0lf ";
+"distance.km %lld" = "%lld km";
+"distance.m %lld" = "%lld m";
 "distance.km" = "km";
 "distance.m" = "m";
 
@@ -344,20 +353,23 @@
 "energy.unit" = "kcal";
 "power.unit" = "W";
 "stepCadence.unit" = "spm";
+"pedalCadence.unit" = "rpm";
 
 "toast.placehold" = "toast";
 "toast.no_login" = "Please login in first";
 "toast.network_error" = "Network error";
 "toast.copied" = "Copied";
 "toast.no_login.2" = "View after logging in";
+"toast.created.success" = "Created";
 
 "popup.no_reminder" = "Do not show again";
 "popup.claim_reward.title" = "Claimed Successful";
 "popup.claim_reward.content" = "You have successfully claimed your reward:";
+"popup.tips" = "Helpful tips";
 
 "home.sign_in.tile" = "Daily Check-in";
 "home.sign_in.subtile" = "More rewards for consecutive check-ins!";
-"home.sign_in.vip_tile" = "Subscribe to claim more rewards";
+"home.sign_in.vip_tile" = "Subscribe for more rewards";
 "home.sign_in.reminder_time %@" = "reminder at: %@";
 "home.sign_in.reminder_time" = "reminder time";
 "home.sign_in.reminder.content" = "Open to claim your daily rewards, don't forget to keep exercising!";
@@ -375,6 +387,9 @@
 "home.skill.title.3" = "Equipment Cards";
 "home.skill.title.4" = "Reward Settlement";
 "home.skill.title.5" = "Competition Results";
+"home.skill.title.6" = "Grid System";
+"home.skill.title.7" = "Free Training Mode";
+"home.skill.title.8" = "Route Training Mode";
 "home.skill.title.1.subtitle.1" = "Match records";
 "home.skill.title.1.subtitle.2" = "Data Validation";
 "home.skill.title.2.subtitle.1" = "Create and join a team";
@@ -389,6 +404,9 @@
 "home.skill.title.5.subtitle.1" = "Original scores";
 "home.skill.title.5.subtitle.2" = "Valid scores";
 "home.skill.title.5.subtitle.3" = "Result status";
+"home.skill.title.6.subtitle.1" = "Exploration Count";
+"home.skill.title.7.subtitle.1" = "Buff Grids";
+"home.skill.title.8.subtitle.1" = "Route Creation";
 "home.skill.title.1.subtitle.1.content" = "After successful registration, a race record will be automatically created and can be viewed on the record management page in the sports center. Race records have five statuses: Not Started, In Progress, Completed, Pending Verification, and Expired.\nRaces can start within the record's valid time. Individual records can start at any time within the track's valid time, while team records can only start within the team race window. \nThere are two ways to end the race: automatically and manually. The race engine will automatically end the race when you are within the finish line area. If it does not end automatically, you can also manually click the end button near the finish line area. \nCancelling a race record will result in a refund of the registration fee. Note that cancellations are not possible after the record's deadline. The deadline for individual records is the deadline for registering for the track, and the deadline for team records is the deadline for the team race window. \nThe system will automatically handle expired race records (records with a duration exceeding 2 hours will be considered expired).";
 "home.skill.title.1.subtitle.2.content" = "In current cycling and running competitions, it is necessary to keep the phone fixed to the outer thigh for data verification throughout the entire process. Frequent movement of the phone during the exercise may cause verification failure. Data verification is divided into two stages: real-time verification and background verification. Due to limited computing resources, the data verification process may be delayed by several minutes to several hours.";
 "home.skill.title.1.subtitle.3.content" = "Each track has a corresponding prize pool. For each completed race record, the prize pool will accumulate based on a certain percentage of the registration fee.";
@@ -405,6 +423,9 @@
 "home.skill.title.5.subtitle.1.content" = "The original score of the race refers to the value recorded by the race engine as the difference between the start and end times of the race. This is the original result without any reward or penalty effects. \nThe start time of the race is the moment you click start within the valid starting area. The end time of the race will be optimized and adjusted based on the multi-dimensional data recorded by the system at the end of the race. Therefore, there is no need to worry about the actual timing of automatically or manually ending the race. The only thing to note is that when you choose to manually end the race, you should try to be as close to the valid finish area as possible.";
 "home.skill.title.5.subtitle.2.content" = "The effective score in a match refers to the score after applying the benefits of all equipped cards or associated cards to the original score. This score will be written into the leaderboard and counted in your career after the match is completed. It should be noted that the total benefit cap is 20% of the original score, that is, the lower limit of the effective score is 80% of the original score.";
 "home.skill.title.5.subtitle.3.content" = "The performance status is generally consistent with the match record status, but an additional data-calculation-in-progress status has been added, indicating that there are currently uncounted earnings. The data-calculation-in-progress status may experience delays, ranging from several minutes to several hours, before the statistics are completed.";
+"home.skill.title.6.subtitle.1.content" = "The map is divided into grids at a fixed scale. After completing Free Training or Route Training, the system will calculate the grids you passed through. Exploring new grids during exercise grants extra coins and supply rewards. The player with the most visits can occupy the grid. You can also check the occupation status of each grid at any time.";
+"home.skill.title.7.subtitle.1.content" = "In Free Training Mode, the map refreshes random buff grids every day. Passing through them while meeting the conditions will activate their effects. Each buff can only be triggered once.";
+"home.skill.title.8.subtitle.1.content" = "Routes currently support both Finish Point and Checkpoint modes. You can adjust the radius and penalty time of route points. Tap the map on the route creation page to enter the route editor. Private routes are only visible to you, and routes can no longer be edited after being published. The basic route leaderboard does not separate rankings by gender and supports up to 100 players. After enabling the equipment card system, you can use your own cards during exercise; otherwise, card features will be disabled.";
 
 "shop.tab.props" = "Props";
 "shop.tab.equip_card" = "EquipCards";
@@ -421,7 +442,7 @@
 "warehouse.action.goUpgrade" = "Go Upgrade";
 "warehouse.action.destroy" = "Destroy";
 "warehouse.equipcard.unavailable" = "Unavailable";
-"warehouse.equipcard.unavailable.detail" = "Client version is too low, cannot be used at this time";
+"warehouse.equipcard.unavailable.detail" = "Client version is too low, cannot be used.";
 
 "training.sport_state" = "Momentum";
 "training.sport_state.description" = "Momentum level describes your current training status and can affect your performance in competitions. You will continue to lose momentum level if you do not train for more than 7 days.";
@@ -429,10 +450,43 @@
 "training.exploration" = "Exploration";
 "training.exploration.2" = "Explored";
 "training.exploration.description" = "Exploration level describes how much you explore your area during training this season.";
-"training.exploration.region.not_supported" = "Not supported in the current region";
 "training.error.no_login" = "Log in to view your activity status and exploration area.";
 "training.action.ready" = "Ready";
 "training.action.ready.no_login" = "Login to continue";
+
+"training.free.grid.info" = "Grid Info";
+"training.free.grid.size" = "Size";
+"training.free.grid.common" = "Standard Grid ";
+
+"training.route.info" = "Route Info";
+"training.route.delete.title" = "Delete Route";
+"training.route.delete.content" = "Are you sure you want to delete this route?";
+"training.route.manage" = "Manage Routes";
+"training.route.create" = "Create Route";
+"training.route.title" = "Route Title";
+"training.route.title.enter" = "Enter route title";
+"training.route.edit_on_tap" = "Tap to edit route";
+"training.route.mode" = "Route mode";
+"training.route.distance.over %lld" = "over %lldkm";
+"training.route.distance.less %lld" = "less than %lldm";
+"training.route.is_public" = "Public";
+"training.route.is_public.content" = "Public routes can be viewed and joined by all players. Private routes are only visible to you. Route settings cannot be changed after publishing.";
+"training.route.enable_leaderboard" = "Leaderboard";
+"training.route.unlock_leaderboard" = "Unlock full leaderboard";
+"training.route.enable_magiccard" = "Equipment card system";
+"training.route.create.content" = "Spend Route Card * 1 to create a new route?";
+"training.route.create.toast.over_points %lld" = "You can only add up to %lld route points";
+"training.route.create.toast.save_error.1" = "At least 2 route points are required";
+"training.route.create.toast.save_error.2" = "Invalid route structure";
+"training.route.create.toast.save_error.3" = "Checkpoints are too close together";
+"training.route.create.toast.save_error.4" = "Route exceeds current region boundary";
+"training.route.create.unlock_points" = "Create up to 100 route points";
+"training.route.create.pathpoint" = "PathPoint";
+"training.route.create.penalty_time" = "Penalty time";
+"training.route.create.placeholder" = "Long press on the map to add route points in order";
+"training.route.mode.direct" = "Finish mode";
+"training.route.mode.multi-points" = "Checkpoint mode";
+"training.route.create.popup.tips" = "Long press to adjust route point positions and order";
 
 "training.history.title" = "Training history";
 "training.history.no_record" = "No training records";
@@ -440,16 +494,19 @@
 "training.realtime.action.finish" = "Finish";
 "training.realtime.popup.finish" = "Are you sure you want to end the training?";
 "training.realtime.popup.cannot_save" = "Unable to save";
-"training.realtime.popup.cannot_save.content" = "If training time or distance is too short, the record may not be saved.";
+"training.realtime.popup.cannot_save.content" = "Training time or distance is too short, the record may not be saved.";
 "training.realtime.popup.cannot_save.button" = "Still finish";
 "training.realtime.grid.title" = "Grid Info";
 "training.realtime.grid.occupier" = "occupier";
-"training.realtime.grid.exploration_status" = "Current season exploration status";
+"training.realtime.grid.exploration_status" = "Exploration status";
 "training.realtime.grid.ranklist.no_data" = "No one else has been here yet";
 
-"training.result.record" = "Training records";
+"training.result.record" = "Training record";
 "training.result.complete" = "Training ended";
-"training.result.popup.content %lld" = "You have just successfully explored %lld new areas!";
+"training.result.popup.content.new_area %lld" = "You have just successfully explored %lld new areas!";
+"training.result.popup.content.buff %lld" = "You have just successfully triggered %lld buff areas!";
+"training.result.popup.content.new_area_buff %lld %lld" = "You have just successfully explored %lld new areas, and triggered %lld buff areas!";
+"training.result.grid_reward" = "Triggered grids";
 
 "competition.season.info" = "Season Information";
 "competition.season.data" = "Season Data";
@@ -499,10 +556,10 @@
 "competition.record.status.computing" = "In data calculation";
 "competition.record.original_time" = "Original scores";
 "competition.record.valid_time" = "Valid scores";
-"competition.record.valid_time.popup.content" = "A valid score refers to the score achieved after applying the benefits of all equipped or associated cards to the original score. This score will be written into the leaderboard and counted in your athletic career after the match is completed.";
-"competition.record.settlement_rewards" = "Settlement Info";
+"competition.record.valid_time.popup.content" = "Valid scores refer to scores calculated after applying additional effects such as equipment cards and penalties to the original scores, and are used as the basis for statistics when entering the leaderboard and athletic career.";
+"competition.record.settlement_rewards" = "Settlement info";
 "competition.record.time_and_data" = "Data statistics";
-"competition.record.result" = "Match Results";
+"competition.record.result" = "Match Result";
 "competition.record.title" = "Match Records";
 "competition.record.detail" = "detail";
 "competition.record.popup.cancel_register" = "Are you sure you want to cancel your registration?";
@@ -522,8 +579,8 @@
 "competition.cardselect.magiccard.equipped" = "equipped";
 "competition.cardselect.magiccard.empty_slot" = "Empty slot";
 "competition.cardselect.magiccard.vipslot" = "Exclusive slot";
-"competition.cardselect.popup.content.bike" = "Throughout the bike competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
-"competition.cardselect.popup.content.running" = "Throughout the running competition, the phone needs to be fixed to the thigh for data verification. Frequent movement of the phone during the exercise may cause the data verification to fail.\nDishonest cheating during the competition may result in account bans.";
+"competition.cardselect.popup.content.bike" = "During cycling competitions, you can choose either of the following two methods for automatic verification:\n\n1. Use a cadence sensor to record cadence data during the activity\n2. Secure your phone to your thigh during the activity and minimize frequent phone movement\n\nNote: Dishonest or cheating behavior during competitions may result in account suspension.";
+"competition.cardselect.popup.content.running" = "During running competitions, you can choose either of the following two methods for automatic verification:\n\n1. Use supported devices to record cadence data during the activity\n2. Secure your phone to your thigh during the activity and minimize frequent phone movement\n\nNote: Dishonest or cheating behavior during competitions may result in account suspension.";
 "competition.cardselect.healthkit.title" = "Need to access health data";
 "competition.cardselect.healthkit.content" = "When using your Apple Watch or other external sensors to help record your game, we may access your Apple Health data (HealthKit) to sync your exercise performance. You can turn off permission at any time in Apple Health App.";
 "competition.cardselect.familiarity_buff" = "Familiarity buff";
@@ -535,7 +592,8 @@
 "competition.realtime.action.start" = "Start";
 "competition.realtime.popup.finish" = "Are you sure you want to manually end the game?";
 "competition.realtime.distance" = "Distance";
-"competition.realtime.avgspeed" = "Average speed";
+"competition.realtime.avgspeed" = "Avg Pace";
+"competition.realtime.elev_gain" = "Elev Gain";
 "competition.realtime.heartrate" = "Heart rate";
 "competition.realtime.energy" = "Total Energy";
 "competition.realtime.power" = "Power";
@@ -543,7 +601,7 @@
 "competition.realtime.switch_info" = "If you encounter a display area error, please manually switch the coordinate system.";
 "competition.realtime.out_window" = "The team's window of opportunity has expired, and they are unable to join the match.";
 "competition.realtime.remaining_time %lld" = "Remaining joining time: %lld seconds";
-"competition.realtime.start.out_of_area" = "You are not at the starting point and cannot start the race.";
+"competition.realtime.start.out_of_area" = "You are not at the starting point.";
 "competition.realtime.start.popup.no_auth" = "Unable to start the game";
 "competition.realtime.start.popup.no_auth.content" = "Background location permissions are required, please adjust the location permissions to always allow for continuous exercise recording.";
 "competition.realtime.start.toast.record_error" = "Registration data error, please try again.";
@@ -562,7 +620,8 @@
 "competition.realtime.popup.familiar_route" = "Before the official start of the race, it is recommended to do at least one full practice session on the track to familiarize yourself with the route.";
 
 "competition.result.stepcadence" = "Step cadence";
-"competition.result.bonus_time.magiccard" = "Total card rewards";
+"competition.result.pedalcadence" = "Pedal cadence";
+"competition.result.bonus_time.magiccard" = "Card rewards";
 "competition.result.bonus_time.familiarity" = "Familiarity rewards";
 "competition.result.bonus_time.training_state" = "Momentum rewards";
 
@@ -581,12 +640,12 @@
 "competition.track.error.no_tracks" = "There are currently no available tracks for this competition.\nPlease switch regions or competition to try again.";
 "competition.track.error.closed" = "The track is closed.";
 "competition.track.total_number %lld" = "total participation: %lld";
-"competition.track.terrain" = "terrain";
-"competition.track.altitude" = "altitude diff";
-"competition.track.prize_pool" = "prize pool";
-"competition.track.sub_region" = "subregion";
-"competition.track.score" = "season points";
-"competition.track.distance" = "distance";
+"competition.track.terrain" = "Terrain";
+"competition.track.altitude" = "Net elevation";
+"competition.track.prize_pool" = "Prize pool";
+"competition.track.sub_region" = "Region";
+"competition.track.score" = "Season points";
+"competition.track.distance" = "Distance";
 "competition.track.my_score" = "My grades";
 "competition.track.leaderboard" = "leaderboard";
 "competition.track.leaderboard.ranking" = "Rank";
@@ -596,7 +655,7 @@
 "competition.track.leaderboard.ranking.2" = "ranking";
 "competition.track.leaderboard.no_data" = "No ranking data available.";
 "competition.track.leaderboard.user_and_time" = "User & Time";
-"competition.track.altitude.2" = "Altitude";
+"competition.track.altitude.2" = "Elevation";
 "competition.track.familiarity" = "Familiarity";
 
 "competition.team.basic_info" = "Basic Information";
@@ -608,11 +667,11 @@
 "competition.team.create.toast.success" = "Team creation successful, team code copied.";
 "competition.team.member.count %lld" = "Team size: %lld";
 "competition.team.public" = "Public status";
-"competition.team.toast.no_name" = "Please enter the team name";
+"competition.team.toast.no_name" = "Please enter a team title";
 "competition.team.toast.invalid_time" = "The match time was illegal.";
 "competition.team.join" = "Join team";
 "competition.team.join.toast.success" = "Joined successfully";
-"competition.team.join.placeholder" = "Enter 8-digit team code to join";
+"competition.team.join.placeholder" = "Enter 8-digit team code";
 "competition.team.join.action" = "Join";
 "competition.team.join.toast.invalid_teamcode" = "Please enter a valid 8-digit team code";
 "competition.team.join.no_team" = "There are no teams available to join right now, go create a new team!";
@@ -677,13 +736,13 @@
 "competition.terrain.mountain" = "Off-road";
 "competition.terrain.crossCountry" = "Cross-country";
 "competition.terrain.enduro" = "Enduro";
-"competition.terrain.downHill" = "downHill";
+"competition.terrain.downHill" = "DownHill";
 "competition.terrain.other" = "Other";
 
-"competition.magiccard.select" = "Select Card";
+"competition.magiccard.select" = "Equipment card";
 "competition.magiccard.selected" = "Selected";
 "competition.magiccard.search" = "Search Cards";
-"competition.magiccard.error.sporttype" = "Sports type mismatch";
+"competition.magiccard.error.sporttype" = "Sport type mismatch";
 "competition.magiccard.error.sportmode" = "Sport mode mismatch";
 "competition.magiccard.error.no_sensor" = "Sensor not bound";
 "competition.magiccard.error.repeat" = "Non-repeatable equipment";
@@ -708,7 +767,7 @@
 "competition.applewatch.error.finish" = "Watch connection failed, please manually end the exercise on your watch.";
 
 "competition.slidebar.title" = "Sport Center";
-"competition.slidebar.subtitle" = "Discover more ways to play";
+"competition.slidebar.subtitle" = "Move, Play & Connect";
 
 "user.page.friend" = "Friend";
 "user.page.following" = "Following";
@@ -740,8 +799,10 @@
 "user.page.bind_device.body.wst" = "Chest";
 "user.page.bind_device.no_device" = "No devices can be connected at the moment";
 "user.page.bind_device.popup.applewatch" = "When using Apple Watch, the Apple Watch app will automatically open to assist with recording when you start a game on your phone. If it doesn't open automatically, you can manually open the Apple Watch app and tap the sync button within 30 seconds to synchronize your status.";
-"user.page.bind_device.popup.default.title" = "Default data source device";
-"user.page.bind_device.popup.default.content" = "You can assist in recording the exercise by binding supported sensor devices. The default data source device will continuously collect your motion data during the exercise.";
+"user.page.bind_device.popup.default.title" = "Data source device";
+"user.page.bind_device.popup.default.content" = "You can assist in recording the exercise by using supported sensor devices. The Data source device will continuously collect your motion data during the exercise.";
+"user.page.bind_device.action.connect" = "connect";
+"user.page.bind_device.connected" = "connected";
 "user.page.features.institute" = "Institute";
 "user.page.features.email_box" = "Mailbox";
 "user.page.tab.career" = "Career";
@@ -754,6 +815,7 @@
 "user.page.dailytask.go_complete" = "Go";
 "user.page.popup.complete_info.title" = "Complete profile";
 "user.page.popup.complete_info.content" = "Complete your profile so your friends can get to know you better!";
+
 "user.sidebar.select_sport" = "Choose Sport";
 "user.sidebar.default_sport" = "Default sport on profile: ";
 
@@ -804,7 +866,7 @@
 "user.setup.action.keep_account" = "Keep";
 "user.setup.feedback.question_type" = "Problem Type";
 "user.setup.feedback.report_user" = "Report User";
-"user.setup.feedback.bug" = "System bugs/Performance optimization";
+"user.setup.feedback.bug" = "Sys bugs / Perf optimize";
 "user.setup.feedback.iap" = "Payment related";
 "user.setup.feedback.feature" = "Feature suggestions";
 "user.setup.feedback.report" = "Report";
@@ -864,6 +926,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "user.intro.go_auth" = "Go Verity";
 "user.intro.no_auth" = "Unverified";
 "user.intro.gender_info" = "Gender in real-name information";
+"user.intro.gender.info" = "Gender cannot be changed after it is set";
+"user.intro.gender.toast" = "Gender cannot be changed at this time";
 "user.intro.birthday_info" = "Age in real-name information";
 "user.intro.auto_location" = "Automatically update location";
 "user.intro.current_location" = "Current location";
@@ -899,11 +963,12 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 
 "iap.coupon.title" = "Points Mall";
 "iap.coupon.failed" = "Purchase failed";
-"iap.coupon.success" = "Purchase successful";
+"iap.coupon.success" = "Purchased";
 "iap.coupon.cancel" = "Purchase cancelled";
 "iap.coupon.pendding" = "Purchase has been suspended";
 "iap.coupon.feedback" = "Having payment issues? Get feedback here";
 "iap.coupon.popup.content" = "Points are in-app virtual assets that can only be used to participate in online virtual competitions and purchase related virtual items within the app. They cannot be withdrawn or exchanged for cash.";
+
 "iap.subscription.failed" = "Subscription failed";
 "iap.subscription.success" = "Subscription successful";
 "iap.subscription.cancel" = "Subscription cancelled";
@@ -920,12 +985,13 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.benefits.1" = "additional equipment slots";
 "iap.subscription.benefits.2" = "abundant exclusive sign-in rewards";
 "iap.subscription.benefits.3" = "rapid motion data verification";
+"iap.subscription.benefits.4" = "Advanced route edit features";
 "iap.subscription.action.purchase" = "Subscribe Now";
 "iap.subscription.action.update_purchase" = "Update Subscription";
 "iap.subscription.toast.purchase.failed.sub_off" = "This Apple ID is already associated with another account that has subscribed, so you cannot subscribe again";
 "iap.subscription.toast.purchase.failed.sub_on" = "The current subscription status does not belong to this Apple ID, please switch Apple accounts and try again";
 "iap.subscription.toast.purchase.failed.reapeat_sub" = "You have already subscribed to this project and cannot subscribe again";
-"iap.subscription.toast.help.query.success.title" = "Query Successful";
+"iap.subscription.toast.help.query.success.title" = "Successful";
 "iap.subscription.toast.help.query.success.content" = "Subscription benefits activated account:";
 "iap.subscription.toast.help.query.failed" = "No relevant subscription information was found";
 "iap.subscription.action.help" = "Help and Feedback";
@@ -961,14 +1027,14 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 
 "magiccard.detail" = "Card Detail";
 "magiccard.detail.lucky" = "Luck value";
-"magiccard.detail.description" = "Card description";
+"magiccard.detail.description" = "Description";
 "magiccard.detail.sensor.type" = "Sensor type";
 "magiccard.detail.sensor.pos" = "Sensor pos";
 "magiccard.detail.skill.unlock" = "to unlock";
 "magiccard.detail.sensor.pos.phone" = "Phone";
-"magiccard.detail.lucky.popup" = "The card's luck value affects the range of values ​​for each upgrade, the higher the luck value, the greater the probability of obtaining a high increase.";
-"magiccard.detail.sensor.type.popup" = "The card needs to be bound to a specific sensor device to function properly. The sensor type list shows all the sensor models currently supported by the card.";
-"magiccard.detail.sensor.pos.popup" = "The card can only be used properly if the sensor device needs to be bound to a specified location. The sensor location list shows the required binding points for the card.";
+"magiccard.detail.lucky.popup" = "Luck value affects the range of benefits ​​for each upgrade, the higher the luck value, the greater probability to get a high increase.";
+"magiccard.detail.sensor.type.popup" = "This card requires a supported sensor device to function properly. Sensor type list displays all sensors currently supported by this card.";
+"magiccard.detail.sensor.pos.popup" = "This card can only be used properly if the sensor device fits the specified location. Sensor location list shows the required binding points for this card.";
 
 "ccasset.coin" = "Coin";
 "ccasset.coupon" = "Points";

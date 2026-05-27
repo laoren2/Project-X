@@ -155,10 +155,12 @@ struct RunningEventCreateView: View {
     @State var name_hans: String = "城市巡回赛"
     @State var name_hant: String = "城市巡迴賽"
     @State var name_ko: String = "시티 투어"
+    @State var name_ja: String = "シティツアー"
     @State var description_en: String = "The City Tour is an official city-wide running series launched by Movmov, each district has its own independent track and leaderboard.\nThe City Tour is a long-term, open, city-level points race. Each track is a popular competitive route, and every successful completion will earn you entry into the leaderboard for that district. You can repeatedly challenge your personal best on your home track or cross districts to prove your overall ability in different terrains and environments.\nFrom flat beaches to undulating mountain trails, different regions and terrains offer different rhythms and tactical options. Based on your understanding of the track, use the appropriate gear cards to showcase your speed, endurance, and skill.\nWe look forward to your participation and have fun!"
     @State var description_hans: String = "城市巡回赛 是 Movmov 官方推出的城市区域系列跑步竞技赛事，每个区域均设有独立的赛道与成绩排行榜。\n城市巡回赛是长期巡回开放的城市级积分赛，每一条赛道都是较热门的竞技线路，每一次成功完赛，都会进入对应区域赛道的排行榜。你可以在主场赛道反复冲击个人最佳，也可以跨区挑战，在不同地形与环境中证明自己的综合实力。\n从平坦海滨到起伏山道，不同区域不同地形带来不同的节奏与战术选择。根据你对赛道的理解，搭配合适的装备卡牌，尽情展现速度、耐力和技巧。\n期待你的参与，玩的开心！"
     @State var description_hant: String = "城市巡迴賽 是 Movmov 官方推出的城市區域系列跑步競技賽事，每個區域均設有獨立的賽道與成績排行榜。\n城市巡迴賽是長期巡迴開放的城市級積分賽，每一條賽道都是較熱門的競技線路，每一次成功完賽，都會進入對應區域賽道的排行榜。你可以在主場賽道反覆衝擊個人最佳，也可以跨區挑戰，在不同地形與環境中證明自己的綜合實力。\n從平坦海濱到起伏山道，不同區域不同地形帶來不同的節奏與戰術選擇。根據你對賽道的理解，搭配合適的裝備卡牌，盡情展現速度、耐力和技巧。\n期待你的參與，玩的開心！"
     @State var description_ko: String = "시티 투어는 Movmov 공식에서 개최하는 도시 지역별 러닝 경기 시리즈로, 각 지역마다 독립적인 트랙과 성적 순위표가 마련되어 있습니다.\n도시 순회전은 장기간 개최되는 도시급 포인트 대회로, 각 트랙은 인기 있는 경쟁 코스이며, 성공적으로 완주할 경우 해당 지역 트랙의 랭킹에 진입합니다. 홈 트랙에서 개인 최고 기록을 반복적으로 도전하거나 다른 지역을 넘어서 다양한 지형과 환경에서 종합 실력을 입증할 수 있습니다.\n평탄한 해안에서 굽이치는 산길까지, 각기 다른 지형이 다양한 리듬과 전술적 선택을 선사합니다. 트랙을 이해하는 당신의 방식에 맞춰 적합한 장비 카드를 조합해 속도, 지구력, 기술을 마음껏 발휘하세요.\n당신의 참여를 기대하며 즐겁게 놀아요!"
+    @State var description_ja: String = "シティツアーは、Movmov公式が提供する都市エリア別のランニング競技イベントです。各エリアには、それぞれ独立したコースとランキングが用意されています。\nシティツアーは常時開催される都市型ポイントイベントで、すべてのコースが人気の高い競技ルートとして設計されています。完走すると、そのエリアのランキングに記録が反映されます。ホームコースで自己ベストを更新し続けることも、他エリアに挑戦して、さまざまな地形や環境で総合力を試すことも可能です。\n平坦な海沿いのルートから起伏のある山道まで、エリアごとに異なる地形が、多彩なペース配分と戦略を生み出します。コースの特徴を見極め、自分に合った装備カードを組み合わせて、スピード・持久力・テクニックを存分に発揮しましょう。\nぜひご参加ください。お楽しみください！"
     @State var seasonID: String = "season_c883ff50"
     @State var regionID: String = ""
     @State var startDate: Date = {
@@ -182,7 +184,7 @@ struct RunningEventCreateView: View {
         return Calendar.current.date(from: components) ?? Date()
     }()
     
-    @State var imageURL: String = "/resources/competition/official_event/city_tour/cover_us.png"
+    @State var imageURL: String = "/resources/competition/official_event/city_tour/cover_au.png"
     @State var eventImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
@@ -196,6 +198,7 @@ struct RunningEventCreateView: View {
                     TextField("赛事名称hant", text: $name_hant)
                     TextField("赛事名称en", text: $name_en)
                     TextField("赛事名称ko", text: $name_ko)
+                    TextField("赛事名称ja", text: $name_ja)
                     TextEditor(text: $description_hans)
                         .frame(minHeight: 100)
                         .padding()
@@ -234,6 +237,16 @@ struct RunningEventCreateView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.gray.opacity(0.3))
                                 Text("描述ko")
+                            }
+                        )
+                    TextEditor(text: $description_ja)
+                        .frame(minHeight: 100)
+                        .padding()
+                        .overlay(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                                Text("描述ja")
                             }
                         )
                     //TextField("描述hans", text: $description_hans)
@@ -297,12 +310,14 @@ struct RunningEventCreateView: View {
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }
         if !name_en.isEmpty { name_i18n["en"] = name_en }
         if !name_ko.isEmpty { name_i18n["ko"] = name_ko }
+        if !name_ja.isEmpty { name_i18n["ja"] = name_ja }
 
         var des_i18n: [String: String] = [:]
         if !description_hans.isEmpty { des_i18n["zh-Hans"] = description_hans }
         if !description_hant.isEmpty { des_i18n["zh-Hant"] = description_hant }
         if !description_en.isEmpty { des_i18n["en"] = description_en }
         if !description_ko.isEmpty { des_i18n["ko"] = description_ko }
+        if !description_ja.isEmpty { des_i18n["ja"] = description_ja }
         
         // 文字字段
         var textFields: [String : String] = [

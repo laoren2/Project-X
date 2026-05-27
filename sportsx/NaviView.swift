@@ -12,6 +12,12 @@ enum SportCategory: String {
     case RVR = "RVR"
 }
 
+enum SportFeatureType: String {
+    case race = "race"
+    case freeTraining = "freeTraining"
+    case routeTraining = "routeTraining"
+}
+
 enum SportName: String, Identifiable, CaseIterable, Codable {
     case Bike = "bike"
     case Badminton = "badminton"
@@ -69,34 +75,45 @@ enum SportFeature: String, CaseIterable, Identifiable {
     // Bike
     case bikeRace
     case bikeFreeTraining
-    //case bikeRouteTraining
+    case bikeRouteTraining
     
     // Running
     case runningRace
     case runningFreeTraining
-    //case runningRouteTraining
+    case runningRouteTraining
     
     var id: String { rawValue }
     
     var sportType: SportName {
         switch self {
-        case .bikeRace, .bikeFreeTraining:
+        case .bikeRace, .bikeFreeTraining, .bikeRouteTraining:
             return .Bike
             
-        case .runningRace, .runningFreeTraining:
+        case .runningRace, .runningFreeTraining, .runningRouteTraining:
             return .Running
+        }
+    }
+    
+    var featureType: SportFeatureType {
+        switch self {
+        case .bikeRace, .runningRace:
+            return .race
+        case .bikeFreeTraining, .runningFreeTraining:
+            return .freeTraining
+        case .bikeRouteTraining, .runningRouteTraining:
+            return .routeTraining
         }
     }
     
     var icon: String {
         switch self {
-        case .bikeRace: return "bike_race"
-        case .bikeFreeTraining: return "bike_free_training"
-        //case .bikeRouteTraining: return "路线训练"
+        case .bikeRace: return "arena"
+        case .bikeFreeTraining: return "free_training"
+        case .bikeRouteTraining: return "route_training"
             
-        case .runningRace: return "bike_race"
-        case .runningFreeTraining: return "bike_free_training"
-        //case .runningRouteTraining: return "路线训练"
+        case .runningRace: return "arena"
+        case .runningFreeTraining: return "free_training"
+        case .runningRouteTraining: return "route_training"
         }
     }
     
@@ -104,11 +121,11 @@ enum SportFeature: String, CaseIterable, Identifiable {
         switch self {
         case .bikeRace: return "sport.feature.race"
         case .bikeFreeTraining: return "sport.feature.free_training"
-        //case .bikeRouteTraining: return "路线训练"
+        case .bikeRouteTraining: return "sport.feature.route_training"
             
         case .runningRace: return "sport.feature.race"
         case .runningFreeTraining: return "sport.feature.free_training"
-        //case .runningRouteTraining: return "路线训练"
+        case .runningRouteTraining: return "sport.feature.route_training"
         }
     }
     
@@ -116,13 +133,6 @@ enum SportFeature: String, CaseIterable, Identifiable {
         Self.allCases.filter { $0.sportType == sport }
     }
 }
-
-/*enum SportFeatureRoute: String {
-    case bikeCompetition = "bikeCompetition"
-    case bikeFreeTraining = "bikeFreeTraining"
-    case runningCompetition = "runningCompetition"
-    case runningFreeTraining = "runningFreeTraining"
-}*/
 
 enum Tab: Int, CaseIterable {
     case home, shop, sportCenter, wareHouse, user
@@ -206,6 +216,7 @@ struct RealNaviView: View {
                         LocalUserView(viewModel: LocalUserVM)
                             .tag(Tab.user)
                     }
+                    .toolbar(.hidden, for: .navigationBar)
                     
                     CustomTabBar()
                 }
@@ -365,6 +376,31 @@ struct RealNaviView: View {
                     BikeTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
                 case .runningTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng):
                     RunningTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
+                case .bikeRouteCreateView:
+                    BikeRouteCreateView()
+                case .runningRouteCreateView:
+                    RunningRouteCreateView()
+                case .routeEditorView(let id):
+                    if let store = NavigationStoreManager.shared.resolve(id, as: RouteEditorStore.self) {
+                        RouteEditorView()
+                            .environmentObject(store)
+                    } else {
+                        EmptyView()
+                    }
+                case .bikeRouteManageView:
+                    BikeRouteManageView()
+                case .runningRouteManageView:
+                    RunningRouteManageView()
+                case .routeTrainingRealtimeView:
+                    RouteTrainingRealtimeView()
+                case .bikeRouteTrainingRecordDetailView(let rid):
+                    BikeRouteTrainingRecordDetailView(recordID: rid)
+                case .runningRouteTrainingRecordDetailView(let rid):
+                    RunningRouteTrainingRecordDetailView(recordID: rid)
+                case .bikeRouteRankListView(let id, let isPremium):
+                    BikeRouteRankListView(routeID: id, isPremium: isPremium)
+                case .runningRouteRankListView(let id, let isPremium):
+                    RunningRouteRankListView(routeID: id, isPremium: isPremium)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()
@@ -520,6 +556,7 @@ struct SportSelectionSidebar: View {
                                     .foregroundStyle(feature == selectedFeature ? Color.white : Color.thirdText)
                                     .background(feature == selectedFeature ? Color.white.opacity(0.4) : Color.clear)
                                     .cornerRadius(10)
+                                    .contentShape(Rectangle())
                                     .exclusiveTouchTapGesture {
                                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                         selectedFeature = feature

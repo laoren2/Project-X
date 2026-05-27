@@ -191,10 +191,12 @@ class HomeViewModel: ObservableObject {
                 switch result {
                 case .success(let data):
                     guard let unwrappedData = data else { return }
+                    var tempAds: [AdInfo] = []
                     for ad in unwrappedData.ads {
-                        self.ads.append(AdInfo(from: ad))
+                        tempAds.append(AdInfo(from: ad))
                     }
-                    self.ads.append(contentsOf: self.localAds)
+                    tempAds.append(contentsOf: self.localAds)
+                    self.ads = tempAds
                 default:
                     break
                 }

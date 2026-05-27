@@ -15,8 +15,8 @@ class BikeCompetitionViewModel: ObservableObject {
     let competitionManager = CompetitionManager.shared
     let userManager = UserManager.shared
     
-    //@Published var isEventsLoading = false      // 赛事列表的加载状态
-    //@Published var isTracksLoading = false      // 赛道列表的加载状态
+    @Published var isEventsLoading = false      // 赛事列表的加载状态
+    @Published var isTracksLoading = false      // 赛道列表的加载状态
     
     @Published var events: [BikeEvent] = []         // 赛事列表
     @Published var tracks: [BikeTrack] = []         // 赛道列表
@@ -58,22 +58,24 @@ class BikeCompetitionViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
         
         let request = APIRequest(path: urlPath, method: .get)
+        
+        DispatchQueue.main.async {
+            self.isEventsLoading = true
+        }
             
         NetworkService.sendRequest(with: request, decodingType: BikeEventsResponse.self, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                guard let data else { return }
-                
-                let newEvents = data.events.map { BikeEvent(from: $0) }
-                DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                self.isEventsLoading = false
+                switch result {
+                case .success(let data):
+                    guard let data else { return }
+                    let newEvents = data.events.map { BikeEvent(from: $0) }
                     self.events = newEvents
                     self.selectedEvent = newEvents.first
                     if !newEvents.isEmpty {
                         self.fetchTracks()
                     }
-                }
-            case .failure:
-                DispatchQueue.main.async {
+                case .failure:
                     self.events = []
                     self.tracks = []
                     self.selectedEvent = nil
@@ -94,25 +96,29 @@ class BikeCompetitionViewModel: ObservableObject {
         guard let urlPath = components.string else { return }
             
         let request = APIRequest(path: urlPath, method: .get)
-            
+        
+        DispatchQueue.main.async {
+            self.isTracksLoading = true
+        }
+        
         NetworkService.sendRequest(with: request, decodingType: BikeTracksResponse.self, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                guard let data else { return }
-                
-                let newTracks = data.tracks.map { BikeTrack(from: $0) }
-                DispatchQueue.main.async {
-                    self.tracks = newTracks
-                    self.selectedTrack = newTracks.first
-                    self.selectedRankInfo = self.selectedTrack?.rankInfo
+            DispatchQueue.main.async {
+                self.isTracksLoading = false
+                switch result {
+                case .success(let data):
+                    guard let data else { return }
+                    let newTracks = data.tracks.map { BikeTrack(from: $0) }
+                    if let selectedEvent = self.selectedEvent, event.eventID == selectedEvent.eventID {
+                        self.tracks = newTracks
+                        self.selectedTrack = newTracks.first
+                        self.selectedRankInfo = self.selectedTrack?.rankInfo
+                    }
                     if !newTracks.isEmpty {
                         if let index = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }) {
                             self.events[index].tracks = self.tracks
                         }
                     }
-                }
-            case .failure:
-                DispatchQueue.main.async {
+                case .failure:
                     self.tracks = []
                     self.selectedTrack = nil
                 }
@@ -249,7 +255,7 @@ class BikeTeamJoinViewModel: ObservableObject {
     @MainActor
     func queryPublicTeams(withLoadingToast: Bool, reset: Bool) async {
         if reset {
-            publicTeams.removeAll()
+            publicTeams = []
             page = 1
         }
         isLoading = true
@@ -269,8 +275,14 @@ class BikeTeamJoinViewModel: ObservableObject {
         switch result {
         case .success(let data):
             if let unwrappedData = data {
+                var tempTeams: [BikeTeamAppliedCard] = []
                 for team in unwrappedData.teams {
-                    publicTeams.append(BikeTeamAppliedCard(from: team))
+                    tempTeams.append(BikeTeamAppliedCard(from: team))
+                }
+                if reset {
+                    publicTeams = tempTeams
+                } else {
+                    publicTeams.append(contentsOf: tempTeams)
                 }
                 if unwrappedData.teams.count < self.pageSize {
                     hasMore = false

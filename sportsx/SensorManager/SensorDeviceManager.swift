@@ -141,7 +141,7 @@ class DeviceManager: NSObject, ObservableObject {
         return deviceMap[position] ?? nil
     }
     
-    func checkSensorLocation(at sensorLocation: Int, in deviceName: [SensorType]) -> Bool {
+    func checkSensorLocation(at sensorLocation: Int, in deviceName: [SensorDevice]) -> Bool {
         for pos in BodyPosition.allCases {
             if (sensorLocation & (1 << pos.rawValue)) != 0 {
                 guard let dev = getDevice(at: pos), deviceName.contains(where: { $0.rawValue == dev.deviceName }) else {
@@ -163,18 +163,39 @@ class DeviceManager: NSObject, ObservableObject {
         }
     }
     
-    // 检测是否有可用的AW
-    func existAvailableAW() -> Bool {
+    // 检测 AW 是否已连接
+    func checkAW() -> Bool {
         let session = WCSession.default
-        if session.activationState != .activated {
+        guard session.activationState == .activated else {
             //print("重新激活")
             session.activate()
+            return false
         }
-        if !session.isPaired {
+        guard session.isPaired else {
             //print("not paired")
             return false
         }
+        guard session.isWatchAppInstalled else {
+            return false
+        }
         return true
+    }
+    
+    // 手动连接 AW
+    func connectAW() {
+        let session = WCSession.default
+        guard session.activationState == .activated else {
+            ToastManager.shared.show(toast: Toast(message: "未激活"))
+            return
+        }
+        guard session.isPaired else {
+            ToastManager.shared.show(toast: Toast(message: "未匹配"))
+            return
+        }
+        guard session.isWatchAppInstalled else {
+            ToastManager.shared.show(toast: Toast(message: "未安装应用"))
+            return
+        }
     }
     
     // AW只能支持绑定一块（与iphone配对的AW）

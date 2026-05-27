@@ -140,6 +140,14 @@ struct SubscriptionDetailView: View {
                                 }
                                 Divider()
                                 HStack(spacing: 20) {
+                                    Image("vip_benefit_route")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 30)
+                                    Text("iap.subscription.benefits.4")
+                                }
+                                Divider()
+                                HStack(spacing: 20) {
                                     Image("vip_benefit_fast_validation")
                                         .resizable()
                                         .scaledToFit()

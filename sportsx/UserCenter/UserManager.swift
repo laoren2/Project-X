@@ -559,7 +559,7 @@ enum UserRole: String, Codable {
     case admin = "admin"
 }
 
-enum Gender: String, Codable {
+enum Gender: String, Codable, CaseIterable {
     case male = "male"
     case female = "female"
     
@@ -567,6 +567,13 @@ enum Gender: String, Codable {
         switch self {
         case .male: return "common.male"
         case .female: return "common.female"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .male: return "male"
+        case .female: return "female"
         }
     }
 }

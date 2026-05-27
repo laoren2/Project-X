@@ -12,8 +12,8 @@ class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
     @Published var recordDetailInfo: BikeFreeTrainingRecordDetailInfo?
     
     @Published var basePath: [PathPoint] = []
-    @Published var pathData: [BikeTrainingPathPoint] = []
-    @Published var samplePath: [BikeTrainingSamplePathPoint] = []
+    @Published var pathData: [BikeFreeTrainingPathPoint] = []
+    @Published var samplePath: [BikeFreeTrainingSamplePathPoint] = []
     
     
     init(recordID: String) {
@@ -39,7 +39,7 @@ class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
                         self.recordDetailInfo = BikeFreeTrainingRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
-                        self.samplePath = BikePathPointTool.computeTrainingSamplePoints(pathData: self.pathData)
+                        self.samplePath = BikePathPointTool.computeFreeTrainingSamplePoints(pathData: self.pathData)
                     }
                 }
             default: break
@@ -57,6 +57,7 @@ struct TrainingSettlementsInfo {
 struct BikeFreeTrainingRecordDetailInfo {
     let duration: Double            // 原始成绩
     let settlements: TrainingSettlementsInfo            // 结算数据
+    let buffInfos: [BikeGridBuffSnapshot]
     
     init(from detail: BikeFreeTrainingRecordDetailResponse) {
         self.duration = detail.duration
@@ -75,16 +76,43 @@ struct BikeFreeTrainingRecordDetailInfo {
             }
         }
         self.settlements = TrainingSettlementsInfo(xp: xp, state_value: state_value, cc_rewards: temp_assets)
+        var tempBuffInfos: [BikeGridBuffSnapshot] = []
+        for buffJson in detail.triggered_buffs {
+            if let gridX = buffJson["grid_x"]?.intValue,
+               let gridY = buffJson["grid_y"]?.intValue,
+               let conditionString = buffJson["condition_type"]?.stringValue,
+               let conditionType = BikeGridConditionType(rawValue: conditionString),
+               let rewardString = buffJson["reward_type"]?.stringValue,
+               let rewardType = CCAssetType(rawValue: rewardString) {
+                let info = BikeGridBuffSnapshot(
+                    gridX: gridX,
+                    gridY: gridY,
+                    conditionType: conditionType,
+                    rewardType: rewardType
+                )
+                tempBuffInfos.append(info)
+            }
+        }
+        self.buffInfos = tempBuffInfos
     }
 }
 
-struct BikeFreeTrainingRecordDetailResponse: Codable {
-    let duration: Double                // 训练时间
-    let path: [BikeTrainingPathPoint]   // 训练路径记录
-    let settlements: JSONValue          // 训练结算
+struct BikeGridBuffSnapshot: Identifiable {
+    let id = UUID()
+    let gridX: Int
+    let gridY: Int
+    let conditionType: BikeGridConditionType
+    let rewardType: CCAssetType
 }
 
-struct BikeTrainingSamplePathPoint {
+struct BikeFreeTrainingRecordDetailResponse: Codable {
+    let duration: Double                    // 训练时间
+    let path: [BikeFreeTrainingPathPoint]   // 训练路径记录
+    let settlements: JSONValue              // 训练结算
+    let triggered_buffs: [JSONValue]        // buff 快照
+}
+
+struct BikeFreeTrainingSamplePathPoint {
     var speed_avg: Double
     let altitude_avg: Double
     let heart_rate_min: Double?
@@ -101,8 +129,8 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
     @Published var recordDetailInfo: RunningFreeTrainingRecordDetailInfo?
     
     @Published var basePath: [PathPoint] = []
-    @Published var pathData: [RunningTrainingPathPoint] = []
-    @Published var samplePath: [RunningTrainingSamplePathPoint] = []
+    @Published var pathData: [RunningFreeTrainingPathPoint] = []
+    @Published var samplePath: [RunningFreeTrainingSamplePathPoint] = []
     
     
     init(recordID: String) {
@@ -128,7 +156,7 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
                         self.recordDetailInfo = RunningFreeTrainingRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
-                        self.samplePath = RunningPathPointTool.computeTrainingSamplePoints(pathData: self.pathData)
+                        self.samplePath = RunningPathPointTool.computeFreeTrainingSamplePoints(pathData: self.pathData)
                     }
                 }
             default: break
@@ -140,6 +168,7 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
 struct RunningFreeTrainingRecordDetailInfo {
     let duration: Double            // 原始成绩
     let settlements: TrainingSettlementsInfo            // 结算数据
+    let buffInfos: [RunningGridBuffSnapshot]
     
     init(from detail: RunningFreeTrainingRecordDetailResponse) {
         self.duration = detail.duration
@@ -158,16 +187,43 @@ struct RunningFreeTrainingRecordDetailInfo {
             }
         }
         self.settlements = TrainingSettlementsInfo(xp: xp, state_value: state_value, cc_rewards: temp_assets)
+        var tempBuffInfos: [RunningGridBuffSnapshot] = []
+        for buffJson in detail.triggered_buffs {
+            if let gridX = buffJson["grid_x"]?.intValue,
+               let gridY = buffJson["grid_y"]?.intValue,
+               let conditionString = buffJson["condition_type"]?.stringValue,
+               let conditionType = RunningGridConditionType(rawValue: conditionString),
+               let rewardString = buffJson["reward_type"]?.stringValue,
+               let rewardType = CCAssetType(rawValue: rewardString) {
+                let info = RunningGridBuffSnapshot(
+                    gridX: gridX,
+                    gridY: gridY,
+                    conditionType: conditionType,
+                    rewardType: rewardType
+                )
+                tempBuffInfos.append(info)
+            }
+        }
+        self.buffInfos = tempBuffInfos
     }
 }
 
-struct RunningFreeTrainingRecordDetailResponse: Codable {
-    let duration: Double                // 训练时间
-    let path: [RunningTrainingPathPoint]   // 训练路径记录
-    let settlements: JSONValue          // 训练结算
+struct RunningGridBuffSnapshot: Identifiable {
+    let id = UUID()
+    let gridX: Int
+    let gridY: Int
+    let conditionType: RunningGridConditionType
+    let rewardType: CCAssetType
 }
 
-struct RunningTrainingSamplePathPoint {
+struct RunningFreeTrainingRecordDetailResponse: Codable {
+    let duration: Double                        // 训练时间
+    let path: [RunningFreeTrainingPathPoint]    // 训练路径记录
+    let settlements: JSONValue                  // 训练结算
+    let triggered_buffs: [JSONValue]            // buff 快照
+}
+
+struct RunningFreeTrainingSamplePathPoint {
     var speed_avg: Double
     let altitude_avg: Double
     let heart_rate_min: Double?

@@ -1,0 +1,14 @@
+/* 
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/2.
+  
+*/
+
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "バックグラウンドでの運動中にルートや距離などのデータを継続的に記録し、対応するレースコースと照合するために使用します。バックグラウンド位置情報は運動中のみ使用されます。";
+"NSLocationWhenInUseUsageDescription" = "近くで参加可能なレースやルート情報を表示するために使用します。";
+"NSPhotoLibraryUsageDescription" = "プロフィール情報を更新するため、選択した写真のみにアクセスします。選択していない写真にはアクセスしません。";
+"NSHealthShareUsageDescription" = "ヘルスケアAppから心拍数や歩数などの運動データを読み取り、Apple Watch経由でiPhoneに同期して記録・分析するために使用します。";
+"NSHealthUpdateUsageDescription" = "Apple Watchで記録した運動データをヘルスケアAppに保存し、システムのヘルスケアAppで運動履歴をまとめて確認できるようにするために使用します。";
+"NSMotionUsageDescription" = "運動パフォーマンスを記録・分析するために、デバイスのモーションセンサーデータを使用します。";

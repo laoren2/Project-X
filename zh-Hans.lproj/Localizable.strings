@@ -17,12 +17,16 @@
 "common.female" = "女";
 "common.user" = "用户";
 "common.average" = "平均";
-"common.speed" = "速度";
+"common.pace" = "配速";
 "common.empty" = "空";
 "common.history" = "历史";
 "common.duration" = "时间";
 "common.times" = "次数";
 "common.current" = "当前";
+"common.total" = "总";
+"common.left" = "剩余";
+"common.radius" = "半径";
+"common.popularity" = "热度";
 
 "app.slogan" = "YI起动    YI起玩";
 
@@ -31,6 +35,7 @@
 
 "sport.feature.race" = "竞技场";
 "sport.feature.free_training" = "自由训练";
+"sport.feature.route_training" = "路线训练";
 
 "tier.bronze" = "青铜";
 "tier.silver" = "白银";
@@ -322,10 +327,12 @@
 "error.unknown" = "未知";
 "error.unknown.2" = "未知错误";
 "error.no_data" = "无数据";
+"error.nothing_here" = "这里什么都没有";
 "error.data" = "数据错误";
 "error.server" = "服务错误";
 "error.client_version" = "客户端版本过低，请升级后继续使用";
 "error.network_error" = "网络连接失败，请稍后重试";
+"error.region" = "当前区域不支持，请切换区域重试";
 
 "time.today" = "今天";
 "time.per_day %@" = "≈ %@/天";
@@ -335,6 +342,8 @@
 "time.date" = "日期";
 
 "distance.km.a/b %lf %lf" = "%.1lf/%.0lf ";
+"distance.km %lld" = "%lld 公里";
+"distance.m %lld" = "%lld 米";
 "distance.km" = "公里";
 "distance.m" = "米";
 
@@ -344,16 +353,19 @@
 "energy.unit" = "千卡";
 "power.unit" = "瓦";
 "stepCadence.unit" = "步/分";
+"pedalCadence.unit" = "rpm";
 
 "toast.placehold" = "提示";
 "toast.no_login" = "请先登录";
 "toast.network_error" = "网络异常";
 "toast.copied" = "已复制";
 "toast.no_login.2" = "登录后查看";
+"toast.created.success" = "创建成功";
 
 "popup.no_reminder" = "不再显示";
 "popup.claim_reward.title" = "领取成功";
 "popup.claim_reward.content" = "你已成功领取奖励：";
+"popup.tips" = "提示";
 
 "home.sign_in.tile" = "每日签到";
 "home.sign_in.subtile" = "连续签到奖励更多哦";
@@ -375,6 +387,9 @@
 "home.skill.title.3" = "装备卡牌";
 "home.skill.title.4" = "奖励结算";
 "home.skill.title.5" = "比赛成绩";
+"home.skill.title.6" = "网格系统";
+"home.skill.title.7" = "自由训练模式";
+"home.skill.title.8" = "路线训练模式";
 "home.skill.title.1.subtitle.1" = "比赛记录";
 "home.skill.title.1.subtitle.2" = "数据校验";
 "home.skill.title.2.subtitle.1" = "创建和加入队伍";
@@ -389,6 +404,9 @@
 "home.skill.title.5.subtitle.1" = "原始成绩";
 "home.skill.title.5.subtitle.2" = "有效成绩";
 "home.skill.title.5.subtitle.3" = "成绩状态";
+"home.skill.title.6.subtitle.1" = "探索次数";
+"home.skill.title.7.subtitle.1" = "增益网格";
+"home.skill.title.8.subtitle.1" = "路线创建";
 "home.skill.title.1.subtitle.1.content" = "比赛报名成功后会自动创建一条比赛记录，可在运动中心的记录管理页面查看，比赛记录有未开始/进行中/已完成/待校验和已过期5种状态。 \n在比赛记录的有效时间内可以开始比赛，单人记录可以在赛道有效时间内随时开始，组队记录只能在队伍比赛窗口内开始。 \n结束比赛可以通过自动和手动2种方式，当你位于终点区域范围内时比赛引擎会自动结束比赛，若没有自动结束，你也可以在终点区域范围附近手动点击结束按钮。 \n比赛记录取消后会返还相应报名费用，需要注意的是超过记录的截止时间后无法取消，单人记录的截止时间为报名赛道的截止时间，组队记录的截止时间为队伍比赛窗口的截止时间。 \n系统会自动处理过期的比赛记录（进行时间超过2小时的记录会被当作过期处理）。";
 "home.skill.title.1.subtitle.2.content" = "在当前的自行车和跑步比赛中，需要全程将手机固定在大腿外层位置进行数据校验，运动中频繁移动手机可能会导致校验失败，数据校验分为实时校验和后台校验2个阶段，受限于计算资源，数据校验过程可能会延迟数分钟至数小时。";
 "home.skill.title.1.subtitle.3.content" = "每条赛道有对应的物资奖金池，每增加一条已完成状态的比赛记录，奖金池就会根据报名费用的一定比例进行累积。";
@@ -405,6 +423,9 @@
 "home.skill.title.5.subtitle.1.content" = "比赛的原始成绩是指比赛引擎记录的 运动结束时刻 - 运动开始时刻 的数值，是不应用任何奖励/惩罚效果的原始结果。 \n运动开始时刻是指你在有效起点区域范围内点击开始时的时刻，运动结束时刻会根据系统记录的末段的多维数据进行优化和调整，所以无需担心实际自动或手动结束比赛的时机，唯一需要注意的是，当你选择手动结束比赛时要尽量靠近有效终点区域。";
 "home.skill.title.5.subtitle.2.content" = "比赛的有效成绩是指在原始成绩上应用所有已装备卡牌或关联卡牌收益后的成绩，此成绩会在比赛完成后写入排行榜并统计进你的运动生涯，需要注意的是，总收益上限为原始成绩的20%，即有效成绩的下限为原始成绩的80%。";
 "home.skill.title.5.subtitle.3.content" = "成绩状态与比赛记录状态整体一致，增加了数据计算中状态，表示当前有未统计完成的收益。数据计算中状态可能存在延迟情况，部分情况可能会延迟数分钟至数小时才会统计完成。";
+"home.skill.title.6.subtitle.1.content" = "地图按照固定比例划分为网格，自由训练和路线训练结束后会统计经过的网格信息，运动中访问新的网格可以获得额外的金币物资奖励，访问次数最多的人可以成功占领，你可以随时查看每个网格的占领情况。";
+"home.skill.title.7.subtitle.1.content" = "自由训练模式下，地图会每天随机刷新带有增益的网格，经过时满足条件即可触发增益，增益不可重复触发。";
+"home.skill.title.8.subtitle.1.content" = "路线当前支持终点和检查点2种模式，你可以调整路径点的范围半径和惩罚时间，在路线创建页面点击地图进入路线编辑器即可进行编辑。路线未公开时只对你自己可见，公开后无法编辑。基础的路线排行榜不支持男女单独排行，且容量为100人。支持装备卡牌系统后，可以在运动中使用自己的卡牌，否则卡牌功能将被禁用。";
 
 "shop.tab.props" = "道具";
 "shop.tab.equip_card" = "装备卡";
@@ -429,10 +450,43 @@
 "training.exploration" = "探索度";
 "training.exploration.2" = "探索";
 "training.exploration.description" = "探索度描述了当前赛季的训练中您对所在区域的探索情况。";
-"training.exploration.region.not_supported" = "当前区域不支持";
 "training.error.no_login" = "登录查看运动状态和探索区域";
 "training.action.ready" = "准备就绪";
 "training.action.ready.no_login" = "登录以继续";
+
+"training.free.grid.info" = "网格信息";
+"training.free.grid.size" = "尺寸";
+"training.free.grid.common" = "一个普通网格 ";
+
+"training.route.info" = "路线信息";
+"training.route.delete.title" = "删除路线";
+"training.route.delete.content" = "你确定要删除路线吗？";
+"training.route.manage" = "路线管理";
+"training.route.create" = "创建路线";
+"training.route.title" = "路线标题";
+"training.route.title.enter" = "输入路线";
+"training.route.edit_on_tap" = "点击编辑路线";
+"training.route.mode" = "模式";
+"training.route.distance.over %lld" = "超过 %lld公里";
+"training.route.distance.less %lld" = "不足 %lld米";
+"training.route.is_public" = "公开路线";
+"training.route.is_public.content" = "若选择公开路线，你创建的路线会公开展示并被所有玩家参与，反之路线仅你自己可见及参与。路线公开后将无法修改信息。";
+"training.route.enable_leaderboard" = "开启排行榜";
+"training.route.unlock_leaderboard" = "解锁完整排行榜";
+"training.route.enable_magiccard" = "开启卡牌玩法";
+"training.route.create.content" = "你确定消耗 路线卡 * 1 创建一条新的路线吗？";
+"training.route.create.toast.over_points %lld" = "最多只能添加 %lld 个路径点";
+"training.route.create.toast.save_error.1" = "至少需要2个点";
+"training.route.create.toast.save_error.2" = "路径结构不合法";
+"training.route.create.toast.save_error.3" = "检查点范围距离过近";
+"training.route.create.toast.save_error.4" = "超过当前区域边界";
+"training.route.create.unlock_points" = "创建多达100个路径点";
+"training.route.create.pathpoint" = "路径点";
+"training.route.create.penalty_time" = "罚时";
+"training.route.create.placeholder" = "长按地图顺序添加路径点";
+"training.route.mode.direct" = "终点模式";
+"training.route.mode.multi-points" = "检查点模式";
+"training.route.create.popup.tips" = "长按可以进行路径点的位置和顺序调整";
 
 "training.history.title" = "训练历史";
 "training.history.no_record" = "无训练记录";
@@ -444,12 +498,15 @@
 "training.realtime.popup.cannot_save.button" = "仍然结束";
 "training.realtime.grid.title" = "网格信息";
 "training.realtime.grid.occupier" = "占领者";
-"training.realtime.grid.exploration_status" = "当前赛季探索情况";
+"training.realtime.grid.exploration_status" = "探索情况";
 "training.realtime.grid.ranklist.no_data" = "暂无其他人来过这里哦";
 
 "training.result.record" = "训练记录";
 "training.result.complete" = "训练结束";
-"training.result.popup.content %lld" = "你刚刚成功探索了 %lld 个新区域！";
+"training.result.popup.content.new_area %lld" = "你刚刚成功探索了 %lld 个新区域！";
+"training.result.popup.content.buff %lld" = "你刚刚成功触发了 %lld 个buff区域！";
+"training.result.popup.content.new_area_buff %lld %lld" = "你刚刚成功探索了 %lld 个新区域，触发了 %lld 个buff区域！";
+"training.result.grid_reward" = "已触发增益网格";
 
 "competition.season.info" = "赛季信息";
 "competition.season.data" = "赛季数据";
@@ -499,7 +556,7 @@
 "competition.record.status.computing" = "数据计算中";
 "competition.record.original_time" = "原始成绩";
 "competition.record.valid_time" = "有效成绩";
-"competition.record.valid_time.popup.content" = "有效成绩是指在原始成绩上应用所有已装备卡牌或关联卡牌收益后的成绩，此成绩会在比赛完成后写入排行榜并统计进你的运动生涯。";
+"competition.record.valid_time.popup.content" = "有效成绩是指在原始成绩上应用装备卡牌和罚时等附加效果后统计的成绩，并在统计进入排行榜和运动生涯时作为依据。";
 "competition.record.settlement_rewards" = "结算信息";
 "competition.record.time_and_data" = "数据统计";
 "competition.record.result" = "比赛结算";
@@ -522,8 +579,8 @@
 "competition.cardselect.magiccard.equipped" = "已装备";
 "competition.cardselect.magiccard.empty_slot" = "空卡牌槽";
 "competition.cardselect.magiccard.vipslot" = "专属卡槽";
-"competition.cardselect.popup.content.bike" = "进行自行车比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
-"competition.cardselect.popup.content.running" = "进行跑步比赛时，需要全程将手机固定在大腿位置进行数据校验，运动中频繁地移动手机可能导致比赛数据校验失败。 \n比赛中不诚信的作弊行为可能会导致账号封禁。";
+"competition.cardselect.popup.content.bike" = "进行自行车比赛时，您可以选择任意以下2种方式进行自动校验：\n\n1.运动中使用踏频器记录踏频数据\n2.运动中将手机固定在大腿位置，尽量减少手机的频繁移动\n\n注意：比赛中不诚信的作弊行为可能会导致账号封禁。";
+"competition.cardselect.popup.content.running" = "进行跑步比赛时，您可以选择任意以下2种方式进行自动校验：\n\n1.运动中使用相关设备记录步频数据\n2.运动中将手机固定在大腿位置，尽量减少手机的频繁移动\n\n注意：比赛中不诚信的作弊行为可能会导致账号封禁。";
 "competition.cardselect.healthkit.title" = "需要访问健康数据";
 "competition.cardselect.healthkit.content" = "使用 Apple Watch 或其他外部传感器辅助记录比赛时，我们可能会访问您的 Apple 健康数据（HealthKit）来同步您的运动表现，您可以随时在系统的「健康」App中关闭权限。";
 "competition.cardselect.familiarity_buff" = "熟悉度加成";
@@ -536,6 +593,7 @@
 "competition.realtime.popup.finish" = "你确定要手动结束比赛吗？";
 "competition.realtime.distance" = "距离";
 "competition.realtime.avgspeed" = "均速";
+"competition.realtime.elev_gain" = "累计爬升";
 "competition.realtime.heartrate" = "心率";
 "competition.realtime.energy" = "能耗";
 "competition.realtime.power" = "功率";
@@ -543,7 +601,7 @@
 "competition.realtime.switch_info" = "如遇到显示区域错误，请手动切换坐标系";
 "competition.realtime.out_window" = "队伍有效窗口时间已过，无法加入比赛";
 "competition.realtime.remaining_time %lld" = "剩余加入时间: %lld 秒";
-"competition.realtime.start.out_of_area" = "您不在出发点，无法开始比赛";
+"competition.realtime.start.out_of_area" = "您不在出发点";
 "competition.realtime.start.popup.no_auth" = "无法开始比赛";
 "competition.realtime.start.popup.no_auth.content" = "需要后台定位权限，请将定位权限调整为始终允许以进行持续的运动记录。";
 "competition.realtime.start.toast.record_error" = "报名数据错误,请重试";
@@ -562,7 +620,8 @@
 "competition.realtime.popup.familiar_route" = "在正式开始比赛前，建议至少进行一次完整的赛道练习以熟悉路线。";
 
 "competition.result.stepcadence" = "步频";
-"competition.result.bonus_time.magiccard" = "总卡牌奖励";
+"competition.result.pedalcadence" = "踏频";
+"competition.result.bonus_time.magiccard" = "卡牌奖励";
 "competition.result.bonus_time.familiarity" = "熟悉度奖励";
 "competition.result.bonus_time.training_state" = "活跃度奖励";
 
@@ -680,7 +739,7 @@
 "competition.terrain.downHill" = "速降";
 "competition.terrain.other" = "其它";
 
-"competition.magiccard.select" = "选择装备卡";
+"competition.magiccard.select" = "装备卡";
 "competition.magiccard.selected" = "已选择";
 "competition.magiccard.search" = "搜索卡牌";
 "competition.magiccard.error.sporttype" = "运动类型不匹配";
@@ -708,7 +767,7 @@
 "competition.applewatch.error.finish" = "watch连接失败，请手动结束watch上的运动";
 
 "competition.slidebar.title" = "运动中心";
-"competition.slidebar.subtitle" = "发现更多玩法";
+"competition.slidebar.subtitle" = "动起来，玩在一起";
 
 "user.page.friend" = "好友";
 "user.page.following" = "关注";
@@ -742,6 +801,8 @@
 "user.page.bind_device.popup.applewatch" = "当使用Apple Watch时，在手机端开始比赛会自动打开watch端App同步记录，如果没有自动打开可以手动打开watch端App，并在30s内点击同步按钮进行状态同步。";
 "user.page.bind_device.popup.default.title" = "默认数据源设备";
 "user.page.bind_device.popup.default.content" = "您可以通过绑定受支持的传感器设备辅助记录运动，默认数据源设备会在运动过程中持续收集您的运动数据。";
+"user.page.bind_device.action.connect" = "连接";
+"user.page.bind_device.connected" = "已连接";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "邮箱";
 "user.page.tab.career" = "生涯";
@@ -754,6 +815,7 @@
 "user.page.dailytask.go_complete" = "去完成";
 "user.page.popup.complete_info.title" = "完善资料";
 "user.page.popup.complete_info.content" = "完善一下个人资料，让朋友们更加了解你吧！";
+
 "user.sidebar.select_sport" = "选择运动";
 "user.sidebar.default_sport" = "个人主页默认展示运动：";
 
@@ -864,6 +926,8 @@
 "user.intro.go_auth" = "去认证";
 "user.intro.no_auth" = "未认证";
 "user.intro.gender_info" = "实名信息中的性别";
+"user.intro.gender.info" = "性别信息设置后无法修改";
+"user.intro.gender.toast" = "暂时无法修改性别";
 "user.intro.birthday_info" = "实名信息中的年龄";
 "user.intro.auto_location" = "自动更新位置";
 "user.intro.current_location" = "当前位置";
@@ -904,6 +968,7 @@
 "iap.coupon.pendding" = "购买已挂起";
 "iap.coupon.feedback" = "支付遇到问题？立即反馈";
 "iap.coupon.popup.content" = "点券为应用内虚拟资产，仅可用于应用内参与线上虚拟竞赛及购买相关虚拟道具，不可提现或兑换现金。";
+
 "iap.subscription.failed" = "订阅失败";
 "iap.subscription.success" = "订阅成功";
 "iap.subscription.cancel" = "订阅已取消";
@@ -920,6 +985,7 @@
 "iap.subscription.benefits.1" = "额外的装备卡槽";
 "iap.subscription.benefits.2" = "丰富的专属签到奖励";
 "iap.subscription.benefits.3" = "极速的运动数据校验";
+"iap.subscription.benefits.4" = "高级的路线编辑功能";
 "iap.subscription.action.purchase" = "立即订阅";
 "iap.subscription.action.update_purchase" = "更新订阅";
 "iap.subscription.toast.purchase.failed.sub_off" = "此AppleID关联的其他账号已订阅，无法重复订阅";
@@ -961,7 +1027,7 @@
 
 "magiccard.detail" = "卡牌详情";
 "magiccard.detail.lucky" = "幸运值";
-"magiccard.detail.description" = "卡牌描述";
+"magiccard.detail.description" = "描述";
 "magiccard.detail.sensor.type" = "传感器类型";
 "magiccard.detail.sensor.pos" = "传感器位置";
 "magiccard.detail.skill.unlock" = "解锁";
