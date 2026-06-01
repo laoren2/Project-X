@@ -54,7 +54,6 @@ struct InstituteView: View {
             
             // 顶部资产栏
             HStack(spacing: 15) {
-                Spacer()
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.secondText)
@@ -106,6 +105,7 @@ struct InstituteView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.horizontal)
             
             VStack(spacing: 20) {
