@@ -72,6 +72,8 @@ enum AppRoute: Hashable {
     case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
     case bikeRouteCreateView
     case runningRouteCreateView
+    case bikeRouteEditView(route: BikeRouteManageItem)
+    case runningRouteEditView(route: RunningRouteManageItem)
     case routeEditorView(storeID: UUID)
     case bikeRouteManageView
     case runningRouteManageView
@@ -220,6 +222,10 @@ enum AppRoute: Hashable {
             return "bikeRouteCreateView"
         case .runningRouteCreateView:
             return "runningRouteCreateView"
+        case .bikeRouteEditView:
+            return "bikeRouteEditView"
+        case .runningRouteEditView:
+            return "runningRouteEditView"
         case .routeEditorView:
             return "routeEditorView"
         case .bikeRouteManageView:

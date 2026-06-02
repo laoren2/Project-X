@@ -380,6 +380,10 @@ struct RealNaviView: View {
                     BikeRouteCreateView()
                 case .runningRouteCreateView:
                     RunningRouteCreateView()
+                case .bikeRouteEditView(let route):
+                    BikeRouteEditView(route: route)
+                case .runningRouteEditView(let route):
+                    RunningRouteEditView(route: route)
                 case .routeEditorView(let id):
                     if let store = NavigationStoreManager.shared.resolve(id, as: RouteEditorStore.self) {
                         RouteEditorView()

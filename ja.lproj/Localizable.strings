@@ -361,6 +361,7 @@
 "toast.copied" = "コピーしました";
 "toast.no_login.2" = "ログイン後に表示";
 "toast.created.success" = "作成完了";
+"toast.modified.success" = "更新に成功しました";
 
 "popup.no_reminder" = "今後表示しない";
 "popup.claim_reward.title" = "受取成功";
@@ -463,6 +464,8 @@
 "training.route.delete.content" = "このルートを削除しますか？";
 "training.route.manage" = "ルート管理";
 "training.route.create" = "ルート作成";
+"training.route.edit" = "ルート編集";
+"training.route.edit.content" = "このルートの変更を保存しますか？";
 "training.route.title" = "ルート名";
 "training.route.title.enter" = "ルート名を入力";
 "training.route.edit_on_tap" = "タップしてルートを編集";
@@ -786,6 +789,7 @@
 "user.page.introduce_placeholder" = "自己紹介を書いてみましょう";
 "user.page.cancel_follow" = "フォロー解除";
 "user.page.features.bind_device" = "デバイス連携";
+"user.page.features.bind_device.toast.not_activated" = "デバイスがアクティベートされていません";
 "user.page.features.bind_device.toast.not_paired" = "デバイスがペアリングされていません";
 "user.page.features.bind_device.toast.no_install" = "デバイスにアプリがインストールされていません";
 "user.page.bind_device.select" = "デバイスを選択";
@@ -802,6 +806,7 @@
 "user.page.bind_device.popup.default.title" = "デフォルトデータソース";
 "user.page.bind_device.popup.default.content" = "対応センサーデバイスを連携することで、運動データの記録を補助できます。デフォルトデータソースは運動中に継続してデータを収集します。";
 "user.page.bind_device.action.connect" = "接続";
+"user.page.bind_device.action.failed.unconnected" = "デバイスが接続されていません";
 "user.page.bind_device.connected" = "接続済み";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "メール";

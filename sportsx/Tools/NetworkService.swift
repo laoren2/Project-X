@@ -191,7 +191,7 @@ struct NetworkService {
             
             if let token = decoded.access_token {
                 KeychainHelper.standard.saveToken(token)
-                print("save token: \(token) to Keychain")
+                //print("save token: \(token) to Keychain")
             }
             
             // 判断业务 code

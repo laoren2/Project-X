@@ -54,6 +54,9 @@ class GlobalConfig: ObservableObject {
     
     // 自由训练页刷新时机
     var refreshFreeTrainingView: Bool = false
+
+    // 路线管理页刷新时机
+    var refreshRouteManageView: Bool = false
     
     // 用户页刷新时机
     var refreshUserView: Bool = false

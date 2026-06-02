@@ -544,7 +544,9 @@ struct AssetCounterView: View {
                 .scaledToFit()
                 .frame(width: 20)
             Text("\(amount)")
-                .font(.headline)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
         .foregroundColor(.white)
     }

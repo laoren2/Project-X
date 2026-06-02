@@ -37,11 +37,11 @@ struct CalendarDay: Identifiable {
     
     var backgroundColor: Color {
         if delta > 0 {
-            return Color.green.opacity(0.2)
+            return Color.green.opacity(0.4)
         } else if delta < 0 {
-            return Color.red.opacity(0.2)
+            return Color.red.opacity(0.4)
         } else {
-            return .gray
+            return Color.secondBackground.opacity(0.4)
         }
     }
     

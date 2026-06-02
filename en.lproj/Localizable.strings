@@ -361,6 +361,7 @@
 "toast.copied" = "Copied";
 "toast.no_login.2" = "View after logging in";
 "toast.created.success" = "Created";
+"toast.modified.success" = "Updated successfully";
 
 "popup.no_reminder" = "Do not show again";
 "popup.claim_reward.title" = "Claimed Successful";
@@ -463,6 +464,8 @@
 "training.route.delete.content" = "Are you sure you want to delete this route?";
 "training.route.manage" = "Manage Routes";
 "training.route.create" = "Create Route";
+"training.route.edit" = "Edit Route";
+"training.route.edit.content" = "Save the changes to this route?";
 "training.route.title" = "Route Title";
 "training.route.title.enter" = "Enter route title";
 "training.route.edit_on_tap" = "Tap to edit route";
@@ -786,6 +789,7 @@
 "user.page.introduce_placeholder" = "Come on, introduce yourself!";
 "user.page.cancel_follow" = "Unfollow";
 "user.page.features.bind_device" = "Device";
+"user.page.features.bind_device.toast.not_activated" = "Device not activated";
 "user.page.features.bind_device.toast.not_paired" = "Device not paired";
 "user.page.features.bind_device.toast.no_install" = "The device does not have the application installed";
 "user.page.bind_device.select" = "Select Devices";
@@ -802,6 +806,7 @@
 "user.page.bind_device.popup.default.title" = "Data source device";
 "user.page.bind_device.popup.default.content" = "You can assist in recording the exercise by using supported sensor devices. The Data source device will continuously collect your motion data during the exercise.";
 "user.page.bind_device.action.connect" = "connect";
+"user.page.bind_device.action.failed.unconnected" = "Device not connected";
 "user.page.bind_device.connected" = "connected";
 "user.page.features.institute" = "Institute";
 "user.page.features.email_box" = "Mailbox";
