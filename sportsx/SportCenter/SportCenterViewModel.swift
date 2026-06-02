@@ -14,7 +14,7 @@ import MapKit
 enum RoutePoint {
     case checkpoint(Checkpoint)
     case segment(Segment)
-    
+
     func toRealtimePoint() -> RoutePointRealtime {
         switch self {
         case .checkpoint(let checkpoint):
@@ -430,6 +430,36 @@ extension Array where Element == EditableRoutePoint {
 extension Array where Element == RoutePoint {
     func toRealtimePoints() -> [RoutePointRealtime] {
         map { $0.toRealtimePoint() }
+    }
+
+    // 将已存储的路线点（checkpoint，坐标为 wgs84）还原为可编辑点
+    // 坐标需转换回展示坐标系（gcj02），并按顺序重建 start/checkPoint/end 类型
+    func toEditablePoints() -> [EditableRoutePoint] {
+        let checkpoints: [Checkpoint] = compactMap {
+            if case .checkpoint(let cp) = $0 { return cp }
+            return nil
+        }
+        var result: [EditableRoutePoint] = []
+        for (index, cp) in checkpoints.enumerated() {
+            let displayCoord = CoordinateConverter.parseCoordinate(
+                coordinate: CLLocationCoordinate2D(latitude: cp.lat, longitude: cp.lng)
+            )
+            let type: EditableCheckPointType
+            if index == 0 {
+                type = .start
+            } else if index == checkpoints.count - 1 {
+                type = .end
+            } else {
+                type = .checkPoint(index)
+            }
+            result.append(EditableRoutePoint(
+                coordinate: displayCoord,
+                radius: cp.radius,
+                penalty: cp.penalty,
+                type: type
+            ))
+        }
+        return result
     }
 }
 

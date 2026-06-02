@@ -123,7 +123,9 @@ struct AWBindView: View {
             Image(systemName: "applewatch")
                 .font(.system(size: 25))
             Text("Apple Watch")
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 20, weight: .medium))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             Spacer()
             if deviceManager.checkAW() {
                 HStack(spacing: 2) {
@@ -154,17 +156,15 @@ struct AWBindView: View {
                         ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
                     }
                 }) {
-                    Text("user.setup.action.phone.unbind")
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 10)
+                    Text("action.cancel")
+                        .font(.system(size: 15))
                 }
             } else {
                 Button(action:{
                     bindAWDevice(pos: .posLH)
                 }) {
-                    Text("user.setup.action.phone.bind")
-                        .padding(.vertical, 5)
-                        .padding(.horizontal, 10)
+                    Text("action.select")
+                        .font(.system(size: 15))
                 }
             }
         }
@@ -179,6 +179,10 @@ struct AWBindView: View {
     func bindAWDevice(pos: BodyPosition) {
         // 创建一个 AppleWatchDevice 并绑定
         // 未来支持更多设备(Xiaomi/Huawei等)
+        guard deviceManager.checkAW() else {
+            ToastManager.shared.show(toast: Toast(message: "user.page.bind_device.action.failed.unconnected"))
+            return
+        }
         ToastManager.shared.start(toast: LoadingToast())
         let newWatch = AppleWatchDevice(
             deviceID: "applewatch-\(pos.rawValue)",

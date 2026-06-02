@@ -185,15 +185,15 @@ class DeviceManager: NSObject, ObservableObject {
     func connectAW() {
         let session = WCSession.default
         guard session.activationState == .activated else {
-            ToastManager.shared.show(toast: Toast(message: "未激活"))
+            ToastManager.shared.show(toast: Toast(message: "user.page.features.bind_device.toast.not_activated"))
             return
         }
         guard session.isPaired else {
-            ToastManager.shared.show(toast: Toast(message: "未匹配"))
+            ToastManager.shared.show(toast: Toast(message: "user.page.features.bind_device.toast.not_paired"))
             return
         }
         guard session.isWatchAppInstalled else {
-            ToastManager.shared.show(toast: Toast(message: "未安装应用"))
+            ToastManager.shared.show(toast: Toast(message: "user.page.features.bind_device.toast.no_install"))
             return
         }
     }

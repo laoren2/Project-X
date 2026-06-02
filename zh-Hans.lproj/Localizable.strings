@@ -361,6 +361,7 @@
 "toast.copied" = "已复制";
 "toast.no_login.2" = "登录后查看";
 "toast.created.success" = "创建成功";
+"toast.modified.success" = "修改成功";
 
 "popup.no_reminder" = "不再显示";
 "popup.claim_reward.title" = "领取成功";
@@ -463,6 +464,8 @@
 "training.route.delete.content" = "你确定要删除路线吗？";
 "training.route.manage" = "路线管理";
 "training.route.create" = "创建路线";
+"training.route.edit" = "编辑路线";
+"training.route.edit.content" = "确定保存对该路线的修改吗？";
 "training.route.title" = "路线标题";
 "training.route.title.enter" = "输入路线";
 "training.route.edit_on_tap" = "点击编辑路线";
@@ -786,6 +789,7 @@
 "user.page.introduce_placeholder" = "介绍一下自己吧";
 "user.page.cancel_follow" = "取消关注";
 "user.page.features.bind_device" = "设备绑定";
+"user.page.features.bind_device.toast.not_activated" = "设备未激活";
 "user.page.features.bind_device.toast.not_paired" = "设备未配对";
 "user.page.features.bind_device.toast.no_install" = "设备未安装应用";
 "user.page.bind_device.select" = "选择设备";
@@ -802,6 +806,7 @@
 "user.page.bind_device.popup.default.title" = "默认数据源设备";
 "user.page.bind_device.popup.default.content" = "您可以通过绑定受支持的传感器设备辅助记录运动，默认数据源设备会在运动过程中持续收集您的运动数据。";
 "user.page.bind_device.action.connect" = "连接";
+"user.page.bind_device.action.failed.unconnected" = "设备未连接";
 "user.page.bind_device.connected" = "已连接";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "邮箱";

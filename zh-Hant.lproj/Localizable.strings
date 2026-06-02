@@ -361,6 +361,7 @@
 "toast.copied" = "已複製";
 "toast.no_login.2" = "登陸後查看";
 "toast.created.success" = "創建成功";
+"toast.modified.success" = "修改成功";
 
 "popup.no_reminder" = "不再顯示";
 "popup.claim_reward.title" = "領取成功";
@@ -463,6 +464,8 @@
 "training.route.delete.content" = "確定要刪除此路線嗎？";
 "training.route.manage" = "路線管理";
 "training.route.create" = "建立路線";
+"training.route.edit" = "編輯路線";
+"training.route.edit.content" = "確定要儲存對此路線的修改嗎？";
 "training.route.title" = "路線名稱";
 "training.route.title.enter" = "輸入路線名稱";
 "training.route.edit_on_tap" = "點擊編輯路線";
@@ -786,6 +789,7 @@
 "user.page.introduce_placeholder" = "介紹一下自己吧";
 "user.page.cancel_follow" = "取消關注";
 "user.page.features.bind_device" = "設備綁定";
+"user.page.features.bind_device.toast.not_activated" = "設備未激活";
 "user.page.features.bind_device.toast.not_paired" = "設備未配對";
 "user.page.features.bind_device.toast.no_install" = "設備未安裝應用";
 "user.page.bind_device.select" = "選擇設備";
@@ -802,6 +806,7 @@
 "user.page.bind_device.popup.default.title" = "預設資料來源設備";
 "user.page.bind_device.popup.default.content" = "您可以透過綁定受支援的感測器設備輔助記錄運動，預設資料來源裝置會在運動過程中持續收集您的運動資料。";
 "user.page.bind_device.action.connect" = "連接";
+"user.page.bind_device.action.failed.unconnected" = "設備未連接";
 "user.page.bind_device.connected" = "已連接";
 "user.page.features.institute" = "研究所";
 "user.page.features.email_box" = "郵箱";

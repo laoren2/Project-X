@@ -417,7 +417,7 @@ struct BikeRouteManageCardView: View {
                 Spacer()
                 Image(systemName: route.isPublic ? "eye" : "eye.slash")
                     .font(.system(size: 15))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(route.isPublic ? Color.white : Color.thirdText)
             }
             Rectangle()
                 .foregroundStyle(Color.gray)
@@ -450,13 +450,15 @@ struct BikeRouteManageCardView: View {
                         .cornerRadius(4)
                 }
                 Spacer()
-                HStack(spacing: 4) {
-                    Text("competition.track.leaderboard")
-                    Image(systemName: "chevron.right")
-                }
-                .font(.subheadline)
-                .exclusiveTouchTapGesture {
-                    appState.navigationManager.append(.bikeRouteRankListView(routeID: route.routeID, isPremium: route.isPremium))
+                if route.isPublic {
+                    HStack(spacing: 4) {
+                        Text("competition.track.leaderboard")
+                        Image(systemName: "chevron.right")
+                    }
+                    .font(.subheadline)
+                    .exclusiveTouchTapGesture {
+                        appState.navigationManager.append(.bikeRouteRankListView(routeID: route.routeID, isPremium: route.isPremium))
+                    }
                 }
             }
             Rectangle()
@@ -479,11 +481,11 @@ struct BikeRouteManageCardView: View {
                 }
                 .disabled(appState.competitionManager.isRecording)
                 Spacer()
-                /*if !route.isPublic {
+                if !route.isPublic {
                     Button(action: {
-                        
+                        appState.navigationManager.append(.bikeRouteEditView(route: route))
                     }) {
-                       Text("edit")
+                       Text("action.edit")
                             .font(.system(size: 15))
                             .foregroundStyle(Color.white)
                             .padding(.vertical, 5)
@@ -493,7 +495,8 @@ struct BikeRouteManageCardView: View {
                                     .fill(Color.white.opacity(0.3))
                             )
                     }
-                }*/
+                    .padding(.trailing, 8)
+                }
                 Button(action: {
                     PopupWindowManager.shared.presentPopup(
                         title: "training.route.delete.title",
@@ -547,6 +550,7 @@ struct BikeRouteManageView: View {
     @State private var hasMore: Bool = false
     @State private var isLoading: Bool = false
     @State private var page: Int = 1
+    @State private var firstOnAppear: Bool = true
     let pageSize: Int = 10
     
     var body: some View {
@@ -611,11 +615,18 @@ struct BikeRouteManageView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
-        .onFirstAppear {
-            queryRoutes(reset: true)
+        .onStableAppear {
+            // 首次进入或编辑成功返回后刷新
+            if firstOnAppear || GlobalConfig.shared.refreshRouteManageView {
+                queryRoutes(reset: true)
+                GlobalConfig.shared.refreshRouteManageView = false
+            }
+            DispatchQueue.main.async {
+                firstOnAppear = false
+            }
         }
     }
-    
+
     func queryRoutes(reset: Bool) {
         if reset {
             page = 1
@@ -820,8 +831,11 @@ struct BikeRouteItem: Identifiable {
     }
 }
 
-struct BikeRouteManageItem: Identifiable {
-    var id: String { routeID }
+struct BikeRouteManageItem: Identifiable, Hashable {
+    // 以实例唯一 id 作为身份与相等性依据：每次从 DTO 构造都会生成新 id，
+    // 因此重新查询后 SwiftUI 的 ForEach 会将其视为全新行并刷新，
+    // 规避“routeID 不变 + 内容变化”导致列表 UI 不更新的问题，也无需逐字段（含 routePoints）比较。
+    let id = UUID()
     let routeID: String
     let title: String
     let isPublic: Bool
@@ -830,7 +844,14 @@ struct BikeRouteManageItem: Identifiable {
     let isPremium: Bool
     let enableMagicCard: Bool
     let routePoints: [RoutePoint]
-    
+
+    static func == (lhs: BikeRouteManageItem, rhs: BikeRouteManageItem) -> Bool {
+        lhs.id == rhs.id
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
     init(from dto: BikeRouteManageInfo) {
         self.routeID = dto.route_id
         self.title = dto.title
@@ -1425,6 +1446,495 @@ struct BikeRouteCreateView: View {
         for point in store.routePoints {
             var coord = CLLocationCoordinate2D(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
             
+            if !CoordinateConverter.outOfChina(coordinate: coord) {
+                coord = CoordinateConverter.gcj02ToWgs84(lat: coord.latitude, lon: coord.longitude)
+            }
+            var step: [String: Any] = [
+                "kind": "checkpoint",
+                "lat": coord.latitude,
+                "lng": coord.longitude,
+                "radius": point.radius
+            ]
+            if let penalty = point.penalty {
+                step["penalty"] = penalty
+            }
+            steps.append(step)
+        }
+        return [
+            "type": store.selectedType.rawValue,
+            "steps": steps
+        ]
+    }
+}
+
+// 路线编辑页：结构与 BikeRouteCreateView 基本一致，底部按钮由"创建"调整为"修改"逻辑
+struct BikeRouteEditView: View {
+    let route: BikeRouteManageItem
+    @StateObject var store: RouteEditorStore = RouteEditorStore()
+    @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject var locationManager = LocationManager.shared
+    @ObservedObject var userManager = UserManager.shared
+    @State var title: String = ""
+    @State var terrainType: BikeTrackTerrainType = .road
+    @State var terrainTypeOnSelect: Bool = false
+    @State var isPublic: Bool = false
+    @State var enableMagicCardSys: Bool = false
+
+    var routeDistance: Double {
+        guard store.routePoints.count > 1 else { return 0 }
+
+        var totalDistance: Double = 0
+
+        for i in 0..<(store.routePoints.count - 1) {
+            let p1 = store.routePoints[i].coordinate
+            let p2 = store.routePoints[i + 1].coordinate
+
+            let loc1 = CLLocation(latitude: p1.latitude, longitude: p1.longitude)
+            let loc2 = CLLocation(latitude: p2.latitude, longitude: p2.longitude)
+
+            totalDistance += loc1.distance(from: loc2)
+        }
+
+        // 转换为 km
+        return totalDistance / 1000.0
+    }
+
+    var body: some View {
+        VStack {
+            HStack {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.white)
+                    .exclusiveTouchTapGesture {
+                        navigationManager.removeLast()
+                    }
+                Spacer()
+                HStack(spacing: 4) {
+                    Image("bike")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20)
+                    Text("training.route.edit")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                Image(systemName: "chevron.left")
+                    .opacity(0)
+            }
+            .padding(.horizontal)
+
+            ScrollView {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("training.route.title")
+                        Spacer()
+                    }
+                    TextField(text: $title) {
+                        Text("training.route.title.enter")
+                            .foregroundColor(.thirdText)
+                    }
+                    .padding()
+                    .foregroundColor(.white)
+                    .scrollContentBackground(.hidden) // 隐藏系统默认的背景
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(20)
+                    .onValueChange(of: title) { _, newState in
+                        DispatchQueue.main.async {
+                            if newState.count > 20 {
+                                title = String(title.prefix(20)) // 限制为最多20个字符
+                            }
+                        }
+                    }
+                    HStack {
+                        Spacer()
+                        Text("user.intro.words_entered \(title.count) \(20)")
+                            .font(.footnote)
+                            .foregroundStyle(Color.thirdText)
+                    }
+
+                    if !locationManager.regionBoundary.isEmpty {
+                        ZStack {
+                            MapPreviewRepresentable(routePoints: store.routePoints.toRoutePoints(), polygons: locationManager.regionBoundary, needParse: false)
+                                .frame(height: 200)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .circular)
+                                        .stroke(Color.orange.opacity(0.5), lineWidth: 2)
+                                )
+                                .disabled(true)
+                            Rectangle()
+                                .fill(Color.clear)
+                                .contentShape(Rectangle())
+                                .exclusiveTouchTapGesture {
+                                    store.tempSelectedType = store.selectedType
+                                    store.tempRoutePoints = store.routePoints
+                                    navigationManager.append(.routeEditorView(storeID: store.id))
+                                }
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Text("training.route.edit_on_tap")
+                                        .foregroundStyle(Color.thirdText)
+                                    Spacer()
+                                }
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [
+                                                    Color.black.opacity(0.7),
+                                                    Color.black.opacity(0)
+                                                ]),
+                                                startPoint: .bottom,
+                                                endPoint: .top
+                                            )
+                                        )
+                                )
+                            }
+                        }
+                    } else {
+                        ZStack {
+                            Rectangle()
+                                .frame(height: 200)
+                                .foregroundStyle(Color.gray.opacity(0.5))
+                                .cornerRadius(12)
+                            Text("error.region")
+                                .foregroundStyle(Color.white)
+                        }
+                    }
+
+                    HStack {
+                        (Text("training.route.mode") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        Text(LocalizedStringKey(store.selectedType.displayName))
+                    }
+
+                    HStack {
+                        (Text("competition.track.sub_region") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        Text(locationManager.regionName ?? "-")
+                    }
+
+                    HStack {
+                        (Text("competition.track.terrain") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        if terrainTypeOnSelect {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(BikeTrackTerrainType.allCases, id: \.self) { type in
+                                        Text(LocalizedStringKey(type.displayName))
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(terrainType == type ? Color.white : Color.thirdText)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(
+                                                Capsule()
+                                                    .fill(terrainType == type ? Color.orange : Color.secondBackground)
+                                            )
+                                            .exclusiveTouchTapGesture {
+                                                terrainType = type
+                                                terrainTypeOnSelect.toggle()
+                                            }
+                                    }
+                                }
+                            }
+                            .frame(width: 200)
+                        } else {
+                            HStack(spacing: 4) {
+                                Text(LocalizedStringKey(terrainType.displayName))
+                                    .foregroundStyle(Color.white)
+                                    .font(.system(size: 13, weight: .medium))
+                                Image(systemName: "arrow.left.arrow.right")
+                                    .foregroundStyle(Color.secondText)
+                                    .font(.system(size: 10, weight: .light))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.defaultBackground)
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(Color.orange, lineWidth: 2)
+                                    )
+                            )
+                            .exclusiveTouchTapGesture {
+                                terrainTypeOnSelect.toggle()
+                            }
+                        }
+                    }
+
+                    HStack {
+                        (Text("competition.realtime.distance") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        if store.routePoints.count > 1 {
+                            Text(DistanceHelper.paceString(from: routeDistance))
+                            if routeDistance > 50 {
+                                (Text("(") + Text("training.route.distance.over \(50)") + Text(")"))
+                                    .foregroundStyle(Color.pink)
+                                    .font(.system(size: 15))
+                            } else if routeDistance < 0.1 {
+                                (Text("(") + Text("training.route.distance.less \(100)") + Text(")"))
+                                    .foregroundStyle(Color.pink)
+                                    .font(.system(size: 15))
+                            }
+                        } else {
+                            Text("-")
+                        }
+                    }
+
+                    HStack {
+                        (Text("competition.track.altitude") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        if store.isLoadingElevation {
+                            ProgressView()
+                        } else if let diff = store.routeElevationDiff {
+                            Image(systemName: diff > 0 ? "triangle.fill" : "arrowtriangle.down.fill")
+                            Text("\(abs(diff)) m")
+                        } else {
+                            Text("-")
+                        }
+                    }
+
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("training.route.is_public") + Text(":")
+                            Image(systemName: "info.circle")
+                                .font(.subheadline)
+                                .exclusiveTouchTapGesture {
+                                    PopupWindowManager.shared.presentPopup(
+                                        title: "training.route.is_public",
+                                        message: "training.route.is_public.content",
+                                        bottomButtons: [
+                                            .confirm()
+                                        ]
+                                    )
+                                }
+                        }
+                        .foregroundStyle(Color.secondText)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { isPublic },
+                            set: { newValue in
+                                isPublic = newValue
+                                enableMagicCardSys = enableMagicCardSys && newValue
+                            }
+                        ))
+                        .tint(.orange)
+                        .labelsHidden()
+                    }
+
+                    HStack {
+                        (Text("training.route.enable_leaderboard") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { isPublic },
+                            set: { newValue in
+                                return
+                            }
+                        ))
+                        .tint(.gray)
+                        .labelsHidden()
+                    }
+
+                    if isPublic {
+                        HStack(spacing: 10) {
+                            HStack(spacing: 4) {
+                                Text("common.total")
+                                    .font(.system(size: 12, weight: .medium))
+                                if !userManager.user.isVip {
+                                    HStack(spacing: 0) {
+                                        Image(systemName: "person")
+                                        Text("100")
+                                    }
+                                    .font(.system(size: 12))
+                                    .padding(.vertical, 2)
+                                    .padding(.horizontal, 6)
+                                    .background(Color.gray)
+                                    .clipShape(Capsule())
+                                }
+                            }
+                            .padding(.vertical, userManager.user.isVip ? 4 : 2)
+                            .padding(.leading, 8)
+                            .padding(.trailing, userManager.user.isVip ? 8 : 2)
+                            .background(Color.orange)
+                            .clipShape(Capsule())
+
+                            ZStack {
+                                Text("common.male")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 8)
+                                    .background(userManager.user.isVip ? Color.orange : Color.gray)
+                                    .clipShape(Capsule())
+                                if !userManager.user.isVip {
+                                    Image(systemName: "nosign")
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundStyle(Color.pink.opacity(0.5))
+                                }
+                            }
+
+                            ZStack {
+                                Text("common.female")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 8)
+                                    .background(userManager.user.isVip ? Color.orange : Color.gray)
+                                    .clipShape(Capsule())
+                                if !userManager.user.isVip {
+                                    Image(systemName: "nosign")
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundStyle(Color.pink.opacity(0.5))
+                                }
+                            }
+
+                            Spacer()
+
+                            if !userManager.user.isVip {
+                                HStack(spacing: 4) {
+                                    Text("training.route.unlock_leaderboard")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(Color.secondText)
+                                    Image("vip_icon_on")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 15)
+                                }
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
+                                .exclusiveTouchTapGesture {
+                                    guard userManager.isLoggedIn else {
+                                        userManager.showingLogin = true
+                                        return
+                                    }
+                                    navigationManager.append(.subscriptionDetailView)
+                                }
+                            }
+                        }
+                    }
+
+                    HStack {
+                        (Text("training.route.enable_magiccard") + Text(":"))
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { enableMagicCardSys },
+                            set: { newValue in
+                                guard isPublic else { return }
+                                enableMagicCardSys = newValue
+                            }
+                        ))
+                        .tint(isPublic ? .orange : .gray)
+                        .labelsHidden()
+                    }
+
+                    let isDisabled = title.isEmpty
+                    || (store.routeElevationDiff == nil)
+                    || (locationManager.regionID == nil)
+                    || routeDistance > 50
+                    || routeDistance < 0.1
+                    Button(action: {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "training.route.edit",
+                            message: "training.route.edit.content",
+                            bottomButtons: [
+                                .cancel(),
+                                .confirm() {
+                                    updateRoute()
+                                }
+                            ]
+                        )
+                    }) {
+                        HStack(spacing: 10) {
+                            Text("action.save")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .fill(isDisabled ? Color.gray : Color.orange)
+                        )
+                    }
+                    .padding(.top, 10)
+                    .disabled(isDisabled)
+                }
+                .padding()
+                .foregroundStyle(Color.white)
+            }
+            .scrollIndicators(.hidden)
+        }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+        .hideKeyboardOnTap()
+        .ignoresSafeArea(.keyboard)
+        .onFirstAppear {
+            // 用已有路线数据初始化编辑器与表单
+            store.selectedType = route.routeType
+            store.routePoints = route.routePoints.toEditablePoints()
+            store.tempSelectedType = route.routeType
+            store.tempRoutePoints = store.routePoints
+            store.fetchElevation()
+            title = route.title
+            terrainType = route.terrainType
+            isPublic = route.isPublic
+            enableMagicCardSys = route.enableMagicCard
+        }
+    }
+
+    func updateRoute() {
+        guard store.routePoints.count > 1 else { return }
+
+        let routeData = buildRouteData()
+        let body: [String: Any] = [
+            "route_id": route.routeID,
+            "title": title,
+            "terrain_type": terrainType.rawValue,
+            "is_public": isPublic,
+            "enable_magiccard": enableMagicCardSys,
+            "enable_ranklist": isPublic,
+            "route_type": store.selectedType.rawValue,
+            "route_data": routeData
+        ]
+
+        guard let encodedBody = try? JSONSerialization.data(withJSONObject: body) else { return }
+
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+
+        let request = APIRequest(path: "/training/bike/routes/update", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success:
+                DispatchQueue.main.async {
+                    ToastManager.shared.show(toast: Toast(message: "toast.modified.success"))
+                    navigationManager.removeLast()
+                    GlobalConfig.shared.refreshRouteManageView = true
+                }
+            default:
+                break
+            }
+        }
+    }
+
+    func buildRouteData() -> [String: Any] {
+        var steps: [[String: Any]] = []
+        for point in store.routePoints {
+            var coord = CLLocationCoordinate2D(latitude: point.coordinate.latitude, longitude: point.coordinate.longitude)
+
             if !CoordinateConverter.outOfChina(coordinate: coord) {
                 coord = CoordinateConverter.gcj02ToWgs84(lat: coord.latitude, lon: coord.longitude)
             }

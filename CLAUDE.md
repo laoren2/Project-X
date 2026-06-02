@@ -84,7 +84,7 @@ sportsxApp (@main)
 - **MVVM 配对**：新页面建 `XxxView` + `XxxViewModel: ObservableObject`，业务/网络放 ViewModel，View 只负责展示与交互。
 - **单例访问**：跨模块共享状态走 `XxxManager.shared`（`UserManager`、`AssetManager`、`ShopManager`、`IAPManager`、`LocationManager`、`ToastManager`、`PopupWindowManager`、`ModelManager`、`DeviceManager` 等）。
 - **线程**：网络回调在后台线程，**所有 UI/`@Published` 改动必须切回主线程**（`DispatchQueue.main.async` 或 `await MainActor.run`）；启动/可重入逻辑标注 `@MainActor`。
-- **文案**：用户可见字符串一律走本地化 key（`LocalizedStringKey`，如 `"toast.network_error"`），新增文案需补齐全部 5 个 `Localizable.strings`。**不要硬编码中文/英文 UI 文案**（历史代码里 Toast 有少量硬编码中文，是待清理项，勿模仿）。
+- **文案**：用户可见字符串一律走本地化 key（`LocalizedStringKey`，如 `"toast.network_error"`），新增文案需补齐全部 5 个 `Localizable.strings`，key的设计尽量遵循现有的结构。**不要硬编码中文/英文 UI 文案**（历史代码里 Toast 有少量硬编码中文，是待清理项，勿模仿）。
 - **配色/样式**：使用 Asset 中的语义色（`Color.defaultBackground`、`Color.secondText` 等），需要大量复用的颜色可以在 extansion 中定义新的标准 Color，仅在特殊场景硬编码 RGB。
 - **注释/文件头**：沿用现有中文注释风格与文件头格式。
 - **错误处理**：网络层用 `Result<T?, APIError>`，按 `APIError` 分支处理；需要用户感知时通过 Toast/Popup，不要静默吞掉关键失败。

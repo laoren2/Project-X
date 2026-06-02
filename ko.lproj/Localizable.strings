@@ -361,6 +361,7 @@
 "toast.copied" = "복사 완료";
 "toast.no_login.2" = "로그인 후 확인 가능";
 "toast.created.success" = "생성 완료";
+"toast.modified.success" = "수정되었습니다";
 
 "popup.no_reminder" = "다시 표시 안 함";
 "popup.claim_reward.title" = "수령 완료";
@@ -463,6 +464,8 @@
 "training.route.delete.content" = "이 루트를 삭제하시겠습니까?";
 "training.route.manage" = "루트 관리";
 "training.route.create" = "루트 생성";
+"training.route.edit" = "루트 편집";
+"training.route.edit.content" = "이 루트의 변경 사항을 저장하시겠습니까?";
 "training.route.title" = "루트 이름";
 "training.route.title.enter" = "루트 이름 입력";
 "training.route.edit_on_tap" = "탭하여 루트 편집";
@@ -786,6 +789,7 @@
 "user.page.introduce_placeholder" = "자기소개를 입력해보세요";
 "user.page.cancel_follow" = "팔로우 취소";
 "user.page.features.bind_device" = "기기 연결";
+"user.page.features.bind_device.toast.not_activated" = "기기가 활성화되지 않았습니다";
 "user.page.features.bind_device.toast.not_paired" = "기기가 페어링되지 않았습니다";
 "user.page.features.bind_device.toast.no_install" = "기기에 앱이 설치되지 않았습니다";
 "user.page.bind_device.select" = "기기 선택";
@@ -802,6 +806,7 @@
 "user.page.bind_device.popup.default.title" = "기본 데이터 소스 기기";
 "user.page.bind_device.popup.default.content" = "지원되는 센서 장치를 연결하면 운동 기록을 도울 수 있습니다. 기본 데이터 소스 장치는 운동하는 동안 운동 데이터를 지속적으로 수집합니다.";
 "user.page.bind_device.action.connect" = "연결";
+"user.page.bind_device.action.failed.unconnected" = "기기가 연결되지 않았습니다";
 "user.page.bind_device.connected" = "연결됨";
 "user.page.features.institute" = "연구소";
 "user.page.features.email_box" = "메일함";

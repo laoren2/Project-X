@@ -660,9 +660,14 @@ struct CalendarDayCell: View {
                 Text(day.deltaText)
                     .font(.system(.headline, weight: .bold))
                     .foregroundStyle(day.foregroundColor)
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+                    .padding(.horizontal, 2)
             }
         }
-        .frame(width: 50, height: 50)
+        // 不再写死宽高：由 LazyVGrid 的弹性列决定宽度，保持 1:1 方形，
+        // 小屏（如 7 列下单列宽 < 50）也能自适应缩放而不溢出
+        .aspectRatio(1, contentMode: .fit)
     }
     
     private var progress: CGFloat {
