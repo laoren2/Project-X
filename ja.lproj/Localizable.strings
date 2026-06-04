@@ -1028,3 +1028,21 @@
 "ccasset.stone1" = "初級強化素材";
 "ccasset.stone2" = "中級強化素材";
 "ccasset.stone3" = "上級強化素材";
+
+// 热门路线申请转赛道
+"training.route.apply.action" = "申請";
+"training.route.apply.pending" = "審査中";
+"training.route.apply.approved" = "公開中";
+"training.route.apply.not_enough" = "人気度が 100 を超えると申請できます";
+"training.route.apply.title" = "トラックとして申請";
+"training.route.apply.track_title" = "トラック名";
+"training.route.apply.sub_region" = "サブ地域名";
+"training.route.apply.terrain" = "地形";
+"training.route.apply.lifecycle" = "有効期間";
+"training.route.apply.lifecycle.one_month" = "1ヶ月";
+"training.route.apply.lifecycle.two_month" = "2ヶ月";
+"training.route.apply.lifecycle.season_end" = "シーズン終了まで";
+"training.route.apply.tip" = "承認されると、ルートは正式なトラックになります。";
+"training.route.apply.submit" = "申請を送信";
+"training.route.apply.success" = "申請を送信しました";
+"training.route.apply.banner" = "人気度が 100 を超えた公開ルートは、アリーナへの参加を申請し、正式なトラックになれます！";

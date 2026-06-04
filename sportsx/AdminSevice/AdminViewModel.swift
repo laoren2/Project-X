@@ -108,23 +108,24 @@ class RunningTrackBackendViewModel: ObservableObject {
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     
+    // 后台暂以起点/终点录入（提交时构造 2 点 pointToPoint route_data；distance/海拔差由后端计算）
     @Published var from_la: String = ""
     @Published var from_lo: String = ""
     @Published var from_radius: Int = 0
     @Published var to_la: String = ""
     @Published var to_lo: String = ""
     @Published var to_radius: Int = 0
-    
     @Published var elevationDifference: String = ""
+    @Published var distance: String = ""
+
     @Published var subRegioName_en: String = ""
     @Published var subRegioName_hans: String = ""
     @Published var subRegioName_hant: String = ""
     @Published var subRegioName_ko: String = ""
     @Published var prizePool: String = ""
-    @Published var distance: String = ""
     @Published var score: String = ""
     @Published var terrainType: RunningTrackTerrainType = .road
-    
+
     var image_url: String = ""
 }
 
@@ -135,20 +136,16 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let name_hans: String
     let name_hant: String
     let name_ko: String
-    let from_latitude: String
-    let from_longitude: String
-    let from_radius: Int
-    let to_latitude: String
-    let to_longitude: String
-    let to_radius: Int
-    
+    let routeType: RouteType
+    let routePoints: [RoutePoint]
+
     let start_date: String
     let end_date: String
     let event_name: String
     let season_name: String
     let region_id: String
     let image_url: String
-    
+
     let elevationDifference: String     // 海拔差(米)
     let subRegioName_en: String            // 覆盖的地理子区域
     let subRegioName_hans: String
@@ -159,7 +156,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
     let score: String                   // 积分
     let terrain_type: RunningTrackTerrainType
     let is_settled: Bool
-    
+
     init(from track: RunningTrackInfoInternalDTO) {
         self.id = UUID()
         self.track_id = track.track_id
@@ -167,21 +164,17 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.name_hans = track.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = track.name["zh-Hant"]?.stringValue ?? "空"
         self.name_ko = track.name["ko"]?.stringValue ?? "空"
-        self.from_latitude = track.from_latitude
-        self.from_longitude = track.from_longitude
-        self.from_radius = track.from_radius
-        self.to_latitude = track.to_latitude
-        self.to_longitude = track.to_longitude
-        self.to_radius = track.to_radius
-        
+        self.routeType = track.route_type
+        self.routePoints = [RoutePoint](routeData: track.route_data)
+
         self.start_date = track.start_date
         self.end_date = track.end_date
         self.event_name = track.event_name
         self.season_name = track.season_name
         self.region_id = track.region_id
-        self.image_url = track.image_url
+        self.image_url = track.image_url ?? ""
         self.terrain_type = track.terrain_type
-        
+
         self.elevationDifference = track.elevation_difference
         self.subRegioName_en = track.sub_region_name["en"]?.stringValue ?? "空"
         self.subRegioName_hans = track.sub_region_name["zh-Hans"]?.stringValue ?? "空"
@@ -192,7 +185,7 @@ struct RunningTrackCardEntry: Identifiable, Equatable {
         self.score = track.score
         self.is_settled = track.is_settled
     }
-    
+
     static func == (lhs: RunningTrackCardEntry, rhs: RunningTrackCardEntry) -> Bool {
         return lhs.track_id == rhs.track_id
     }
@@ -207,14 +200,10 @@ struct RunningTrackInfoInternalDTO: Codable {
     let event_name: String
     let season_name: String
     let region_id: String
-    let image_url: String
-    
-    let from_latitude: String
-    let from_longitude: String
-    let from_radius: Int
-    let to_latitude: String
-    let to_longitude: String
-    let to_radius: Int
+    let image_url: String?
+
+    let route_type: RouteType
+    let route_data: JSONValue
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: JSONValue         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
@@ -440,23 +429,24 @@ class BikeTrackBackendViewModel: ObservableObject {
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600*24)
     
+    // 后台暂以起点/终点录入（提交时构造 2 点 pointToPoint route_data；distance/海拔差由后端计算）
     @Published var from_la: String = ""
     @Published var from_lo: String = ""
     @Published var from_radius: Int = 0
     @Published var to_la: String = ""
     @Published var to_lo: String = ""
     @Published var to_radius: Int = 0
-    
     @Published var elevationDifference: String = ""
+    @Published var distance: String = ""
+
     @Published var subRegioName_en: String = ""
     @Published var subRegioName_hans: String = ""
     @Published var subRegioName_hant: String = ""
     @Published var subRegioName_ko: String = ""
     @Published var prizePool: String = ""
     @Published var score: String = ""
-    @Published var distance: String = ""
     @Published var terrainType: BikeTrackTerrainType = .other
-    
+
     var image_url: String = ""
 }
 
@@ -467,20 +457,16 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let name_hans: String
     let name_hant: String
     let name_ko: String
-    let from_latitude: String
-    let from_longitude: String
-    let from_radius: Int
-    let to_latitude: String
-    let to_longitude: String
-    let to_radius: Int
-    
+    let routeType: RouteType
+    let routePoints: [RoutePoint]
+
     let start_date: String
     let end_date: String
     let event_name: String
     let season_name: String
     let region_id: String
     let image_url: String
-    
+
     let elevationDifference: String     // 海拔差(米)
     let subRegioName_en: String            // 覆盖的地理子区域
     let subRegioName_hans: String
@@ -491,7 +477,7 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
     let distance: String
     let terrain_type: BikeTrackTerrainType
     let is_settled: Bool
-    
+
     init(from track: BikeTrackInfoInternalDTO) {
         self.id = UUID()
         self.track_id = track.track_id
@@ -499,20 +485,16 @@ struct BikeTrackCardEntry: Identifiable, Equatable {
         self.name_hans = track.name["zh-Hans"]?.stringValue ?? "空"
         self.name_hant = track.name["zh-Hant"]?.stringValue ?? "空"
         self.name_ko = track.name["ko"]?.stringValue ?? "空"
-        self.from_latitude = track.from_latitude
-        self.from_longitude = track.from_longitude
-        self.from_radius = track.from_radius
-        self.to_latitude = track.to_latitude
-        self.to_longitude = track.to_longitude
-        self.to_radius = track.to_radius
-        
+        self.routeType = track.route_type
+        self.routePoints = [RoutePoint](routeData: track.route_data)
+
         self.start_date = track.start_date
         self.end_date = track.end_date
         self.event_name = track.event_name
         self.season_name = track.season_name
         self.region_id = track.region_id
-        self.image_url = track.image_url
-        
+        self.image_url = track.image_url ?? ""
+
         self.elevationDifference = track.elevation_difference
         self.subRegioName_en = track.sub_region_name["en"]?.stringValue ?? "空"
         self.subRegioName_hans = track.sub_region_name["zh-Hans"]?.stringValue ?? "空"
@@ -539,15 +521,10 @@ struct BikeTrackInfoInternalDTO: Codable {
     let event_name: String
     let season_name: String
     let region_id: String
-    let image_url: String
-    
-    let from_latitude: String
-    let from_longitude: String
-    let from_radius: Int
-    let to_latitude: String
-    let to_longitude: String
-    let to_radius: Int
-    
+    let image_url: String?
+
+    let route_type: RouteType
+    let route_data: JSONValue
     let elevation_difference: String    // 海拔差(米)
     let sub_region_name: JSONValue         // 覆盖的地理子区域
     let prize_pool: String              // 奖金池金额
@@ -1180,6 +1157,157 @@ struct AdCardInternalDTO: Codable {
 
 struct AdInfoInternalResponse: Codable {
     let ads: [AdCardInternalDTO]
+}
+
+// MARK: - 热门路线转赛道审核
+
+class RouteApplicationBackendViewModel: ObservableObject {
+    @Published var sport: SportName = .Bike
+    @Published var applications: [RouteApplicationInfo] = []
+    @Published var isLoading: Bool = false
+    @Published var statusFilter: RouteApplyStatus = .pending
+    @Published var showRejectAlert: Bool = false
+    @Published var rejectNote: String = ""
+    var selectedApplication: RouteApplicationInfo?
+    var hasMore: Bool = true
+    var currentPage: Int = 1
+    let pageSize: Int = 10
+
+    func reset() {
+        applications.removeAll()
+        currentPage = 1
+        hasMore = true
+    }
+
+    func queryApplications() {
+        isLoading = true
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/query_route_applications") else { return }
+        components.queryItems = [
+            URLQueryItem(name: "status", value: statusFilter.rawValue),
+            URLQueryItem(name: "page", value: "\(currentPage)"),
+            URLQueryItem(name: "size", value: "\(pageSize)")
+        ]
+        guard let urlPath = components.string else { return }
+
+        let request = APIRequest(path: urlPath, method: .get, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: RouteApplicationListResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                switch result {
+                case .success(let data):
+                    guard let unwrappedData = data else { return }
+                    for app in unwrappedData.applications {
+                        self.applications.append(RouteApplicationInfo(from: app))
+                    }
+                    if unwrappedData.applications.count < self.pageSize {
+                        self.hasMore = false
+                    } else {
+                        self.hasMore = true
+                        self.currentPage += 1
+                    }
+                default: break
+                }
+            }
+        }
+    }
+
+    func review(application: RouteApplicationInfo, approve: Bool, note: String?) {
+        guard var components = URLComponents(string: "/competition/\(sport.rawValue)/review_route_application") else { return }
+        var items = [
+            URLQueryItem(name: "application_id", value: application.applicationID),
+            URLQueryItem(name: "approve", value: approve ? "true" : "false")
+        ]
+        if let note, !note.isEmpty {
+            items.append(URLQueryItem(name: "review_note", value: note))
+        }
+        components.queryItems = items
+        guard let urlPath = components.url?.absoluteString else { return }
+
+        let request = APIRequest(path: urlPath, method: .post, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.applications.removeAll { $0.applicationID == application.applicationID }
+                default: break
+                }
+            }
+        }
+    }
+}
+
+struct RouteApplicationInfo: Identifiable, Equatable {
+    var id: String { applicationID }
+    let applicationID: String
+    let routeID: String
+    let applicantNickname: String
+    let title: String
+    let subRegionName: String
+    let language: String
+    let terrainType: String
+    let lifecycle: String
+    let isPremium: Bool
+    let participateCount: Int
+    let currentParticipateCount: Int
+    let regionID: String
+    let distance: Double
+    let elevationDifference: Int
+    let status: String
+    let reviewNote: String?
+    let trackID: String?
+
+    init(from dto: RouteApplicationDTO) {
+        applicationID = dto.application_id
+        routeID = dto.route_id
+        applicantNickname = dto.applicant_nickname
+        title = dto.title
+        subRegionName = dto.sub_region_name
+        language = dto.language
+        terrainType = dto.terrain_type
+        lifecycle = dto.lifecycle
+        isPremium = dto.is_premium
+        participateCount = dto.participate_count
+        currentParticipateCount = dto.current_participate_count
+        regionID = dto.region_id
+        distance = dto.distance
+        elevationDifference = dto.elevation_difference
+        status = dto.status
+        reviewNote = dto.review_note
+        trackID = dto.track_id
+    }
+
+    static func == (lhs: RouteApplicationInfo, rhs: RouteApplicationInfo) -> Bool {
+        lhs.applicationID == rhs.applicationID
+    }
+}
+
+struct RouteApplicationDTO: Codable {
+    let application_id: String
+    let route_id: String
+    let applicant_user_id: String
+    let applicant_nickname: String
+    let title: String
+    let sub_region_name: String
+    let language: String
+    let terrain_type: String
+    let lifecycle: String
+    let is_premium: Bool
+    let participate_count: Int
+    let current_participate_count: Int
+    let region_id: String
+    let route_type: String
+    let route_data: JSONValue
+    let distance: Double
+    let elevation_difference: Int
+    let status: String
+    let review_note: String?
+    let track_id: String?
+    let created_at: String
+    let reviewed_at: String?
+}
+
+struct RouteApplicationListResponse: Codable {
+    let applications: [RouteApplicationDTO]
 }
 
 #endif

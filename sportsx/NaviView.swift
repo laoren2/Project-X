@@ -438,6 +438,8 @@ struct RealNaviView: View {
                     FeedbackMailBackendView()
                 case .homepageBackendView:
                     HomepageBackendView()
+                case .routeApplicationBackendView:
+                    RouteApplicationBackendView()
                 case .localDebugView:
                     LocalDebugPanelView()
 #endif

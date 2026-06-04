@@ -99,6 +99,7 @@ enum AppRoute: Hashable {
     case bikeMatchDebugView
     case feedbackMailBackendView
     case homepageBackendView
+    case routeApplicationBackendView
     case localDebugView
 #endif
     
@@ -275,6 +276,8 @@ enum AppRoute: Hashable {
             return "feedbackMailBackendView"
         case .homepageBackendView:
             return "homepageBackendView"
+        case .routeApplicationBackendView:
+            return "routeApplicationBackendView"
         case .localDebugView:
             return "localDebugView"
 #endif

@@ -12,7 +12,6 @@ struct BikeScoreRankingView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeScoreRankingViewModel
     @ObservedObject var userManager = UserManager.shared
-    @State var genderOnFilter: Bool = false
     
     let genders: [Gender] = [.male, .female]
     
@@ -41,45 +40,7 @@ struct BikeScoreRankingView: View {
             }
             
             HStack {
-                if genderOnFilter {
-                    ForEach(Gender.allCases, id: \.self) { gender in
-                        Text(LocalizedStringKey(gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
-                            )
-                            .exclusiveTouchTapGesture {
-                                viewModel.gender = gender
-                                genderOnFilter.toggle()
-                            }
-                    }
-                } else {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color.white)
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundStyle(Color.secondText)
-                            .font(.system(size: 10, weight: .light))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.defaultBackground)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.orange, lineWidth: 2)
-                            )
-                    )
-                    .exclusiveTouchTapGesture {
-                        genderOnFilter.toggle()
-                    }
-                }
+                CapsuleScrollSelector(options: Gender.allCases, selection: $viewModel.gender) { $0.displayName }
                 Spacer()
             }
             
@@ -148,7 +109,6 @@ struct BikeRankingListView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: BikeRankingListViewModel
     @ObservedObject var userManager = UserManager.shared
-    @State var genderOnFilter: Bool = false
     
     init(trackID: String, gender: Gender, isHistory: Bool) {
         _viewModel = StateObject(wrappedValue: BikeRankingListViewModel(trackID: trackID, gender: gender, isHistory: isHistory))
@@ -175,52 +135,13 @@ struct BikeRankingListView: View {
             }
             
             HStack {
-                if genderOnFilter {
-                    ForEach(Gender.allCases, id: \.self) { gender in
-                        Text(LocalizedStringKey(gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
-                            )
-                            .exclusiveTouchTapGesture {
-                                viewModel.gender = gender
-                                genderOnFilter.toggle()
-                            }
-                    }
-                } else {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color.white)
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundStyle(Color.secondText)
-                            .font(.system(size: 10, weight: .light))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.defaultBackground)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.orange, lineWidth: 2)
-                            )
-                    )
-                    .exclusiveTouchTapGesture {
-                        genderOnFilter.toggle()
-                    }
-                }
+                CapsuleScrollSelector(options: Gender.allCases, selection: $viewModel.gender) { $0.displayName }
                 Spacer()
                 if !viewModel.isHistory {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 15))
                         .foregroundStyle(.white)
                         .onTapGesture {
-                            genderOnFilter = false
                             viewModel.refresh()
                         }
                 }
@@ -650,7 +571,6 @@ struct RunningScoreRankingView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningScoreRankingViewModel
     @ObservedObject var userManager = UserManager.shared
-    @State var genderOnFilter: Bool = false
     
     let genders: [Gender] = [.male, .female]
     
@@ -679,45 +599,7 @@ struct RunningScoreRankingView: View {
             }
             
             HStack {
-                if genderOnFilter {
-                    ForEach(Gender.allCases, id: \.self) { gender in
-                        Text(LocalizedStringKey(gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
-                            )
-                            .exclusiveTouchTapGesture {
-                                viewModel.gender = gender
-                                genderOnFilter.toggle()
-                            }
-                    }
-                } else {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color.white)
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundStyle(Color.secondText)
-                            .font(.system(size: 10, weight: .light))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.defaultBackground)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.orange, lineWidth: 2)
-                            )
-                    )
-                    .exclusiveTouchTapGesture {
-                        genderOnFilter.toggle()
-                    }
-                }
+                CapsuleScrollSelector(options: Gender.allCases, selection: $viewModel.gender) { $0.displayName }
                 Spacer()
             }
             
@@ -786,7 +668,6 @@ struct RunningRankingListView: View {
     @EnvironmentObject var appState: AppState
     @StateObject var viewModel: RunningRankingListViewModel
     @ObservedObject var userManager = UserManager.shared
-    @State var genderOnFilter: Bool = false
     
     let genders: [Gender] = [.male, .female]
     
@@ -815,52 +696,13 @@ struct RunningRankingListView: View {
             }
             
             HStack {
-                if genderOnFilter {
-                    ForEach(Gender.allCases, id: \.self) { gender in
-                        Text(LocalizedStringKey(gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(viewModel.gender == gender ? Color.white : Color.thirdText)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.gender == gender ? Color.orange : Color.gray)
-                            )
-                            .exclusiveTouchTapGesture {
-                                viewModel.gender = gender
-                                genderOnFilter.toggle()
-                            }
-                    }
-                } else {
-                    HStack(spacing: 4) {
-                        Text(LocalizedStringKey(viewModel.gender.displayName))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color.white)
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundStyle(Color.secondText)
-                            .font(.system(size: 10, weight: .light))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.defaultBackground)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.orange, lineWidth: 2)
-                            )
-                    )
-                    .exclusiveTouchTapGesture {
-                        genderOnFilter.toggle()
-                    }
-                }
+                CapsuleScrollSelector(options: Gender.allCases, selection: $viewModel.gender) { $0.displayName }
                 Spacer()
                 if !viewModel.isHistory {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 15))
                         .foregroundStyle(.white)
                         .onTapGesture {
-                            genderOnFilter = false
                             viewModel.refresh()
                         }
                 }

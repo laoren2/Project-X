@@ -90,14 +90,8 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published var alertTitle = ""
     @Published var alertMessage = ""
     @Published var userLocation: CLLocation? = nil // 当前用户位置
-    @Published var isInValidArea: Bool = false // 是否在比赛出发点
-    
-    @Published var startCoordinate = CLLocationCoordinate2D(latitude: 31.00550, longitude: 121.40962)
-    @Published var endCoordinate = CLLocationCoordinate2D(latitude: 31.03902, longitude: 121.39807)
-    
-    var startRadius: CLLocationDistance = 10.0
-    var endRadius: CLLocationDistance = 10.0
-    
+    @Published var isInValidArea: Bool = false // 是否在比赛出发点（routePoints[0] 检查区）
+
     private var motionManager: CMMotionManager = CMMotionManager()
     private var audioRecorder: AVAudioRecorder!
     private var startTime: Date?
@@ -278,39 +272,86 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             .store(in: &dataCancellables)
     }
     
-    // 收到通知的回调
+    // 收到通知的回调（多检查点比赛：逐点 check/miss，对齐 route training）
     private func handleLocationUpdate(_ location: CLLocation) {
-        // 在这里处理位置更新，比如后台计算、数据存储或UI响应
-        // 已经在主线程上，将耗时操作转入后台
+        // 当前比赛赛道的实时路线点（在主线程读入局部变量，再转后台处理）
+        var routePoints: [RoutePointRealtime] = []
+        if let rp = currentBikeRecord?.routePoints, sportFeature == .bikeRace {
+            routePoints = rp
+        } else if let rp = currentRunningRecord?.routePoints, sportFeature == .runningRace {
+            routePoints = rp
+        } else {
+            return
+        }
+
         userLocation = location
         DispatchQueue.global(qos: .background).async { [self] in
             if isRecording {
-                // 比赛进行中，检查用户是否在终点的安全区域内
-                let dis = location.distance(from: CLLocation(latitude: endCoordinate.latitude, longitude: endCoordinate.longitude))
-                let inEndZone = dis <= endRadius
-                let inSafetyEndZone = dis <= 2 * endRadius
-                //print("是否到达终点: ",inEndZone,"距离: \(dis) ")
-                if inSafetyEndZone {
-                    let point = PathPoint(
-                        lat: location.coordinate.latitude,
-                        lon: location.coordinate.longitude,
-                        speed: location.speed,
-                        altitude: location.altitude,
-                        heart_rate: nil,
-                        timestamp: location.timestamp.timeIntervalSince1970
-                    )
-                    pathPointInEndSafetyRadius.append(point)
+                guard let nextCPIndex = nextCheckPointIndex, nextCPIndex < routePoints.count else { return }
+
+                // 终点（最后一个 checkpoint）安全区采集，用于 organizeEndTime 精确成绩
+                if case .checkpoint(let endCp) = routePoints[routePoints.count - 1] {
+                    let dis = location.distance(from: CLLocation(latitude: endCp.lat, longitude: endCp.lng))
+                    if dis <= 2 * endCp.radius {
+                        pathPointInEndSafetyRadius.append(PathPoint(
+                            lat: location.coordinate.latitude,
+                            lon: location.coordinate.longitude,
+                            speed: location.speed,
+                            altitude: location.altitude,
+                            heart_rate: nil,
+                            timestamp: location.timestamp.timeIntervalSince1970
+                        ))
+                    }
                 }
-                if inEndZone {
-                    DispatchQueue.main.async {
-                        self.stopCompetition()
+
+                for index in nextCPIndex..<routePoints.count {
+                    guard case .checkpoint(var checkpoint) = routePoints[index] else { return }
+                    if checkpoint.isCheck || checkpoint.isMiss { continue }
+
+                    let distance = location.distance(from: CLLocation(latitude: checkpoint.lat, longitude: checkpoint.lng))
+                    // 中间检查点 3 米容错；终点用原始半径
+                    let radius: Double = (index == routePoints.count - 1) ? checkpoint.radius : (checkpoint.radius + 3.0)
+
+                    if distance <= radius {
+                        // 到达终点 -> 结束比赛
+                        if index == routePoints.count - 1 {
+                            DispatchQueue.main.async {
+                                self.stopCompetition()
+                            }
+                            return
+                        }
+
+                        checkpoint.isCheck = true
+                        routePoints[index] = .checkpoint(checkpoint)
+
+                        // 跳过的中间检查点标记 miss
+                        if index > nextCPIndex {
+                            for missIndex in nextCPIndex..<index {
+                                guard case .checkpoint(var misspoint) = routePoints[missIndex] else { return }
+                                if !misspoint.isCheck && !misspoint.isMiss {
+                                    misspoint.isMiss = true
+                                    routePoints[missIndex] = .checkpoint(misspoint)
+                                }
+                            }
+                        }
+
+                        DispatchQueue.main.async {
+                            if self.sportFeature == .bikeRace {
+                                self.currentBikeRecord?.routePoints = routePoints
+                            } else if self.sportFeature == .runningRace {
+                                self.currentRunningRecord?.routePoints = routePoints
+                            }
+                            self.nextCheckPointIndex = index + 1
+                        }
+                        break
                     }
                 }
             } else {
-                // 比赛开始前，检查用户是否在出发点的安全区域内
-                let distance = location.distance(from: CLLocation(latitude: startCoordinate.latitude, longitude: startCoordinate.longitude))
+                // 比赛开始前，检查用户是否在起点（routePoints[0]）检查区
+                guard case .checkpoint(let cp) = routePoints.first else { return }
+                let distance = location.distance(from: CLLocation(latitude: cp.lat, longitude: cp.lng))
                 DispatchQueue.main.async {
-                    self.isInValidArea = distance <= self.startRadius
+                    self.isInValidArea = distance <= cp.radius
                 }
             }
         }
@@ -739,7 +780,16 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         guard !pathPointInEndSafetyRadius.isEmpty else {
             return formatter.string(from: Date())
         }
-        
+
+        // 终点 = 当前赛道最后一个 checkpoint
+        let endRoutePoints: [RoutePointRealtime]? = (sportFeature == .bikeRace) ? currentBikeRecord?.routePoints
+            : (sportFeature == .runningRace) ? currentRunningRecord?.routePoints : nil
+        guard let lastPoint = endRoutePoints?.last, case .checkpoint(let endCp) = lastPoint else {
+            return formatter.string(from: Date())
+        }
+        let endCoordinate = CLLocationCoordinate2D(latitude: endCp.lat, longitude: endCp.lng)
+        let endRadius = endCp.radius
+
         // Step 1: 第一个在终点内的点
         for p in pathPointInEndSafetyRadius {
             let distance = CLLocation(latitude: p.lat, longitude: p.lon)
@@ -748,7 +798,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 return formatter.string(from: Date(timeIntervalSince1970: p.timestamp))
             }
         }
-        
+
         // Step 2: 检查线段是否穿过终点圆
         for i in 1..<pathPointInEndSafetyRadius.count {
             let p1 = pathPointInEndSafetyRadius[i-1]
@@ -758,7 +808,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                 return formatter.string(from: Date(timeIntervalSince1970: crossTimestamp))
             }
         }
-        
+
         // Step 3: 最后一个点外推
         if let last = pathPointInEndSafetyRadius.last {
             let distance = CLLocation(latitude: last.lat, longitude: last.lon)
@@ -1090,8 +1140,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         teamJoinRemainingTime = teamJoinTimeWindow
         isTeamJoinWindowExpired = false
         
+        // 标记起点已 check，下一个待经过检查点为 1（对齐 route training）
+        if sportFeature == .bikeRace, var rp = currentBikeRecord?.routePoints, !rp.isEmpty,
+           case .checkpoint(var sp) = rp[0] {
+            sp.isCheck = true
+            rp[0] = .checkpoint(sp)
+            currentBikeRecord?.routePoints = rp
+        } else if sportFeature == .runningRace, var rp = currentRunningRecord?.routePoints, !rp.isEmpty,
+                  case .checkpoint(var sp) = rp[0] {
+            sp.isCheck = true
+            rp[0] = .checkpoint(sp)
+            currentRunningRecord?.routePoints = rp
+        }
+        nextCheckPointIndex = 1
+
         isRecording = true
-        
+
 #if DEBUG
         if SAVEPHONERAWDATA {
             competitionData = []
@@ -1315,19 +1379,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     func resetBikeRaceRecord(record: BikeRaceRecord) {
         sportFeature = .bikeRace
         currentBikeRecord = record
-        startCoordinate = record.trackStart
-        startRadius = CLLocationDistance(record.trackStartRadius)
-        endCoordinate = record.trackEnd
-        endRadius = CLLocationDistance(record.trackEndRadius)
+        nextCheckPointIndex = nil
+        isInValidArea = false
     }
-    
+
     func resetRunningRaceRecord(record: RunningRaceRecord) {
         sportFeature = .runningRace
         currentRunningRecord = record
-        startCoordinate = record.trackStart
-        startRadius = CLLocationDistance(record.trackStartRadius)
-        endCoordinate = record.trackEnd
-        endRadius = CLLocationDistance(record.trackEndRadius)
+        nextCheckPointIndex = nil
+        isInValidArea = false
     }
     
     func loadMatchEnv() {
@@ -1422,10 +1482,6 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         matchContext.reset()
         realtimeStatisticData = .empty
         sensorRequest = 0
-        startCoordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
-        startRadius = 0.0
-        endCoordinate = CLLocationCoordinate2D(latitude: 1, longitude: 1)
-        endRadius = 0.0
         startTime = nil
         sportFeature = nil
         userLocation = nil
@@ -2417,7 +2473,8 @@ extension CompetitionManager {
     func startCompetitionSession_debug(with feature: SportFeature) {
         //guard let sport else { return }
         sportFeature = feature
-        let testDTO = BikeRaceRecordDTO(record_id: "", region_id: "", event_name: "", track_name: "", track_start_lat: 0, track_start_lng: 0, track_start_radius: 0, track_end_lat: 0, track_end_lng: 0, track_end_radius: 0, track_end_date: "", status: .notStarted, start_date: nil, end_date: nil, duration_seconds: nil, is_team: false, team_title: nil, team_competition_date: nil, created_at: "")
+        let testRouteData = (try? JSONDecoder().decode(JSONValue.self, from: Data("{\"type\":\"pointToPoint\",\"steps\":[]}".utf8))) ?? JSONValue.null
+        let testDTO = BikeRaceRecordDTO(record_id: "", region_id: "", event_name: "", track_name: "", route_type: .pointToPoint, route_data: testRouteData, track_end_date: "", status: .notStarted, start_date: nil, end_date: nil, duration_seconds: nil, is_team: false, team_title: nil, team_competition_date: nil, created_at: "")
         currentBikeRecord = BikeRaceRecord(from: testDTO)
         loadMatchEnv()
         startTime = Date()

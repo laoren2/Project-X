@@ -12,51 +12,17 @@ struct CareerView: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
     
-    @State private var onSeasonSwitch: Bool = false
     
     var body: some View {
         VStack(spacing: 20) {
             HStack {
                 if let selectedSeason = viewModel.selectedSeason {
-                    if onSeasonSwitch {
-                        ScrollView(.horizontal) {
-                            HStack(spacing: 8) {
-                                ForEach(viewModel.seasons) { season in
-                                    Text(LocalizedStringKey(season.seasonName))
-                                        .font(.subheadline)
-                                        .foregroundStyle(selectedSeason == season ? Color.white : Color.thirdText)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 8)
-                                        .background(
-                                            Capsule()
-                                                .fill(selectedSeason == season ? Color.orange : Color.gray)
-                                        )
-                                        .exclusiveTouchTapGesture {
-                                            onSeasonSwitch.toggle()
-                                            viewModel.selectedSeason = season
-                                        }
-                                }
-                            }
-                        }
-                    } else {
-                        HStack(spacing: 4) {
-                            Text(LocalizedStringKey(selectedSeason.seasonName))
-                                .foregroundStyle(Color.white)
-                                .font(.subheadline)
-                            Image(systemName: "arrow.left.arrow.right")
-                                .foregroundStyle(Color.secondText)
-                                .font(.system(size: 12))
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 10)
-                        .overlay(
-                            Capsule()
-                                .stroke(Color.orange, lineWidth: 2)
-                        )
-                        .exclusiveTouchTapGesture {
-                            onSeasonSwitch.toggle()
-                        }
-                    }
+                    CapsuleScrollSelector(
+                        options: viewModel.seasons,
+                        selection: Binding(get: { selectedSeason }, set: { viewModel.selectedSeason = $0 }),
+                        titleKey: { $0.seasonName },
+                        backgroundColor: Color.white.opacity(0.2)
+                    )
                 } else {
                     Text("error.unknown")
                         .font(.subheadline)
@@ -249,7 +215,6 @@ struct LocalCareerView: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: LocalUserViewModel
     @State private var showTierDetail: Bool = false
-    @State private var onSeasonSwitch: Bool = false
     
     var body: some View {
         VStack(spacing: 20) {
@@ -261,45 +226,12 @@ struct LocalCareerView: View {
             } else {
                 HStack {
                     if let selectedSeason = viewModel.selectedSeason {
-                        if onSeasonSwitch {
-                            ScrollView(.horizontal) {
-                                HStack(spacing: 8) {
-                                    ForEach(viewModel.seasons) { season in
-                                        Text(LocalizedStringKey(season.seasonName))
-                                            .font(.subheadline)
-                                            .foregroundStyle(selectedSeason == season ? Color.white : Color.thirdText)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 8)
-                                            .background(
-                                                Capsule()
-                                                    .fill(selectedSeason == season ? Color.orange : Color.gray)
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                onSeasonSwitch.toggle()
-                                                viewModel.selectedSeason = season
-                                            }
-                                    }
-                                }
-                            }
-                        } else {
-                            HStack(spacing: 4) {
-                                Text(LocalizedStringKey(selectedSeason.seasonName))
-                                    .foregroundStyle(Color.white)
-                                    .font(.subheadline)
-                                Image(systemName: "arrow.left.arrow.right")
-                                    .foregroundStyle(Color.secondText)
-                                    .font(.system(size: 12))
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 10)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.orange, lineWidth: 2)
-                            )
-                            .exclusiveTouchTapGesture {
-                                onSeasonSwitch.toggle()
-                            }
-                        }
+                        CapsuleScrollSelector(
+                            options: viewModel.seasons,
+                            selection: Binding(get: { selectedSeason }, set: { viewModel.selectedSeason = $0 }),
+                            titleKey: { $0.seasonName },
+                            backgroundColor: Color.white.opacity(0.2)
+                        )
                     } else {
                         Text("error.unknown")
                             .font(.subheadline)

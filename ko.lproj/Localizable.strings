@@ -1028,3 +1028,21 @@
 "ccasset.stone1" = "초급 강화 재료";
 "ccasset.stone2" = "중급 강화 재료";
 "ccasset.stone3" = "고급 강화 재료";
+
+// 热门路线申请转赛道
+"training.route.apply.action" = "신청";
+"training.route.apply.pending" = "심사 중";
+"training.route.apply.approved" = "게시됨";
+"training.route.apply.not_enough" = "인기도가 100을 넘어야 신청할 수 있습니다";
+"training.route.apply.title" = "트랙으로 신청";
+"training.route.apply.track_title" = "트랙 제목";
+"training.route.apply.sub_region" = "하위 지역 이름";
+"training.route.apply.terrain" = "지형";
+"training.route.apply.lifecycle" = "유효 기간";
+"training.route.apply.lifecycle.one_month" = "1개월";
+"training.route.apply.lifecycle.two_month" = "2개월";
+"training.route.apply.lifecycle.season_end" = "시즌 종료까지";
+"training.route.apply.tip" = "승인되면 경로가 정식 트랙이 됩니다.";
+"training.route.apply.submit" = "신청 제출";
+"training.route.apply.success" = "신청이 제출되었습니다";
+"training.route.apply.banner" = "인기도가 100을 넘은 공개 경로는 아레나 참가를 신청하여 정식 트랙이 될 수 있습니다!";

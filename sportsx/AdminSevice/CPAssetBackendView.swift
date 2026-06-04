@@ -160,7 +160,9 @@ struct CPAssetCreateView: View {
     @State var value1: String = ""
     @State var key2: String = ""
     @State var value2: String = ""
-    
+    @State var key3: String = ""
+    @State var value3: String = ""
+
     @State var coverImage: UIImage? = nil
     @State var showImagePicker: Bool = false
     @State var selectedImageItem: PhotosPickerItem?
@@ -187,6 +189,11 @@ struct CPAssetCreateView: View {
                     TextField("值1", text: $value1)
                     TextField("字段2", text: $key2)
                     TextField("值2", text: $value2)
+                    TextField("字段3", text: $key3)
+                    TextField("值3", text: $value3)
+                    Text("报名卡需填 sport_type / is_team / premium(true|false)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 Section(header: Text("封面图片")) {
                     if let image = coverImage {
@@ -232,14 +239,17 @@ struct CPAssetCreateView: View {
         headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
         
         var body = Data()
-        
-        let extraFields = """
-        {
-          "\(key1)": "\(value1)",
-          "\(key2)": "\(value2)"
+
+        // 仅收集非空的键值对，避免产生空键
+        var extraDict: [String: String] = [:]
+        for (key, value) in [(key1, value1), (key2, value2), (key3, value3)] {
+            let trimmedKey = key.trimmingCharacters(in: .whitespaces)
+            if !trimmedKey.isEmpty {
+                extraDict[trimmedKey] = value
+            }
         }
-        """
-        
+        let extraFields = JSONHelper.toJSONString(extraDict) ?? "{}"
+
         var name_i18n: [String: String] = [:]
         if !name_hans.isEmpty { name_i18n["zh-Hans"] = name_hans }
         if !name_hant.isEmpty { name_i18n["zh-Hant"] = name_hant }

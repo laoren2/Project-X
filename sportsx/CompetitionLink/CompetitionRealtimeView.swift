@@ -58,22 +58,38 @@ struct CompetitionRealtimeView: View {
         }
         return temp
     }
-    
+
+    // 当前比赛赛道的实时路线（多检查点）
+    private var currentRaceRouteData: (routePoints: [RoutePointRealtime], routeType: RouteType)? {
+        switch appState.competitionManager.sportFeature {
+        case .bikeRace:
+            guard let record = appState.competitionManager.currentBikeRecord else { return nil }
+            return (record.routePoints, record.routeType)
+        case .runningRace:
+            guard let record = appState.competitionManager.currentRunningRecord else { return nil }
+            return (record.routePoints, record.routeType)
+        default:
+            return nil
+        }
+    }
+
     var body: some View {
+        //let _ = Self._printChanges()
         // 显示实时比赛数据
         ZStack(alignment: .bottom) {
             ZStack {
-                RaceRealtimeMapView(
-                    fromCoordinate: appState.competitionManager.startCoordinate,
-                    toCoordinate: appState.competitionManager.endCoordinate,
-                    startRadius: appState.competitionManager.startRadius,
-                    endRadius: appState.competitionManager.endRadius,
-                    path: appState.competitionManager.basePathData,
-                    isShowSheet: !chevronDirection,
-                    mapMode: $mapMode,
-                    userLocation: $appState.competitionManager.userLocation
-                )
-                .ignoresSafeArea()
+                if let route = currentRaceRouteData {
+                    RouteRealtimeMapView(
+                        routePoints: route.routePoints,
+                        routeType: route.routeType,
+                        path: appState.competitionManager.basePathData,
+                        nextRoutePointIndex: appState.competitionManager.nextCheckPointIndex,
+                        mapMode: $mapMode,
+                        userLocation: appState.competitionManager.userLocation,
+                        isShowSheet: !chevronDirection
+                    )
+                    .ignoresSafeArea()
+                }
                 
                 VStack {
                     HStack(alignment: .top) {

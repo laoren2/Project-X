@@ -614,7 +614,7 @@ struct SetUpItemView<Content: View>: View {
     }
 }
 
-struct SeasonSelectableInfo: Identifiable, Equatable {
+struct SeasonSelectableInfo: Identifiable, Hashable {
     var id: String { seasonID }
     let seasonID: String
     let seasonName: String

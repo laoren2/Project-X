@@ -319,7 +319,7 @@ struct RunningTrackCreateView: View {
                     }
                     .disabled(
                         name_hant.isEmpty || eventID.isEmpty || from_la.isEmpty || from_lo.isEmpty || to_la.isEmpty || to_lo.isEmpty
-                        || elevationDifference.isEmpty || subRegioName_hant.isEmpty || prizePool.isEmpty
+                        || subRegioName_hant.isEmpty || prizePool.isEmpty
                         || score.isEmpty || from_radius == 0 || to_radius == 0
                     )
                 }
@@ -360,26 +360,28 @@ struct RunningTrackCreateView: View {
         if !subRegioName_ko.isEmpty { subRegionName_i18n["ko"] = subRegioName_ko }
         if !subRegioName_ja.isEmpty { subRegionName_i18n["ja"] = subRegioName_ja }
         
-        // 文字字段
+        // route_data：后台暂以起点/终点构造 2 点 pointToPoint 路线（坐标按 wgs84 直接录入）
+        let steps: [[String: Any]] = [
+            ["kind": "checkpoint", "lat": Double(from_la) ?? 0, "lng": Double(from_lo) ?? 0, "radius": from_radius],
+            ["kind": "checkpoint", "lat": Double(to_la) ?? 0, "lng": Double(to_lo) ?? 0, "radius": to_radius]
+        ]
+        let routeDataDict: [String: Any] = ["type": RouteType.pointToPoint.rawValue, "steps": steps]
+        let routeDataJSON = (try? JSONSerialization.data(withJSONObject: routeDataDict)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+
+        // 文字字段（distance / 海拔差由后端按 route_data 计算）
         var textFields: [String : String] = [
             "start_date": ISO8601DateFormatter().string(from: startDate),
             "end_date": ISO8601DateFormatter().string(from: endDate),
             "event_id": eventID,
             "terrain_type": terrainType.rawValue,
-            "from_latitude": from_la,
-            "from_longitude": from_lo,
-            "from_radius": "\(from_radius)",
-            "to_latitude": to_la,
-            "to_longitude": to_lo,
-            "to_radius": "\(to_radius)",
+            "route_type": RouteType.pointToPoint.rawValue,
+            "route_data": routeDataJSON,
             "single_registercard_id": singleRegisterCardID,
             "team_registercard_id": teamRegisterCardID,
-            "elevationDifference": elevationDifference,
             "prizePool": prizePool,
-            "distance": distance,
             "score": score
         ]
-        
+
         if let nameJSON = JSONHelper.toJSONString(name_i18n) {
             textFields["name"] = nameJSON
         }
@@ -575,24 +577,26 @@ struct RunningTrackUpdateView: View {
         if !viewModel.subRegioName_en.isEmpty { subRegionName_i18n["en"] = viewModel.subRegioName_en }
         if !viewModel.subRegioName_ko.isEmpty { subRegionName_i18n["ko"] = viewModel.subRegioName_ko }
         
-        // 文字字段
+        // route_data：以起点/终点构造 2 点 pointToPoint 路线
+        let steps: [[String: Any]] = [
+            ["kind": "checkpoint", "lat": Double(viewModel.from_la) ?? 0, "lng": Double(viewModel.from_lo) ?? 0, "radius": viewModel.from_radius],
+            ["kind": "checkpoint", "lat": Double(viewModel.to_la) ?? 0, "lng": Double(viewModel.to_lo) ?? 0, "radius": viewModel.to_radius]
+        ]
+        let routeDataDict: [String: Any] = ["type": RouteType.pointToPoint.rawValue, "steps": steps]
+        let routeDataJSON = (try? JSONSerialization.data(withJSONObject: routeDataDict)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+
+        // 文字字段（distance / 海拔差由后端按 route_data 计算）
         var textFields: [String : String] = [
             "track_id": viewModel.selectedTrackID,
             "start_date": ISO8601DateFormatter().string(from: viewModel.startDate),
             "end_date": ISO8601DateFormatter().string(from: viewModel.endDate),
-            "from_latitude": viewModel.from_la,
-            "from_longitude": viewModel.from_lo,
-            "from_radius": "\(viewModel.from_radius)",
-            "to_latitude": viewModel.to_la,
-            "to_longitude": viewModel.to_lo,
-            "to_radius": "\(viewModel.to_radius)",
-            "elevationDifference": viewModel.elevationDifference,
+            "route_type": RouteType.pointToPoint.rawValue,
+            "route_data": routeDataJSON,
             "prizePool": viewModel.prizePool,
-            "distance": viewModel.distance,
             "score": viewModel.score,
             "terrain_type": viewModel.terrainType.rawValue
         ]
-        
+
         if let nameJSON = JSONHelper.toJSONString(name_i18n) {
             textFields["name"] = nameJSON
         }
@@ -694,13 +698,18 @@ struct RunningTrackCardView: View {
         viewModel.startDate = ISO8601DateFormatter().date(from: track.start_date) ?? Date()
         viewModel.endDate = ISO8601DateFormatter().date(from: track.end_date) ?? Date()
         viewModel.image_url = track.image_url
-        viewModel.from_la = track.from_latitude
-        viewModel.from_lo = track.from_longitude
-        viewModel.from_radius = track.from_radius
-        viewModel.to_la = track.to_latitude
-        viewModel.to_lo = track.to_longitude
-        viewModel.to_radius = track.to_radius
-        
+        // 从 route_data 首尾 checkpoint 预填起点/终点
+        if case .checkpoint(let s) = track.routePoints.first {
+            viewModel.from_la = "\(s.lat)"
+            viewModel.from_lo = "\(s.lng)"
+            viewModel.from_radius = Int(s.radius)
+        }
+        if case .checkpoint(let e) = track.routePoints.last {
+            viewModel.to_la = "\(e.lat)"
+            viewModel.to_lo = "\(e.lng)"
+            viewModel.to_radius = Int(e.radius)
+        }
+
         viewModel.elevationDifference = track.elevationDifference
         viewModel.subRegioName_en = track.subRegioName_en
         viewModel.subRegioName_hans = track.subRegioName_hans
