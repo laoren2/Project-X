@@ -79,8 +79,11 @@ struct AdminPanelView: View {
                     SetUpItemView(icon: "pc", title: "邮件管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.mailboxBackendView)
                     }
-                    SetUpItemView(icon: "pc", title: "反馈邮件管理",showDivider: false, isDarkScheme: false) {
+                    SetUpItemView(icon: "pc", title: "反馈邮件管理", isDarkScheme: false) {
                         NavigationManager.shared.append(.feedbackMailBackendView)
+                    }
+                    SetUpItemView(icon: "pc", title: "路线转赛道审核", showDivider: false, isDarkScheme: false) {
+                        NavigationManager.shared.append(.routeApplicationBackendView)
                     }
                 }
                 .cornerRadius(20)

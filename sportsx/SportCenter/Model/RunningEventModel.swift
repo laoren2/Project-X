@@ -34,10 +34,8 @@ struct RunningTrack: Identifiable, Equatable {
     let name: String
     let startDate: Date?
     let endDate: Date?
-    let from: CLLocationCoordinate2D
-    let fromRadius: Int
-    let to: CLLocationCoordinate2D
-    let toRadius: Int
+    let routeType: RouteType
+    let routePoints: [RoutePoint]       // 赛道路线（多检查点，坐标为 wgs84）
     let image_url: String
     let terrainType: RunningTrackTerrainType
     let singleRegisterCardUrl: String
@@ -47,24 +45,21 @@ struct RunningTrack: Identifiable, Equatable {
     let elevationDifference: Int        // 海拔差(米)
     let regionName: String              // 覆盖的地理区域
     let prizePool: Int                  // 奖金池金额
-    let distance: Float                 // 路程距离
+    let distance: Double                // 路程距离
     let score: Int                      // 积分
-    let totalParticipants: Int          // 总参与人数
+    let totalParticipants: Int          // 总参与人数（实时榜）
+    let participateCount: Int           // 报名/比赛记录数（热度排序与展示）
+    let distanceToUser: Double?         // 起点到用户距离（米，distance 排序时返回）
     let currentParticipants: Int = 0    // 当前参与人数
-    
-    var rankInfo: RunningUserRankCard? = nil
-    var familiarity: Double? = nil          // 用户熟悉度
     
     init(from track: RunningTrackInfoDTO) {
         self.trackID = track.track_id
         self.name = track.name
-        self.startDate = ISO8601DateFormatter().date(from: track.start_date) ?? Date()
-        self.endDate = ISO8601DateFormatter().date(from: track.end_date) ?? Date()
-        self.from = CLLocationCoordinate2D(latitude: track.from_latitude, longitude: track.from_longitude)
-        self.fromRadius = track.from_radius
-        self.to = CLLocationCoordinate2D(latitude: track.to_latitude, longitude: track.to_longitude)
-        self.toRadius = track.to_radius
-        self.image_url = track.image_url
+        self.startDate = DateParser.parseISO8601(track.start_date)
+        self.endDate = DateParser.parseISO8601(track.end_date)
+        self.routeType = track.route_type
+        self.routePoints = [RoutePoint](routeData: track.route_data)
+        self.image_url = track.image_url ?? ""      // 由热门路线转换的赛道暂无封面图
         self.terrainType = track.terrain_type
         self.singleRegisterCardUrl = track.single_register_card_url
         self.teamRegisterCardUrl = track.team_register_card_url
@@ -74,8 +69,10 @@ struct RunningTrack: Identifiable, Equatable {
         self.distance = track.distance
         self.score = track.score
         self.totalParticipants = track.totalParticipants
+        self.participateCount = track.participate_count
+        self.distanceToUser = track.distance_to_user
     }
-    
+
     static func == (lhs: RunningTrack, rhs: RunningTrack) -> Bool {
         return lhs.trackID == rhs.trackID
     }
@@ -121,26 +118,25 @@ struct RunningTrackInfoDTO: Codable {
     
     let start_date: String
     let end_date: String
-    let image_url: String
+    let image_url: String?
     let terrain_type: RunningTrackTerrainType
     let single_register_card_url: String
     let team_register_card_url: String
-    
-    let from_latitude: Double
-    let from_longitude: Double
-    let from_radius: Int
-    let to_latitude: Double
-    let to_longitude: Double
-    let to_radius: Int
-    
+
+    let route_type: RouteType
+    let route_data: JSONValue
+
     let elevation_difference: Int   // 海拔差(米)
     let sub_region_name: String     // 覆盖的地理子区域
     let prize_pool: Int             // 奖金池金额
-    let distance: Float
+    let distance: Double
     let score: Int
     let totalParticipants: Int
+    let participate_count: Int
+    let distance_to_user: Double?
 }
 
 struct RunningTracksResponse: Codable {
     let tracks: [RunningTrackInfoDTO]
+    let next_cursor: String?
 }

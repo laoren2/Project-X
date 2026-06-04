@@ -22,7 +22,7 @@ class DataFusionManager: ObservableObject {
     // 比赛进行的原始时间（秒）
     @Published var elapsedTime: TimeInterval = 0
     // 监测是否到达最大延迟
-    @Published var isDelayed: Bool = false
+    var isDelayed: Bool = false
     // 监测各数组的稀疏度
     // [ phone | LH | RH | LF | RF | WAIST ]
     var sparsity: [Float] = [0,0,0,0,0,0]

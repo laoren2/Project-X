@@ -85,6 +85,7 @@ struct RouteTrainingRealtimeView: View {
     }
     
     var body: some View {
+        //let _ = Self._printChanges()
         // 显示实时比赛数据
         ZStack(alignment: .bottom) {
             ZStack {

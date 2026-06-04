@@ -22,9 +22,18 @@ class RunningCompetitionViewModel: ObservableObject {
     @Published var tracks: [RunningTrack] = []         // 赛道列表
     @Published var selectedEvent: RunningEvent?        // 当前选中赛事
     @Published var selectedTrack: RunningTrack?        // 当前选中赛道
-    
-    @Published var selectedRankInfo: RunningUserRankCard?
-    
+    var nextTrackCursor: String? = nil              // 赛道分页游标
+    @Published var sortType: RouteSortType = .participation     // 赛道排序方式（热度/距离）
+
+    // 赛道的用户态信息（熟悉度 + 我的排名），登录后按页批量拉取填充；key 为 trackID
+    @Published var trackUserInfos: [String: RunningTrackUserInfo] = [:]
+
+    // 当前选中赛道的排名信息（从 trackUserInfos 派生）
+    var selectedRankInfo: RunningUserRankCard? {
+        guard let trackID = selectedTrack?.trackID else { return nil }
+        return trackUserInfos[trackID]?.rankInfo
+    }
+
     // 队伍管理相关
     @Published var showCreateTeamSheet: Bool = false
     @Published var showJoinTeamSheet: Bool = false
@@ -85,72 +94,80 @@ class RunningCompetitionViewModel: ObservableObject {
         }
     }
     
-    func fetchTracks() {
-        guard !events.isEmpty else { return }
-        guard let event = selectedEvent else { return }
-        
+    func fetchTracks(reset: Bool = true) {
+        guard !events.isEmpty, let event = selectedEvent else { return }
+        guard !isTracksLoading else { return }
+
+        if reset {
+            tracks = []
+            nextTrackCursor = nil
+        }
+
         guard var components = URLComponents(string: "/competition/running/query_tracks") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "event_id", value: event.eventID)
+        var query = [
+            URLQueryItem(name: "event_id", value: event.eventID),
+            URLQueryItem(name: "sort_type", value: sortType.rawValue),
+            URLQueryItem(name: "limit", value: "10")
         ]
+        if let loc = LocationManager.shared.getLocation() {
+            query.append(URLQueryItem(name: "lat", value: "\(loc.coordinate.latitude)"))
+            query.append(URLQueryItem(name: "lng", value: "\(loc.coordinate.longitude)"))
+        }
+        if let cursor = nextTrackCursor {
+            query.append(URLQueryItem(name: "cursor", value: cursor))
+        }
+        components.queryItems = query
         guard let urlPath = components.string else { return }
-            
+
         let request = APIRequest(path: urlPath, method: .get)
-        
+
         DispatchQueue.main.async {
             self.isTracksLoading = true
         }
-        
+
         NetworkService.sendRequest(with: request, decodingType: RunningTracksResponse.self, showErrorToast: true) { result in
             DispatchQueue.main.async {
                 self.isTracksLoading = false
                 switch result {
                 case .success(let data):
                     guard let data else { return }
+                    guard let selectedEvent = self.selectedEvent, event.eventID == selectedEvent.eventID else { return }
                     let newTracks = data.tracks.map { RunningTrack(from: $0) }
-                    if let selectedEvent = self.selectedEvent, event.eventID == selectedEvent.eventID {
+                    if reset {
                         self.tracks = newTracks
                         self.selectedTrack = newTracks.first
-                        self.selectedRankInfo = self.selectedTrack?.rankInfo
+                    } else {
+                        self.tracks.append(contentsOf: newTracks)
                     }
-                    if !newTracks.isEmpty {
-                        if let index = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }) {
-                            self.events[index].tracks = self.tracks
-                        }
-                    }
+                    self.nextTrackCursor = data.next_cursor
+                    // 登录后批量拉取这页赛道的用户态信息（熟悉度 + 我的排名）
+                    self.fetchTracksUserInfo(trackIDs: newTracks.map { $0.trackID })
                 case .failure:
-                    self.tracks = []
-                    self.selectedTrack = nil
+                    if reset {
+                        self.tracks = []
+                        self.selectedTrack = nil
+                    }
                 }
             }
         }
     }
-    
-    func queryRankInfo(trackID: String) {
-        guard UserManager.shared.isLoggedIn else { return }
-        guard var components = URLComponents(string: "/competition/running/query_me_rank") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "track_id", value: trackID)
-        ]
-        guard let urlPath = components.string else { return }
-            
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        
-        NetworkService.sendRequest(with: request, decodingType: RunningUserRankInfoDTO.self, showErrorToast: true) { result in
+
+    // 批量拉取赛道用户态信息（熟悉度 + 排名），按 track_id 填充 trackUserInfos
+    func fetchTracksUserInfo(trackIDs: [String]) {
+        guard userManager.isLoggedIn, !trackIDs.isEmpty else { return }
+        let body: [String: Any] = ["track_ids": trackIDs]
+        guard let encodedBody = try? JSONSerialization.data(withJSONObject: body) else { return }
+        var headers: [String: String] = [:]
+        headers["Content-Type"] = "application/json"
+
+        let request = APIRequest(path: "/competition/running/query_tracks_user_info", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: RunningTracksUserInfoResponse.self) { result in
             switch result {
             case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        let rankInfo = RunningUserRankCard(from: unwrappedData)
-                        if let eventIndex = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }),
-                           let trackIndex = self.events[eventIndex].tracks.firstIndex(where: { $0.trackID == trackID }),
-                           let index = self.tracks.firstIndex(where: { $0.trackID == trackID }) {
-                            self.tracks[index].rankInfo = rankInfo
-                            self.events[eventIndex].tracks[trackIndex].rankInfo = rankInfo
-                        }
-                        if let track = self.selectedTrack, trackID == track.trackID {
-                            self.selectedRankInfo = rankInfo
-                        }
+                guard let data else { return }
+                DispatchQueue.main.async {
+                    for info in data.infos {
+                        self.trackUserInfos[info.track_id] = RunningTrackUserInfo(from: info)
                     }
                 }
             default: break
@@ -158,51 +175,10 @@ class RunningCompetitionViewModel: ObservableObject {
         }
     }
     
-    func queryTrackFamiliarity(trackID: String) {
-        guard userManager.isLoggedIn else { return }
-        guard var components = URLComponents(string: "/competition/running/query_track_familiarity") else { return }
-        components.queryItems = [
-            URLQueryItem(name: "track_id", value: trackID)
-        ]
-        guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        
-        NetworkService.sendRequest(with: request, decodingType: Double.self, showErrorToast: true) { result in
-            switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        if let eventIndex = self.events.firstIndex(where: { $0.eventID == self.selectedEvent?.eventID }),
-                           let trackIndex = self.events[eventIndex].tracks.firstIndex(where: { $0.trackID == trackID }),
-                           let index = self.tracks.firstIndex(where: { $0.trackID == trackID }) {
-                            self.tracks[index].familiarity = unwrappedData
-                            self.events[eventIndex].tracks[trackIndex].familiarity = unwrappedData
-                        }
-                        if let track = self.selectedTrack, trackID == track.trackID {
-                            self.selectedTrack?.familiarity = unwrappedData
-                        }
-                    }
-                }
-            default: break
-            }
-        }
-    }
-    
-    // 切换赛事
+    // 切换赛事：重置分页并重新拉取首页赛道
     func switchEvent(to event: RunningEvent) {
-        //selectedEvent?.tracks = tracks  // 缓存赛事里的所有赛道
         selectedEvent = event
-        
-        if event.tracks.isEmpty {
-            fetchTracks()
-        } else {
-            tracks = event.tracks
-            selectedTrack = tracks[0]   // 手动重置为第一个赛道
-        }
-        
-        // 重新获取排行榜数据
-        //fetchLeaderboard(gender: gender, reset: true)
+        fetchTracks(reset: true)
     }
     
     // 切换赛道
@@ -318,4 +294,29 @@ struct RunningUserRankInfoDTO: Codable {
     let duration_seconds: Double?
     let reward_voucher_amount: Int?
     let score: Int?
+}
+
+// 赛道用户态信息（熟悉度 + 我的排名），批量接口返回
+struct RunningTrackUserInfo {
+    let familiarity: Double?
+    let rankInfo: RunningUserRankCard?
+
+    init(from dto: RunningTrackUserInfoDTO) {
+        self.familiarity = dto.familiarity
+        if let r = dto.rank_info {
+            self.rankInfo = RunningUserRankCard(from: r)
+        } else {
+            self.rankInfo = nil
+        }
+    }
+}
+
+struct RunningTrackUserInfoDTO: Codable {
+    let track_id: String
+    let familiarity: Double
+    let rank_info: RunningUserRankInfoDTO?
+}
+
+struct RunningTracksUserInfoResponse: Codable {
+    let infos: [RunningTrackUserInfoDTO]
 }

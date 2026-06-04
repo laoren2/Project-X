@@ -20,7 +20,7 @@ struct BikeCompetitionView: View {
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
     @State private var selectedTrackForFullMap: BikeTrack? = nil
-    
+
     @Binding var isDragging: Bool
     
     let globalConfig = GlobalConfig.shared
@@ -159,7 +159,7 @@ struct BikeCompetitionView: View {
                     if viewModel.isEventsLoading || viewModel.isTracksLoading {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.gray)
-                            .frame(height: 50)
+                            .frame(height: 260)
                             .frame(maxWidth: .infinity)
                     } else {
                         if viewModel.tracks.isEmpty {
@@ -167,34 +167,54 @@ struct BikeCompetitionView: View {
                                 .foregroundColor(.secondText)
                                 .padding()
                         } else {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 10) {
-                                    ForEach(viewModel.tracks) { track in
-                                        Text(track.name)
-                                            .padding(.vertical, 10)
-                                            .padding(.horizontal, 20)
-                                            .font(.system(size: 15))
-                                            .foregroundStyle(viewModel.selectedTrack?.trackID == track.trackID ? .white : .thirdText)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .fill(viewModel.selectedTrack?.trackID == track.trackID ?
-                                                          Color.orange.opacity(0.2) : Color.gray.opacity(0.1))
-                                            )
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(viewModel.selectedTrack?.trackID == track.trackID ?
-                                                            Color.orange.opacity(0.6) : Color.clear, lineWidth: 1)
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                // 防止频繁刷新
-                                                if viewModel.selectedTrack?.trackID != track.trackID {
-                                                    viewModel.switchTrack(to: track)
-                                                }
-                                            }
+                            VStack(spacing: 8) {
+                                // 排序切换（热度 / 距离）
+                                HStack {
+                                    Spacer()
+                                    CapsuleScrollSelector(
+                                        options: RouteSortType.allCases,
+                                        selection: $viewModel.sortType,
+                                        titleKey: { $0.displayName },
+                                        icon: "arrow.up.arrow.down"
+                                    ) { _ in
+                                        viewModel.fetchTracks(reset: true)
                                     }
                                 }
-                                .padding(.vertical, 1)
-                                .padding(.horizontal, 1)
+                                // 纵向赛道列表（固定高度可滚动）
+                                ScrollView {
+                                    LazyVStack(spacing: 8) {
+                                        ForEach(viewModel.tracks) { track in
+                                            BikeCompetitionTrackCardView(track: track, sortType: viewModel.sortType)
+                                                .contentShape(Rectangle())
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(Color.black.opacity(0.2))
+                                                        .overlay(
+                                                            RoundedRectangle(cornerRadius: 10)
+                                                                .stroke(viewModel.selectedTrack?.trackID == track.trackID ? Color.orange : Color.clear, lineWidth: 1)
+                                                        )
+                                                )
+                                                .exclusiveTouchTapGesture {
+                                                    if viewModel.selectedTrack?.trackID != track.trackID {
+                                                        viewModel.switchTrack(to: track)
+                                                    }
+                                                }
+                                                .onAppear {
+                                                    if track.trackID == viewModel.tracks.last?.trackID && viewModel.nextTrackCursor != nil {
+                                                        viewModel.fetchTracks(reset: false)
+                                                    }
+                                                }
+                                        }
+                                        if viewModel.isTracksLoading {
+                                            ProgressView()
+                                                .padding()
+                                        }
+                                    }
+                                    .padding(10)
+                                }
+                                .frame(height: 240)
+                                .background(Color.black.opacity(0.2))
+                                .cornerRadius(12)
                             }
                         }
                     }
@@ -210,11 +230,10 @@ struct BikeCompetitionView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 ScrollView {
                                     ZStack {
-                                        TrackMapView(
-                                            fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
-                                            toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to),
-                                            startRadius: CLLocationDistance(track.fromRadius),
-                                            endRadius: CLLocationDistance(track.toRadius)
+                                        MapPreviewRepresentable(
+                                            routePoints: track.routePoints,
+                                            polygons: locationManager.regionBoundary,
+                                            needParse: true
                                         )
                                         .frame(height: 300)
                                         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -299,7 +318,7 @@ struct BikeCompetitionView: View {
                                             ("voucher", "competition.track.prize_pool", "\(track.prizePool)", nil, false),
                                             ("sub_region", "competition.track.sub_region", track.regionName, nil, false),
                                             ("season_points", "competition.track.score", "\(track.score)", nil, false),
-                                            ("total_distance", "competition.track.distance", "\(track.distance)", "distance.km", false)
+                                            ("total_distance", "competition.track.distance", track.distance < 1 ? "\(Int(track.distance * 1000))" : String(format: "%.1f", track.distance), track.distance < 1 ? "distance.m" : "distance.km", false)
                                         ]
                                         HStack(alignment: .top) {
                                             Spacer()
@@ -347,7 +366,7 @@ struct BikeCompetitionView: View {
                                                 .foregroundColor(.white)
                                             Spacer()
                                         }
-                                        if let familiarity = track.familiarity {
+                                        if let familiarity = viewModel.trackUserInfos[track.trackID]?.familiarity {
                                             ZStack {
                                                 ProgressBar(progress: familiarity)
                                                 Text(String(format: "%.1f %%", familiarity * 100))
@@ -626,21 +645,10 @@ struct BikeCompetitionView: View {
                 viewModel.fetchEvents(with: regionID)
             }
         }
-        .onValueChange(of: viewModel.selectedTrack) { _, newState in
-            if let track = newState {
-                viewModel.selectedRankInfo = track.rankInfo
-                if track.rankInfo == nil {
-                    viewModel.queryRankInfo(trackID: track.trackID)
-                }
-                if track.familiarity == nil {
-                    viewModel.queryTrackFamiliarity(trackID: track.trackID)
-                }
-            }
-        }
         .onValueChange(of: userManager.isLoggedIn) { _, newState in
-            if newState, let track = viewModel.selectedTrack {
-                viewModel.queryRankInfo(trackID: track.trackID)
-                viewModel.queryTrackFamiliarity(trackID: track.trackID)
+            if newState {
+                // 登录后批量拉取当前页赛道的用户态信息（熟悉度 + 排名）
+                viewModel.fetchTracksUserInfo(trackIDs: viewModel.tracks.map { $0.trackID })
             }
         }
         .onStableAppear {
@@ -666,11 +674,10 @@ struct BikeCompetitionView: View {
                 globalConfig.refreshCompetitionView  = false
                 globalConfig.refreshRankInfo  = false
                 globalConfig.refreshFamiliarity  = false
-            } else if globalConfig.refreshRankInfo, let trackID = viewModel.selectedTrack?.trackID {
-                viewModel.queryRankInfo(trackID: trackID)
+            } else if globalConfig.refreshRankInfo || globalConfig.refreshFamiliarity {
+                // 排名/熟悉度刷新：批量重拉当前页赛道用户态
+                viewModel.fetchTracksUserInfo(trackIDs: viewModel.tracks.map { $0.trackID })
                 globalConfig.refreshRankInfo  = false
-            } else if globalConfig.refreshFamiliarity, let trackID = viewModel.selectedTrack?.trackID {
-                viewModel.queryTrackFamiliarity(trackID: trackID)
                 globalConfig.refreshFamiliarity  = false
             }
             DispatchQueue.main.async {
@@ -680,11 +687,12 @@ struct BikeCompetitionView: View {
         .ignoresSafeArea(.keyboard)
         .ignoresSafeArea(edges: .bottom)
         .fullScreenCover(item: $selectedTrackForFullMap) { track in
-            FullScreenMapView(
-                fromCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.from),
-                toCoordinate: CoordinateConverter.parseCoordinate(coordinate: track.to),
-                startRadius: CLLocationDistance(track.fromRadius),
-                endRadius: CLLocationDistance(track.toRadius)
+            FullScreenRouteMapView(
+                showMap: Binding(
+                    get: { selectedTrackForFullMap != nil },
+                    set: { if !$0 { selectedTrackForFullMap = nil } }
+                ),
+                routePoints: track.routePoints
             )
         }
     }
@@ -1399,5 +1407,69 @@ struct BikeTeamPublicCard: View {
         .padding(16)
         .background(Color.gray)
         .cornerRadius(12)
+    }
+}
+
+// 赛道列表卡片（纵向列表，参考 route training 的列表卡片）
+struct BikeCompetitionTrackCardView: View {
+    let track: BikeTrack
+    let sortType: RouteSortType
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(track.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Spacer()
+                HStack(spacing: 4) {
+                    if sortType == .distance, let d = track.distanceToUser {
+                        Image("location")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18)
+                        Text(DistanceHelper.paceString(from: d / 1000))
+                    } else {
+                        Image(systemName: "person")
+                        Text("\(track.participateCount)")
+                    }
+                }
+                .font(.system(size: 14))
+                .foregroundStyle(Color.secondText)
+            }
+            HStack(spacing: 6) {
+                Image(track.routeType.icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 16)
+                    .padding(.vertical, 3)
+                    .padding(.horizontal, 5)
+                    .background(Color.white.opacity(0.3))
+                    .cornerRadius(4)
+                Text(LocalizedStringKey(track.terrainType.displayName))
+                    .font(.system(size: 12))
+                    .frame(height: 16)
+                    .padding(.vertical, 3)
+                    .padding(.horizontal, 5)
+                    .background(Color.white.opacity(0.3))
+                    .cornerRadius(4)
+                HStack(spacing: 2) {
+                    Image("total_distance")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 16)
+                    Text(DistanceHelper.paceString(from: track.distance))
+                        .font(.system(size: 12))
+                }
+                .padding(.vertical, 3)
+                .padding(.horizontal, 5)
+                .background(Color.white.opacity(0.3))
+                .cornerRadius(4)
+                Spacer()
+            }
+        }
+        .padding(10)
+        .foregroundStyle(Color.white)
     }
 }

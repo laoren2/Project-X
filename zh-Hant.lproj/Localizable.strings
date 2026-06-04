@@ -1048,3 +1048,21 @@
 "ccasset.stone1" = "初級升級材料";
 "ccasset.stone2" = "中級升級材料";
 "ccasset.stone3" = "高級升級材料";
+
+// 热门路线申请转赛道
+"training.route.apply.action" = "申請賽道";
+"training.route.apply.pending" = "審核中";
+"training.route.apply.approved" = "已上線";
+"training.route.apply.not_enough" = "熱度需超過 100 才能申請";
+"training.route.apply.title" = "申請成為賽道";
+"training.route.apply.track_title" = "賽道標題";
+"training.route.apply.sub_region" = "子區域名稱";
+"training.route.apply.terrain" = "地形";
+"training.route.apply.lifecycle" = "生命週期";
+"training.route.apply.lifecycle.one_month" = "1 個月";
+"training.route.apply.lifecycle.two_month" = "2 個月";
+"training.route.apply.lifecycle.season_end" = "到賽季結束";
+"training.route.apply.tip" = "審核通過後路線將成為正式賽道。";
+"training.route.apply.submit" = "提交申請";
+"training.route.apply.success" = "申請已提交";
+"training.route.apply.banner" = "熱度超過 100 的公開路線，可申請加入競技場，成為正式賽道！";

@@ -291,6 +291,14 @@ struct BikeRaceRecordDetailView: View {
                                 }
                                 .foregroundStyle(Color.secondText)
                                 HStack {
+                                    (Text("  ") + Text("training.route.create.penalty_time"))
+                                        .font(.system(size: 15))
+                                    Spacer()
+                                    Text("+ \(TimeDisplay.formattedTime(detailInfo.penaltyTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(Color.pink)
+                                HStack {
                                     HStack(spacing: 2) {
                                         Text("competition.record.valid_time")
                                             .bold()
@@ -1147,6 +1155,14 @@ struct RunningRaceRecordDetailView: View {
                                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 }
                                 .foregroundStyle(Color.secondText)
+                                HStack {
+                                    (Text("  ") + Text("training.route.create.penalty_time"))
+                                        .font(.system(size: 15))
+                                    Spacer()
+                                    Text("+ \(TimeDisplay.formattedTime(detailInfo.penaltyTime, showFraction: true))")
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundStyle(Color.pink)
                                 HStack {
                                     HStack(spacing: 2) {
                                         Text("competition.record.valid_time")

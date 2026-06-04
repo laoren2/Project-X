@@ -428,6 +428,39 @@ extension Array where Element == EditableRoutePoint {
 }
 
 extension Array where Element == RoutePoint {
+    // 公共解析：route_data.steps（JSONValue）→ [RoutePoint]，供 route / track / record 复用
+    init(routeData: JSONValue) {
+        var parsed: [RoutePoint] = []
+        if let steps = routeData["steps"]?.arrayValue {
+            for step in steps {
+                guard let kind = step["kind"]?.stringValue else { continue }
+                if kind == "checkpoint" {
+                    if let lat = step["lat"]?.doubleValue,
+                       let lng = step["lng"]?.doubleValue,
+                       let radius = step["radius"]?.doubleValue {
+                        let penalty = step["penalty"]?.intValue
+                        parsed.append(.checkpoint(Checkpoint(lat: lat, lng: lng, radius: radius, penalty: penalty)))
+                    }
+                }
+                if kind == "segment" {
+                    if let pointsArray = step["points"]?.arrayValue {
+                        var coords: [CLLocationCoordinate2D] = []
+                        for p in pointsArray {
+                            if let pair = p.arrayValue, pair.count == 2,
+                               let lat = pair[0].doubleValue,
+                               let lng = pair[1].doubleValue {
+                                coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lng))
+                            }
+                        }
+                        let width = step["width"]?.doubleValue ?? 5
+                        parsed.append(.segment(Segment(points: coords, width: width)))
+                    }
+                }
+            }
+        }
+        self = parsed
+    }
+
     func toRealtimePoints() -> [RoutePointRealtime] {
         map { $0.toRealtimePoint() }
     }
@@ -595,6 +628,29 @@ enum RouteType: String, CaseIterable, Codable {
         switch self {
         case .pointToPoint: return "route_p2p"
         case .multiPoints: return "route_multipoints"
+        }
+    }
+}
+
+// 路线申请转赛道的状态
+enum RouteApplyStatus: String, CaseIterable, Codable {
+    case none = "none"              // 未申请（可申请）
+    case pending = "pending"        // 审核中
+    case approved = "approved"      // 已通过（已成为赛道）
+    case rejected = "rejected"      // 已驳回（可重新申请）
+}
+
+// 申请赛道时选择的生命周期
+enum TrackLifecycle: String, CaseIterable, Codable {
+    case oneMonth = "oneMonth"
+    case twoMonth = "twoMonth"
+    case seasonEnd = "seasonEnd"
+
+    var displayName: String {
+        switch self {
+        case .oneMonth: return "training.route.apply.lifecycle.one_month"
+        case .twoMonth: return "training.route.apply.lifecycle.two_month"
+        case .seasonEnd: return "training.route.apply.lifecycle.season_end"
         }
     }
 }

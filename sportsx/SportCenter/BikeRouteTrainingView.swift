@@ -16,7 +16,6 @@ struct BikeRouteTrainingView: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var locationManager = LocationManager.shared
     @State var showFullMap: Bool = false
-    @State var onSortTypeSwitch: Bool = false
     
     
     var body: some View {
@@ -56,50 +55,14 @@ struct BikeRouteTrainingView: View {
                                 .scaledToFit()
                                 .frame(width: 30)
                             Spacer()
-                            if onSortTypeSwitch {
-                                ScrollView(.horizontal) {
-                                    HStack(spacing: 8) {
-                                        ForEach(RouteSortType.allCases, id: \.self) { type in
-                                            Text(LocalizedStringKey(type.displayName))
-                                                .font(.system(size: 13, weight: .medium))
-                                                .foregroundStyle(viewModel.sortType == type ? Color.white : Color.thirdText)
-                                                .padding(.horizontal, 12)
-                                                .padding(.vertical, 6)
-                                                .background(
-                                                    Capsule()
-                                                        .fill(viewModel.sortType == type ? Color.orange : Color.secondBackground)
-                                                )
-                                                .exclusiveTouchTapGesture {
-                                                    onSortTypeSwitch.toggle()
-                                                    let lastSortType = viewModel.sortType
-                                                    viewModel.sortType = type
-                                                    if let regionID = locationManager.regionID,
-                                                       lastSortType != type,
-                                                       !viewModel.routes.isEmpty {
-                                                        viewModel.queryRoutes(with: regionID, reset: true)
-                                                    }
-                                                }
-                                        }
-                                    }
-                                }
-                                .frame(maxWidth: 200)
-                            } else {
-                                HStack(spacing: 4) {
-                                    Text(LocalizedStringKey(viewModel.sortType.displayName))
-                                        .foregroundStyle(Color.white)
-                                        .font(.system(size: 13, weight: .medium))
-                                    Image(systemName: "arrow.up.arrow.down")
-                                        .foregroundStyle(Color.secondText)
-                                        .font(.system(size: 10, weight: .light))
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .overlay(
-                                    Capsule()
-                                        .stroke(Color.orange, lineWidth: 1)
-                                )
-                                .exclusiveTouchTapGesture {
-                                    onSortTypeSwitch.toggle()
+                            CapsuleScrollSelector(
+                                options: RouteSortType.allCases,
+                                selection: $viewModel.sortType,
+                                titleKey: { $0.displayName },
+                                icon: "arrow.up.arrow.down"
+                            ) { _ in
+                                if let regionID = locationManager.regionID, !viewModel.routes.isEmpty {
+                                    viewModel.queryRoutes(with: regionID, reset: true)
                                 }
                             }
                         }
@@ -406,7 +369,59 @@ struct BikeRouteManageCardView: View {
     @EnvironmentObject var appState: AppState
     let route: BikeRouteManageItem
     var onDeleteSuccess: (String) -> Void
-    
+    var onApplySuccess: () -> Void = {}
+    @State private var showApplyForm = false
+
+    // 申请转赛道入口：仅公开路线展示，热度需 > 100
+    @ViewBuilder
+    private var applyControl: some View {
+        switch route.applyStatus {
+        case .pending:
+            Text("training.route.apply.pending")
+                .font(.system(size: 15))
+                .foregroundStyle(Color.thirdText)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .background(Capsule().fill(Color.white.opacity(0.15)))
+        case .approved:
+            HStack(spacing: 4) {
+                Image(systemName: "circle.fill")
+                    .font(.system(size: 5))
+                    .foregroundStyle(Color.green)
+                Text("training.route.apply.approved")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.secondText)
+            }
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .background(Capsule().fill(Color.white.opacity(0.15)))
+        default:
+            Button(action: {
+                if route.participateCount >= -100 {
+                    showApplyForm = true
+                } else {
+                    ToastManager.shared.show(toast: Toast(message: "training.route.apply.not_enough"))
+                }
+            }) {
+                HStack(spacing: 4) {
+                    Image("arena")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 16)
+                    Text("training.route.apply.action")
+                        .font(.system(size: 15))
+                }
+                .foregroundStyle(Color.white)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .background(
+                    Capsule()
+                        .fill(route.participateCount >= -100 ? Color.orange.opacity(0.6) : Color.gray)
+                )
+            }
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
@@ -431,16 +446,8 @@ struct BikeRouteManageCardView: View {
                     .padding(.horizontal, 5)
                     .background(Color.white.opacity(0.3))
                     .cornerRadius(4)
-                Image(route.isPremium ? "leaderboard_premium" : "leaderboard")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 16)
-                    .padding(.vertical, 3)
-                    .padding(.horizontal, 5)
-                    .background(Color.white.opacity(0.3))
-                    .cornerRadius(4)
-                if route.enableMagicCard {
-                    Image("magiccard")
+                if route.isPublic {
+                    Image(route.isPremium ? "leaderboard_premium" : "leaderboard")
                         .resizable()
                         .scaledToFit()
                         .frame(height: 16)
@@ -448,6 +455,26 @@ struct BikeRouteManageCardView: View {
                         .padding(.horizontal, 5)
                         .background(Color.white.opacity(0.3))
                         .cornerRadius(4)
+                    if route.enableMagicCard {
+                        Image("magiccard")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 16)
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 5)
+                            .background(Color.white.opacity(0.3))
+                            .cornerRadius(4)
+                    }
+                    HStack(spacing: 2) {
+                        Image(systemName: "person")
+                        Text("\(route.participateCount)")
+                    }
+                    .font(.system(size: 12))
+                    .frame(height: 16)
+                    .padding(.vertical, 3)
+                    .padding(.horizontal, 5)
+                    .background(Color.white.opacity(0.3))
+                    .cornerRadius(4)
                 }
                 Spacer()
                 if route.isPublic {
@@ -481,6 +508,10 @@ struct BikeRouteManageCardView: View {
                 }
                 .disabled(appState.competitionManager.isRecording)
                 Spacer()
+                if route.isPublic {
+                    applyControl
+                        .padding(.trailing, 8)
+                }
                 if !route.isPublic {
                     Button(action: {
                         appState.navigationManager.append(.bikeRouteEditView(route: route))
@@ -521,6 +552,12 @@ struct BikeRouteManageCardView: View {
         .padding(10)
         .background(Color.white.opacity(0.3))
         .cornerRadius(12)
+        .sheet(isPresented: $showApplyForm) {
+            BikeRouteApplyFormView(route: route) {
+                showApplyForm = false
+                onApplySuccess()
+            }
+        }
     }
     
     func deleteRoute() {
@@ -577,6 +614,21 @@ struct BikeRouteManageView: View {
                     .opacity(0)
             }
             .padding(.horizontal)
+            // 提示：热度达标的路线可申请加入竞技场
+            HStack(alignment: .top, spacing: 8) {
+                Image("arena")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+                Text("training.route.apply.banner")
+                    .font(.footnote)
+                    .foregroundStyle(Color.secondText)
+                Spacer(minLength: 0)
+            }
+            .padding(10)
+            .background(Color.white.opacity(0.08))
+            .cornerRadius(10)
+            .padding(.horizontal)
             ScrollView {
                 LazyVStack {
                     if routes.isEmpty {
@@ -595,6 +647,9 @@ struct BikeRouteManageView: View {
                                 route: route,
                                 onDeleteSuccess: { routeID in
                                     routes.removeAll { $0.routeID == routeID }
+                                },
+                                onApplySuccess: {
+                                    queryRoutes(reset: true)
                                 }
                             )
                             .onAppear {
@@ -843,6 +898,8 @@ struct BikeRouteManageItem: Identifiable, Hashable {
     let terrainType: BikeTrackTerrainType
     let isPremium: Bool
     let enableMagicCard: Bool
+    let participateCount: Int
+    let applyStatus: RouteApplyStatus
     let routePoints: [RoutePoint]
 
     static func == (lhs: BikeRouteManageItem, rhs: BikeRouteManageItem) -> Bool {
@@ -860,6 +917,8 @@ struct BikeRouteManageItem: Identifiable, Hashable {
         self.terrainType = dto.terrain_type
         self.isPremium = dto.is_premium
         self.enableMagicCard = dto.enable_magiccard
+        self.participateCount = dto.participate_count
+        self.applyStatus = dto.apply_status
         
         var parsed: [RoutePoint] = []
         
@@ -928,6 +987,8 @@ struct BikeRouteManageInfo: Codable {
     let terrain_type: BikeTrackTerrainType
     let is_premium: Bool
     let enable_magiccard: Bool
+    let participate_count: Int
+    let apply_status: RouteApplyStatus
     let route_data: JSONValue
 }
 
@@ -961,7 +1022,6 @@ struct BikeRouteCreateView: View {
     @ObservedObject var userManager = UserManager.shared
     @State var title: String = ""
     @State var terrainType: BikeTrackTerrainType = .road
-    @State var terrainTypeOnSelect: Bool = false
     @State var isPublic: Bool = true
     //@State var enableRankList: Bool = true
     @State var enableMagicCardSys: Bool = true
@@ -1118,50 +1178,7 @@ struct BikeRouteCreateView: View {
                         (Text("competition.track.terrain") + Text(":"))
                             .foregroundStyle(Color.secondText)
                         Spacer()
-                        if terrainTypeOnSelect {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(BikeTrackTerrainType.allCases, id: \.self) { type in
-                                        Text(LocalizedStringKey(type.displayName))
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(terrainType == type ? Color.white : Color.thirdText)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(
-                                                Capsule()
-                                                    .fill(terrainType == type ? Color.orange : Color.secondBackground)
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                terrainType = type
-                                                terrainTypeOnSelect.toggle()
-                                            }
-                                    }
-                                }
-                            }
-                            .frame(width: 200)
-                        } else {
-                            HStack(spacing: 4) {
-                                Text(LocalizedStringKey(terrainType.displayName))
-                                    .foregroundStyle(Color.white)
-                                    .font(.system(size: 13, weight: .medium))
-                                Image(systemName: "arrow.left.arrow.right")
-                                    .foregroundStyle(Color.secondText)
-                                    .font(.system(size: 10, weight: .light))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color.defaultBackground)
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(Color.orange, lineWidth: 2)
-                                    )
-                            )
-                            .exclusiveTouchTapGesture {
-                                terrainTypeOnSelect.toggle()
-                            }
-                        }
+                        CapsuleScrollSelector(options: BikeTrackTerrainType.allCases, selection: $terrainType) { $0.displayName }
                     }
                     
                     HStack {
@@ -1476,7 +1493,6 @@ struct BikeRouteEditView: View {
     @ObservedObject var userManager = UserManager.shared
     @State var title: String = ""
     @State var terrainType: BikeTrackTerrainType = .road
-    @State var terrainTypeOnSelect: Bool = false
     @State var isPublic: Bool = false
     @State var enableMagicCardSys: Bool = false
 
@@ -1623,50 +1639,7 @@ struct BikeRouteEditView: View {
                         (Text("competition.track.terrain") + Text(":"))
                             .foregroundStyle(Color.secondText)
                         Spacer()
-                        if terrainTypeOnSelect {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(BikeTrackTerrainType.allCases, id: \.self) { type in
-                                        Text(LocalizedStringKey(type.displayName))
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(terrainType == type ? Color.white : Color.thirdText)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(
-                                                Capsule()
-                                                    .fill(terrainType == type ? Color.orange : Color.secondBackground)
-                                            )
-                                            .exclusiveTouchTapGesture {
-                                                terrainType = type
-                                                terrainTypeOnSelect.toggle()
-                                            }
-                                    }
-                                }
-                            }
-                            .frame(width: 200)
-                        } else {
-                            HStack(spacing: 4) {
-                                Text(LocalizedStringKey(terrainType.displayName))
-                                    .foregroundStyle(Color.white)
-                                    .font(.system(size: 13, weight: .medium))
-                                Image(systemName: "arrow.left.arrow.right")
-                                    .foregroundStyle(Color.secondText)
-                                    .font(.system(size: 10, weight: .light))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color.defaultBackground)
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(Color.orange, lineWidth: 2)
-                                    )
-                            )
-                            .exclusiveTouchTapGesture {
-                                terrainTypeOnSelect.toggle()
-                            }
-                        }
+                        CapsuleScrollSelector(options: BikeTrackTerrainType.allCases, selection: $terrainType) { $0.displayName }
                     }
 
                     HStack {
@@ -1962,5 +1935,133 @@ struct BikeRouteEnv {
     let enableMagicCard: Bool
     let routeType: RouteType
     var routePoints: [RoutePointRealtime]
+}
+
+// 申请热门路线转为赛道的表单
+struct BikeRouteApplyFormView: View {
+    @Environment(\.dismiss) private var dismiss
+    let route: BikeRouteManageItem
+    var onSuccess: () -> Void
+
+    @State private var title: String
+    @State private var subRegionName: String = ""
+    @State private var terrainType: BikeTrackTerrainType
+    @State private var lifecycle: TrackLifecycle = .oneMonth
+    @State private var isSubmitting: Bool = false
+
+    init(route: BikeRouteManageItem, onSuccess: @escaping () -> Void) {
+        self.route = route
+        self.onSuccess = onSuccess
+        _title = State(initialValue: route.title)
+        _terrainType = State(initialValue: route.terrainType)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // 标题
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("training.route.apply.track_title")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                        TextField("training.route.apply.track_title", text: $title)
+                            .padding(10)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                            .foregroundStyle(Color.white)
+                    }
+                    // 子区域名称
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("training.route.apply.sub_region")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondText)
+                        TextField("training.route.apply.sub_region", text: $subRegionName)
+                            .padding(10)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                            .foregroundStyle(Color.white)
+                    }
+                    // 地形
+                    HStack {
+                        Text("training.route.apply.terrain")
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        CapsuleScrollSelector(options: BikeTrackTerrainType.allCases, selection: $terrainType) { $0.displayName }
+                    }
+                    // 生命周期
+                    HStack {
+                        Text("training.route.apply.lifecycle")
+                            .foregroundStyle(Color.secondText)
+                        Spacer()
+                        CapsuleScrollSelector(options: TrackLifecycle.allCases, selection: $lifecycle) { $0.displayName }
+                    }
+
+                    Text("training.route.apply.tip")
+                        .font(.footnote)
+                        .foregroundStyle(Color.thirdText)
+
+                    Button(action: { submit() }) {
+                        Text("training.route.apply.submit")
+                            .font(.headline)
+                            .foregroundStyle(Color.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                Capsule().fill(canSubmit ? Color.orange.opacity(0.8) : Color.gray)
+                            )
+                    }
+                    .disabled(!canSubmit || isSubmitting)
+                    .padding(.top, 10)
+                }
+                .padding()
+            }
+            .background(Color.defaultBackground)
+            .navigationTitle("training.route.apply.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.cancel") { dismiss() }
+                        .foregroundStyle(Color.white)
+                }
+            }
+        }
+    }
+
+    private var canSubmit: Bool {
+        !title.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !subRegionName.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    private func submit() {
+        guard canSubmit else { return }
+        isSubmitting = true
+        let body: [String: Any] = [
+            "route_id": route.routeID,
+            "title": title,
+            "sub_region_name": subRegionName,
+            "terrain_type": terrainType.rawValue,
+            "lifecycle": lifecycle.rawValue
+        ]
+        guard let encodedBody = try? JSONSerialization.data(withJSONObject: body) else {
+            isSubmitting = false
+            return
+        }
+        let headers: [String: String] = ["Content-Type": "application/json"]
+        let request = APIRequest(path: "/training/bike/routes/apply_track", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            DispatchQueue.main.async {
+                isSubmitting = false
+                switch result {
+                case .success:
+                    ToastManager.shared.show(toast: Toast(message: "training.route.apply.success"))
+                    onSuccess()
+                default:
+                    break
+                }
+                dismiss()
+            }
+        }
+    }
 }
 

@@ -361,7 +361,7 @@
 "toast.copied" = "Copied";
 "toast.no_login.2" = "View after logging in";
 "toast.created.success" = "Created";
-"toast.modified.success" = "Updated successfully";
+"toast.modified.success" = "Updated";
 
 "popup.no_reminder" = "Do not show again";
 "popup.claim_reward.title" = "Claimed Successful";
@@ -1048,3 +1048,21 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "ccasset.stone1" = "Primary Material";
 "ccasset.stone2" = "Intermediate Material";
 "ccasset.stone3" = "Advanced Material";
+
+// 热门路线申请转赛道
+"training.route.apply.action" = "Apply";
+"training.route.apply.pending" = "Under review";
+"training.route.apply.approved" = "Online";
+"training.route.apply.not_enough" = "Popularity must exceed 100 to apply";
+"training.route.apply.title" = "Apply as Track";
+"training.route.apply.track_title" = "Track title";
+"training.route.apply.sub_region" = "Sub-region name";
+"training.route.apply.terrain" = "Terrain";
+"training.route.apply.lifecycle" = "Lifecycle";
+"training.route.apply.lifecycle.one_month" = "1 month";
+"training.route.apply.lifecycle.two_month" = "2 months";
+"training.route.apply.lifecycle.season_end" = "Until season ends";
+"training.route.apply.tip" = "After approval the route will become an official race track.";
+"training.route.apply.submit" = "Submit application";
+"training.route.apply.success" = "Application submitted";
+"training.route.apply.banner" = "Public routes with popularity over 100 can apply to join the Arena and become an official race track!";
