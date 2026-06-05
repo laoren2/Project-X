@@ -1066,3 +1066,20 @@
 "training.route.apply.submit" = "提交申请";
 "training.route.apply.success" = "申请已提交";
 "training.route.apply.banner" = "热度超过 100 的公开路线，可申请加入竞技场，成为正式赛道！";
+
+// 运动结算分享图
+"share.editor.title" = "分享图";
+"share.action.save" = "保存";
+"share.editor.track_color" = "轨迹颜色";
+"share.editor.choose_background" = "选择背景图";
+"share.element.track" = "轨迹";
+"share.element.duration" = "时间";
+"share.element.pace" = "配速";
+"share.element.heart_rate" = "平均心率";
+"share.element.elevation_gain" = "累计爬升";
+"share.element.logo" = "标志";
+"share.toast.saved" = "已保存到相册";
+"share.toast.failed" = "保存失败";
+"share.editor.bg_photo" = "照片";
+"share.editor.bg_map" = "轨迹地图";
+"share.editor.background" = "背景";

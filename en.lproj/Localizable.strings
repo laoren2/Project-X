@@ -1066,3 +1066,20 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "training.route.apply.submit" = "Submit application";
 "training.route.apply.success" = "Application submitted";
 "training.route.apply.banner" = "Public routes with popularity over 100 can apply to join the Arena and become an official race track!";
+
+// 运动结算分享图
+"share.editor.title" = "Share Image";
+"share.action.save" = "Save";
+"share.editor.track_color" = "Track Color";
+"share.editor.choose_background" = "Choose Background";
+"share.element.track" = "Track";
+"share.element.duration" = "Time";
+"share.element.pace" = "Pace";
+"share.element.heart_rate" = "Avg HR";
+"share.element.elevation_gain" = "Elev Gain";
+"share.element.logo" = "Logo";
+"share.toast.saved" = "Saved to album";
+"share.toast.failed" = "Save failed";
+"share.editor.bg_photo" = "Photo";
+"share.editor.bg_map" = "Route Map";
+"share.editor.background" = "Background";

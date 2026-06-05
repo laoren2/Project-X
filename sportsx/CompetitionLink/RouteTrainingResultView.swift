@@ -16,6 +16,11 @@ struct BikeRouteTrainingRecordDetailView: View {
     @State var isSpeedDetail: Bool = false
     @State var isPowerDetail: Bool = false
     @State var isPedalCadenceDetail: Bool = false
+    @State private var showShareEditor: Bool = false
+
+    private var shareMetrics: ShareMetrics {
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath)
+    }
     
     let formHeight: CGFloat = 80
     
@@ -147,12 +152,10 @@ struct BikeRouteTrainingRecordDetailView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: { showShareEditor = true }) {
+                    Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
-                        .padding(.vertical, 5)
-                        .padding(.trailing, 20)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal)
@@ -743,6 +746,9 @@ struct BikeRouteTrainingRecordDetailView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
+        .fullScreenCover(isPresented: $showShareEditor) {
+            ShareEditorView(metrics: shareMetrics)
+        }
     }
     
     private func adjustNavigationPath() {
@@ -770,6 +776,11 @@ struct RunningRouteTrainingRecordDetailView: View {
     @State var isSpeedDetail: Bool = false
     @State var isStepCadenceDetail: Bool = false
     @State var isPowerDetail: Bool = false
+    @State private var showShareEditor: Bool = false
+
+    private var shareMetrics: ShareMetrics {
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath)
+    }
     
     let formHeight: CGFloat = 80
     
@@ -901,12 +912,10 @@ struct RunningRouteTrainingRecordDetailView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: { showShareEditor = true }) {
+                    Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
-                        .padding(.vertical, 5)
-                        .padding(.trailing, 20)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal)
@@ -1497,6 +1506,9 @@ struct RunningRouteTrainingRecordDetailView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
+        .fullScreenCover(isPresented: $showShareEditor) {
+            ShareEditorView(metrics: shareMetrics)
+        }
     }
     
     private func adjustNavigationPath() {

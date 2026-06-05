@@ -1046,3 +1046,20 @@
 "training.route.apply.submit" = "신청 제출";
 "training.route.apply.success" = "신청이 제출되었습니다";
 "training.route.apply.banner" = "인기도가 100을 넘은 공개 경로는 아레나 참가를 신청하여 정식 트랙이 될 수 있습니다!";
+
+// 运动结算分享图
+"share.editor.title" = "공유 이미지";
+"share.action.save" = "저장";
+"share.editor.track_color" = "경로 색상";
+"share.editor.choose_background" = "배경 이미지 선택";
+"share.element.track" = "경로";
+"share.element.duration" = "시간";
+"share.element.pace" = "페이스";
+"share.element.heart_rate" = "평균 심박";
+"share.element.elevation_gain" = "누적 상승";
+"share.element.logo" = "로고";
+"share.toast.saved" = "앨범에 저장됨";
+"share.toast.failed" = "저장 실패";
+"share.editor.bg_photo" = "사진";
+"share.editor.bg_map" = "경로 지도";
+"share.editor.background" = "배경";
