@@ -12,3 +12,4 @@
 "NSHealthShareUsageDescription" = "Used to access your Health app to read exercise data such as heart rate and steps, and sync it to your iPhone via Apple Watch for recording and analysis.";
 "NSHealthUpdateUsageDescription" = "Used to write your activity data recorded on your Apple Watch to the Health app, so you can easily view your activity history in the system's Health app.";
 "NSMotionUsageDescription" = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
+"NSPhotoLibraryAddUsageDescription" = "Used to save the workout share image you generate to your photo album.";

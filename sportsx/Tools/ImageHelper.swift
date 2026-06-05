@@ -59,7 +59,64 @@ class ImageLoader: ObservableObject {
     }
 }
 
+// 保存图片到相册的回调代理（UIImageWriteToSavedPhotosAlbum 需要 NSObject 选择器目标）
+// 保存为用户主动触发的单次操作，这里以单个 pending 回调串行处理即可
+final class PhotoAlbumSaver: NSObject {
+    static let shared = PhotoAlbumSaver()
+    private var pending: ((Bool) -> Void)?
+
+    /// 保存图片到系统相册，结果通过 completion 回调（主线程）
+    func save(_ image: UIImage, completion: @escaping (Bool) -> Void) {
+        pending = completion
+        UIImageWriteToSavedPhotosAlbum(image, self, #selector(didFinishSaving(_:error:contextInfo:)), nil)
+    }
+
+    @objc private func didFinishSaving(_ image: UIImage, error: Error?, contextInfo: UnsafeRawPointer?) {
+        let success = (error == nil)
+        let cb = pending
+        pending = nil
+        DispatchQueue.main.async { cb?(success) }
+    }
+}
+
 struct ImageTool {
+    /// 将任意 SwiftUI 视图渲染为指定像素尺寸的 UIImage（iOS 16+ ImageRenderer）
+    /// ImageRenderer 即使 isOpaque=true 仍可能带 alpha 通道，这里再用不透明上下文重绘一遍，
+    /// 去掉 alpha（减小体积、避免存相册时的 opaque-with-alpha 警告）。
+    @MainActor
+    static func render<V: View>(_ view: V, size: CGSize, scale: CGFloat = UIScreen.main.scale) -> UIImage? {
+        let renderer = ImageRenderer(content: view.frame(width: size.width, height: size.height))
+        renderer.scale = scale
+        renderer.isOpaque = true
+        guard let raw = renderer.uiImage else { return nil }
+
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = true
+        format.scale = raw.scale
+        let flattener = UIGraphicsImageRenderer(size: raw.size, format: format)
+        return flattener.image { _ in
+            raw.draw(in: CGRect(origin: .zero, size: raw.size))
+        }
+    }
+
+    /// 保存图片到系统相册
+    static func saveToAlbum(_ image: UIImage, completion: @escaping (Bool) -> Void) {
+        PhotoAlbumSaver.shared.save(image, completion: completion)
+    }
+
+    /// 把图片烘焙为 .up 朝向（重画一遍），使 cgImage 像素布局与 size 一致，
+    /// 避免后续按 size 坐标采样 cgImage 时因 EXIF 朝向产生错位
+    static func normalizedUp(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
+    }
+
     // jpeg 图片压缩，二分法调整压缩比例，必要时缩小分辨率
     static func compressImage(_ image: UIImage, maxSizeKB: Int = 300) -> Data? {
         var resizedImage: UIImage = image

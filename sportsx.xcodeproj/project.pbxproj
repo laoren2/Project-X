@@ -810,6 +810,7 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image you generate to your photo album.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -862,6 +863,7 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image you generate to your photo album.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

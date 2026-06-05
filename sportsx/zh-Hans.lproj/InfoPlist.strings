@@ -12,4 +12,4 @@
 "NSHealthShareUsageDescription" = "用于访问您的健康 App 读取心率、步数等运动数据，并通过 Apple Watch 同步至 iPhone 进行记录和分析。";
 "NSHealthUpdateUsageDescription" = "用于将您在 Apple Watch 上记录的运动数据写入健康 App，方便你在系统健康应用中统一查看运动历史。";
 "NSMotionUsageDescription" = "用于读取设备运动传感器数据以记录和分析你的运动表现。";
-
+"NSPhotoLibraryAddUsageDescription" = "用于将你生成的运动分享图片保存到相册。";

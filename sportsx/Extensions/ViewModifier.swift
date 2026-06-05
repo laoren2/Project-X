@@ -252,7 +252,7 @@ extension UIColor {
         return (r, g, b)
     }
 
-    private func contrastRatio(with other: UIColor) -> CGFloat {
+    func contrastRatio(with other: UIColor) -> CGFloat {
         func luminance(r: CGFloat, g: CGFloat, b: CGFloat) -> CGFloat {
             func adjust(_ c: CGFloat) -> CGFloat {
                 c <= 0.03928 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
@@ -264,6 +264,12 @@ extension UIColor {
         let l1 = luminance(r: r1, g: g1, b: b1) + 0.05
         let l2 = luminance(r: r2, g: g2, b: b2) + 0.05
         return max(l1, l2) / min(l1, l2)
+    }
+
+    /// 在该（背景）颜色之上更易读的文字色：仅返回黑或白。
+    /// 偏向白色——仅当白字对比度低于阈值（即背景较浅）时才转为黑字。
+    func adaptiveTextColor(whiteThreshold: CGFloat = 2.0) -> Color {
+        contrastRatio(with: .white) >= whiteThreshold ? .white : .black
     }
 
     private func distance(to other: UIColor) -> CGFloat {

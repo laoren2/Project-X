@@ -1046,3 +1046,20 @@
 "training.route.apply.submit" = "申請を送信";
 "training.route.apply.success" = "申請を送信しました";
 "training.route.apply.banner" = "人気度が 100 を超えた公開ルートは、アリーナへの参加を申請し、正式なトラックになれます！";
+
+// 运动结算分享图
+"share.editor.title" = "シェア画像";
+"share.action.save" = "保存";
+"share.editor.track_color" = "軌跡の色";
+"share.editor.choose_background" = "背景画像を選択";
+"share.element.track" = "軌跡";
+"share.element.duration" = "時間";
+"share.element.pace" = "ペース";
+"share.element.heart_rate" = "平均心拍";
+"share.element.elevation_gain" = "獲得標高";
+"share.element.logo" = "ロゴ";
+"share.toast.saved" = "アルバムに保存しました";
+"share.toast.failed" = "保存に失敗しました";
+"share.editor.bg_photo" = "写真";
+"share.editor.bg_map" = "ルートマップ";
+"share.editor.background" = "背景";
