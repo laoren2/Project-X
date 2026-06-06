@@ -12,10 +12,12 @@ import CoreLocation
 // 可叠加到分享图上的元素类型（logo 之外的指标元素用户可自选添加）
 enum ShareElementKind: String, CaseIterable, Identifiable {
     case track          // 平滑后的轨迹路径
+    case sportIcon      // 运动种类图标（bike / running）
     case duration       // 运动时间
     case pace           // 平均配速 / 均速（按运动自适应）
     case heartRate      // 平均心率
     case elevationGain  // 累计海拔爬升
+    case cadence        // 骑行踏频 / 跑步步频（标签按运动自适应）
     case logo           // App Logo（Movmov）
 
     var id: String { rawValue }
@@ -24,10 +26,12 @@ enum ShareElementKind: String, CaseIterable, Identifiable {
     var titleKey: String {
         switch self {
         case .track:         return "share.element.track"
+        case .sportIcon:     return "share.element.sport"
         case .duration:      return "share.element.duration"
         case .pace:          return "share.element.pace"
         case .heartRate:     return "share.element.heart_rate"
         case .elevationGain: return "share.element.elevation_gain"
+        case .cadence:       return "share.element.pedal_cadence"   // 默认踏频，UI 层按运动覆盖为步频
         case .logo:          return "share.element.logo"
         }
     }
@@ -35,10 +39,12 @@ enum ShareElementKind: String, CaseIterable, Identifiable {
     var iconName: String {
         switch self {
         case .track:         return "point.topleft.down.curvedto.point.bottomright.up"
+        case .sportIcon:     return "figure.run"
         case .duration:      return "clock"
         case .pace:          return "speedometer"
         case .heartRate:     return "heart.fill"
         case .elevationGain: return "mountain.2.fill"
+        case .cadence:       return "metronome"
         case .logo:          return "app.badge"
         }
     }
@@ -52,6 +58,7 @@ struct ShareMetrics {
     let avgSpeedKmh: Double                     // 平均速度（km/h）
     let avgHeartRate: Double?                   // 平均心率（bpm），无则不可添加
     let elevationGain: Double                   // 累计爬升（米）
+    let avgCadence: Double?                     // 骑行=平均踏频(rpm) / 跑步=平均步频(spm)，无则不可添加
 
     // 跑步显示配速（/km），其余显示均速（km/h）
     var isPaceSport: Bool { sport == .Running }
@@ -78,11 +85,21 @@ struct ShareMetrics {
 
     // 是否有有效心率（无则该元素不可添加）
     var hasHeartRate: Bool { avgHeartRate != nil }
+
+    // 踏频 / 步频（按运动自适应标签与单位）
+    var hasCadence: Bool { avgCadence != nil }
+    var cadenceText: String {
+        guard let c = avgCadence else { return "--" }
+        return "\(Int(c.rounded()))"
+    }
+    // 跑步显示步频、其余显示踏频
+    var cadenceLabelKey: String { sport == .Running ? "share.element.step_cadence" : "share.element.pedal_cadence" }
+    var cadenceUnitKey: String { sport == .Running ? "stepCadence.unit" : "pedalCadence.unit" }
 }
 
 extension ShareMetrics {
     /// 从基础轨迹点构建通用指标
-    static func make(sport: SportName, basePath: [PathPoint]) -> ShareMetrics {
+    static func make(sport: SportName, basePath: [PathPoint], avgCadence: Double? = nil) -> ShareMetrics {
         let coords = basePath.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
 
         // 距离 & 时长
@@ -117,7 +134,8 @@ extension ShareMetrics {
             distanceMeters: distance,
             avgSpeedKmh: avgSpeedKmh,
             avgHeartRate: avgHR,
-            elevationGain: gain
+            elevationGain: gain,
+            avgCadence: avgCadence
         )
     }
 }

@@ -105,6 +105,10 @@ struct RunningFreeTrainingView: View {
                                     RegionMapView(polygons: locationManager.regionBoundary)
                                         .frame(height: 250)
                                         .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12, style: .circular)
+                                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                        )
                                         .padding(.top, 20)
                                     Rectangle()
                                         .fill(Color.clear)

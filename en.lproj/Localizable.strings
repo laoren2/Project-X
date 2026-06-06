@@ -1062,6 +1062,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "training.route.apply.lifecycle.one_month" = "1 month";
 "training.route.apply.lifecycle.two_month" = "2 months";
 "training.route.apply.lifecycle.season_end" = "Until season ends";
+"training.route.apply.premium" = "Premium track";
+"training.route.apply.premium.content" = "Premium tracks unlock the premium leaderboard (ranked by gender, with more slots and rewards) and require a premium entry card to join. Only premium routes can apply to become premium tracks; regular routes can only become regular tracks.";
 "training.route.apply.tip" = "After approval the route will become an official race track.";
 "training.route.apply.submit" = "Submit application";
 "training.route.apply.success" = "Application submitted";
@@ -1073,10 +1075,13 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "share.editor.track_color" = "Track Color";
 "share.editor.choose_background" = "Choose Background";
 "share.element.track" = "Track";
+"share.element.sport" = "Sport";
 "share.element.duration" = "Time";
 "share.element.pace" = "Pace";
 "share.element.heart_rate" = "Avg HR";
 "share.element.elevation_gain" = "Elev Gain";
+"share.element.pedal_cadence" = "Cadence";
+"share.element.step_cadence" = "Cadence";
 "share.element.logo" = "Logo";
 "share.toast.saved" = "Saved to album";
 "share.toast.failed" = "Save failed";

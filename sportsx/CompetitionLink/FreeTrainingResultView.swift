@@ -126,7 +126,13 @@ struct BikeFreeTrainingRecordDetailView: View {
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: BikeFreeTrainingRecordDetailViewModel(recordID: recordID))
     }
-    
+
+    @State private var showShareEditor: Bool = false
+
+    private var shareMetrics: ShareMetrics {
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg)
+    }
+
     var body: some View {
         VStack {
             HStack {
@@ -150,12 +156,10 @@ struct BikeFreeTrainingRecordDetailView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: { showShareEditor = true }) {
+                    Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
-                        .padding(.vertical, 5)
-                        .padding(.trailing, 20)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal)
@@ -726,6 +730,9 @@ struct BikeFreeTrainingRecordDetailView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
+        .fullScreenCover(isPresented: $showShareEditor) {
+            ShareEditorView(metrics: shareMetrics)
+        }
     }
     
     private func adjustNavigationPath() {
@@ -855,7 +862,13 @@ struct RunningFreeTrainingRecordDetailView: View {
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: RunningFreeTrainingRecordDetailViewModel(recordID: recordID))
     }
-    
+
+    @State private var showShareEditor: Bool = false
+
+    private var shareMetrics: ShareMetrics {
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg)
+    }
+
     var body: some View {
         VStack(spacing: 20) {
             HStack {
@@ -879,12 +892,10 @@ struct RunningFreeTrainingRecordDetailView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: { showShareEditor = true }) {
+                    Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
-                        .padding(.vertical, 5)
-                        .padding(.trailing, 20)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal)
@@ -1456,6 +1467,9 @@ struct RunningFreeTrainingRecordDetailView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture(false)
+        .fullScreenCover(isPresented: $showShareEditor) {
+            ShareEditorView(metrics: shareMetrics)
+        }
     }
     
     private func adjustNavigationPath() {

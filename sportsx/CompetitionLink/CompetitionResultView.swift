@@ -123,7 +123,13 @@ struct BikeRaceRecordDetailView: View {
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: BikeRaceRecordDetailViewModel(recordID: recordID))
     }
-    
+
+    @State private var showShareEditor: Bool = false
+
+    private var shareMetrics: ShareMetrics {
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg)
+    }
+
     var body: some View {
         VStack {
             HStack {
@@ -147,12 +153,10 @@ struct BikeRaceRecordDetailView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: { showShareEditor = true }) {
+                    Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
-                        .padding(.vertical, 5)
-                        .padding(.trailing, 20)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal)
@@ -840,6 +844,9 @@ struct BikeRaceRecordDetailView: View {
         .onFirstAppear {
             viewModel.queryRecordDetail()
         }
+        .fullScreenCover(isPresented: $showShareEditor) {
+            ShareEditorView(metrics: shareMetrics)
+        }
     }
     
     private func adjustNavigationPath() {
@@ -988,7 +995,13 @@ struct RunningRaceRecordDetailView: View {
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: RunningRaceRecordDetailViewModel(recordID: recordID))
     }
-    
+
+    @State private var showShareEditor: Bool = false
+
+    private var shareMetrics: ShareMetrics {
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg)
+    }
+
     var body: some View {
         VStack(spacing: 20) {
             HStack {
@@ -1012,12 +1025,10 @@ struct RunningRaceRecordDetailView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
+                Button(action: { showShareEditor = true }) {
+                    Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
-                        .padding(.vertical, 5)
-                        .padding(.trailing, 20)
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal)
@@ -1787,6 +1798,9 @@ struct RunningRaceRecordDetailView: View {
         .enableSwipeBackGesture(false)
         .onFirstAppear {
             viewModel.queryRecordDetail()
+        }
+        .fullScreenCover(isPresented: $showShareEditor) {
+            ShareEditorView(metrics: shareMetrics)
         }
     }
     

@@ -89,7 +89,7 @@ struct BikeRaceRecord: Identifiable, Equatable {
         self.trackName = record.track_name
         self.routeType = record.route_type
         self.routePoints = [RoutePoint](routeData: record.route_data).toRealtimePoints()
-        self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
+        self.trackEndDate = DateParser.parseISO8601(record.track_end_date)
         self.status = record.status
         self.startDate = DateParser.parseISO8601(record.start_date ?? "")
         self.endDate = DateParser.parseISO8601(record.end_date ?? "")
@@ -164,7 +164,7 @@ struct RunningRaceRecord: Identifiable, Equatable {
         self.trackName = record.track_name
         self.routeType = record.route_type
         self.routePoints = [RoutePoint](routeData: record.route_data).toRealtimePoints()
-        self.trackEndDate = ISO8601DateFormatter().date(from: record.track_end_date)
+        self.trackEndDate = DateParser.parseISO8601(record.track_end_date)
         self.status = record.status
         self.startDate = DateParser.parseISO8601(record.start_date ?? "")
         self.endDate = DateParser.parseISO8601(record.end_date ?? "")

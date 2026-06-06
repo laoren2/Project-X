@@ -1062,6 +1062,8 @@
 "training.route.apply.lifecycle.one_month" = "1 個月";
 "training.route.apply.lifecycle.two_month" = "2 個月";
 "training.route.apply.lifecycle.season_end" = "到賽季結束";
+"training.route.apply.premium" = "高級賽道";
+"training.route.apply.premium.content" = "高級賽道將開啟高級排行榜（依性別分榜、更多名額與獎勵），玩家需使用高級報名卡參與。僅高級路線可申請成為高級賽道，普通路線只能申請普通賽道。";
 "training.route.apply.tip" = "審核通過後路線將成為正式賽道。";
 "training.route.apply.submit" = "提交申請";
 "training.route.apply.success" = "申請已提交";
@@ -1073,10 +1075,13 @@
 "share.editor.track_color" = "軌跡顏色";
 "share.editor.choose_background" = "選擇背景圖";
 "share.element.track" = "軌跡";
+"share.element.sport" = "運動";
 "share.element.duration" = "時間";
 "share.element.pace" = "配速";
 "share.element.heart_rate" = "平均心率";
 "share.element.elevation_gain" = "累計爬升";
+"share.element.pedal_cadence" = "踏頻";
+"share.element.step_cadence" = "步頻";
 "share.element.logo" = "標誌";
 "share.toast.saved" = "已儲存到相簿";
 "share.toast.failed" = "儲存失敗";

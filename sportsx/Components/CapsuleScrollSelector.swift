@@ -17,12 +17,12 @@ struct CapsuleScrollSelector<T: Hashable>: View {
     var icon: String = "arrow.left.arrow.right"
     /// 展开态横向滚动区域的最大宽度
     var expandedWidth: CGFloat = 200
+    
+    var backgroundColor: Color = Color.defaultBackground
     /// 选项发生「真实变化」后回调（值未变则不触发），用于触发重新查询等副作用
     var onSelect: ((T) -> Void)? = nil
 
     @State private var isSelecting: Bool = false
-    
-    var backgroundColor: Color = Color.defaultBackground
 
     var body: some View {
         if isSelecting {

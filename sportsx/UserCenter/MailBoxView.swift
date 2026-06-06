@@ -143,7 +143,7 @@ struct MailCardView: View {
                 .font(.system(size: 16, weight: .semibold))
             Spacer()
             if let created = mail.created_at {
-                Text(LocalizedStringKey(DateDisplay.formattedDate(created)))
+                Text(LocalizedStringKey(DateDisplay.formattedDate(created, part: .date)))
                     .font(.caption)
             }
         }

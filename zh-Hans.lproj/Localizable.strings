@@ -1062,6 +1062,8 @@
 "training.route.apply.lifecycle.one_month" = "1 个月";
 "training.route.apply.lifecycle.two_month" = "2 个月";
 "training.route.apply.lifecycle.season_end" = "到赛季结束";
+"training.route.apply.premium" = "高级赛道";
+"training.route.apply.premium.content" = "高级赛道将开启高级排行榜（按性别分榜、更多名额与奖励），玩家需使用高级报名卡参与。仅高级路线可申请成为高级赛道，普通路线只能申请普通赛道。";
 "training.route.apply.tip" = "审核通过后路线将成为正式赛道。";
 "training.route.apply.submit" = "提交申请";
 "training.route.apply.success" = "申请已提交";
@@ -1073,10 +1075,13 @@
 "share.editor.track_color" = "轨迹颜色";
 "share.editor.choose_background" = "选择背景图";
 "share.element.track" = "轨迹";
+"share.element.sport" = "运动";
 "share.element.duration" = "时间";
 "share.element.pace" = "配速";
 "share.element.heart_rate" = "平均心率";
 "share.element.elevation_gain" = "累计爬升";
+"share.element.pedal_cadence" = "踏频";
+"share.element.step_cadence" = "步频";
 "share.element.logo" = "标志";
 "share.toast.saved" = "已保存到相册";
 "share.toast.failed" = "保存失败";
