@@ -162,26 +162,34 @@ struct BikeCompetitionView: View {
                             .frame(height: 260)
                             .frame(maxWidth: .infinity)
                     } else {
-                        if viewModel.tracks.isEmpty {
-                            Text("competition.track.error.no_tracks")
-                                .foregroundColor(.secondText)
-                                .padding()
-                        } else {
-                            VStack(spacing: 8) {
-                                // 排序切换（热度 / 距离）
-                                HStack {
-                                    Spacer()
-                                    CapsuleScrollSelector(
-                                        options: RouteSortType.allCases,
-                                        selection: $viewModel.sortType,
-                                        titleKey: { $0.displayName },
-                                        icon: "arrow.up.arrow.down"
-                                    ) { _ in
-                                        viewModel.fetchTracks(reset: true)
-                                    }
+                        VStack(spacing: 8) {
+                            // 排序切换（热度 / 距离）
+                            HStack {
+                                Spacer()
+                                CapsuleScrollSelector(
+                                    options: RouteSortType.allCases,
+                                    selection: $viewModel.sortType,
+                                    titleKey: { $0.displayName },
+                                    icon: "arrow.up.arrow.down",
+                                    backgroundColor: Color.black.opacity(0.2)
+                                ) { _ in
+                                    viewModel.fetchTracks(reset: true)
                                 }
-                                // 纵向赛道列表（固定高度可滚动）
-                                ScrollView {
+                            }
+                            // 纵向赛道列表（固定高度可滚动）
+                            ScrollView {
+                                if viewModel.tracks.isEmpty {
+                                    VStack {
+                                        Image("no_data")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 60)
+                                        Text("competition.track.error.no_tracks")
+                                            .foregroundColor(.secondText)
+                                    }
+                                    .padding(.top, 50)
+                                    .padding(.horizontal)
+                                } else {
                                     LazyVStack(spacing: 8) {
                                         ForEach(viewModel.tracks) { track in
                                             BikeCompetitionTrackCardView(track: track, sortType: viewModel.sortType)
@@ -212,10 +220,10 @@ struct BikeCompetitionView: View {
                                     }
                                     .padding(10)
                                 }
-                                .frame(height: 240)
-                                .background(Color.black.opacity(0.2))
-                                .cornerRadius(12)
                             }
+                            .frame(height: 240)
+                            .background(Color.black.opacity(0.2))
+                            .cornerRadius(12)
                         }
                     }
                     

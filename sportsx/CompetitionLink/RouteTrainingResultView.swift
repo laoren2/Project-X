@@ -19,7 +19,7 @@ struct BikeRouteTrainingRecordDetailView: View {
     @State private var showShareEditor: Bool = false
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath)
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg)
     }
     
     let formHeight: CGFloat = 80
@@ -779,7 +779,7 @@ struct RunningRouteTrainingRecordDetailView: View {
     @State private var showShareEditor: Bool = false
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath)
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg)
     }
     
     let formHeight: CGFloat = 80

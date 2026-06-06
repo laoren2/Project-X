@@ -1042,6 +1042,8 @@
 "training.route.apply.lifecycle.one_month" = "1ヶ月";
 "training.route.apply.lifecycle.two_month" = "2ヶ月";
 "training.route.apply.lifecycle.season_end" = "シーズン終了まで";
+"training.route.apply.premium" = "プレミアムトラック";
+"training.route.apply.premium.content" = "プレミアムトラックではプレミアムランキング（性別ごとのランキング、より多い枠と報酬）が有効になり、参加にはプレミアム参加カードが必要です。プレミアムルートのみがプレミアムトラックに申請でき、通常ルートは通常トラックにしか申請できません。";
 "training.route.apply.tip" = "承認されると、ルートは正式なトラックになります。";
 "training.route.apply.submit" = "申請を送信";
 "training.route.apply.success" = "申請を送信しました";
@@ -1053,10 +1055,13 @@
 "share.editor.track_color" = "軌跡の色";
 "share.editor.choose_background" = "背景画像を選択";
 "share.element.track" = "軌跡";
+"share.element.sport" = "種目";
 "share.element.duration" = "時間";
 "share.element.pace" = "ペース";
 "share.element.heart_rate" = "平均心拍";
 "share.element.elevation_gain" = "獲得標高";
+"share.element.pedal_cadence" = "ケイデンス";
+"share.element.step_cadence" = "ピッチ";
 "share.element.logo" = "ロゴ";
 "share.toast.saved" = "アルバムに保存しました";
 "share.toast.failed" = "保存に失敗しました";

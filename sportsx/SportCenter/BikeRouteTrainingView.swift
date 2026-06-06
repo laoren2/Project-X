@@ -59,7 +59,8 @@ struct BikeRouteTrainingView: View {
                                 options: RouteSortType.allCases,
                                 selection: $viewModel.sortType,
                                 titleKey: { $0.displayName },
-                                icon: "arrow.up.arrow.down"
+                                icon: "arrow.up.arrow.down",
+                                backgroundColor: Color.black.opacity(0.2)
                             ) { _ in
                                 if let regionID = locationManager.regionID, !viewModel.routes.isEmpty {
                                     viewModel.queryRoutes(with: regionID, reset: true)
@@ -140,7 +141,7 @@ struct BikeRouteTrainingView: View {
                                     .cornerRadius(12)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12, style: .circular)
-                                            .stroke(Color.orange, lineWidth: 1)
+                                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                     )
                                     .disabled(true)
                                 Rectangle()
@@ -158,6 +159,7 @@ struct BikeRouteTrainingView: View {
                                     .cornerRadius(12)
                                 Text("error.region")
                                     .foregroundStyle(Color.thirdText)
+                                    .padding(.horizontal)
                             }
                         }
                         
@@ -291,6 +293,7 @@ struct BikeRouteTrainingView: View {
             }
         }
         .onValueChange(of: locationManager.regionID) { _, newState in
+            viewModel.selectedRoute = nil
             if let regionID = newState {
                 viewModel.queryRoutes(with: regionID, reset: true)
             }
@@ -369,8 +372,7 @@ struct BikeRouteManageCardView: View {
     @EnvironmentObject var appState: AppState
     let route: BikeRouteManageItem
     var onDeleteSuccess: (String) -> Void
-    var onApplySuccess: () -> Void = {}
-    @State private var showApplyForm = false
+    var onApply: () -> Void = {}
 
     // 申请转赛道入口：仅公开路线展示，热度需 > 100
     @ViewBuilder
@@ -397,8 +399,8 @@ struct BikeRouteManageCardView: View {
             .background(Capsule().fill(Color.white.opacity(0.15)))
         default:
             Button(action: {
-                if route.participateCount >= -100 {
-                    showApplyForm = true
+                if route.participateCount >= 100 {
+                    onApply()
                 } else {
                     ToastManager.shared.show(toast: Toast(message: "training.route.apply.not_enough"))
                 }
@@ -416,7 +418,7 @@ struct BikeRouteManageCardView: View {
                 .padding(.horizontal, 10)
                 .background(
                     Capsule()
-                        .fill(route.participateCount >= -100 ? Color.orange.opacity(0.6) : Color.gray)
+                        .fill(route.participateCount >= 100 ? Color.orange.opacity(0.6) : Color.gray)
                 )
             }
         }
@@ -552,14 +554,8 @@ struct BikeRouteManageCardView: View {
         .padding(10)
         .background(Color.white.opacity(0.3))
         .cornerRadius(12)
-        .sheet(isPresented: $showApplyForm) {
-            BikeRouteApplyFormView(route: route) {
-                showApplyForm = false
-                onApplySuccess()
-            }
-        }
     }
-    
+
     func deleteRoute() {
         guard var components = URLComponents(string: "/training/bike/routes/delete") else { return }
         components.queryItems = [
@@ -588,6 +584,9 @@ struct BikeRouteManageView: View {
     @State private var isLoading: Bool = false
     @State private var page: Int = 1
     @State private var firstOnAppear: Bool = true
+    // 申请转赛道表单：在页面级承载 bottomSheet，避免挂在列表行上导致显示区域错误
+    @State private var showApplyForm: Bool = false
+    @State private var applyingRoute: BikeRouteManageItem? = nil
     let pageSize: Int = 10
     
     var body: some View {
@@ -648,8 +647,9 @@ struct BikeRouteManageView: View {
                                 onDeleteSuccess: { routeID in
                                     routes.removeAll { $0.routeID == routeID }
                                 },
-                                onApplySuccess: {
-                                    queryRoutes(reset: true)
+                                onApply: {
+                                    applyingRoute = route
+                                    showApplyForm = true
                                 }
                             )
                             .onAppear {
@@ -670,6 +670,18 @@ struct BikeRouteManageView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
+        .bottomSheet(isPresented: $showApplyForm, size: .large, destroyOnDismiss: true) {
+            if let route = applyingRoute {
+                BikeRouteApplyFormView(route: route, isPresented: $showApplyForm) {
+                    queryRoutes(reset: true)
+                }
+            }
+        }
+        .onValueChange(of: showApplyForm) { _, newState in
+            if !newState {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        }
         .onStableAppear {
             // 首次进入或编辑成功返回后刷新
             if firstOnAppear || GlobalConfig.shared.refreshRouteManageView {
@@ -680,6 +692,7 @@ struct BikeRouteManageView: View {
                 firstOnAppear = false
             }
         }
+        .ignoresSafeArea(.keyboard)
     }
 
     func queryRoutes(reset: Bool) {
@@ -1939,7 +1952,7 @@ struct BikeRouteEnv {
 
 // 申请热门路线转为赛道的表单
 struct BikeRouteApplyFormView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Binding var isPresented: Bool
     let route: BikeRouteManageItem
     var onSuccess: () -> Void
 
@@ -1947,17 +1960,37 @@ struct BikeRouteApplyFormView: View {
     @State private var subRegionName: String = ""
     @State private var terrainType: BikeTrackTerrainType
     @State private var lifecycle: TrackLifecycle = .oneMonth
+    @State private var isPremium: Bool
     @State private var isSubmitting: Bool = false
 
-    init(route: BikeRouteManageItem, onSuccess: @escaping () -> Void) {
+    init(route: BikeRouteManageItem, isPresented: Binding<Bool>, onSuccess: @escaping () -> Void) {
         self.route = route
+        self._isPresented = isPresented
         self.onSuccess = onSuccess
         _title = State(initialValue: route.title)
         _terrainType = State(initialValue: route.terrainType)
+        // 高级路线默认申请为高级赛道，普通路线只能为普通赛道
+        _isPremium = State(initialValue: route.isPremium)
     }
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            // 头部
+            ZStack {
+                Text("training.route.apply.title")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.white)
+                HStack {
+                    Button(action: { isPresented = false }) {
+                        Text("action.cancel")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.secondText)
+                    }
+                    Spacer()
+                }
+            }
+            .padding()
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // 标题
@@ -1996,6 +2029,34 @@ struct BikeRouteApplyFormView: View {
                         Spacer()
                         CapsuleScrollSelector(options: TrackLifecycle.allCases, selection: $lifecycle) { $0.displayName }
                     }
+                    // 高级赛道（仅高级路线可选择，普通路线锁定为关闭）
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("training.route.apply.premium")
+                            Image(systemName: "info.circle")
+                                .font(.subheadline)
+                                .exclusiveTouchTapGesture {
+                                    PopupWindowManager.shared.presentPopup(
+                                        title: "training.route.apply.premium",
+                                        message: "training.route.apply.premium.content",
+                                        bottomButtons: [
+                                            .confirm()
+                                        ]
+                                    )
+                                }
+                        }
+                        .foregroundStyle(Color.secondText)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { isPremium },
+                            set: { newValue in
+                                guard route.isPremium else { return }
+                                isPremium = newValue
+                            }
+                        ))
+                        .tint(route.isPremium ? .orange : .gray)
+                        .labelsHidden()
+                    }
 
                     Text("training.route.apply.tip")
                         .font(.footnote)
@@ -2016,16 +2077,11 @@ struct BikeRouteApplyFormView: View {
                 }
                 .padding()
             }
-            .background(Color.defaultBackground)
-            .navigationTitle("training.route.apply.title")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .foregroundStyle(Color.white)
-                }
-            }
         }
+        .environment(\.colorScheme, .dark)
+        .background(Color.defaultBackground)
+        .hideKeyboardOnTap()
+        .ignoresSafeArea(.keyboard)
     }
 
     private var canSubmit: Bool {
@@ -2041,7 +2097,8 @@ struct BikeRouteApplyFormView: View {
             "title": title,
             "sub_region_name": subRegionName,
             "terrain_type": terrainType.rawValue,
-            "lifecycle": lifecycle.rawValue
+            "lifecycle": lifecycle.rawValue,
+            "is_premium": route.isPremium && isPremium
         ]
         guard let encodedBody = try? JSONSerialization.data(withJSONObject: body) else {
             isSubmitting = false
@@ -2056,10 +2113,11 @@ struct BikeRouteApplyFormView: View {
                 case .success:
                     ToastManager.shared.show(toast: Toast(message: "training.route.apply.success"))
                     onSuccess()
+                    isPresented = false
                 default:
+                    // 失败时保留表单，便于用户修改后重试（错误提示已由 showErrorToast 给出）
                     break
                 }
-                dismiss()
             }
         }
     }

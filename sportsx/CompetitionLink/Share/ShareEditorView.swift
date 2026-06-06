@@ -55,6 +55,14 @@ struct ShareElementContent: View {
                 .stroke(trackColor, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
                 .frame(width: trackBaseSize, height: trackBaseSize)
                 .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 1)
+        case .sportIcon:
+            Image(metrics.sport.iconName)
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 44, height: 44)
+                .foregroundStyle(textColor)
+                .shadow(color: shadowColor, radius: 3, x: 0, y: 1)
         case .duration:
             metricChip(value: metrics.durationText, unitKey: nil, labelKey: "share.element.duration")
         case .pace:
@@ -63,6 +71,8 @@ struct ShareElementContent: View {
             metricChip(value: metrics.heartRateText, unitKey: "heartrate.unit", labelKey: "share.element.heart_rate")
         case .elevationGain:
             metricChip(value: metrics.elevationGainText, unitKey: "distance.m", labelKey: "share.element.elevation_gain")
+        case .cadence:
+            metricChip(value: metrics.cadenceText, unitKey: metrics.cadenceUnitKey, labelKey: metrics.cadenceLabelKey)
         case .logo:
             HStack(spacing: 6) {
                 Image("single_app_icon")
@@ -605,12 +615,25 @@ struct ShareEditorView: View {
     private func elementToggleChip(_ kind: ShareElementKind) -> some View {
         let enabled = states[kind]?.enabled == true
         let isLogo = kind == .logo
-        // 心率无数据时禁用
-        let disabled = (kind == .heartRate && !metrics.hasHeartRate) || isLogo
+        // 心率 / 踏频步频 无数据时禁用
+        let disabled = (kind == .heartRate && !metrics.hasHeartRate)
+            || (kind == .cadence && !metrics.hasCadence)
+            || isLogo
+        // 踏频/步频标签按运动自适应，其余用元素自身标题
+        let titleKey = kind == .cadence ? metrics.cadenceLabelKey : kind.titleKey
         return HStack(spacing: 5) {
-            Image(systemName: kind.iconName)
-                .font(.system(size: 12))
-            Text(LocalizedStringKey(kind.titleKey))
+            // 运动图标芯片直接展示当前运动的图标
+            if kind == .sportIcon {
+                Image(metrics.sport.iconName)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
+            } else {
+                Image(systemName: kind.iconName)
+                    .font(.system(size: 12))
+            }
+            Text(LocalizedStringKey(titleKey))
                 .font(.system(size: 13, weight: .medium))
         }
         .foregroundStyle(enabled ? Color.white : Color.thirdText)
@@ -732,10 +755,11 @@ struct ShareEditorView: View {
 
     private func defaultEnabled(_ kind: ShareElementKind) -> Bool {
         switch kind {
-        case .duration, .pace, .logo: return true
+        case .duration, .pace, .logo, .sportIcon: return true
         case .track: return backgroundMode != .map      // 地图模式下轨迹并入背景，不作为叠加元素
         case .heartRate: return false
         case .elevationGain: return false
+        case .cadence: return false
         }
     }
 
@@ -743,10 +767,12 @@ struct ShareEditorView: View {
     private func defaultAnchor(_ kind: ShareElementKind) -> CGPoint {
         switch kind {
         case .track:         return CGPoint(x: 0, y: -0.08)
+        case .sportIcon:     return CGPoint(x: 0, y: -0.40)
         case .duration:      return CGPoint(x: -0.22, y: 0.28)
         case .pace:          return CGPoint(x: 0.22, y: 0.28)
         case .heartRate:     return CGPoint(x: -0.22, y: 0.40)
         case .elevationGain: return CGPoint(x: 0.22, y: 0.40)
+        case .cadence:       return CGPoint(x: 0, y: 0.40)
         case .logo:          return CGPoint(x: 0, y: 0.46)
         }
     }

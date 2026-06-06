@@ -67,7 +67,7 @@ struct SportCenterView: View {
                         .foregroundStyle(Color.white)
                         .exclusiveTouchTapGesture {
                             if !isDragging {
-                                withAnimation(.easeIn(duration: 0.2)) {
+                                withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.85)) {
                                     appState.navigationManager.showSideBar = true
                                 }
                             }

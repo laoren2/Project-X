@@ -1042,6 +1042,8 @@
 "training.route.apply.lifecycle.one_month" = "1개월";
 "training.route.apply.lifecycle.two_month" = "2개월";
 "training.route.apply.lifecycle.season_end" = "시즌 종료까지";
+"training.route.apply.premium" = "프리미엄 트랙";
+"training.route.apply.premium.content" = "프리미엄 트랙은 프리미엄 순위표(성별별 순위, 더 많은 정원과 보상)가 활성화되며 참가하려면 프리미엄 참가 카드가 필요합니다. 프리미엄 경로만 프리미엄 트랙으로 신청할 수 있으며, 일반 경로는 일반 트랙으로만 신청할 수 있습니다.";
 "training.route.apply.tip" = "승인되면 경로가 정식 트랙이 됩니다.";
 "training.route.apply.submit" = "신청 제출";
 "training.route.apply.success" = "신청이 제출되었습니다";
@@ -1053,10 +1055,13 @@
 "share.editor.track_color" = "경로 색상";
 "share.editor.choose_background" = "배경 이미지 선택";
 "share.element.track" = "경로";
+"share.element.sport" = "종목";
 "share.element.duration" = "시간";
 "share.element.pace" = "페이스";
 "share.element.heart_rate" = "평균 심박";
 "share.element.elevation_gain" = "누적 상승";
+"share.element.pedal_cadence" = "케이던스";
+"share.element.step_cadence" = "케이던스";
 "share.element.logo" = "로고";
 "share.toast.saved" = "앨범에 저장됨";
 "share.toast.failed" = "저장 실패";
