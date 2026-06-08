@@ -101,6 +101,24 @@
       "idiom" : "universal",
       "locale" : "ja",
       "scale" : "3x"
+    },
+    {
+      "filename" : "usage_ad_en 3.jpeg",
+      "idiom" : "universal",
+      "locale" : "fr",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "usage_ad_en 4.jpeg",
+      "idiom" : "universal",
+      "locale" : "fr",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "usage_ad_en 5.jpeg",
+      "idiom" : "universal",
+      "locale" : "fr",
+      "scale" : "3x"
     }
   ],
   "info" : {

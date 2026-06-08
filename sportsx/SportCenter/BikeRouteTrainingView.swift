@@ -614,7 +614,7 @@ struct BikeRouteManageView: View {
             }
             .padding(.horizontal)
             // 提示：热度达标的路线可申请加入竞技场
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
                 Image("arena")
                     .resizable()
                     .scaledToFit()

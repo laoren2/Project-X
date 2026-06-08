@@ -13,20 +13,20 @@ struct RegionSelectedView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var locationManager = LocationManager.shared
     @State var selectedProvince: String = "error.unknown"
-    @State private var onlyShowWithEvents: Bool = false
-    @State var regionIDsWithEvents: [String] = []
+    @State private var onlyShowWithTracks: Bool = false
+    @State var regionIDsWithTracks: [String] = []
 
     var regions: [String: [Region]] {
         var base: [String: [Region]] = [:]
         if let country = locationManager.country {
             base = RegionStore.tables[country.rawValue] ?? [:]
         }
-        
-        if onlyShowWithEvents {
-            // 过滤只保留包含赛事城市的区域
+
+        if onlyShowWithTracks {
+            // 过滤只保留包含「可玩赛道」的区域
             var filtered: [String: [Region]] = [:]
             for (province, cities) in base {
-                let matchingCities = cities.filter { regionIDsWithEvents.contains($0.regionID) }
+                let matchingCities = cities.filter { regionIDsWithTracks.contains($0.regionID) }
                 if !matchingCities.isEmpty {
                     filtered[province] = matchingCities
                 }
@@ -77,7 +77,7 @@ struct RegionSelectedView: View {
                 Text("competition.location_select.regions_with_events")
                     .font(.subheadline)
                     .foregroundStyle(Color.thirdText)
-                Toggle("", isOn: $onlyShowWithEvents)
+                Toggle("", isOn: $onlyShowWithTracks)
                     .labelsHidden()
             }
             .padding()
@@ -264,7 +264,7 @@ struct RegionSelectedView: View {
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
-                    regionIDsWithEvents = unwrappedData.regions_with_events
+                    regionIDsWithTracks = unwrappedData.regions_with_events
                 }
             default: break
             }

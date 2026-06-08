@@ -488,6 +488,179 @@ let regionTable_AU: [String: [Region]] = [
     ]
 ]
 
+// NL：由 tools/gen_regions.py 从 GISCO NUTS2 自动生成，勿手改；改粒度请改脚本重跑。
+let regionTable_NL: [String: [Region]] = [
+    "region.nl.nl11": [
+        Region(regionID: "NL11", regionName: "region.nl.nl11")
+    ],
+    "region.nl.nl12": [
+        Region(regionID: "NL12", regionName: "region.nl.nl12")
+    ],
+    "region.nl.nl13": [
+        Region(regionID: "NL13", regionName: "region.nl.nl13")
+    ],
+    "region.nl.nl21": [
+        Region(regionID: "NL21", regionName: "region.nl.nl21")
+    ],
+    "region.nl.nl22": [
+        Region(regionID: "NL22", regionName: "region.nl.nl22")
+    ],
+    "region.nl.nl23": [
+        Region(regionID: "NL23", regionName: "region.nl.nl23")
+    ],
+    "region.nl.nl31": [
+        Region(regionID: "NL31", regionName: "region.nl.nl31")
+    ],
+    "region.nl.nl32": [
+        Region(regionID: "NL32", regionName: "region.nl.nl32")
+    ],
+    "region.nl.nl33": [
+        Region(regionID: "NL33", regionName: "region.nl.nl33")
+    ],
+    "region.nl.nl34": [
+        Region(regionID: "NL34", regionName: "region.nl.nl34")
+    ],
+    "region.nl.nl41": [
+        Region(regionID: "NL41", regionName: "region.nl.nl41")
+    ],
+    "region.nl.nl42": [
+        Region(regionID: "NL42", regionName: "region.nl.nl42")
+    ]
+]
+
+// FR：由 tools/gen_regions.py 从 GISCO NUTS3 自动生成，勿手改；改粒度请改脚本重跑。
+let regionTable_FR: [String: [Region]] = [
+    "region.fr.fr1": [
+        Region(regionID: "FR101", regionName: "region.fr.fr101"),
+        Region(regionID: "FR102", regionName: "region.fr.fr102"),
+        Region(regionID: "FR103", regionName: "region.fr.fr103"),
+        Region(regionID: "FR104", regionName: "region.fr.fr104"),
+        Region(regionID: "FR105", regionName: "region.fr.fr105"),
+        Region(regionID: "FR106", regionName: "region.fr.fr106"),
+        Region(regionID: "FR107", regionName: "region.fr.fr107"),
+        Region(regionID: "FR108", regionName: "region.fr.fr108")
+    ],
+    "region.fr.frb": [
+        Region(regionID: "FRB01", regionName: "region.fr.frb01"),
+        Region(regionID: "FRB02", regionName: "region.fr.frb02"),
+        Region(regionID: "FRB03", regionName: "region.fr.frb03"),
+        Region(regionID: "FRB04", regionName: "region.fr.frb04"),
+        Region(regionID: "FRB05", regionName: "region.fr.frb05"),
+        Region(regionID: "FRB06", regionName: "region.fr.frb06")
+    ],
+    "region.fr.frc": [
+        Region(regionID: "FRC11", regionName: "region.fr.frc11"),
+        Region(regionID: "FRC12", regionName: "region.fr.frc12"),
+        Region(regionID: "FRC13", regionName: "region.fr.frc13"),
+        Region(regionID: "FRC14", regionName: "region.fr.frc14"),
+        Region(regionID: "FRC21", regionName: "region.fr.frc21"),
+        Region(regionID: "FRC22", regionName: "region.fr.frc22"),
+        Region(regionID: "FRC23", regionName: "region.fr.frc23"),
+        Region(regionID: "FRC24", regionName: "region.fr.frc24")
+    ],
+    "region.fr.frd": [
+        Region(regionID: "FRD11", regionName: "region.fr.frd11"),
+        Region(regionID: "FRD12", regionName: "region.fr.frd12"),
+        Region(regionID: "FRD13", regionName: "region.fr.frd13"),
+        Region(regionID: "FRD21", regionName: "region.fr.frd21"),
+        Region(regionID: "FRD22", regionName: "region.fr.frd22")
+    ],
+    "region.fr.fre": [
+        Region(regionID: "FRE11", regionName: "region.fr.fre11"),
+        Region(regionID: "FRE12", regionName: "region.fr.fre12"),
+        Region(regionID: "FRE21", regionName: "region.fr.fre21"),
+        Region(regionID: "FRE22", regionName: "region.fr.fre22"),
+        Region(regionID: "FRE23", regionName: "region.fr.fre23")
+    ],
+    "region.fr.frf": [
+        Region(regionID: "FRF11", regionName: "region.fr.frf11"),
+        Region(regionID: "FRF12", regionName: "region.fr.frf12"),
+        Region(regionID: "FRF21", regionName: "region.fr.frf21"),
+        Region(regionID: "FRF22", regionName: "region.fr.frf22"),
+        Region(regionID: "FRF23", regionName: "region.fr.frf23"),
+        Region(regionID: "FRF24", regionName: "region.fr.frf24"),
+        Region(regionID: "FRF31", regionName: "region.fr.frf31"),
+        Region(regionID: "FRF32", regionName: "region.fr.frf32"),
+        Region(regionID: "FRF33", regionName: "region.fr.frf33"),
+        Region(regionID: "FRF34", regionName: "region.fr.frf34")
+    ],
+    "region.fr.frg": [
+        Region(regionID: "FRG01", regionName: "region.fr.frg01"),
+        Region(regionID: "FRG02", regionName: "region.fr.frg02"),
+        Region(regionID: "FRG03", regionName: "region.fr.frg03"),
+        Region(regionID: "FRG04", regionName: "region.fr.frg04"),
+        Region(regionID: "FRG05", regionName: "region.fr.frg05")
+    ],
+    "region.fr.frh": [
+        Region(regionID: "FRH01", regionName: "region.fr.frh01"),
+        Region(regionID: "FRH02", regionName: "region.fr.frh02"),
+        Region(regionID: "FRH03", regionName: "region.fr.frh03"),
+        Region(regionID: "FRH04", regionName: "region.fr.frh04")
+    ],
+    "region.fr.fri": [
+        Region(regionID: "FRI11", regionName: "region.fr.fri11"),
+        Region(regionID: "FRI12", regionName: "region.fr.fri12"),
+        Region(regionID: "FRI13", regionName: "region.fr.fri13"),
+        Region(regionID: "FRI14", regionName: "region.fr.fri14"),
+        Region(regionID: "FRI15", regionName: "region.fr.fri15"),
+        Region(regionID: "FRI21", regionName: "region.fr.fri21"),
+        Region(regionID: "FRI22", regionName: "region.fr.fri22"),
+        Region(regionID: "FRI23", regionName: "region.fr.fri23"),
+        Region(regionID: "FRI31", regionName: "region.fr.fri31"),
+        Region(regionID: "FRI32", regionName: "region.fr.fri32"),
+        Region(regionID: "FRI33", regionName: "region.fr.fri33"),
+        Region(regionID: "FRI34", regionName: "region.fr.fri34")
+    ],
+    "region.fr.frj": [
+        Region(regionID: "FRJ11", regionName: "region.fr.frj11"),
+        Region(regionID: "FRJ12", regionName: "region.fr.frj12"),
+        Region(regionID: "FRJ13", regionName: "region.fr.frj13"),
+        Region(regionID: "FRJ14", regionName: "region.fr.frj14"),
+        Region(regionID: "FRJ15", regionName: "region.fr.frj15"),
+        Region(regionID: "FRJ21", regionName: "region.fr.frj21"),
+        Region(regionID: "FRJ22", regionName: "region.fr.frj22"),
+        Region(regionID: "FRJ23", regionName: "region.fr.frj23"),
+        Region(regionID: "FRJ24", regionName: "region.fr.frj24"),
+        Region(regionID: "FRJ25", regionName: "region.fr.frj25"),
+        Region(regionID: "FRJ26", regionName: "region.fr.frj26"),
+        Region(regionID: "FRJ27", regionName: "region.fr.frj27"),
+        Region(regionID: "FRJ28", regionName: "region.fr.frj28")
+    ],
+    "region.fr.frk": [
+        Region(regionID: "FRK11", regionName: "region.fr.frk11"),
+        Region(regionID: "FRK12", regionName: "region.fr.frk12"),
+        Region(regionID: "FRK13", regionName: "region.fr.frk13"),
+        Region(regionID: "FRK14", regionName: "region.fr.frk14"),
+        Region(regionID: "FRK21", regionName: "region.fr.frk21"),
+        Region(regionID: "FRK22", regionName: "region.fr.frk22"),
+        Region(regionID: "FRK23", regionName: "region.fr.frk23"),
+        Region(regionID: "FRK24", regionName: "region.fr.frk24"),
+        Region(regionID: "FRK25", regionName: "region.fr.frk25"),
+        Region(regionID: "FRK26", regionName: "region.fr.frk26"),
+        Region(regionID: "FRK27", regionName: "region.fr.frk27"),
+        Region(regionID: "FRK28", regionName: "region.fr.frk28")
+    ],
+    "region.fr.frl": [
+        Region(regionID: "FRL01", regionName: "region.fr.frl01"),
+        Region(regionID: "FRL02", regionName: "region.fr.frl02"),
+        Region(regionID: "FRL03", regionName: "region.fr.frl03"),
+        Region(regionID: "FRL04", regionName: "region.fr.frl04"),
+        Region(regionID: "FRL05", regionName: "region.fr.frl05"),
+        Region(regionID: "FRL06", regionName: "region.fr.frl06")
+    ],
+    "region.fr.frm": [
+        Region(regionID: "FRM01", regionName: "region.fr.frm01"),
+        Region(regionID: "FRM02", regionName: "region.fr.frm02")
+    ],
+    "region.fr.fry": [
+        Region(regionID: "FRY10", regionName: "region.fr.fry10"),
+        Region(regionID: "FRY20", regionName: "region.fr.fry20"),
+        Region(regionID: "FRY30", regionName: "region.fr.fry30"),
+        Region(regionID: "FRY40", regionName: "region.fr.fry40"),
+        Region(regionID: "FRY50", regionName: "region.fr.fry50")
+    ]
+]
+
 struct RegionStore {
     static let tables: [String: [String: [Region]]] = [
         "CN": regionTable_CN,
@@ -498,7 +671,9 @@ struct RegionStore {
         "JP": regionTable_JP,
         "CA": regionTable_CA,
         "AU": regionTable_AU,
-        "UK": regionTable_UK
+        "UK": regionTable_UK,
+        "NL": regionTable_NL,
+        "FR": regionTable_FR
     ]
     
     static let index: [String: Region] = {
@@ -538,14 +713,16 @@ enum Country: String, CaseIterable {
     case ca = "CA"
     case au = "AU"
     case uk = "UK"
-    
+    case nl = "NL"
+    case fr = "FR"
+
     var supported: Bool {
         switch self {
-        case .hk, .tw, .kr, .us, .jp, .ca, .au, .uk: return true
+        case .hk, .tw, .kr, .us, .jp, .ca, .au, .uk, .nl, .fr: return true
         case .cn: return false
         }
     }
-    
+
     var phoneCode: String {
         switch self {
         case .hk: return "852"
@@ -557,9 +734,11 @@ enum Country: String, CaseIterable {
         case .ca: return "1"
         case .au: return "61"
         case .uk: return "44"
+        case .nl: return "31"
+        case .fr: return "33"
         }
     }
-    
+
     var displayName: LocalizedStringKey {
         switch self {
         case .hk: return "region.hk"
@@ -571,9 +750,11 @@ enum Country: String, CaseIterable {
         case .ca: return "region.ca"
         case .au: return "region.au"
         case .uk: return "region.uk"
+        case .nl: return "region.nl"
+        case .fr: return "region.fr"
         }
     }
-    
+
     var phoneNumberLength: ClosedRange<Int> {
         switch self {
         case .hk: return 8...8
@@ -585,6 +766,8 @@ enum Country: String, CaseIterable {
         case .ca: return 10...10
         case .au: return 9...9
         case .uk: return 10...10
+        case .nl: return 9...9
+        case .fr: return 9...9
         }
     }
     

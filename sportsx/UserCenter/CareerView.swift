@@ -79,7 +79,7 @@ struct CareerView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(Color.white)
                         Divider()
-                        HStack(alignment: .bottom, spacing: 15) {
+                        HStack(alignment: .top, spacing: 15) {
                             VStack(spacing: 5) {
                                 Image("total_time")
                                     .resizable()
@@ -346,7 +346,7 @@ struct LocalCareerView: View {
                             .fontWeight(.bold)
                             .foregroundStyle(Color.white)
                             Divider()
-                            HStack(alignment: .bottom) {
+                            HStack(alignment: .top, spacing: 15) {
                                 VStack(spacing: 5) {
                                     Image("total_time")
                                         .resizable()
