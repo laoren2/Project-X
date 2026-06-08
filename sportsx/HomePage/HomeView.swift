@@ -294,6 +294,7 @@ struct SquareView: View {
                             }
                             Text(feature.title)
                                 .font(.system(size: 13))
+                                .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
                         .foregroundColor(.white)

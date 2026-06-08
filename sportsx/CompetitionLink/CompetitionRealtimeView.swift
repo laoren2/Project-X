@@ -262,7 +262,9 @@ struct CompetitionRealtimeView: View {
                                         }
                                 } else {
                                     Text("competition.realtime.action.start")
-                                        .font(.title)
+                                        .font(.system(size: 30))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                         .frame(width: 100, height: 100)
                                         .background(isGray ? Color.gray : Color.green)
                                         .clipShape(Circle())

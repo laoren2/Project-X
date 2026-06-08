@@ -178,19 +178,19 @@ struct RunningCompetitionView: View {
                             }
                             // 纵向赛道列表（固定高度可滚动）
                             ScrollView {
-                                if viewModel.tracks.isEmpty {
-                                    VStack {
-                                        Image("no_data")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(height: 60)
-                                        Text("competition.track.error.no_tracks")
-                                            .foregroundColor(.secondText)
-                                    }
-                                    .padding(.top, 50)
-                                    .padding(.horizontal)
-                                } else {
-                                    LazyVStack(spacing: 8) {
+                                LazyVStack(spacing: 8) {
+                                    if viewModel.tracks.isEmpty {
+                                        VStack {
+                                            Image("no_data")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(height: 60)
+                                            Text("competition.track.error.no_tracks")
+                                                .foregroundColor(.secondText)
+                                        }
+                                        .padding(.top, 50)
+                                        .padding(.horizontal)
+                                    } else {
                                         ForEach(viewModel.tracks) { track in
                                             RunningCompetitionTrackCardView(track: track, sortType: viewModel.sortType)
                                                 .contentShape(Rectangle())
@@ -218,8 +218,8 @@ struct RunningCompetitionView: View {
                                                 .padding()
                                         }
                                     }
-                                    .padding(10)
                                 }
+                                .padding(10)
                             }
                             .frame(height: 240)
                             .background(Color.black.opacity(0.2))

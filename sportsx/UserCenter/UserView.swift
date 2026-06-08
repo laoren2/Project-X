@@ -1108,7 +1108,7 @@ struct LocalMainUserView: View {
                         .padding(.top, 56)
                         
                         // 功能模块区
-                        HStack(alignment: .bottom, spacing: 0) {
+                        HStack(alignment: .top, spacing: 0) {
                             // 设备绑定模块
                             VStack(spacing: 6) {
                                 Image("device_bind")
@@ -1154,6 +1154,7 @@ struct LocalMainUserView: View {
                                             .offset(x: 5, y: -5)
                                     }
                                 }
+                                .frame(height: 28)
                                 Text("user.page.features.email_box")
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)

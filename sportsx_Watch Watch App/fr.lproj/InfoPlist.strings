@@ -1,0 +1,10 @@
+/*
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/4.
+
+*/
+
+"NSHealthShareUsageDescription" = "Sert à lire vos données d'activité et de fréquence cardiaque afin de générer des enregistrements et des analyses de performances plus précis.";
+"NSHealthUpdateUsageDescription" = "Sert à écrire vos enregistrements d'activité dans l'app Santé, afin que vous puissiez consulter votre historique dans l'app Santé du système.";

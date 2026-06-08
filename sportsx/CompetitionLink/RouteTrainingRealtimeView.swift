@@ -329,7 +329,9 @@ struct RouteTrainingRealtimeView: View {
                                 } else {
                                     Spacer()
                                     Text("competition.realtime.action.start")
-                                        .font(.title)
+                                        .font(.system(size: 30))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                         .foregroundColor(.white)
                                         .frame(width: 100, height: 100)
                                         .background(isGray ? Color.gray : Color.green)

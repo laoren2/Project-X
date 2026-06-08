@@ -357,30 +357,32 @@ struct ShareEditorView: View {
 
     // MARK: 顶部栏
     private var header: some View {
-        HStack {
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
+        ZStack {
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                Spacer()
+                Button(action: { save() }) {
+                    if isSaving {
+                        ProgressView().tint(.white)
+                    } else {
+                        Text("share.action.save")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .disabled(isSaving)
             }
-            Spacer()
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            
             Text("share.editor.title")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(.white)
-            Spacer()
-            Button(action: { save() }) {
-                if isSaving {
-                    ProgressView().tint(.white)
-                } else {
-                    Text("share.action.save")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.orange)
-                }
-            }
-            .disabled(isSaving)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
     }
 
     // MARK: 画布（编辑态）

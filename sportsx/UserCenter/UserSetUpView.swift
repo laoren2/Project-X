@@ -1346,14 +1346,19 @@ struct LocalDebugPanelView: View {
     @State var selectedEnv: String
     @State var localServerIP: String
     
-    let cor_kr = CLLocationCoordinate2D(latitude: 38.085, longitude: 128.449)
-    let cor_hk = CLLocationCoordinate2D(latitude: 22.319, longitude: 114.174)
-    let cor_tw = CLLocationCoordinate2D(latitude: 25.010, longitude: 121.520)
-    let cor_us = CLLocationCoordinate2D(latitude: 38.8984, longitude: -76.97)
-    let cor_jp = CLLocationCoordinate2D(latitude: 35.6802, longitude: 139.7703)
-    let cor_uk = CLLocationCoordinate2D(latitude: 51.698131, longitude: 0.019759)
-    let cor_au = CLLocationCoordinate2D(latitude: -27.682833, longitude: 136.088435)
-    let cor_ca = CLLocationCoordinate2D(latitude: 56.661947, longitude: -102.903721)
+    // 各国地理定位测试点（落在对应支持区域内）。新增国家只需往这里加一项，下方网格会自动换行排布
+    let testLocations: [(name: String, coordinate: CLLocationCoordinate2D)] = [
+        ("HK", CLLocationCoordinate2D(latitude: 22.319, longitude: 114.174)),
+        ("TW", CLLocationCoordinate2D(latitude: 25.010, longitude: 121.520)),
+        ("KR", CLLocationCoordinate2D(latitude: 38.085, longitude: 128.449)),
+        ("US", CLLocationCoordinate2D(latitude: 38.8984, longitude: -76.97)),
+        ("JP", CLLocationCoordinate2D(latitude: 35.6802, longitude: 139.7703)),
+        ("UK", CLLocationCoordinate2D(latitude: 51.698131, longitude: 0.019759)),
+        ("AU", CLLocationCoordinate2D(latitude: -27.682833, longitude: 136.088435)),
+        ("CA", CLLocationCoordinate2D(latitude: 56.661947, longitude: -102.903721)),
+        ("NL", CLLocationCoordinate2D(latitude: 52.3676, longitude: 4.9041)),    // Amsterdam
+        ("FR", CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522))     // Paris
+    ]
     
     init() {
         let savedEnv = UserDefaults.standard.string(forKey: "debug.serverEnv") ?? "prod"
@@ -1386,46 +1391,16 @@ struct LocalDebugPanelView: View {
                         Text("设备 GPS 定位")
                             .bold()
                             .padding(.bottom, 20)
-                        HStack(spacing: 10) {
-                            Button("HK") {
-                                lat = cor_hk.latitude
-                                lon = cor_hk.longitude
-                                GlobalConfig.shared.location_debug = cor_hk
-                            }
-                            Button("TW") {
-                                lat = cor_tw.latitude
-                                lon = cor_tw.longitude
-                                GlobalConfig.shared.location_debug = cor_tw
-                            }
-                            Button("KR") {
-                                lat = cor_kr.latitude
-                                lon = cor_kr.longitude
-                                GlobalConfig.shared.location_debug = cor_kr
-                            }
-                            Button("US") {
-                                lat = cor_us.latitude
-                                lon = cor_us.longitude
-                                GlobalConfig.shared.location_debug = cor_us
-                            }
-                            Button("JP") {
-                                lat = cor_jp.latitude
-                                lon = cor_jp.longitude
-                                GlobalConfig.shared.location_debug = cor_jp
-                            }
-                            Button("UK") {
-                                lat = cor_uk.latitude
-                                lon = cor_uk.longitude
-                                GlobalConfig.shared.location_debug = cor_uk
-                            }
-                            Button("AU") {
-                                lat = cor_au.latitude
-                                lon = cor_au.longitude
-                                GlobalConfig.shared.location_debug = cor_au
-                            }
-                            Button("CA") {
-                                lat = cor_ca.latitude
-                                lon = cor_ca.longitude
-                                GlobalConfig.shared.location_debug = cor_ca
+                        // 自适应网格：列数随宽度自动决定，国家再多也会自动换行，不会挤爆
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 56), spacing: 8)], spacing: 8) {
+                            ForEach(testLocations, id: \.name) { loc in
+                                Button(loc.name) {
+                                    lat = loc.coordinate.latitude
+                                    lon = loc.coordinate.longitude
+                                    GlobalConfig.shared.location_debug = loc.coordinate
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
                             }
                         }
                         TextField("Latitude", value: $lat, format: .number)

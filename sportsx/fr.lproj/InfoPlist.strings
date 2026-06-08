@@ -1,0 +1,15 @@
+/*
+  InfoPlist.strings
+  sportsx
+
+  Created by 任杰 on 2026/2/2.
+
+*/
+
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Sert à enregistrer en continu vos données (trajet, distance, etc.) pendant une activité en arrière-plan et à les associer au parcours correspondant. La localisation en arrière-plan n'est utilisée que lorsque l'activité se poursuit en arrière-plan.";
+"NSLocationWhenInUseUsageDescription" = "Sert à afficher les compétitions et les parcours à proximité auxquels vous pouvez participer.";
+"NSPhotoLibraryUsageDescription" = "Sert à accéder à votre photothèque pour mettre à jour votre profil. Les photos que vous ne sélectionnez pas ne sont jamais consultées.";
+"NSHealthShareUsageDescription" = "Sert à accéder à l'app Santé pour lire vos données d'activité (fréquence cardiaque, pas, etc.) et les synchroniser depuis votre Apple Watch vers votre iPhone à des fins d'enregistrement et d'analyse.";
+"NSHealthUpdateUsageDescription" = "Sert à écrire dans l'app Santé les données d'activité enregistrées sur votre Apple Watch, afin que vous puissiez consulter votre historique dans l'app Santé du système.";
+"NSMotionUsageDescription" = "Sert à lire les capteurs de mouvement de l'appareil pour enregistrer et analyser vos performances sportives.";
+"NSPhotoLibraryAddUsageDescription" = "Sert à enregistrer dans votre photothèque l'image de partage d'activité que vous générez.";

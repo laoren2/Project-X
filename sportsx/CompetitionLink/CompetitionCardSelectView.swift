@@ -131,14 +131,11 @@ struct CompetitionCardSelectView: View {
                         .foregroundStyle(Color.white)
                     }
                     
-                    HStack {
-                        if userManager.user.isVip {
-                            Spacer()
-                        }
+                    VStack {
                         Text("competition.cardselect.choose")
                             .font(.system(size: 25))
                             .foregroundStyle(.white)
-                        Spacer()
+                            .multilineTextAlignment(.center)
                         if !userManager.user.isVip {
                             HStack {
                                 Image("vip_icon_on")
