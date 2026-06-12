@@ -70,6 +70,9 @@ struct CompetitionWidget: View {
                             )
                     }
                 }
+                // 在浮窗可拖动区域埋标记，让 window 级的侧边栏手势（SidebarPanGesture）在此让位，
+                // 避免在浮窗上拖动时同时触发侧边栏唤出/收起。需在 .position 之前使其居中对齐到浮窗
+                .background(SidebarGestureExcludedArea())
                 .position(
                     x: geo.size.width - 70 + dragOffset.width + lastPosition.width,
                     y: geo.size.height + dragOffset.height + lastPosition.height

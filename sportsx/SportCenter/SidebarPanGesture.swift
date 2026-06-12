@@ -109,6 +109,9 @@ struct SidebarPanGesture: UIViewRepresentable {
                   let window = pan.view as? UIWindow
             else { return false }
 
+            // 落点位于浮层区域（如运动中的比赛浮窗）→ 让位给浮层自身的拖动手势
+            if isInsideExcludedArea(at: pan.location(in: window), in: window) { return false }
+
             let velocity = pan.velocity(in: window)
             // 纵向意图 → 让位给纵向滚动
             guard abs(velocity.x) > abs(velocity.y) else { return false }
@@ -132,6 +135,16 @@ struct SidebarPanGesture: UIViewRepresentable {
             return true
         }
 
+        // 触摸落点位于浮层让位区域（如比赛浮窗）时，从源头就不接收该触摸，
+        // 比 shouldBegin 更早，避免边缘时序窗口里仍与浮层拖动同时响应
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldReceive touch: UITouch
+        ) -> Bool {
+            guard let window = pan?.view as? UIWindow else { return true }
+            return !isInsideExcludedArea(at: touch.location(in: window), in: window)
+        }
+
         /// 命中测试：从触点向上回溯，是否存在可横向滚动的 `UIScrollView`
         private func isInsideHorizontalScrollView(at point: CGPoint, in window: UIWindow) -> Bool {
             var view: UIView? = window.hitTest(point, with: nil)
@@ -145,7 +158,43 @@ struct SidebarPanGesture: UIViewRepresentable {
             }
             return false
         }
+
+        /// 落点是否位于浮层让位区域内。
+        ///
+        /// 浮层（如比赛浮窗）自带 SwiftUI 拖动手势，但其本身不会生成独立 `UIView`，
+        /// 无法靠 `hitTest` 识别；故由浮层用 `SidebarGestureExcludedArea` 在自身区域埋一个
+        /// 不可交互的标记视图，这里遍历窗口找到该标记并按其窗口坐标系下的 frame 判断落点。
+        private func isInsideExcludedArea(at point: CGPoint, in window: UIWindow) -> Bool {
+            func search(_ view: UIView) -> Bool {
+                for subview in view.subviews {
+                    if subview.tag == SidebarGestureExcludedArea.tag,
+                       subview.convert(subview.bounds, to: window).contains(point) {
+                        return true
+                    }
+                    if search(subview) { return true }
+                }
+                return false
+            }
+            return search(window)
+        }
     }
+}
+
+/// 浮层让位标记：放在浮层（如比赛浮窗）的可拖动区域内（不可交互、不影响布局与触摸），
+/// 供 `SidebarPanGesture` 据此让位，避免在浮层上拖动时同时触发侧边栏唤出/收起手势。
+struct SidebarGestureExcludedArea: UIViewRepresentable {
+    /// 约定的私有 tag，用于在窗口层级中定位标记视图
+    static let tag = 990_601
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.tag = Self.tag
+        view.isUserInteractionEnabled = false
+        view.backgroundColor = .clear
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
 }
 
 /// 承载 window 级手势的宿主视图：进入 window 后回调挂载手势。

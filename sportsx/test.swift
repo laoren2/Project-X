@@ -36,22 +36,25 @@ struct PreviewLaunchView: View {
                     .frame(width: 100)
                     .foregroundStyle(Color.orange.opacity(0.8))
                     .scaleEffect(iconScale)
-                Text("app.slogan")
+                Text("app.slogan.preview.1")
                     .font(.system(.title, design: .rounded, weight: .heavy))
                     .foregroundStyle(Color.secondText)
-                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                    //.frame(maxWidth: .infinity)
                     .padding(.top, 10)
                     .padding(.bottom, 20)
+                    .padding(.horizontal, 32)
                     .opacity(sloganOpacity)
                 ProgressBar(progress: progress)
                     .frame(height: 10)
                     .padding(.top, 10)
+                    .padding(.bottom, 50)
                 Spacer()
             }
             .scaleEffect(contentScale)
             .opacity(contentOpacity)
 
-            Text("Explore new areas & find special rewards")
+            Text("app.slogan.preview.4")
                 .font(.system(size: 28, weight: .heavy, design: .rounded))
                 .foregroundStyle(Color.secondText)
                 .multilineTextAlignment(.center)
@@ -230,8 +233,8 @@ struct PreviewRealtimeView: View {
 
         temp.append(("competition.realtime.distance", String(format: "%.2f ", distance), "distance.km", Color.orange))
         temp.append(("competition.realtime.avgspeed", String(format: "%.1f ", avgSpeed), "speed.km/h", Color.yellow))
-        temp.append(("competition.realtime.elev_gain", String(format: "%.1f ", elevGain), "distance.m", Color.purple))
         temp.append(("competition.realtime.heartrate", "\(heartRate) ", "heartrate.unit", Color.red))
+        temp.append(("competition.realtime.elev_gain", String(format: "%.1f ", elevGain), "distance.m", Color.purple))
         temp.append(("competition.realtime.energy", "\(energy) ", "energy.unit", Color.blue))
         temp.append(("competition.realtime.power", "\(power) ", "power.unit", Color.green))
         temp.append(("competition.result.stepcadence", "\(cadence) ", "stepCadence.unit", Color.pink))
@@ -413,10 +416,17 @@ struct PreviewRealtimeView: View {
                             }
                         }
                     }
+                    ZStack {
+                        ProgressBar(progress: Double(2) / Double(5))
+                            .frame(height: 20)
+                        Text("checked \(2) / \(5)")
+                            .foregroundStyle(Color.white)
+                            .font(.system(size: 18, weight: .medium, design: .rounded))
+                    }
+                    .padding(.horizontal)
                     ScrollView {
                         VStack(spacing: 20) {
-                            HStack {
-                                Spacer()
+                            HStack(spacing: 20) {
                                 if isRecording {
                                     Text(TimeDisplay.formattedTime(elapsedTime))
                                         .contentTransition(.numericText())
@@ -425,7 +435,16 @@ struct PreviewRealtimeView: View {
                                             value: elapsedTime
                                         )*/
                                         .font(.system(size: 35, weight: .heavy, design: .rounded))
-                                    Spacer()
+                                    VStack(spacing: 10) {
+                                        Text("- \(28)s")
+                                            .foregroundStyle(Color.green)
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .padding(.horizontal, 10)
+                                        Text("+ \(8)s")
+                                            .foregroundStyle(Color.pink)
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .padding(.horizontal, 10)
+                                    }
                                     // 背景按钮
                                     Text("training.realtime.action.finish")
                                         .font(.system(size: 20))
@@ -436,8 +455,11 @@ struct PreviewRealtimeView: View {
                                         .background(Color.red)
                                         .clipShape(Capsule())
                                 } else {
+                                    Spacer()
                                     Text("competition.realtime.action.start")
-                                        .font(.title)
+                                        .font(.system(size: 30))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                         .frame(width: 100, height: 100)
                                         .background(Color.green)
                                         .clipShape(Circle())
@@ -446,8 +468,8 @@ struct PreviewRealtimeView: View {
                                         .exclusiveTouchTapGesture {
                                             startFreeTraining()
                                         }
+                                    Spacer()
                                 }
-                                Spacer()
                             }
                             .foregroundStyle(Color.white)
                             
@@ -1094,11 +1116,11 @@ struct PreviewCardSelectedView: View {
                     }
                     .foregroundStyle(Color.white)
                     
-                    HStack {
+                    VStack {
                         Text("competition.cardselect.choose")
                             .font(.system(size: 25))
                             .foregroundStyle(.white)
-                        Spacer()
+                            .multilineTextAlignment(.center)
                         HStack {
                             Image("vip_icon_on")
                                 .resizable()
@@ -1112,9 +1134,6 @@ struct PreviewCardSelectedView: View {
                         .padding(.horizontal, 8)
                         .background(Color.gray.opacity(0.8))
                         .cornerRadius(10)
-                        .exclusiveTouchTapGesture {
-                            
-                        }
                     }
                     .padding(.top, 20)
                     .padding(.bottom, 10)
@@ -1473,7 +1492,7 @@ struct PreviewRankingListView: View {
             
             HStack {
                 HStack(spacing: 4) {
-                    Text("Male")
+                    Text(LocalizedStringKey(Gender.male.displayName))
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.white)
                     Image(systemName: "arrow.left.arrow.right")
@@ -1487,7 +1506,7 @@ struct PreviewRankingListView: View {
                         .fill(Color.defaultBackground)
                         .overlay(
                             Capsule()
-                                .stroke(Color.orange, lineWidth: 2)
+                                .stroke(Color.orange, lineWidth: 1)
                         )
                 )
                 Spacer()

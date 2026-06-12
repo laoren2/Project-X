@@ -29,6 +29,10 @@
 "common.popularity" = "Popularity";
 
 "app.slogan" = "Play for Passion";
+"app.slogan.preview.1" = "Explore.\nCollect.\nProgress.";
+"app.slogan.preview.2" = "Upgrade.\nStrategize.\nWin.";
+"app.slogan.preview.3" = "Create.\nShare.\nChallenge.";
+"app.slogan.preview.4" = "Every Move Matters";
 
 "sport.bike" = "Bike";
 "sport.running" = "Running";

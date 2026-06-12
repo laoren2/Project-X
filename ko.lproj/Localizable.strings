@@ -29,6 +29,10 @@
 "common.popularity" = "인기";
 
 "app.slogan" = "열정을 플레이하다";
+"app.slogan.preview.1" = "탐험 · 수집 · 성장";
+"app.slogan.preview.2" = "강화 · 전략 · 승리";
+"app.slogan.preview.3" = "제작 · 공유 · 도전";
+"app.slogan.preview.4" = "모든 걸음이 힘이 됩니다";
 
 "sport.bike" = "자전거";
 "sport.running" = "러닝";

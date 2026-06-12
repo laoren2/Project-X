@@ -29,6 +29,10 @@
 "common.popularity" = "熱度";
 
 "app.slogan" = "YI起動    YI起玩";
+"app.slogan.preview.1" = "探索、收集、成長";
+"app.slogan.preview.2" = "升级、策略、制胜";
+"app.slogan.preview.3" = "創作、分享、挑戰";
+"app.slogan.preview.4" = "每一步都算數";
 
 "sport.bike" = "自行車";
 "sport.running" = "跑步";
