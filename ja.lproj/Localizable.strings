@@ -29,6 +29,10 @@
 "common.popularity" = "人気度";
 
 "app.slogan" = "動いて、遊べ。";
+"app.slogan.preview.1" = "探索・収集・成長";
+"app.slogan.preview.2" = "強化・戦略・勝利";
+"app.slogan.preview.3" = "作成・共有・挑戦";
+"app.slogan.preview.4" = "すべての一歩が力になる";
 
 "sport.bike" = "サイクリング";
 "sport.running" = "ランニング";
