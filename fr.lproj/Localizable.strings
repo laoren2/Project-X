@@ -1148,6 +1148,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "login.sms.code.placeholder" = "Saisissez le code de vérification";
 "login.sms.action.verify_and_login" = "Vérifier et se connecter";
 "login.sms.action.send_again" = "Renvoyer";
+"login.sms.action.switch_method" = "Vous ne recevez pas de SMS? Essayez une autre méthode de connexion.";
 "login.sms.send_result.1 %lld" = "Code de vérification envoyé. Vous pourrez le renvoyer dans %lld s.";
 "login.sms.send_result.2" = "Code non reçu ? Touchez pour renvoyer.";
 "login.email.send_result.1 %lld" = "E-mail envoyé. Vous pourrez le renvoyer dans %lld s.";
@@ -1223,3 +1224,16 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "share.editor.bg_photo" = "Photo";
 "share.editor.bg_map" = "Carte du parcours";
 "share.editor.background" = "Arrière-plan";
+
+/* Téléversements d'activité en attente (cache local et renvoi manuel après un échec d'envoi à la fin) */
+"upload.pending.saved_toast" = "Erreur réseau. Vos données sont enregistrées — vous pourrez les téléverser plus tard depuis la page des enregistrements.";
+"upload.pending.title" = "Téléversements en attente";
+"upload.pending.empty" = "Aucun téléversement en attente";
+"upload.pending.reupload" = "Renvoyer";
+"upload.pending.reupload_success" = "Téléversement réussi";
+"upload.pending.delete" = "Supprimer";
+"upload.pending.delete_confirm" = "Cet enregistrement ne pourra pas être récupéré après suppression. Le supprimer ?";
+"upload.pending.mode.race_single" = "Course solo";
+"upload.pending.mode.race_team" = "Course en équipe";
+"upload.pending.mode.free_training" = "Entraînement libre";
+"upload.pending.mode.route_training" = "Entraînement sur parcours";

@@ -1148,6 +1148,7 @@
 "login.sms.code.placeholder" = "請輸入驗證碼";
 "login.sms.action.verify_and_login" = "驗證並登入";
 "login.sms.action.send_again" = "重新發送";
+"login.sms.action.switch_method" = "收不到？換一種登入方式";
 "login.sms.send_result.1 %lld" = "簡訊已發送，%lld 秒後可重新發送";
 "login.sms.send_result.2" = "沒收到簡訊？點擊重新發送";
 "login.email.send_result.1 %lld" = "郵件已發送，%lld 秒後可重新發送";
@@ -1223,3 +1224,16 @@
 "share.editor.bg_photo" = "照片";
 "share.editor.bg_map" = "軌跡地圖";
 "share.editor.background" = "背景";
+
+/* 運動資料待上傳（結束時上傳失敗的本地快取與手動重傳） */
+"upload.pending.saved_toast" = "網路異常，本次資料已儲存，可稍後在紀錄頁手動上傳";
+"upload.pending.title" = "待上傳紀錄";
+"upload.pending.empty" = "暫無待上傳紀錄";
+"upload.pending.reupload" = "重新上傳";
+"upload.pending.reupload_success" = "上傳成功";
+"upload.pending.delete" = "刪除";
+"upload.pending.delete_confirm" = "刪除後該紀錄將無法復原，確認刪除？";
+"upload.pending.mode.race_single" = "單人比賽";
+"upload.pending.mode.race_team" = "組隊比賽";
+"upload.pending.mode.free_training" = "自由訓練";
+"upload.pending.mode.route_training" = "路線訓練";

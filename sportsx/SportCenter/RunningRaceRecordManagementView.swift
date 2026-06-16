@@ -38,13 +38,9 @@ struct RunningRaceRecordManagementView: View {
                 }
                 
                 Spacer()
-                
-                // 平衡布局的空按钮
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(Color.clear)
-                }
+
+                // 未上传成功记录入口
+                PendingUploadEntryButton(category: .race, sport: .Running)
             }
             .padding(.horizontal)
             .padding(.bottom, 10)

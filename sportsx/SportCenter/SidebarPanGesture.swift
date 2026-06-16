@@ -109,6 +109,9 @@ struct SidebarPanGesture: UIViewRepresentable {
                   let window = pan.view as? UIWindow
             else { return false }
 
+            // 窗口上有模态呈现（如全屏地图 fullScreenCover / sheet）→ 整体让位
+            if isPresentingModal(in: window) { return false }
+
             // 落点位于浮层区域（如运动中的比赛浮窗）→ 让位给浮层自身的拖动手势
             if isInsideExcludedArea(at: pan.location(in: window), in: window) { return false }
 
@@ -142,7 +145,18 @@ struct SidebarPanGesture: UIViewRepresentable {
             shouldReceive touch: UITouch
         ) -> Bool {
             guard let window = pan?.view as? UIWindow else { return true }
+            // 窗口上有模态呈现时不接收触摸，比 shouldBegin 更早让位
+            if isPresentingModal(in: window) { return false }
             return !isInsideExcludedArea(at: touch.location(in: window), in: window)
+        }
+
+        /// 窗口上是否有模态视图（如 `fullScreenCover` / `sheet`）正盖在其之上。
+        ///
+        /// window 级手势天然位于所有模态内容之下：模态界面只是盖在同一 window 里，
+        /// 既不改变 `selectedTab`，也不入 `NavigationStack.path`，故 `enabled` 仍为真。
+        /// 呈现模态时统一让位，避免在上层界面（如全屏地图）拖动时仍触发侧边栏唤出/收起。
+        private func isPresentingModal(in window: UIWindow) -> Bool {
+            return window.rootViewController?.presentedViewController != nil
         }
 
         /// 命中测试：从触点向上回溯，是否存在可横向滚动的 `UIScrollView`

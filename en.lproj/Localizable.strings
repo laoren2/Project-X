@@ -1148,6 +1148,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "login.sms.code.placeholder" = "Enter verification code";
 "login.sms.action.verify_and_login" = "Verify and log in";
 "login.sms.action.send_again" = "Resend";
+"login.sms.action.switch_method" = "Can't receive it? Try another sign-in method";
 "login.sms.send_result.1 %lld" = "Verification code has been sent, you can resend in %lld s.";
 "login.sms.send_result.2" = "Didn't receive the verification code? Click to resend.";
 "login.email.send_result.1 %lld" = "Email has been sent, you can resend it in %lld s.";
@@ -1223,3 +1224,16 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "share.editor.bg_photo" = "Photo";
 "share.editor.bg_map" = "Route Map";
 "share.editor.background" = "Background";
+
+/* Pending workout uploads (local cache & manual re-upload after a failed finish upload) */
+"upload.pending.saved_toast" = "Network error. Your data is saved — you can upload it later from the records page.";
+"upload.pending.title" = "Pending Uploads";
+"upload.pending.empty" = "No pending uploads";
+"upload.pending.reupload" = "Re-upload";
+"upload.pending.reupload_success" = "Upload successful";
+"upload.pending.delete" = "Delete";
+"upload.pending.delete_confirm" = "This record cannot be recovered after deletion. Delete it?";
+"upload.pending.mode.race_single" = "Solo Race";
+"upload.pending.mode.race_team" = "Team Race";
+"upload.pending.mode.free_training" = "Free Training";
+"upload.pending.mode.route_training" = "Route Training";

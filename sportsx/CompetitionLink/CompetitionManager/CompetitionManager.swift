@@ -863,6 +863,49 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
     }
     
+    // MARK: - 待上传数据本地缓存（上传失败时落盘，供用户在记录页手动重传）
+
+    // 运动时长（基于轨迹首尾时间戳，仅用于待上传记录的展示）
+    private var workoutDuration: TimeInterval {
+        guard let first = basePathData.first?.timestamp,
+              let last = basePathData.last?.timestamp else { return 0 }
+        return max(last - first, 0)
+    }
+
+    // 写前落盘：发起 finish 请求前保存完整请求数据，确保即使请求中途 App 被杀数据仍在
+    private func savePendingUpload(id: String, category: PendingUploadCategory, mode: PendingUploadMode, endpointPath: String, body: Data, title: String?) {
+        guard let sport else { return }
+        let upload = PendingWorkoutUpload(
+            id: id,
+            userID: userManager.user.userID,
+            sport: sport,
+            category: category,
+            mode: mode,
+            endpointPath: endpointPath,
+            body: body,
+            createdAt: Date(),
+            distanceMeters: computeTotalDistance(path: basePathData),
+            duration: workoutDuration,
+            title: title
+        )
+        PendingUploadManager.shared.save(upload)
+    }
+
+    // 上传成功后移除本地缓存
+    private func removePendingUpload(id: String) {
+        PendingUploadManager.shared.remove(id: id, userID: userManager.user.userID)
+    }
+
+    // 上传失败时提示用户数据已保存、可稍后手动上传
+    private func notifyPendingUploadSaved() {
+        DispatchQueue.main.async {
+            PopupWindowManager.shared.presentPopup(
+                message: "upload.pending.saved_toast",
+                bottomButtons: [.confirm()]
+            )
+        }
+    }
+
     // todo: 暂时开始时间和结束时间都由客户端决定，未来可在服务端接收到请求后记录时间进行二次验证
     func finishCompetition_server() {
         let optimizeEndTime = organizeEndTime()
@@ -880,22 +923,28 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             //print("BikeMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
+            let uploadID = UUID().uuidString
             let requestData = BikeFinishMatchRequest(
                 validation_score: validationResult,
                 record_id: record.record_id,
                 end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
                 team_bonus: matchContext.teamBonus,
-                path: bikePathData
+                path: bikePathData,
+                client_upload_id: uploadID
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else {
                 return
             }
-            
-            let request = APIRequest(path: "/competition/bike/finish_\(record.isTeam ? "team" : "single")_competition", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+            let endpointPath = "/competition/bike/finish_\(record.isTeam ? "team" : "single")_competition"
+            // 写前落盘
+            savePendingUpload(id: uploadID, category: .race, mode: record.isTeam ? .raceTeam : .raceSingle, endpointPath: endpointPath, body: encodedBody, title: record.trackName)
+
+            let request = APIRequest(path: endpointPath, method: .post, headers: headers, body: encodedBody, requiresAuth: true)
             NetworkService.sendRequest(with: request, decodingType: MatchFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
+                    self.removePendingUpload(id: uploadID)
                     guard let unwrappedData = data else { return }
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
@@ -939,7 +988,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                         self.navigationManager.append(.bikeRaceRecordDetailView(recordID: record.record_id))
                         self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
                     }
-                case .failure:
+                case .failure(let error):
+                    switch error {
+                    case .businessError:
+                        self.removePendingUpload(id: uploadID)
+                    default:
+                        self.notifyPendingUploadSaved()
+                    }
                     DispatchQueue.main.async {
                         var cardSelectViewIndex = 0
                         var realtimeViewIndex = 0
@@ -968,22 +1023,28 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             //print("RunningMatchData verify result: \(validationResult)")
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
+            let uploadID = UUID().uuidString
             let requestData = RunningFinishMatchRequest(
                 validation_score: validationResult,
                 record_id: record.record_id,
                 end_time: optimizeEndTime,
                 bonus_in_cards: matchContext.bonusEachCards,
                 team_bonus: matchContext.teamBonus,
-                path: runningPathData
+                path: runningPathData,
+                client_upload_id: uploadID
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else {
                 return
             }
-            
-            let request = APIRequest(path: "/competition/running/finish_\(record.isTeam ? "team" : "single")_competition", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+            let endpointPath = "/competition/running/finish_\(record.isTeam ? "team" : "single")_competition"
+            // 写前落盘
+            savePendingUpload(id: uploadID, category: .race, mode: record.isTeam ? .raceTeam : .raceSingle, endpointPath: endpointPath, body: encodedBody, title: record.trackName)
+
+            let request = APIRequest(path: endpointPath, method: .post, headers: headers, body: encodedBody, requiresAuth: true)
             NetworkService.sendRequest(with: request, decodingType: MatchFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
+                    self.removePendingUpload(id: uploadID)
                     guard let unwrappedData = data else { return }
                     self.globalConfig.refreshRecordManageView = true
                     self.globalConfig.refreshTeamManageView = true
@@ -1027,7 +1088,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                         self.navigationManager.append(.runningRaceRecordDetailView(recordID: record.record_id))
                         self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
                     }
-                case .failure:
+                case .failure(let error):
+                    switch error {
+                    case .businessError:
+                        self.removePendingUpload(id: uploadID)
+                    default:
+                        self.notifyPendingUploadSaved()
+                    }
                     DispatchQueue.main.async {
                         var cardSelectViewIndex = 0
                         var realtimeViewIndex = 0
@@ -1717,18 +1784,24 @@ extension CompetitionManager {
         if sportFeature == .bikeFreeTraining {
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
+            let uploadID = UUID().uuidString
             let requestData = BikeFinishFreeTrainingRequest(
                 start_time: formatter.string(from: startTime),
                 end_time: formatter.string(from: Date()),
-                path: bikeFreeTrainingPathData
+                path: bikeFreeTrainingPathData,
+                client_upload_id: uploadID
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
-            
-            let request = APIRequest(path: "/training/bike/finish_free_training", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            
+            let endpointPath = "/training/bike/finish_free_training"
+            // 写前落盘
+            savePendingUpload(id: uploadID, category: .training, mode: .freeTraining, endpointPath: endpointPath, body: encodedBody, title: nil)
+
+            let request = APIRequest(path: endpointPath, method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+
             NetworkService.sendRequest(with: request, decodingType: FreeTrainingFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
+                    self.removePendingUpload(id: uploadID)
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
                         for asset in unwrappedData.cc_rewards {
@@ -1774,7 +1847,13 @@ extension CompetitionManager {
                     }
                     GlobalConfig.shared.refreshFamiliarity = true
                     GlobalConfig.shared.refreshFreeTrainingView = true
-                case .failure:
+                case .failure(let error):
+                    switch error {
+                    case .businessError:
+                        self.removePendingUpload(id: uploadID)
+                    default:
+                        self.notifyPendingUploadSaved()
+                    }
                     DispatchQueue.main.async {
                         if let index = self.navigationManager.path.firstIndex(where: { $0.string == "freeTrainingRealtimeView" }) {
                             let lastToRemove = self.navigationManager.path.count - index
@@ -1788,18 +1867,24 @@ extension CompetitionManager {
         } else if sportFeature == .runningFreeTraining {
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
+            let uploadID = UUID().uuidString
             let requestData = RunningFinishFreeTrainingRequest(
                 start_time: formatter.string(from: startTime),
                 end_time: formatter.string(from: Date()),
-                path: runningFreeTrainingPathData
+                path: runningFreeTrainingPathData,
+                client_upload_id: uploadID
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
-            
-            let request = APIRequest(path: "/training/running/finish_free_training", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            
+            let endpointPath = "/training/running/finish_free_training"
+            // 写前落盘
+            savePendingUpload(id: uploadID, category: .training, mode: .freeTraining, endpointPath: endpointPath, body: encodedBody, title: nil)
+
+            let request = APIRequest(path: endpointPath, method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+
             NetworkService.sendRequest(with: request, decodingType: FreeTrainingFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
+                    self.removePendingUpload(id: uploadID)
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
                         for asset in unwrappedData.cc_rewards {
@@ -1845,7 +1930,13 @@ extension CompetitionManager {
                     }
                     GlobalConfig.shared.refreshFamiliarity = true
                     GlobalConfig.shared.refreshFreeTrainingView = true
-                case .failure:
+                case .failure(let error):
+                    switch error {
+                    case .businessError:
+                        self.removePendingUpload(id: uploadID)
+                    default:
+                        self.notifyPendingUploadSaved()
+                    }
                     DispatchQueue.main.async {
                         if let index = self.navigationManager.path.firstIndex(where: { $0.string == "freeTrainingRealtimeView" }) {
                             let lastToRemove = self.navigationManager.path.count - index
@@ -2195,20 +2286,26 @@ extension CompetitionManager {
         if let routeID = currentBikeRoute?.routeID, sportFeature == .bikeRouteTraining {
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
+            let uploadID = UUID().uuidString
             let requestData = BikeFinishRouteTrainingRequest(
                 route_id: routeID,
                 start_time: formatter.string(from: startTime),
                 end_time: formatter.string(from: Date()),
                 path: bikeRouteTrainingPathData,
-                bonus_in_cards: matchContext.bonusEachCards
+                bonus_in_cards: matchContext.bonusEachCards,
+                client_upload_id: uploadID
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
-            
-            let request = APIRequest(path: "/training/bike/finish_route_training", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            
+            let endpointPath = "/training/bike/finish_route_training"
+            // 写前落盘
+            savePendingUpload(id: uploadID, category: .training, mode: .routeTraining, endpointPath: endpointPath, body: encodedBody, title: currentBikeRoute?.title)
+
+            let request = APIRequest(path: endpointPath, method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+
             NetworkService.sendRequest(with: request, decodingType: RouteTrainingFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
+                    self.removePendingUpload(id: uploadID)
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
                         for asset in unwrappedData.cc_rewards {
@@ -2246,7 +2343,13 @@ extension CompetitionManager {
                         }
                         self.navigationManager.append(.bikeRouteTrainingRecordDetailView(recordID: unwrappedData.record_id))
                     }
-                case .failure:
+                case .failure(let error):
+                    switch error {
+                    case .businessError:
+                        self.removePendingUpload(id: uploadID)
+                    default:
+                        self.notifyPendingUploadSaved()
+                    }
                     DispatchQueue.main.async {
                         var cardSelectViewIndex = 0
                         var realtimeViewIndex = 0
@@ -2264,20 +2367,26 @@ extension CompetitionManager {
         } else if let routeID = currentRunningRoute?.routeID, sportFeature == .runningRouteTraining {
             var headers: [String: String] = [:]
             headers["Content-Type"] = "application/json"
+            let uploadID = UUID().uuidString
             let requestData = RunningFinishRouteTrainingRequest(
                 route_id: routeID,
                 start_time: formatter.string(from: startTime),
                 end_time: formatter.string(from: Date()),
                 path: runningRouteTrainingPathData,
-                bonus_in_cards: matchContext.bonusEachCards
+                bonus_in_cards: matchContext.bonusEachCards,
+                client_upload_id: uploadID
             )
             guard let encodedBody = try? JSONEncoder().encode(requestData) else { return }
-            
-            let request = APIRequest(path: "/training/running/finish_route_training", method: .post, headers: headers, body: encodedBody, requiresAuth: true)
-            
+            let endpointPath = "/training/running/finish_route_training"
+            // 写前落盘
+            savePendingUpload(id: uploadID, category: .training, mode: .routeTraining, endpointPath: endpointPath, body: encodedBody, title: currentRunningRoute?.title)
+
+            let request = APIRequest(path: endpointPath, method: .post, headers: headers, body: encodedBody, requiresAuth: true)
+
             NetworkService.sendRequest(with: request, decodingType: RouteTrainingFinishResponse.self, showLoadingToast: true, showErrorToast: true) { result in
                 switch result {
                 case .success(let data):
+                    self.removePendingUpload(id: uploadID)
                     guard let unwrappedData = data else { return }
                     DispatchQueue.main.async {
                         for asset in unwrappedData.cc_rewards {
@@ -2315,7 +2424,13 @@ extension CompetitionManager {
                         }
                         self.navigationManager.append(.runningRouteTrainingRecordDetailView(recordID: unwrappedData.record_id))
                     }
-                case .failure:
+                case .failure(let error):
+                    switch error {
+                    case .businessError:
+                        self.removePendingUpload(id: uploadID)
+                    default:
+                        self.notifyPendingUploadSaved()
+                    }
                     DispatchQueue.main.async {
                         var cardSelectViewIndex = 0
                         var realtimeViewIndex = 0
@@ -2779,6 +2894,7 @@ struct BikeFinishMatchRequest: Codable {
     let bonus_in_cards: [CardBonusItem]
     let team_bonus: TeamMagicCardBonusItem?
     let path: [BikePathPoint]
+    let client_upload_id: String        // 客户端生成的幂等键，供服务端去重
 }
 
 struct RunningFinishMatchRequest: Codable {
@@ -2788,6 +2904,7 @@ struct RunningFinishMatchRequest: Codable {
     let bonus_in_cards: [CardBonusItem]
     let team_bonus: TeamMagicCardBonusItem?
     let path: [RunningPathPoint]
+    let client_upload_id: String        // 客户端生成的幂等键，供服务端去重
 }
 
 struct MatchFinishDTO: Codable {
@@ -2806,12 +2923,14 @@ struct BikeFinishFreeTrainingRequest: Codable {
     let start_time: String
     let end_time: String
     let path: [BikeFreeTrainingPathPoint]
+    let client_upload_id: String        // 客户端生成的幂等键，供服务端去重
 }
 
 struct RunningFinishFreeTrainingRequest: Codable {
     let start_time: String
     let end_time: String
     let path: [RunningFreeTrainingPathPoint]
+    let client_upload_id: String        // 客户端生成的幂等键，供服务端去重
 }
 
 struct FreeTrainingFinishResponse: Codable {
@@ -2831,6 +2950,7 @@ struct BikeFinishRouteTrainingRequest: Codable {
     let end_time: String
     let path: [BikeRouteTrainingPathPoint]
     let bonus_in_cards: [CardBonusItem]
+    let client_upload_id: String        // 客户端生成的幂等键，供服务端去重
 }
 
 struct RunningFinishRouteTrainingRequest: Codable {
@@ -2839,6 +2959,7 @@ struct RunningFinishRouteTrainingRequest: Codable {
     let end_time: String
     let path: [RunningRouteTrainingPathPoint]
     let bonus_in_cards: [CardBonusItem]
+    let client_upload_id: String        // 客户端生成的幂等键，供服务端去重
 }
 
 struct RouteTrainingFinishResponse: Codable {

@@ -92,8 +92,8 @@ struct ToastView: View {
     var body: some View {
         Text(toast.localizedMessage)
             .padding()
-            .background(Color.black.opacity(0.8))
-            .foregroundColor(.white)
+            .background(Color.lightBackground)
+            .foregroundStyle(Color.black)
             .cornerRadius(8)
             .padding(.horizontal, 16)
             .transition(.move(edge: .top).combined(with: .opacity))

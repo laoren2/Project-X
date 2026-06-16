@@ -16,7 +16,7 @@
   - `sportsx` —— iOS 主 App（scheme：`sportsx`）
   - `sportsx_Watch Watch App` —— watchOS 伴侣 App
   - `sportsxTests` / `sportsxUITests` —— iOS 测试
-- **本地化**：5 种语言 `zh-Hans` / `zh-Hant` / `en` / `ja` / `ko`，文案在各 `*.lproj/Localizable.strings`。
+- **本地化**： 所有支持的语言 `zh-Hans` / `zh-Hant` / `en` / `ja` / `ko` / `fr` /...，文案在各 `*.lproj/Localizable.strings`。
 
 ### 常用命令
 ```bash
@@ -84,7 +84,7 @@ sportsxApp (@main)
 - **MVVM 配对**：新页面建 `XxxView` + `XxxViewModel: ObservableObject`，业务/网络放 ViewModel，View 只负责展示与交互。
 - **单例访问**：跨模块共享状态走 `XxxManager.shared`（`UserManager`、`AssetManager`、`ShopManager`、`IAPManager`、`LocationManager`、`ToastManager`、`PopupWindowManager`、`ModelManager`、`DeviceManager` 等）。
 - **线程**：网络回调在后台线程，**所有 UI/`@Published` 改动必须切回主线程**（`DispatchQueue.main.async` 或 `await MainActor.run`）；启动/可重入逻辑标注 `@MainActor`。
-- **文案**：用户可见字符串一律走本地化 key（`LocalizedStringKey`，如 `"toast.network_error"`），新增文案需补齐全部 5 个 `Localizable.strings`，key的设计尽量遵循现有的结构。**不要硬编码中文/英文 UI 文案**（历史代码里 Toast 有少量硬编码中文，是待清理项，勿模仿）。
+- **文案**：用户可见字符串一律走本地化 key（`LocalizedStringKey`，如 `"toast.network_error"`），新增文案需补齐全部的 `Localizable.strings`，key的设计尽量遵循现有的结构。**不要硬编码中文/英文 UI 文案**（历史代码里 Toast 有少量硬编码中文，是待清理项，勿模仿）。
 - **配色/样式**：使用 Asset 中的语义色（`Color.defaultBackground`、`Color.secondText` 等），需要大量复用的颜色可以在 extansion 中定义新的标准 Color，仅在特殊场景硬编码 RGB。
 - **注释/文件头**：沿用现有中文注释风格与文件头格式。
 - **错误处理**：网络层用 `Result<T?, APIError>`，按 `APIError` 分支处理；需要用户感知时通过 Toast/Popup，不要静默吞掉关键失败。
@@ -100,7 +100,7 @@ sportsxApp (@main)
 4. **导航副作用**：如 [NavigationManager.swift](sportsx/NavigationManager.swift) 头注释所述，全局 `path` 变更会触发 SwiftUI 重建。**关键业务逻辑不要依赖 `onAppear`/`onDisappear`**，改用项目里的 Stable 版本回调。
 5. **启动顺序**：`BootstrapManager.start()` 的步骤有依赖关系（先 token 后用户/资产/IAP）。新增启动任务要放对位置并维护 `advanceProgress` 权重，勿打乱串行依赖。
 6. **单例生命周期**：`*.shared` 为全局唯一，`init` 私有。不要在别处重复实例化这些 manager，也不要在 `NavigationStoreManager` 里强引用 store（用 `WeakBox`，避免内存泄漏）。
-7. **本地化完整性**：新增/修改文案必须同步全部 5 种语言，避免缺 key 露出原始字符串，同时避免同一个语言文件内key的重复。
+7. **本地化完整性**：新增/修改文案必须同步全部的本地化语言，避免缺 key 露出原始字符串，同时避免同一个语言文件内key的重复。
 ---
 
 ## 6. 常见工作流

@@ -1128,6 +1128,7 @@
 "login.sms.code.placeholder" = "認証コードを入力";
 "login.sms.action.verify_and_login" = "認証してログイン";
 "login.sms.action.send_again" = "再送信";
+"login.sms.action.switch_method" = "届きませんか？別のログイン方法を試す";
 "login.sms.send_result.1 %lld" = "SMSを送信しました。%lld秒後に再送できます";
 "login.sms.send_result.2" = "SMSが届きませんか？再送信してください";
 "login.email.send_result.1 %lld" = "メールを送信しました。%lld秒後に再送できます";
@@ -1203,3 +1204,16 @@
 "share.editor.bg_photo" = "写真";
 "share.editor.bg_map" = "ルートマップ";
 "share.editor.background" = "背景";
+
+/* アップロード待ちの運動データ（終了時のアップロード失敗をローカル保存し手動で再送） */
+"upload.pending.saved_toast" = "ネットワークエラー。データを保存しました。後で記録ページから手動でアップロードできます。";
+"upload.pending.title" = "アップロード待ち";
+"upload.pending.empty" = "アップロード待ちの記録はありません";
+"upload.pending.reupload" = "再アップロード";
+"upload.pending.reupload_success" = "アップロードに成功しました";
+"upload.pending.delete" = "削除";
+"upload.pending.delete_confirm" = "削除すると記録は復元できません。削除しますか？";
+"upload.pending.mode.race_single" = "ソロレース";
+"upload.pending.mode.race_team" = "チームレース";
+"upload.pending.mode.free_training" = "フリートレーニング";
+"upload.pending.mode.route_training" = "ルートトレーニング";
