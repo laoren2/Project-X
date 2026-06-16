@@ -365,6 +365,8 @@ extension Color {
     
     static let secondBackground = Color(hex: "#404040")
     
+    static let lightBackground = Color(hex: "#F8F8FF")
+    
     static let secondText: Color = .white.opacity(0.8)
     
     static let thirdText: Color = .white.opacity(0.5)

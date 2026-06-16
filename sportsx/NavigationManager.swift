@@ -82,6 +82,7 @@ enum AppRoute: Hashable {
     case runningRouteTrainingRecordDetailView(recordID: String)
     case bikeRouteRankListView(routeID: String, isPremium: Bool)
     case runningRouteRankListView(routeID: String, isPremium: Bool)
+    case pendingUploadListView(category: PendingUploadCategory, sport: SportName)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -243,6 +244,8 @@ enum AppRoute: Hashable {
             return "bikeRouteRankListView"
         case .runningRouteRankListView:
             return "runningRouteRankListView"
+        case .pendingUploadListView:
+            return "pendingUploadListView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"

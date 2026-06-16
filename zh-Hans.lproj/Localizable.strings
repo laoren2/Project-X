@@ -1148,6 +1148,7 @@
 "login.sms.code.placeholder" = "请输入验证码";
 "login.sms.action.verify_and_login" = "验证并登录";
 "login.sms.action.send_again" = "重新发送";
+"login.sms.action.switch_method" = "收不到？换一种登录方式";
 "login.sms.send_result.1 %lld" = "短信已发送，%lld 秒后可重新发送";
 "login.sms.send_result.2" = "没收到短信？点击重新发送";
 "login.email.send_result.1 %lld" = "邮件已发送，%lld 秒后可重新发送";
@@ -1223,3 +1224,16 @@
 "share.editor.bg_photo" = "照片";
 "share.editor.bg_map" = "轨迹地图";
 "share.editor.background" = "背景";
+
+/* 运动数据待上传（结束时上传失败的本地缓存与手动重传） */
+"upload.pending.saved_toast" = "网络异常，本次数据已保存，可稍后在记录页手动上传";
+"upload.pending.title" = "待上传记录";
+"upload.pending.empty" = "暂无待上传记录";
+"upload.pending.reupload" = "重新上传";
+"upload.pending.reupload_success" = "上传成功";
+"upload.pending.delete" = "删除";
+"upload.pending.delete_confirm" = "删除后该记录将无法恢复，确认删除？";
+"upload.pending.mode.race_single" = "单人比赛";
+"upload.pending.mode.race_team" = "组队比赛";
+"upload.pending.mode.free_training" = "自由训练";
+"upload.pending.mode.route_training" = "路线训练";

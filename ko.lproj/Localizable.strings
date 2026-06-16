@@ -1128,6 +1128,7 @@
 "login.sms.code.placeholder" = "인증 코드 입력";
 "login.sms.action.verify_and_login" = "인증 후 로그인";
 "login.sms.action.send_again" = "다시 보내기";
+"login.sms.action.switch_method" = "받지 못하셨나요? 다른 로그인 방법 사용";
 "login.sms.send_result.1 %lld" = "문자가 전송되었습니다. %lld초 후 재전송 가능";
 "login.sms.send_result.2" = "문자를 받지 못했나요? 다시 보내기를 눌러주세요";
 "login.email.send_result.1 %lld" = "이메일이 전송되었습니다. %lld초 후 재전송 가능";
@@ -1203,3 +1204,16 @@
 "share.editor.bg_photo" = "사진";
 "share.editor.bg_map" = "경로 지도";
 "share.editor.background" = "배경";
+
+/* 업로드 대기 운동 데이터 (종료 시 업로드 실패한 데이터를 로컬에 저장하고 수동 재업로드) */
+"upload.pending.saved_toast" = "네트워크 오류. 데이터를 저장했습니다. 나중에 기록 페이지에서 수동으로 업로드할 수 있습니다.";
+"upload.pending.title" = "업로드 대기";
+"upload.pending.empty" = "업로드 대기 중인 기록이 없습니다";
+"upload.pending.reupload" = "다시 업로드";
+"upload.pending.reupload_success" = "업로드 성공";
+"upload.pending.delete" = "삭제";
+"upload.pending.delete_confirm" = "삭제하면 기록을 복구할 수 없습니다. 삭제하시겠습니까?";
+"upload.pending.mode.race_single" = "솔로 경기";
+"upload.pending.mode.race_team" = "팀 경기";
+"upload.pending.mode.free_training" = "자유 훈련";
+"upload.pending.mode.route_training" = "루트 훈련";

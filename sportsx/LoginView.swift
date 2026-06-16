@@ -139,6 +139,18 @@ struct SmsLoginView: View {
                         .cornerRadius(10)
                         .padding(.top, 10)
                 }
+
+                // 60s 倒计时结束仍未收到验证码：提供切换其他登录方式入口
+                if alreadySendSMSCode && countdown == 0 {
+                    Button(action: {
+                        switchToOtherLoginMethod()
+                    }) {
+                        Text("login.sms.action.switch_method")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.secondText)
+                            .underline()
+                    }
+                }
             }
             .padding(.top, 50)
             
@@ -301,6 +313,15 @@ struct SmsLoginView: View {
                 timer = nil
             }
         }
+    }
+
+    // 收不到验证码时切换登录方式：关闭当前短信登录页并重新弹出 LoginView
+    func switchToOtherLoginMethod() {
+        timer?.invalidate()
+        timer = nil
+        // 先显示登录页覆盖在上层，再弹出短信页，避免短暂露出底层内容
+        userManager.showingLogin = true
+        navigationManager.removeLast()
     }
 }
 

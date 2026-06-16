@@ -390,6 +390,8 @@ struct RealNaviView: View {
                     BikeRouteRankListView(routeID: id, isPremium: isPremium)
                 case .runningRouteRankListView(let id, let isPremium):
                     RunningRouteRankListView(routeID: id, isPremium: isPremium)
+                case .pendingUploadListView(let category, let sport):
+                    PendingUploadListView(category: category, sport: sport)
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()

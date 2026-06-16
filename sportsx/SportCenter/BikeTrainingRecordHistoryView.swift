@@ -31,11 +31,8 @@ struct BikeTrainingRecordHistoryView: View {
                         .foregroundColor(.white)
                 }
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.clear)
-                }
+                // 未上传成功记录入口
+                PendingUploadEntryButton(category: .training, sport: .Bike)
             }
             .padding(.horizontal)
             CalendarHeaderView(
