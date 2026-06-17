@@ -1126,6 +1126,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.benefits.2" = "abundant exclusive sign-in rewards";
 "iap.subscription.benefits.3" = "rapid motion data verification";
 "iap.subscription.benefits.4" = "Advanced route edit features";
+"iap.subscription.benefits.5" = "Real-time prediction of finish rankings and comparison with personal best record.";
 "iap.subscription.action.purchase" = "Subscribe Now";
 "iap.subscription.action.update_purchase" = "Update Subscription";
 "iap.subscription.toast.purchase.failed.sub_off" = "This Apple ID is already associated with another account that has subscribed, so you cannot subscribe again";
@@ -1237,3 +1238,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "upload.pending.mode.race_team" = "Team Race";
 "upload.pending.mode.free_training" = "Free Training";
 "upload.pending.mode.route_training" = "Route Training";
+
+/* Realtime predicted rank + self comparison */
+"realtime.pace.predicted_rank" = "Predicted rank";
+"realtime.pace.vs_pb" = "vs. personal best";
+"realtime.pace.unlock" = "Unlock";

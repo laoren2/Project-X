@@ -1126,6 +1126,7 @@
 "iap.subscription.benefits.2" = "丰富的专属签到奖励";
 "iap.subscription.benefits.3" = "极速的运动数据校验";
 "iap.subscription.benefits.4" = "高级的路线编辑功能";
+"iap.subscription.benefits.5" = "在运动中实时预测完赛排名，并与自己的最好成绩进行对比";
 "iap.subscription.action.purchase" = "立即订阅";
 "iap.subscription.action.update_purchase" = "更新订阅";
 "iap.subscription.toast.purchase.failed.sub_off" = "此AppleID关联的其他账号已订阅，无法重复订阅";
@@ -1237,3 +1238,8 @@
 "upload.pending.mode.race_team" = "组队比赛";
 "upload.pending.mode.free_training" = "自由训练";
 "upload.pending.mode.route_training" = "路线训练";
+
+/* 运动中实时预测名次 + 自我对比 */
+"realtime.pace.predicted_rank" = "预测名次";
+"realtime.pace.vs_pb" = "对比个人最佳";
+"realtime.pace.unlock" = "解锁";

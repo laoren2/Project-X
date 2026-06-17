@@ -277,6 +277,7 @@ struct CompetitionRealtimeView: View {
                             .foregroundStyle(Color.white)
                             
                             if appState.competitionManager.isRecording {
+                                RealtimePaceCompareView()
                                 LazyVGrid(columns: columns, spacing: 16) {
                                     ForEach(items, id: \.0) { title, value, unit, color in
                                         VStack {
@@ -345,7 +346,7 @@ struct CompetitionRealtimeView: View {
                     }
                     .frame(height: 450)
                 }
-                .background(Color.defaultBackground.opacity(0.8))
+                .background(Color.defaultBackground)
                 .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
             }
             .offset(y: chevronDirection ? 300 : 0)

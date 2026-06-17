@@ -1126,6 +1126,7 @@
 "iap.subscription.benefits.2" = "豐富的專屬簽到獎勵";
 "iap.subscription.benefits.3" = "極速的運動數據校驗";
 "iap.subscription.benefits.4" = "進階的路線編輯功能";
+"iap.subscription.benefits.5" = "在運動中即時預測完賽排名，並與自己的最佳成績進行對比";
 "iap.subscription.action.purchase" = "立即訂閱";
 "iap.subscription.action.update_purchase" = "更新訂閱";
 "iap.subscription.toast.purchase.failed.sub_off" = "此AppleID關聯的其他帳號已訂閱，無法重複訂閱";
@@ -1237,3 +1238,8 @@
 "upload.pending.mode.race_team" = "組隊比賽";
 "upload.pending.mode.free_training" = "自由訓練";
 "upload.pending.mode.route_training" = "路線訓練";
+
+/* 運動中即時預測名次 + 自我對比 */
+"realtime.pace.predicted_rank" = "預測名次";
+"realtime.pace.vs_pb" = "對比個人最佳";
+"realtime.pace.unlock" = "解鎖";

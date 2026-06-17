@@ -1106,6 +1106,7 @@
 "iap.subscription.benefits.2" = "豪華な限定ログイン報酬";
 "iap.subscription.benefits.3" = "高速な運動データ検証";
 "iap.subscription.benefits.4" = "高度なルート編集機能";
+"iap.subscription.benefits.5" = "演習中にリアルタイムで最終順位を予測し、自己ベストと比較してみましょう。";
 "iap.subscription.action.purchase" = "今すぐ登録";
 "iap.subscription.action.update_purchase" = "サブスクリプション更新";
 "iap.subscription.toast.purchase.failed.sub_off" = "このApple IDに紐づく別アカウントで既に登録されています";
@@ -1217,3 +1218,8 @@
 "upload.pending.mode.race_team" = "チームレース";
 "upload.pending.mode.free_training" = "フリートレーニング";
 "upload.pending.mode.route_training" = "ルートトレーニング";
+
+/* 運動中のリアルタイム予測順位 + 自己比較 */
+"realtime.pace.predicted_rank" = "予測順位";
+"realtime.pace.vs_pb" = "自己ベスト比";
+"realtime.pace.unlock" = "ロック解除";
