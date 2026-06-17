@@ -1106,6 +1106,7 @@
 "iap.subscription.benefits.2" = "풍부한 전용 출석 보상";
 "iap.subscription.benefits.3" = "빠른 데이터 검증";
 "iap.subscription.benefits.4" = "고급 경로 편집 기능";
+"iap.subscription.benefits.5" = "훈련 도중 실시간으로 최종 순위를 예측하고 개인 최고 기록과 비교해 보세요.";
 "iap.subscription.action.purchase" = "지금 구독";
 "iap.subscription.action.update_purchase" = "구독 업데이트";
 "iap.subscription.toast.purchase.failed.sub_off" = "해당 Apple ID에 연결된 다른 계정이 이미 구독 중이므로 중복 구독이 불가능합니다";
@@ -1217,3 +1218,8 @@
 "upload.pending.mode.race_team" = "팀 경기";
 "upload.pending.mode.free_training" = "자유 훈련";
 "upload.pending.mode.route_training" = "루트 훈련";
+
+/* 운동 중 실시간 예상 순위 + 자기 비교 */
+"realtime.pace.predicted_rank" = "예상 순위";
+"realtime.pace.vs_pb" = "최고 기록 대비";
+"realtime.pace.unlock" = "잠금 해제";

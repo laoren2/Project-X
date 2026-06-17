@@ -1126,6 +1126,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "iap.subscription.benefits.2" = "de nombreuses récompenses de pointage exclusives";
 "iap.subscription.benefits.3" = "vérification rapide des données de mouvement";
 "iap.subscription.benefits.4" = "fonctions avancées d'édition de parcours";
+"iap.subscription.benefits.5" = "Prédisez votre classement final en temps réel pendant l'exercice et comparez-le à votre meilleur résultat personnel.";
 "iap.subscription.action.purchase" = "S'abonner";
 "iap.subscription.action.update_purchase" = "Mettre à jour l'abonnement";
 "iap.subscription.toast.purchase.failed.sub_off" = "Cet identifiant Apple est déjà associé à un autre compte abonné ; vous ne pouvez pas vous abonner à nouveau";
@@ -1237,3 +1238,8 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "upload.pending.mode.race_team" = "Course en équipe";
 "upload.pending.mode.free_training" = "Entraînement libre";
 "upload.pending.mode.route_training" = "Entraînement sur parcours";
+
+/* Rang prévu en temps réel + comparaison personnelle */
+"realtime.pace.predicted_rank" = "Rang prévu";
+"realtime.pace.vs_pb" = "vs. record perso";
+"realtime.pace.unlock" = "Débloquer";

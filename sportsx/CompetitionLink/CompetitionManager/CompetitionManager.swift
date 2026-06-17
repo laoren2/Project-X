@@ -118,6 +118,15 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published var runningFreeTrainingPathData: [RunningFreeTrainingPathPoint] = []     // running自由训练轨迹数据
     @Published var bikeRouteTrainingPathData: [BikeRouteTrainingPathPoint] = []           // bike路线训练轨迹数据
     @Published var runningRouteTrainingPathData: [RunningRouteTrainingPathPoint] = []     // running路线训练轨迹数据
+
+    // MARK: - 运动中实时配速（预测完赛名次 + 与个人最佳对比），仅 race / route training
+    var paceEstimator: RoutePaceEstimator? = nil
+    private var lastPaceUpdate: Date = .distantPast
+    @Published var pacePredictedRank: Int? = nil        // 预测完赛名次
+    @Published var pacePredictedTotal: Int = 0          // 榜单规模
+    @Published var paceHasPB: Bool = false              // 是否有个人最佳可对比
+    @Published var paceDeltaTime: Double? = nil         // 与 PB 的时间差（秒，>0 领先）
+    @Published var paceDeltaDistance: Double? = nil     // 与 PB 的距离差（米，>0 领先）
     
     private var timer: DispatchSourceTimer? //定时器
     //private var collectionTimer: Timer?
@@ -1189,6 +1198,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     func startCompetitionSession() {
         guard let sport, sportFeature?.featureType == .race else { return }
+        fetchPaceBaseline()
         // 清理定时器任务可能残留的数据
         realtimeStatisticData = .empty
         basePathData = []
@@ -1357,6 +1367,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
             }
         }
         basePathData.append(basePoint)
+        updatePaceEstimate(coord: location.coordinate)
         if currentBikeRecord != nil, sport == .Bike {
             let pathPoint = BikePathPoint(
                 base: basePoint,
@@ -1534,8 +1545,98 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         sensorRequest |= (1 << (defaultPos.rawValue + 1))
     }
     
+    // 开赛时拉取配速基线（有序完赛成绩 + 自己 PB 的 split profile），构建实时估算器
+    func fetchPaceBaseline() {
+        paceEstimator = nil
+        lastPaceUpdate = .distantPast
+        DispatchQueue.main.async {
+            self.pacePredictedRank = nil
+            self.pacePredictedTotal = 0
+            self.paceHasPB = false
+            self.paceDeltaTime = nil
+            self.paceDeltaDistance = nil
+        }
+
+        var urlPath: String? = nil
+        var routePoints: [RoutePointRealtime] = []
+        switch sportFeature {
+        case .bikeRace:
+            guard let record = currentBikeRecord else { return }
+            routePoints = record.routePoints
+            urlPath = "/competition/bike/track_pace_baseline?record_id=\(record.record_id)"
+        case .runningRace:
+            guard let record = currentRunningRecord else { return }
+            routePoints = record.routePoints
+            urlPath = "/competition/running/track_pace_baseline?record_id=\(record.record_id)"
+        case .bikeRouteTraining:
+            guard let route = currentBikeRoute else { return }
+            routePoints = route.routePoints
+            urlPath = "/training/bike/route_pace_baseline?route_id=\(route.routeID)"
+        case .runningRouteTraining:
+            guard let route = currentRunningRoute else { return }
+            routePoints = route.routePoints
+            urlPath = "/training/running/route_pace_baseline?route_id=\(route.routeID)"
+        default:
+            return
+        }
+        guard let path = urlPath else { return }
+        let points = routePoints
+        let request = APIRequest(path: path, method: .get, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: PaceBaselineResponse.self) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let data):
+                guard let data else { return }
+                let estimator = RoutePaceEstimator(routePoints: points, finishTimes: data.finish_times, pbProfile: data.pb_profile)
+                self.paceEstimator = estimator
+                DispatchQueue.main.async {
+                    self.paceHasPB = estimator?.hasPB ?? false
+                }
+            case .failure:
+                break   // 静默失败：仅不展示实时配速，不打扰运动
+            }
+        }
+    }
+
+    // 运动中按定位更新实时预测名次与自我对比（节流 ~1s）
+    func updatePaceEstimate(coord: CLLocationCoordinate2D) {
+        guard isRecording, let estimator = paceEstimator else { return }
+        let now = Date()
+        guard now.timeIntervalSince(lastPaceUpdate) >= 1.0 else { return }
+        lastPaceUpdate = now
+
+        let d = estimator.project(coord)
+        let elapsed = dataFusionManager.elapsedTime
+        // 有效用时估计：原始用时 - 已累计的卡牌奖励时间（v1 暂忽略熟悉度/训练状态/罚时，仅预测用途）
+        let cardBonus = matchContext.bonusEachCards.reduce(0.0) { $0 + $1.bonus_time }
+        let tEff = max(0, elapsed - cardBonus)
+
+        let rankResult = estimator.projectedRank(effectiveTime: tEff, currentDistance: d)
+        var deltaT: Double? = nil
+        var deltaD: Double? = nil
+        if estimator.hasPB {
+            if let pbT = estimator.pbTime(atDistance: d) { deltaT = pbT - tEff }
+            if let pbD = estimator.pbDistance(atTime: tEff) { deltaD = d - pbD }
+        }
+        DispatchQueue.main.async {
+            if let r = rankResult {
+                self.pacePredictedRank = r.rank
+                self.pacePredictedTotal = r.total
+            }
+            self.paceDeltaTime = deltaT
+            self.paceDeltaDistance = deltaD
+        }
+    }
+
     func resetCompetitionProperties() {
         dataFusionManager.resetAll()
+        paceEstimator = nil
+        lastPaceUpdate = .distantPast
+        pacePredictedRank = nil
+        pacePredictedTotal = 0
+        paceHasPB = false
+        paceDeltaTime = nil
+        paceDeltaDistance = nil
         
         teamJoinRemainingTime = teamJoinTimeWindow
         isTeamJoinWindowExpired = false
@@ -2073,6 +2174,7 @@ extension CompetitionManager {
     
     func startRouteTrainingSession() {
         guard let sport, sportFeature?.featureType == .routeTraining else { return }
+        fetchPaceBaseline()
         var routePoints: [RoutePointRealtime]
         var startPoint: CheckpointRealtime
         if sportFeature == .bikeRouteTraining, let route = currentBikeRoute?.routePoints, case .checkpoint(let point) = route[0] {
@@ -2221,6 +2323,7 @@ extension CompetitionManager {
             }
         }
         self.basePathData.append(basePoint)
+        updatePaceEstimate(coord: location.coordinate)
         if sport == .Bike {
             let pathPoint = BikeRouteTrainingPathPoint(
                 base: basePoint,

@@ -280,7 +280,7 @@ struct FreeTrainingRealtimeView: View {
                     }
                     .frame(height: 450)
                 }
-                .background(Color.defaultBackground.opacity(0.8))
+                .background(Color.defaultBackground)
                 .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
             }
             .offset(y: chevronDirection ? 300 : 0)

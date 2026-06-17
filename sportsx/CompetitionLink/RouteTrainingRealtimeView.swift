@@ -247,6 +247,7 @@ struct RouteTrainingRealtimeView: View {
                                 .font(.system(size: 18, weight: .medium, design: .rounded))
                         }
                         .padding(.horizontal)
+                        .padding(.bottom, 10)
                     }
                     ScrollView {
                         VStack(spacing: 20) {
@@ -254,56 +255,14 @@ struct RouteTrainingRealtimeView: View {
                                 Text("competition.realtime.start.out_of_area")
                                     .foregroundStyle(Color.thirdText)
                             }
-                            HStack(spacing: 20) {
+                            HStack(spacing: 0) {
                                 let isGray = (!appState.competitionManager.isInValidArea) || locationManager.signalStrength.bars < 2
                                 if appState.competitionManager.isRecording {
-                                    HStack(spacing: 10) {
-                                        Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
-                                            .font(.system(size: 35, weight: .heavy, design: .rounded))
-                                        
-                                        VStack(spacing: 10) {
-                                            let bonusTime = appState.competitionManager.matchContext.bonusEachCards.reduce(0) { result, item in
-                                                guard item.bonus_time > 0 else {
-                                                    return result
-                                                }
-                                                return result + item.bonus_time
-                                            }
-                                            Text("- \(Int(bonusTime))s")
-                                                .foregroundStyle(Color.green)
-                                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                                .padding(.horizontal, 10)
-                                            
-                                            if let route = currentRouteData, route.routeType == .multiPoints {
-                                                let penaltyTime: Int = {
-                                                    guard let lastCheckedIndex = route.routePoints.lastIndex(where: {
-                                                        if case .checkpoint(let cp) = $0 {
-                                                            return cp.isCheck
-                                                        }
-                                                        return false
-                                                    }) else { return 0 }
-                                                    return route.routePoints[0..<lastCheckedIndex].reduce(0) { result, point in
-                                                        guard case .checkpoint(let cp) = point,
-                                                              !cp.isCheck else {
-                                                            return result
-                                                        }
-                                                        return result + (cp.penalty ?? 0)
-                                                    }
-                                                }()
-                                                
-                                                Text("+ \(penaltyTime)s")
-                                                    .foregroundStyle(Color.pink)
-                                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                                    .padding(.horizontal, 10)
-                                            } else {
-                                                Text("+ 0s")
-                                                    .foregroundStyle(Color.pink)
-                                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                                    .padding(.horizontal, 10)
-                                            }
-                                        }
-                                    }
-                                    .foregroundStyle(Color.white)
-                                    
+                                    Spacer()
+                                    Text("\(TimeDisplay.formattedTime(dataFusionManager.elapsedTime))")
+                                        .font(.system(size: 35, weight: .heavy, design: .rounded))
+                                        .foregroundStyle(Color.white)
+                                    Spacer()
                                     // 背景按钮
                                     Text("training.realtime.action.finish")
                                         .foregroundColor(.white)
@@ -326,6 +285,7 @@ struct RouteTrainingRealtimeView: View {
                                                 ]
                                             )
                                         }
+                                    Spacer()
                                 } else {
                                     Spacer()
                                     Text("competition.realtime.action.start")
@@ -343,6 +303,67 @@ struct RouteTrainingRealtimeView: View {
                                 }
                             }
                             if appState.competitionManager.isRecording {
+                                HStack(spacing: 16) {
+                                    let bonusTime = appState.competitionManager.matchContext.bonusEachCards.reduce(0) { result, item in
+                                        guard item.bonus_time > 0 else {
+                                            return result
+                                        }
+                                        return result + item.bonus_time
+                                    }
+                                    VStack(spacing: 4) {
+                                        Text("competition.realtime.card.time")
+                                            .font(.headline)
+                                        Text("- \(Int(bonusTime))s")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    }
+                                    .foregroundStyle(Color.white)
+                                    .frame(maxWidth: .infinity, minHeight: 60)
+                                    .background(Color.green.opacity(0.8))
+                                    .clipShape(Capsule())
+                                    
+                                    if let route = currentRouteData, route.routeType == .multiPoints {
+                                        let penaltyTime: Int = {
+                                            guard let lastCheckedIndex = route.routePoints.lastIndex(where: {
+                                                if case .checkpoint(let cp) = $0 {
+                                                    return cp.isCheck
+                                                }
+                                                return false
+                                            }) else { return 0 }
+                                            return route.routePoints[0..<lastCheckedIndex].reduce(0) { result, point in
+                                                guard case .checkpoint(let cp) = point,
+                                                      !cp.isCheck else {
+                                                    return result
+                                                }
+                                                return result + (cp.penalty ?? 0)
+                                            }
+                                        }()
+                                        VStack(spacing: 4) {
+                                            Text("training.route.create.penalty_time")
+                                                .font(.headline)
+                                            Text("+ \(penaltyTime)s")
+                                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        }
+                                        .foregroundStyle(Color.white)
+                                        .frame(maxWidth: .infinity, minHeight: 60)
+                                        .background(Color.red.opacity(0.8))
+                                        .clipShape(Capsule())
+                                    } else {
+                                        VStack(spacing: 4) {
+                                            Text("training.route.create.penalty_time")
+                                                .font(.headline)
+                                            Text("+ 0s")
+                                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        }
+                                        .foregroundStyle(Color.white)
+                                        .frame(maxWidth: .infinity, minHeight: 60)
+                                        .background(Color.red.opacity(0.8))
+                                        .clipShape(Capsule())
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                
+                                RealtimePaceCompareView()
+                                
                                 LazyVGrid(columns: columns, spacing: 16) {
                                     ForEach(items, id: \.0) { title, value, unit, color in
                                         VStack {
@@ -412,7 +433,7 @@ struct RouteTrainingRealtimeView: View {
                     }
                     .frame(height: 450)
                 }
-                .background(Color.black.opacity(0.8))
+                .background(Color.defaultBackground)
                 .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
             }
             .offset(y: chevronDirection ? 300 : 0)
@@ -513,8 +534,6 @@ struct RouteTrainingRealtimeView: View {
         }
     }
 }
-
-
 
 class RoutePointRealtimeAnnotation: NSObject, MKAnnotation {
     let coordinate: CLLocationCoordinate2D
