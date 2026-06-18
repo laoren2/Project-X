@@ -90,11 +90,11 @@ struct BikeRouteTrainingView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(height: 100)
-                                            Text("error.nothing_here")
+                                            Text("training.route.no_routes")
                                                 .font(.system(size: 15))
                                                 .foregroundStyle(Color.secondText)
                                         }
-                                        .padding(.top, 100)
+                                        .padding(.top, 50)
                                     } else {
                                         ForEach(viewModel.routes) { route in
                                             BikeRouteCardView(route: route, sortType: viewModel.sortType)

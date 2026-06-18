@@ -661,6 +661,138 @@ let regionTable_FR: [String: [Region]] = [
     ]
 ]
 
+// NZ：由 tools/gen_regions_geo.py 从 geoBoundaries ADM1 自动生成，勿手改；改粒度/译名请改脚本重跑。
+let regionTable_NZ: [String: [Region]] = [
+    "region.nz.north_island": [
+        Region(regionID: "NZ-NTL", regionName: "region.nz.northland"),
+        Region(regionID: "NZ-AUK", regionName: "region.nz.auckland"),
+        Region(regionID: "NZ-WKO", regionName: "region.nz.waikato"),
+        Region(regionID: "NZ-BOP", regionName: "region.nz.bay_of_plenty"),
+        Region(regionID: "NZ-GIS", regionName: "region.nz.gisborne"),
+        Region(regionID: "NZ-HKB", regionName: "region.nz.hawkes_bay"),
+        Region(regionID: "NZ-TKI", regionName: "region.nz.taranaki"),
+        Region(regionID: "NZ-MWT", regionName: "region.nz.manawatu_whanganui"),
+        Region(regionID: "NZ-WGN", regionName: "region.nz.wellington")
+    ],
+    "region.nz.south_island": [
+        Region(regionID: "NZ-TAS", regionName: "region.nz.tasman"),
+        Region(regionID: "NZ-NLS", regionName: "region.nz.nelson"),
+        Region(regionID: "NZ-MBH", regionName: "region.nz.marlborough"),
+        Region(regionID: "NZ-WTC", regionName: "region.nz.west_coast"),
+        Region(regionID: "NZ-CAN", regionName: "region.nz.canterbury"),
+        Region(regionID: "NZ-OTA", regionName: "region.nz.otago"),
+        Region(regionID: "NZ-STL", regionName: "region.nz.southland"),
+        Region(regionID: "NZ-CIT", regionName: "region.nz.chatham_islands")
+    ]
+]
+
+// IE：由 tools/gen_regions_geo.py 从 Natural Earth admin-1 自动生成（按 iso_3166_2 合并郡内拆分），勿手改；改粒度/译名请改脚本重跑。
+let regionTable_IE: [String: [Region]] = [
+    "region.ie.leinster": [
+        Region(regionID: "IE-CW", regionName: "region.ie.carlow"),
+        Region(regionID: "IE-D", regionName: "region.ie.dublin"),
+        Region(regionID: "IE-KE", regionName: "region.ie.kildare"),
+        Region(regionID: "IE-KK", regionName: "region.ie.kilkenny"),
+        Region(regionID: "IE-LS", regionName: "region.ie.laois"),
+        Region(regionID: "IE-LD", regionName: "region.ie.longford"),
+        Region(regionID: "IE-LH", regionName: "region.ie.louth"),
+        Region(regionID: "IE-MH", regionName: "region.ie.meath"),
+        Region(regionID: "IE-OY", regionName: "region.ie.offaly"),
+        Region(regionID: "IE-WH", regionName: "region.ie.westmeath"),
+        Region(regionID: "IE-WX", regionName: "region.ie.wexford"),
+        Region(regionID: "IE-WW", regionName: "region.ie.wicklow")
+    ],
+    "region.ie.munster": [
+        Region(regionID: "IE-CE", regionName: "region.ie.clare"),
+        Region(regionID: "IE-CO", regionName: "region.ie.cork"),
+        Region(regionID: "IE-KY", regionName: "region.ie.kerry"),
+        Region(regionID: "IE-LK", regionName: "region.ie.limerick"),
+        Region(regionID: "IE-TA", regionName: "region.ie.tipperary"),
+        Region(regionID: "IE-WD", regionName: "region.ie.waterford")
+    ],
+    "region.ie.connacht": [
+        Region(regionID: "IE-G", regionName: "region.ie.galway"),
+        Region(regionID: "IE-LM", regionName: "region.ie.leitrim"),
+        Region(regionID: "IE-MO", regionName: "region.ie.mayo"),
+        Region(regionID: "IE-RN", regionName: "region.ie.roscommon"),
+        Region(regionID: "IE-SO", regionName: "region.ie.sligo")
+    ],
+    "region.ie.ulster": [
+        Region(regionID: "IE-CN", regionName: "region.ie.cavan"),
+        Region(regionID: "IE-DL", regionName: "region.ie.donegal"),
+        Region(regionID: "IE-MN", regionName: "region.ie.monaghan")
+    ]
+]
+
+// SG：由 tools/gen_regions_geo.py 从 geoBoundaries ADM2(URA 规划区) 自动生成，按 5 大区分组，勿手改；改粒度/译名请改脚本重跑。
+let regionTable_SG: [String: [Region]] = [
+    "region.sg.central": [
+        Region(regionID: "SG-BISHAN", regionName: "region.sg.bishan"),
+        Region(regionID: "SG-BUKIT-MERAH", regionName: "region.sg.bukit_merah"),
+        Region(regionID: "SG-BUKIT-TIMAH", regionName: "region.sg.bukit_timah"),
+        Region(regionID: "SG-DOWNTOWN-CORE", regionName: "region.sg.downtown_core"),
+        Region(regionID: "SG-GEYLANG", regionName: "region.sg.geylang"),
+        Region(regionID: "SG-KALLANG", regionName: "region.sg.kallang"),
+        Region(regionID: "SG-MARINA-EAST", regionName: "region.sg.marina_east"),
+        Region(regionID: "SG-MARINA-SOUTH", regionName: "region.sg.marina_south"),
+        Region(regionID: "SG-MARINE-PARADE", regionName: "region.sg.marine_parade"),
+        Region(regionID: "SG-MUSEUM", regionName: "region.sg.museum"),
+        Region(regionID: "SG-NEWTON", regionName: "region.sg.newton"),
+        Region(regionID: "SG-NOVENA", regionName: "region.sg.novena"),
+        Region(regionID: "SG-ORCHARD", regionName: "region.sg.orchard"),
+        Region(regionID: "SG-OUTRAM", regionName: "region.sg.outram"),
+        Region(regionID: "SG-QUEENSTOWN", regionName: "region.sg.queenstown"),
+        Region(regionID: "SG-RIVER-VALLEY", regionName: "region.sg.river_valley"),
+        Region(regionID: "SG-ROCHOR", regionName: "region.sg.rochor"),
+        Region(regionID: "SG-SINGAPORE-RIVER", regionName: "region.sg.singapore_river"),
+        Region(regionID: "SG-SOUTHERN-ISLANDS", regionName: "region.sg.southern_islands"),
+        Region(regionID: "SG-STRAITS-VIEW", regionName: "region.sg.straits_view"),
+        Region(regionID: "SG-TANGLIN", regionName: "region.sg.tanglin"),
+        Region(regionID: "SG-TOA-PAYOH", regionName: "region.sg.toa_payoh")
+    ],
+    "region.sg.east": [
+        Region(regionID: "SG-BEDOK", regionName: "region.sg.bedok"),
+        Region(regionID: "SG-CHANGI", regionName: "region.sg.changi"),
+        Region(regionID: "SG-CHANGI-BAY", regionName: "region.sg.changi_bay"),
+        Region(regionID: "SG-PASIR-RIS", regionName: "region.sg.pasir_ris"),
+        Region(regionID: "SG-PAYA-LEBAR", regionName: "region.sg.paya_lebar"),
+        Region(regionID: "SG-TAMPINES", regionName: "region.sg.tampines")
+    ],
+    "region.sg.north": [
+        Region(regionID: "SG-CENTRAL-WATER-CATCHMENT", regionName: "region.sg.central_water_catchment"),
+        Region(regionID: "SG-LIM-CHU-KANG", regionName: "region.sg.lim_chu_kang"),
+        Region(regionID: "SG-MANDAI", regionName: "region.sg.mandai"),
+        Region(regionID: "SG-SEMBAWANG", regionName: "region.sg.sembawang"),
+        Region(regionID: "SG-SIMPANG", regionName: "region.sg.simpang"),
+        Region(regionID: "SG-SUNGEI-KADUT", regionName: "region.sg.sungei_kadut"),
+        Region(regionID: "SG-WOODLANDS", regionName: "region.sg.woodlands"),
+        Region(regionID: "SG-YISHUN", regionName: "region.sg.yishun")
+    ],
+    "region.sg.north_east": [
+        Region(regionID: "SG-ANG-MO-KIO", regionName: "region.sg.ang_mo_kio"),
+        Region(regionID: "SG-HOUGANG", regionName: "region.sg.hougang"),
+        Region(regionID: "SG-NORTH-EASTERN-ISLANDS", regionName: "region.sg.north_eastern_islands"),
+        Region(regionID: "SG-PUNGGOL", regionName: "region.sg.punggol"),
+        Region(regionID: "SG-SELETAR", regionName: "region.sg.seletar"),
+        Region(regionID: "SG-SENGKANG", regionName: "region.sg.sengkang"),
+        Region(regionID: "SG-SERANGOON", regionName: "region.sg.serangoon")
+    ],
+    "region.sg.west": [
+        Region(regionID: "SG-BOON-LAY", regionName: "region.sg.boon_lay"),
+        Region(regionID: "SG-BUKIT-BATOK", regionName: "region.sg.bukit_batok"),
+        Region(regionID: "SG-BUKIT-PANJANG", regionName: "region.sg.bukit_panjang"),
+        Region(regionID: "SG-CHOA-CHU-KANG", regionName: "region.sg.choa_chu_kang"),
+        Region(regionID: "SG-CLEMENTI", regionName: "region.sg.clementi"),
+        Region(regionID: "SG-JURONG-EAST", regionName: "region.sg.jurong_east"),
+        Region(regionID: "SG-JURONG-WEST", regionName: "region.sg.jurong_west"),
+        Region(regionID: "SG-PIONEER", regionName: "region.sg.pioneer"),
+        Region(regionID: "SG-TENGAH", regionName: "region.sg.tengah"),
+        Region(regionID: "SG-TUAS", regionName: "region.sg.tuas"),
+        Region(regionID: "SG-WESTERN-ISLANDS", regionName: "region.sg.western_islands"),
+        Region(regionID: "SG-WESTERN-WATER-CATCHMENT", regionName: "region.sg.western_water_catchment")
+    ]
+]
+
 struct RegionStore {
     static let tables: [String: [String: [Region]]] = [
         "CN": regionTable_CN,
@@ -673,7 +805,10 @@ struct RegionStore {
         "AU": regionTable_AU,
         "UK": regionTable_UK,
         "NL": regionTable_NL,
-        "FR": regionTable_FR
+        "FR": regionTable_FR,
+        "NZ": regionTable_NZ,
+        "IE": regionTable_IE,
+        "SG": regionTable_SG
     ]
     
     static let index: [String: Region] = {
@@ -715,10 +850,13 @@ enum Country: String, CaseIterable {
     case uk = "UK"
     case nl = "NL"
     case fr = "FR"
+    case nz = "NZ"
+    case ie = "IE"
+    case sg = "SG"
 
     var supported: Bool {
         switch self {
-        case .hk, .tw, .kr, .us, .jp, .ca, .au, .uk, .nl, .fr: return true
+        case .hk, .tw, .kr, .us, .jp, .ca, .au, .uk, .nl, .fr, .nz, .ie, .sg: return true
         case .cn: return false
         }
     }
@@ -736,6 +874,9 @@ enum Country: String, CaseIterable {
         case .uk: return "44"
         case .nl: return "31"
         case .fr: return "33"
+        case .nz: return "64"
+        case .ie: return "353"
+        case .sg: return "65"
         }
     }
 
@@ -752,6 +893,9 @@ enum Country: String, CaseIterable {
         case .uk: return "region.uk"
         case .nl: return "region.nl"
         case .fr: return "region.fr"
+        case .nz: return "region.nz"
+        case .ie: return "region.ie"
+        case .sg: return "region.sg"
         }
     }
 
@@ -768,6 +912,9 @@ enum Country: String, CaseIterable {
         case .uk: return 10...10
         case .nl: return 9...9
         case .fr: return 9...9
+        case .nz: return 8...10
+        case .ie: return 9...9
+        case .sg: return 8...8
         }
     }
     

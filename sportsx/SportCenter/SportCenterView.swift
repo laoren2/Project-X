@@ -134,7 +134,7 @@ struct SportCenterView: View {
                 
                 Rectangle()
                     .foregroundStyle(Color.gray)
-                    .frame(height: 1)
+                    .frame(height: 0.5)
                 
                 switch appState.sportFeature {
                 case .bikeRace:

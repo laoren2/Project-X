@@ -1266,37 +1266,62 @@ struct RichTextLabel: UIViewRepresentable {
         )
     }
     
-    func makeUIView(context: Context) -> UITextView {
-        let tv = UITextView()
-        tv.isScrollEnabled = false            // 不滚动
-        tv.isEditable = false                 // 不编辑
-        tv.isSelectable = false               // 不选中
-        tv.backgroundColor = .clear
-        tv.textContainerInset = .zero         // 去掉内边距
-        tv.textContainer.lineFragmentPadding = 0
-        tv.textContainer.widthTracksTextView = true
-        tv.font = font
-        tv.textColor = textColor
-        tv.textAlignment = .justified
-        tv.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        return tv
+    // 缓存上一次测量结果：拖动 sheet 时系统会每帧反复询问尺寸，而内容/宽度不变，
+    // 直接命中缓存可避免重复跑 TextKit 排版（开销 ∝ 卡片数量，是拖动卡顿/跳动的根因）。
+    final class Coordinator {
+        var measuredText: NSAttributedString?
+        var measuredWidth: CGFloat = -1
+        var measuredHeight: CGFloat = 0
     }
-    
-    func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.attributedText = attributedText
-        uiView.textAlignment = .center
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    // 用 UILabel 而非 UITextView：UILabel 是静态文本的专用视图，尺寸同步且确定，
+    // 不像 UITextView 那样带可滚动 TextKit 容器、会随 bounds 异步重排/重新居中
+    // （那正是拖动 sheet 时偶发「字体跳动」的根因）。inline 图片走 NSTextAttachment，UILabel 一样支持。
+    func makeUIView(context: Context) -> UILabel {
+        let lbl = UILabel()
+        lbl.numberOfLines = 0
+        lbl.lineBreakMode = .byWordWrapping
+        lbl.textAlignment = .center           // 维持原实现的最终对齐
+        lbl.backgroundColor = .clear
+        lbl.adjustsFontSizeToFitWidth = false // 绝不缩放字体，杜绝字号跳动
+        lbl.font = font
+        lbl.textColor = textColor
+        lbl.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return lbl
     }
-    
+
+    func updateUIView(_ uiView: UILabel, context: Context) {
+        // 仅在文本真正变化时才重设，避免无谓重排并使尺寸缓存失效
+        if uiView.attributedText != attributedText {
+            uiView.attributedText = attributedText
+            context.coordinator.measuredWidth = -1   // 文本变了，作废尺寸缓存
+        }
+    }
+
     func sizeThatFits(
         _ proposal: ProposedViewSize,
-        uiView: UITextView,
+        uiView: UILabel,
         context: Context
     ) -> CGSize? {
-        if let width = proposal.width {
-            let targetSize = CGSize(width: width, height: .greatestFiniteMagnitude)
-            let size = uiView.sizeThatFits(targetSize)
-            return CGSize(width: width, height: size.height)
+        guard let proposedWidth = proposal.width, proposedWidth > 0, proposedWidth.isFinite else {
+            return nil
         }
-        return nil
+        // 宽度向下取整 + 容差，消除拖动时亚像素抖动导致的高度跳变
+        let width = proposedWidth.rounded(.down)
+        let coord = context.coordinator
+        if let measured = coord.measuredText,
+           measured.isEqual(to: attributedText),
+           abs(coord.measuredWidth - width) < 0.5 {
+            return CGSize(width: width, height: coord.measuredHeight)
+        }
+        uiView.preferredMaxLayoutWidth = width
+        let size = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
+        let height = ceil(size.height)
+        coord.measuredText = attributedText
+        coord.measuredWidth = width
+        coord.measuredHeight = height
+        return CGSize(width: width, height: height)
     }
 }
