@@ -1357,7 +1357,10 @@ struct LocalDebugPanelView: View {
         ("AU", CLLocationCoordinate2D(latitude: -27.682833, longitude: 136.088435)),
         ("CA", CLLocationCoordinate2D(latitude: 56.661947, longitude: -102.903721)),
         ("NL", CLLocationCoordinate2D(latitude: 52.3676, longitude: 4.9041)),    // Amsterdam
-        ("FR", CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522))     // Paris
+        ("FR", CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522)),     // Paris
+        ("NZ", CLLocationCoordinate2D(latitude: -41.117294, longitude: 172.978801)),
+        ("SG", CLLocationCoordinate2D(latitude: 1.353123, longitude: 103.849727)),
+        ("IE", CLLocationCoordinate2D(latitude: 53.098426, longitude: -8.515892))
     ]
     
     init() {

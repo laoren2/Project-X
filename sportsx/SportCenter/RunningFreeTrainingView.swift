@@ -569,7 +569,8 @@ struct RunningGridDetailSheet: View {
     }
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
+            // 固定顶部：关闭按钮（始终可点，不随内容滚动而移出视野）
             HStack {
                 Spacer()
                 Button(action: {
@@ -581,86 +582,91 @@ struct RunningGridDetailSheet: View {
             }
             .padding()
             .foregroundStyle(Color.secondText)
-            
-            // grid 信息
-            HStack {
-                Text("training.free.grid.info")
-                    .foregroundStyle(Color.white)
-                    .font(.headline)
-#if DEBUG
-                Text(verbatim: "(\(grid.gridX),\(grid.gridY),\(grid.level))")
-#endif
-                Spacer()
-                HStack(spacing: 4) {
-                    Text("training.free.grid.size")
-                    Text(gridSize)
-                }
-                .foregroundStyle(Color.secondText)
-                .font(.system(size: 12))
-                .padding(.vertical, 4)
-                .padding(.horizontal, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.3))
-                )
-            }
-            .padding(.horizontal)
-            
-            if !gridInfos.isEmpty {
-                VStack(spacing: 10) {
-                    ForEach(gridInfos) { info in
-                        RunningGridBuffCardView(grid: info)
-                    }
-                }
-                .padding()
-            } else {
-                (Text("training.free.grid.common") + Text(gridSize) + Text(" * ") + Text(gridSize))
-                    .foregroundStyle(Color.thirdText)
-                    .font(.system(size: 15))
-                    .padding(.bottom)
-            }
-            
-            HStack {
-                Text("training.realtime.grid.exploration_status")
-                Spacer()
-            }
-            .font(.headline)
-            .padding(.horizontal)
-            
-            // 我的数据
-            if let me {
-                HStack {
-                    Text(me.rank > 0 ? "#\(me.rank)" : "#-")
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                    if let avatar = userManager.avatarImage {
-                        Image(uiImage: avatar)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle())
-                    } else {
-                        Image("placeholder")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 50, height: 50)
-                            .clipShape(Circle())
-                    }
-                    Text("common.me")
-                    Spacer()
-                    Text("+\(me.count)")
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                }
-                .padding(.horizontal)
-            }
-            
-            Rectangle()
-                .foregroundStyle(Color.thirdText)
-                .frame(height: 1)
-                .padding(.horizontal)
-            
-            // 排行榜
+
+            // 单一可滚动容器：grid 信息 / buff / 我的数据 / 排行榜 全部纳入，
+            // 内容多时整体滚动，避免元素被挤出视野；同时不嵌套同向 ScrollView，
+            // 让 sheet 的 detent 拖动与内容滚动正确联动。
             ScrollView(showsIndicators: false) {
-                LazyVStack {
+                LazyVStack(spacing: 10) {
+                    // grid 信息
+                    HStack {
+                        Text("training.free.grid.info")
+                            .foregroundStyle(Color.white)
+                            .font(.headline)
+#if DEBUG
+                        Text(verbatim: "(\(grid.gridX),\(grid.gridY),\(grid.level))")
+#endif
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Text("training.free.grid.size")
+                            Text(gridSize)
+                        }
+                        .foregroundStyle(Color.secondText)
+                        .font(.system(size: 12))
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.3))
+                        )
+                    }
+                    .padding(.horizontal)
+
+                    // buff 信息
+                    if !gridInfos.isEmpty {
+                        VStack(spacing: 10) {
+                            ForEach(gridInfos) { info in
+                                RunningGridBuffCardView(grid: info)
+                            }
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        (Text("training.free.grid.common") + Text(gridSize) + Text(" * ") + Text(gridSize))
+                            .foregroundStyle(Color.thirdText)
+                            .font(.system(size: 15))
+                            .padding(.bottom)
+                    }
+
+                    // 探索记录信息
+                    HStack {
+                        Text("training.realtime.grid.exploration_status")
+                        Spacer()
+                    }
+                    .font(.headline)
+                    .padding(.horizontal)
+
+                    // 我的数据
+                    if let me {
+                        HStack {
+                            Text(me.rank > 0 ? "#\(me.rank)" : "#-")
+                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            if let avatar = userManager.avatarImage {
+                                Image(uiImage: avatar)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                            } else {
+                                Image("placeholder")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                            }
+                            Text("common.me")
+                            Spacer()
+                            Text("+\(me.count)")
+                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    Rectangle()
+                        .foregroundStyle(Color.thirdText)
+                        .frame(height: 1)
+                        .padding(.horizontal)
+
+                    // 排行榜
                     if rankList.isEmpty {
                         VStack {
                             Image("no_data")
@@ -670,7 +676,8 @@ struct RunningGridDetailSheet: View {
                             Text("training.realtime.grid.ranklist.no_data")
                                 .foregroundStyle(Color.thirdText)
                         }
-                        .padding(.top, 100)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
                     } else {
                         ForEach(rankList) { info in
                             HStack {
@@ -701,6 +708,7 @@ struct RunningGridDetailSheet: View {
                             .padding(.vertical, 10)
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(10)
+                            .padding(.horizontal)
                             .onAppear {
                                 if info.id == rankList.last?.id && hasMore {
                                     fetchRankListPage(grid: grid, reset: false)
@@ -713,7 +721,7 @@ struct RunningGridDetailSheet: View {
                         }
                     }
                 }
-                .padding()
+                .padding(.vertical)
                 .foregroundStyle(Color.white)
             }
         }
@@ -724,7 +732,7 @@ struct RunningGridDetailSheet: View {
             fetchRankListPage(grid: grid, reset: true)
         }
     }
-    
+
     func fetchGridBuffInfo(){
         guard var components = URLComponents(string: "/training/running/query_grid_info") else { return }
         components.queryItems = [

@@ -138,14 +138,14 @@ final class RoutePaceEstimator {
 
     // 预测名次：按当前有效用时线性外推完赛时间，二分进有序成绩
     func projectedRank(effectiveTime tEff: Double, currentDistance d: Double) -> (rank: Int, total: Int)? {
-        guard d > 1, routeLength > 0, !sortedFinishTimes.isEmpty else { return nil }
+        guard d > 1, routeLength > 0 else { return nil }
         let proj = tEff * routeLength / d
+        // 整个排行榜都视为对手，统计严格快于我的人数 → 我的名次；total = 榜单条数 + 我，恒定不变
         var lo = 0, hi = sortedFinishTimes.count
         while lo < hi {
             let mid = (lo + hi) / 2
             if sortedFinishTimes[mid] < proj { lo = mid + 1 } else { hi = mid }
         }
-        let rank = lo + 1
-        return (rank, max(sortedFinishTimes.count, rank))
+        return (lo + 1, sortedFinishTimes.count + 1)
     }
 }
