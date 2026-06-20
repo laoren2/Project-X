@@ -456,7 +456,7 @@ struct sportsxApp: App {
             case .failed(let msg):
                 TestErrorView(message: msg)
             }
-            //PreviewCardSelectedView()
+            //PreviewRealtimeRankView()
             //    .preferredColorScheme(.dark)
         }
     }

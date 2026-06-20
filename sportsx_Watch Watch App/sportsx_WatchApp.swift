@@ -25,6 +25,8 @@ struct sportsx_Watch_Watch_AppApp: App {
     @StateObject var dataManager = WatchDataManager.shared
     var body: some Scene {
         WindowGroup {
+            // 录屏预览入口
+            //WatchPreviewRoot()
             NaviView()
                 .sheet(isPresented: $dataManager.showingSummaryView) {
                     SummaryView()
