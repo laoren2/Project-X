@@ -33,6 +33,7 @@
 "app.slogan.preview.2" = "強化・戦略・勝利";
 "app.slogan.preview.3" = "作成・共有・挑戦";
 "app.slogan.preview.4" = "すべての一歩が力になる";
+"app.slogan.preview.5" = "分析・洞察・進化";
 
 "sport.bike" = "サイクリング";
 "sport.running" = "ランニング";
@@ -598,6 +599,8 @@
 "distance.m" = "m";
 
 "speed.km/h" = "km/h";
+"metric.speed" = "スピード";
+"metric.pace.unit" = "/km";
 
 "heartrate.unit" = "bpm";
 "energy.unit" = "kcal";
@@ -1222,7 +1225,8 @@
 "iap.subscription.benefits.2" = "豪華な限定ログイン報酬";
 "iap.subscription.benefits.3" = "高速な運動データ検証";
 "iap.subscription.benefits.4" = "高度なルート編集機能";
-"iap.subscription.benefits.5" = "演習中にリアルタイムで最終順位を予測し、自己ベストと比較してみましょう。";
+"iap.subscription.benefits.5" = "ワークアウト中の詳細統計データ";
+"iap.subscription.benefits.5.description" = "高度なデータには、リアルタイムのフィニッシャーランキング予測や自己ベストとの比較が含まれ、アリーナモードとコースモードの練習に対応しています。";
 "iap.subscription.action.purchase" = "今すぐ登録";
 "iap.subscription.action.update_purchase" = "サブスクリプション更新";
 "iap.subscription.toast.purchase.failed.sub_off" = "このApple IDに紐づく別アカウントで既に登録されています";

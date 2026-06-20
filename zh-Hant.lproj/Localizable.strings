@@ -33,6 +33,7 @@
 "app.slogan.preview.2" = "升级、策略、制胜";
 "app.slogan.preview.3" = "創作、分享、挑戰";
 "app.slogan.preview.4" = "每一步都算數";
+"app.slogan.preview.5" = "洞察、分析、突破";
 
 "sport.bike" = "自行車";
 "sport.running" = "跑步";
@@ -598,6 +599,8 @@
 "distance.m" = "米";
 
 "speed.km/h" = "公里/時";
+"metric.speed" = "速度";
+"metric.pace.unit" = "/公里";
 
 "heartrate.unit" = "次/分";
 "energy.unit" = "千卡";
@@ -1242,7 +1245,8 @@
 "iap.subscription.benefits.2" = "豐富的專屬簽到獎勵";
 "iap.subscription.benefits.3" = "極速的運動數據校驗";
 "iap.subscription.benefits.4" = "進階的路線編輯功能";
-"iap.subscription.benefits.5" = "在運動中即時預測完賽排名，並與自己的最佳成績進行對比";
+"iap.subscription.benefits.5" = "進階的運動分析數據";
+"iap.subscription.benefits.5.description" = "進階資料包括即時的完賽排名預測和與個人最佳記錄的對比，支援競技場和路線訓練模式。";
 "iap.subscription.action.purchase" = "立即訂閱";
 "iap.subscription.action.update_purchase" = "更新訂閱";
 "iap.subscription.toast.purchase.failed.sub_off" = "此AppleID關聯的其他帳號已訂閱，無法重複訂閱";

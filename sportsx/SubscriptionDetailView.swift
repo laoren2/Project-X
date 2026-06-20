@@ -148,10 +148,22 @@ struct SubscriptionDetailView: View {
                                 }
                                 Divider()
                                 HStack(spacing: 20) {
-                                    Image("vip_benefit_realtime")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 30)
+                                    ZStack {
+                                        Image("vip_benefit_realtime")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 30)
+                                        Image(systemName: "info.circle")
+                                            .foregroundStyle(Color.secondText)
+                                            .font(.system(size: 15))
+                                            .offset(x: 16, y: -12)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    message: "iap.subscription.benefits.5.description",
+                                                    bottomButtons: [.confirm()]
+                                                )
+                                            }
+                                    }
                                     Text("iap.subscription.benefits.5")
                                 }
                                 Divider()

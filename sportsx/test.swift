@@ -36,25 +36,24 @@ struct PreviewLaunchView: View {
                     .frame(width: 100)
                     .foregroundStyle(Color.orange.opacity(0.8))
                     .scaleEffect(iconScale)
-                Text("app.slogan.preview.1")
+                Text("app.slogan.preview.5")
                     .font(.system(.title, design: .rounded, weight: .heavy))
                     .foregroundStyle(Color.secondText)
                     .multilineTextAlignment(.center)
-                    //.frame(maxWidth: .infinity)
-                    .padding(.top, 10)
-                    .padding(.bottom, 20)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
                     .padding(.horizontal, 32)
                     .opacity(sloganOpacity)
-                ProgressBar(progress: progress)
-                    .frame(height: 10)
-                    .padding(.top, 10)
-                    .padding(.bottom, 50)
+                //ProgressBar(progress: progress)
+                //    .frame(height: 10)
+                //    .padding(.top, 10)
+                //    .padding(.bottom, 50)
                 Spacer()
             }
             .scaleEffect(contentScale)
             .opacity(contentOpacity)
-
-            Text("app.slogan.preview.4")
+            
+            Text("app.slogan.preview.5")
                 .font(.system(size: 28, weight: .heavy, design: .rounded))
                 .foregroundStyle(Color.secondText)
                 .multilineTextAlignment(.center)
@@ -82,7 +81,7 @@ struct PreviewLaunchView: View {
                     iconScale = 1.0
                 }
 
-                withAnimation(
+                /*withAnimation(
                     .timingCurve(0.2, 0.75, 0.8, 0.25, duration: 1.5)
                 ) {
                     progress = 1.0
@@ -95,7 +94,7 @@ struct PreviewLaunchView: View {
                         contentOpacity = 0
                         endingTextOpacity = 1
                     }
-                }
+                }*/
             }
         }
     }
@@ -1602,8 +1601,522 @@ struct PreviewRankingListView: View {
     }
 }
 
-#Preview {
-    //let appState = AppState.shared
-    PreviewLaunchView()
-    //    .environmentObject(appState)
+
+// MARK: - 录屏预览：实时名次/PB + 跟随用户的赛道动画（全程代码控制，仅假数据视觉）
+
+struct PreviewRealtimeRankView: View {
+    @State private var sheetUp = false
+    @State private var isRecording = false
+    @State private var showPace = false
+    @State private var playTrack = false
+    @State private var startButtonScale: CGFloat = 1.0
+    @State private var startButtonOpacity: Double = 1.0
+
+    // 假统计
+    @State private var elapsed: TimeInterval = 0
+    @State private var distance = 0.0
+    @State private var avgSpeed = 0.0
+    @State private var heartRate = 120
+    @State private var energy = 0
+    @State private var power = 150
+    @State private var cadence = 160
+
+    // 名次 / PB（VIP 快照）
+    private let paceRank = 12
+    private let paceTotal = 120
+    private let pbDeltaSeconds = 8.0
+
+    private let track = PreviewRealtimeRankMapView.makeTrack()
+    @State private var statsTimer: Timer?
+
+    private let columns: [GridItem] = [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)]
+
+    private var items: [(String, String, String, Color)] {
+        [
+            ("competition.realtime.distance", String(format: "%.2f ", distance), "distance.km", .orange),
+            ("competition.realtime.avgspeed", String(format: "%.1f ", avgSpeed), "speed.km/h", .yellow),
+            ("competition.realtime.heartrate", "\(heartRate) ", "heartrate.unit", .red),
+            ("competition.realtime.energy", "\(energy) ", "energy.unit", .blue),
+            ("competition.realtime.power", "\(power) ", "power.unit", .green),
+            ("competition.result.stepcadence", "\(cadence) ", "stepCadence.unit", .pink),
+        ]
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            PreviewRealtimeRankMapView(track: track, duration: 4.2, play: playTrack)
+                .ignoresSafeArea()
+
+            sheet.offset(y: sheetUp ? 0 : 470)
+        }
+        .ignoresSafeArea(edges: .bottom)
+        .onAppear { runSequence() }
+        .onDisappear { statsTimer?.invalidate() }
+    }
+
+    private var sheet: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                VStack {
+                    ZStack {
+                        Circle()
+                            .fill(Color.black.opacity(0.6))
+                            .frame(width: 50, height: 50)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.clear, lineWidth: 2)
+                            )
+                        Image("location")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                    }
+                    ZStack {
+                        Circle()
+                            .fill(Color.black.opacity(0.6))
+                            .frame(width: 50, height: 50)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.clear, lineWidth: 2)
+                            )
+                        Image("location2")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                    }
+                }
+            }
+            .padding()
+            ZStack {
+                HStack {
+                    Image("bike")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 20)
+                        .padding(6)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    Spacer()
+                    Image("route_training")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 20)
+                        .padding(6)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                HStack(alignment: .top, spacing: 5) {
+                    Text("GPS")
+                        .foregroundStyle(Color.white)
+                    HStack(alignment: .bottom, spacing: 2) {
+                        ForEach(0..<4) { index in
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.green)
+                                .frame(width: 6, height: CGFloat(6 + index * 4))
+                        }
+                    }
+                }
+                .padding(6)
+                .background(Color.black.opacity(0.3))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 10)
+            VStack(spacing: 0) {
+                Image(systemName: "chevron.down").foregroundStyle(.white).bold().padding(.vertical, 10)
+                ZStack {
+                    ProgressBar(progress: Double(2) / Double(5))
+                        .frame(height: 20)
+                    Text("checked \(2) / \(5)")
+                        .foregroundStyle(Color.white)
+                        .font(.system(size: 18, weight: .medium, design: .rounded))
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // 时间行 / start 按钮
+                        if isRecording {
+                            HStack(spacing: 20) {
+                                Spacer()
+                                Text(TimeDisplay.formattedTime(elapsed))
+                                    .contentTransition(.numericText())
+                                    .font(.system(size: 35, weight: .heavy, design: .rounded))
+                                Spacer()
+                                Text("training.realtime.action.finish")
+                                    .font(.system(size: 18)).padding(.vertical, 12).padding(.horizontal, 20)
+                                    .lineLimit(1).minimumScaleFactor(0.7).background(Color.red).clipShape(Capsule())
+                                Spacer()
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                        } else {
+                            Spacer()
+                            Text("competition.realtime.action.start")
+                                .font(.system(size: 30)).lineLimit(1).minimumScaleFactor(0.7)
+                                .foregroundStyle(.white)
+                                .frame(width: 100, height: 100).background(Color.green).clipShape(Circle())
+                                .scaleEffect(startButtonScale).opacity(startButtonOpacity)
+                                .padding(.vertical, 6)
+                            Spacer()
+                        }
+                        
+                        HStack(spacing: 16) {
+                            VStack(spacing: 4) {
+                                Text("competition.realtime.card.time")
+                                    .font(.headline)
+                                Text("- \(15)s")
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                            }
+                            .foregroundStyle(Color.white)
+                            .frame(maxWidth: .infinity, minHeight: 60)
+                            .background(Color.green.opacity(0.8))
+                            .clipShape(Capsule())
+                            
+                            VStack(spacing: 4) {
+                                Text("training.route.create.penalty_time")
+                                    .font(.headline)
+                                Text("+ 7s")
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                            }
+                            .foregroundStyle(Color.white)
+                            .frame(maxWidth: .infinity, minHeight: 60)
+                            .background(Color.red.opacity(0.8))
+                            .clipShape(Capsule())
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // 名次 + PB：从中间弹出，挤开上下视图
+                        if showPace {
+                            VStack(spacing: 12) {
+                                paceCapsule("realtime.pace.predicted_rank") {
+                                    Text("# \(paceRank) / \(paceTotal)")
+                                }
+                                paceCapsule("realtime.pace.vs_pb") {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: pbDeltaSeconds >= 0 ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(pbDeltaSeconds >= 0 ? Color.green : Color.red)
+                                        Text(TimeDisplay.formattedTime(abs(pbDeltaSeconds)))
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.55, anchor: .center).combined(with: .opacity),
+                                removal: .opacity))
+                        }
+                        
+                        if isRecording {
+                            LazyVGrid(columns: columns, spacing: 16) {
+                                ForEach(items, id: \.0) { title, value, unit, color in
+                                    VStack {
+                                        Text(LocalizedStringKey(title)).font(.headline)
+                                        (Text(value) + Text(LocalizedStringKey(unit)))
+                                            .font(.title3).fontWeight(.semibold)
+                                            .contentTransition(.numericText())
+                                    }
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, minHeight: 80)
+                                    .background(color.opacity(0.8)).clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .geometryGroupCompat()   // 让 Text 随卡片整体位移，消除 contentTransition 滞留
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                    }
+                    .padding(.top, 4)
+                    .padding(.bottom, 30)
+                }
+                .frame(height: 420)
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color.defaultBackground.opacity(0.92))
+            .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
+        }
+    }
+
+    private func paceCapsule(_ title: LocalizedStringKey, @ViewBuilder value: () -> some View) -> some View {
+        HStack {
+            Text(title).font(.headline)
+            Spacer()
+            value().font(.title3).fontWeight(.semibold)
+        }
+        .padding()
+        .foregroundStyle(Color.white)
+        .background(Capsule().fill(Color.white.opacity(0.2)).overlay(Capsule().stroke(Color.orange, lineWidth: 1)))
+    }
+
+    // 序列编排（全代码控制）
+    private func runSequence() {
+        statsTimer?.invalidate()
+        sheetUp = false; isRecording = false; showPace = false; playTrack = false
+        startButtonScale = 1; startButtonOpacity = 1
+        elapsed = 0; distance = 0; energy = 0
+        Task { @MainActor in
+            // 1) 弹出 sheet（含 start 按钮）
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) { sheetUp = true }
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            // 2) 按下 start → 正常时间 + finish + 统计
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+                startButtonScale = 0.2; startButtonOpacity = 0
+            }
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            //withAnimation(.easeInOut(duration: 0.35)) { isRecording = true }
+            isRecording = true
+            startStats()
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            // 3) 名次 / PB 从中间弹出，挤开上下
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { showPace = true }
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            // 4) 收起 sheet + 赛道动画（统计继续，不停）
+            //withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) { sheetUp = false }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            //playTrack = true
+            statsTimer?.invalidate()
+            statsTimer = nil
+        }
+    }
+
+    private func startStats() {
+        statsTimer?.invalidate()
+        statsTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                elapsed += Double.random(in: 9...15)
+                distance += Double.random(in: 0.05...0.2)
+                avgSpeed = Double.random(in: 22...30)
+                heartRate = Int.random(in: 120...165)
+                energy += Int.random(in: 2...6)
+                power = Int.random(in: 130...180)
+                cadence = Int.random(in: 150...170)
+            }
+        }
+    }
+}
+
+// 跟随用户的赛道地图：真实 Map 背景 + 灰/橙轨迹 + 用户/PB 两点。
+// 60fps 动画整个放在 Coordinator 的 CADisplayLink 里（全程 UIKit，不触发 SwiftUI 重绘）→ 丝滑。
+struct PreviewRealtimeRankMapView: UIViewRepresentable {
+    let track: [CLLocationCoordinate2D]
+    let duration: Double
+    let play: Bool
+
+    // 预设赛道：东京·上野一带的控制点 → Catmull-Rom 平滑曲线（~400m，较短，移动更慢）
+    static func makeTrack() -> [CLLocationCoordinate2D] {
+        let waypoints: [CLLocationCoordinate2D] = [
+            .init(latitude: 33.5713, longitude: 131.1267),
+            .init(latitude: 35.7128, longitude: 139.7764),
+            .init(latitude: 35.7124, longitude: 139.7780),
+            .init(latitude: 35.7134, longitude: 139.7792),
+            .init(latitude: 35.7146, longitude: 139.7798),
+            .init(latitude: 35.7152, longitude: 139.7786),
+            .init(latitude: 35.7156, longitude: 139.7772),
+        ]
+        return catmullRom(waypoints, samplesPerSegment: 28)
+    }
+
+    static func catmullRom(_ pts: [CLLocationCoordinate2D], samplesPerSegment: Int) -> [CLLocationCoordinate2D] {
+        guard pts.count >= 2 else { return pts }
+        var result: [CLLocationCoordinate2D] = []
+        let n = pts.count
+        for i in 0..<(n - 1) {
+            let p0 = pts[max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[min(i + 2, n - 1)]
+            for s in 0..<samplesPerSegment {
+                let t = Double(s) / Double(samplesPerSegment)
+                let t2 = t * t, t3 = t2 * t
+                func interp(_ a: Double, _ b: Double, _ c: Double, _ d: Double) -> Double {
+                    0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3)
+                }
+                result.append(.init(latitude: interp(p0.latitude, p1.latitude, p2.latitude, p3.latitude),
+                                    longitude: interp(p0.longitude, p1.longitude, p2.longitude, p3.longitude)))
+            }
+        }
+        result.append(pts[n - 1])
+        return result
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(track: track, duration: duration) }
+
+    func makeUIView(context: Context) -> MKMapView {
+        let map = MKMapView()
+        map.isUserInteractionEnabled = false
+        map.showsUserLocation = false
+        map.showsCompass = false
+        map.mapType = .mutedStandard
+        map.pointOfInterestFilter = .excludingAll
+        context.coordinator.attach(map)
+        return map
+    }
+
+    func updateUIView(_ map: MKMapView, context: Context) {
+        if play {
+            context.coordinator.start()
+        } else {
+            context.coordinator.render(0)   // 未播放时显示静态起始帧（待布局后即正确）
+        }
+    }
+
+    final class Coordinator: NSObject {
+        private let track: [CLLocationCoordinate2D]
+        private let duration: Double
+        private weak var map: MKMapView?
+        private var overlay: UIView?
+        private let grayLayer = CAShapeLayer()
+        private let orangeLayer = CAShapeLayer()
+        private let userDot = CALayer()
+        private let pbDot = CALayer()
+        private let pbBadge = UILabel()
+        private var link: CADisplayLink?
+        private var startTime: CFTimeInterval = 0
+        private var started = false
+
+        init(track: [CLLocationCoordinate2D], duration: Double) {
+            self.track = track
+            self.duration = duration
+            super.init()
+        }
+        
+        func attach(_ map: MKMapView) {
+            self.map = map
+            let ov = UIView(frame: map.bounds)
+            ov.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            ov.isUserInteractionEnabled = false
+            ov.backgroundColor = .clear
+            for (layer, color): (CAShapeLayer, UIColor) in
+                [(grayLayer, UIColor.lightGray.withAlphaComponent(0.75)), (orangeLayer, .orange)] {
+                layer.fillColor = UIColor.clear.cgColor
+                layer.strokeColor = color.cgColor
+                layer.lineWidth = 6
+                layer.lineCap = .round
+                layer.lineJoin = .round
+                ov.layer.addSublayer(layer)
+            }
+            Self.configureDot(pbDot, color: .systemGreen, diameter: 22)
+            Self.configureDot(userDot, color: .orange, diameter: 25)
+            Self.configurePBBadge(pbBadge)
+            ov.addSubview(pbBadge)
+            ov.layer.addSublayer(pbDot)
+            ov.layer.addSublayer(userDot)
+            //map.addSubview(ov)
+            overlay = ov
+
+            map.setCamera(MKMapCamera(lookingAtCenter: interpolate(0), fromDistance: 600, pitch: 0, heading: 0),
+                          animated: false)
+            DispatchQueue.main.async {
+                self.render(0)
+            }
+        }
+
+        private static func configureDot(_ dot: CALayer, color: UIColor, diameter: CGFloat) {
+            dot.bounds = CGRect(x: 0, y: 0, width: diameter, height: diameter)
+            dot.cornerRadius = diameter / 2
+            dot.backgroundColor = color.cgColor
+            dot.borderColor = UIColor.white.cgColor
+            dot.borderWidth = 2
+        }
+
+        private static func configurePBBadge(_ label: UILabel) {
+            label.text = "PB"
+            label.textAlignment = .center
+            label.font = .boldSystemFont(ofSize: 12)
+            label.textColor = .white
+            label.backgroundColor = .systemGreen
+            label.layer.cornerRadius = 8
+            label.layer.masksToBounds = true
+            label.frame = CGRect(x: 0, y: 0, width: 34, height: 20)
+        }
+
+        func start() {
+            guard !started else { return }
+            started = true
+            startTime = CACurrentMediaTime()
+            let l = CADisplayLink(target: self, selector: #selector(tick))
+            l.add(to: .main, forMode: .common)
+            link = l
+        }
+
+        @objc private func tick() {
+            let u = min((CACurrentMediaTime() - startTime) / duration, 1.0)
+            render(u)
+            if u >= 1.0 { link?.invalidate(); link = nil }
+        }
+
+        // 在屏幕坐标里画轨迹+两点（地图仅平移当背景）：无 overlay 分块重绘的闪烁，点与平移完全同步
+        func render(_ u: Double) {
+            guard let map, let ov = overlay, track.count > 1 else { return }
+            let userT = Self.smoothstep(u)
+            // PB 领先量：两端为 0（同起同终），中段钟形包络内来回交错
+            let gap = 0.08 * sin(.pi * userT) * sin(2 * .pi * 2.0 * userT)
+            let pbT = min(max(userT + gap, 0), 1)
+            let userCoord = interpolate(userT)
+            let offsetCenter = CLLocationCoordinate2D(
+                latitude: userCoord.latitude - 0.0003,
+                longitude: userCoord.longitude
+            )
+            map.setCenter(offsetCenter, animated: false)
+
+            let pts = track.map { map.convert($0, toPointTo: ov) }
+
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+
+            let gp = CGMutablePath(); gp.addLines(between: pts)
+            grayLayer.path = gp
+
+            let n = track.count - 1
+            let pos = min(max(userT, 0), 1) * Double(n)
+            let i = Int(floor(pos))
+            var op = Array(pts[0...min(i, pts.count - 1)])
+            if i < n {
+                let f = pos - Double(i), a = pts[i], b = pts[i + 1]
+                op.append(CGPoint(x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f))
+            }
+            let opath = CGMutablePath()
+            if op.count >= 2 { opath.addLines(between: op) }
+            orangeLayer.path = opath
+
+            userDot.position = map.convert(userCoord, toPointTo: ov)
+
+            let pbPosition = map.convert(interpolate(pbT), toPointTo: ov)
+            pbDot.position = pbPosition
+            pbBadge.center = CGPoint(
+                x: pbPosition.x,
+                y: pbPosition.y - 32
+            )
+
+            CATransaction.commit()
+        }
+
+        private func interpolate(_ t: Double) -> CLLocationCoordinate2D {
+            guard track.count > 1 else { return track.first ?? CLLocationCoordinate2D() }
+            let pos = min(max(t, 0), 1) * Double(track.count - 1)
+            let i = Int(floor(pos))
+            if i >= track.count - 1 { return track[track.count - 1] }
+            let f = pos - Double(i)
+            let a = track[i], b = track[i + 1]
+            return CLLocationCoordinate2D(latitude: a.latitude + (b.latitude - a.latitude) * f,
+                                          longitude: a.longitude + (b.longitude - a.longitude) * f)
+        }
+
+        private static func smoothstep(_ x: Double) -> Double {
+            let c = min(max(x, 0), 1); return c * c * (3 - 2 * c)
+        }
+    }
+}
+
+private extension View {
+    // geometryGroup 仅 iOS 17+；这里做个降级兜底（iOS 16 上为 no-op）
+    @ViewBuilder
+    func geometryGroupCompat() -> some View {
+        if #available(iOS 17.0, *) {
+            self.geometryGroup()
+        } else {
+            self
+        }
+    }
+}
+
+#Preview() {
+    PreviewRealtimeRankView()
 }

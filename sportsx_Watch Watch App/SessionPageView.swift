@@ -27,13 +27,17 @@ struct SessionPageView: View {
             PageTabViewStyle(indexDisplayMode: isLuminanceReduced ? .never : .automatic)
         )
         .onChange(of: isLuminanceReduced) {
-            displayMetricsView()
+            // 仅在熄屏(进入 AOD)时回到指标页；亮屏交互时保留用户当前页，
+            // 避免每次亮屏都被强制切页。
+            if isLuminanceReduced {
+                displayMetricsView()
+            }
         }
     }
-    
+
     private func displayMetricsView() {
-        withAnimation {
-            selection = 1
-        }
+        // 不加 withAnimation：熄屏/亮屏切换本身已有系统级转场，
+        // 再叠一层 SwiftUI 翻页动画会造成可见卡顿。
+        selection = 1
     }
 }

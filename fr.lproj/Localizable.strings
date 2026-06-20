@@ -29,10 +29,11 @@
 "common.popularity" = "Popularité";
 
 "app.slogan" = "Play for Passion";
-"app.slogan.preview.1" = "Explorez. Collectionnez. Progressez.";
+"app.slogan.preview.1" = "Explorez.\nCollectionnez.\nProgressez.";
 "app.slogan.preview.2" = "Améliorez.\nPlanifiez.\nGagnez.";
 "app.slogan.preview.3" = "Créez.\nPartagez.\nRelevez le défi.";
 "app.slogan.preview.4" = "Chaque mouvement compte";
+"app.slogan.preview.5" = "Analyser.\nComprendre.\nProgresser.";
 
 "sport.bike" = "Vélo";
 "sport.running" = "Course";
@@ -598,6 +599,8 @@
 "distance.m" = "m";
 
 "speed.km/h" = "km/h";
+"metric.speed" = "Vitesse";
+"metric.pace.unit" = "/km";
 
 "heartrate.unit" = "bpm";
 "energy.unit" = "kcal";
@@ -735,7 +738,7 @@
 "training.route.create.toast.save_error.4" = "Le parcours dépasse les limites de la région actuelle";
 "training.route.create.unlock_points" = "Créez jusqu'à 100 points de parcours";
 "training.route.create.pathpoint" = "Point de tracé";
-"training.route.create.penalty_time" = "Temps de pénalité";
+"training.route.create.penalty_time" = "Pénalité temps";
 "training.route.create.placeholder" = "Appui long sur la carte pour ajouter des points dans l'ordre";
 "training.route.mode.direct" = "Arrivée";
 "training.route.mode.multi-points" = "Points de contrôle";
@@ -865,7 +868,7 @@
 "competition.realtime.start.toast.sensor_unbind" = "Le capteur a été déconnecté, veuillez réessayer.";
 "competition.realtime.start.toast.gps" = "Signal GPS trop faible";
 "competition.realtime.card.benefit" = "Effets de carte";
-"competition.realtime.card.time" = "Temps de récompense";
+"competition.realtime.card.time" = "Bonus temps";
 "competition.realtime.card.no_cards" = "Aucune carte sélectionnée";
 "competition.realtime.card.benefit.my" = "Récompenses de carte (moi)";
 "competition.realtime.card.benefit.other" = "Récompenses de carte (autres)";
@@ -1242,7 +1245,8 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "iap.subscription.benefits.2" = "de nombreuses récompenses de pointage exclusives";
 "iap.subscription.benefits.3" = "vérification rapide des données de mouvement";
 "iap.subscription.benefits.4" = "fonctions avancées d'édition de parcours";
-"iap.subscription.benefits.5" = "Prédisez votre classement final en temps réel pendant l'exercice et comparez-le à votre meilleur résultat personnel.";
+"iap.subscription.benefits.5" = "Statistiques avancées pendant l'entraînement";
+"iap.subscription.benefits.5.description" = "Les données avancées incluent des prédictions en temps réel du classement des coureurs et des comparaisons avec leurs meilleurs résultats personnels, et prennent en charge les modes d'entraînement en Arène et Parcours.";
 "iap.subscription.action.purchase" = "S'abonner";
 "iap.subscription.action.update_purchase" = "Mettre à jour l'abonnement";
 "iap.subscription.toast.purchase.failed.sub_off" = "Cet identifiant Apple est déjà associé à un autre compte abonné ; vous ne pouvez pas vous abonner à nouveau";

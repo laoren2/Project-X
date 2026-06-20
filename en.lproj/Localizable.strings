@@ -33,6 +33,7 @@
 "app.slogan.preview.2" = "Upgrade.\nStrategize.\nWin.";
 "app.slogan.preview.3" = "Create.\nShare.\nChallenge.";
 "app.slogan.preview.4" = "Every Move Matters";
+"app.slogan.preview.5" = "Insights.\nAnalyze.\nImprove.";
 
 "sport.bike" = "Bike";
 "sport.running" = "Running";
@@ -598,6 +599,8 @@
 "distance.m" = "m";
 
 "speed.km/h" = "km/h";
+"metric.speed" = "Speed";
+"metric.pace.unit" = "/km";
 
 "heartrate.unit" = "bpm";
 "energy.unit" = "kcal";
@@ -1242,7 +1245,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.benefits.2" = "abundant exclusive sign-in rewards";
 "iap.subscription.benefits.3" = "rapid motion data verification";
 "iap.subscription.benefits.4" = "Advanced route edit features";
-"iap.subscription.benefits.5" = "Real-time prediction of finish rankings and comparison with personal best record.";
+"iap.subscription.benefits.5" = "Advanced Workout Statistics";
+"iap.subscription.benefits.5.description" = "Advanced data includes real-time finisher ranking predictions and comparisons with personal bests, supports both Arena and Route training mode.";
 "iap.subscription.action.purchase" = "Subscribe Now";
 "iap.subscription.action.update_purchase" = "Update Subscription";
 "iap.subscription.toast.purchase.failed.sub_off" = "This Apple ID is already associated with another account that has subscribed, so you cannot subscribe again";

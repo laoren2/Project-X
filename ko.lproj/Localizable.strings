@@ -33,6 +33,7 @@
 "app.slogan.preview.2" = "강화 · 전략 · 승리";
 "app.slogan.preview.3" = "제작 · 공유 · 도전";
 "app.slogan.preview.4" = "모든 걸음이 힘이 됩니다";
+"app.slogan.preview.5" = "분석 · 통찰 · 성장";
 
 "sport.bike" = "자전거";
 "sport.running" = "러닝";
@@ -598,6 +599,8 @@
 "distance.m" = "m";
 
 "speed.km/h" = "km/h";
+"metric.speed" = "속도";
+"metric.pace.unit" = "/km";
 
 "heartrate.unit" = "bpm";
 "energy.unit" = "kcal";
@@ -1222,7 +1225,8 @@
 "iap.subscription.benefits.2" = "풍부한 전용 출석 보상";
 "iap.subscription.benefits.3" = "빠른 데이터 검증";
 "iap.subscription.benefits.4" = "고급 경로 편집 기능";
-"iap.subscription.benefits.5" = "훈련 도중 실시간으로 최종 순위를 예측하고 개인 최고 기록과 비교해 보세요.";
+"iap.subscription.benefits.5" = "운동 중 고급 통계 데이터";
+"iap.subscription.benefits.5.description" = "고급 데이터에는 실시간 완주자 순위 예측 및 개인 최고 기록과의 비교 기능이 포함되어 있으며, 아레나 모드와 코스 훈련 모드를 모두 지원합니다.";
 "iap.subscription.action.purchase" = "지금 구독";
 "iap.subscription.action.update_purchase" = "구독 업데이트";
 "iap.subscription.toast.purchase.failed.sub_off" = "해당 Apple ID에 연결된 다른 계정이 이미 구독 중이므로 중복 구독이 불가능합니다";

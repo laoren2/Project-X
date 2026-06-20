@@ -20,28 +20,72 @@ enum SportType: String {
     case Running = "running"
 }
 
+// 运动 mode：由手机握手时下发，决定手表实时页展示哪些元素
+enum WorkoutMode: String {
+    case race
+    case routeTraining = "route_training"
+    case freeTraining = "free_training"
+
+    var isPaceCompare: Bool { self == .race || self == .routeTraining }
+}
+
+// 附近的奖励网格（手机推送，手表用经纬度本地算方位/距离）
+struct WatchGrid: Identifiable {
+    var id: String { "\(gridX),\(gridY)" }
+    let gridX: Int
+    let gridY: Int
+    let lat: Double
+    let lon: Double
+    let reward: String      // 奖励类型（图标名）
+    let count: Int
+}
+
+// 手机→手表实时负载（race/route：pace 预测 + PB 对比；free：周围 buff 网格）
+struct WatchLivePayload {
+    // race / route training
+    var rank: Int? = nil
+    var total: Int = 0
+    var pbDeltaTime: Double? = nil       // 秒，>0 领先
+    var pbDeltaDistance: Double? = nil   // 米，>0 领先
+    var hasPB: Bool = false
+    var locked: Bool = true              // 非订阅用户：手表侧同样以 -- 打码
+
+    // free training
+    var grids: [WatchGrid] = []
+}
+
 class WatchDataManager: NSObject, ObservableObject {
     static let shared = WatchDataManager()
     
     @Published var isRecording = false
     
+    // 实时统计：对 View 只读发布（manager 内部仍可写），供 MetricsView 统计页展示
     @Published var heartRate: Double = 0
-    private var avgHeartRate: Double = 0
-    private var totalEnergy: Double = 0
-    private var avgPower: Double? = nil
+    @Published private(set) var avgHeartRate: Double = 0
+    @Published private(set) var totalEnergy: Double = 0
+    @Published private(set) var avgPower: Double? = nil
+    @Published private(set) var latestPower: Double? = nil
+    @Published private(set) var distance: Double = 0   // 累计距离（米），随运动类型取走路/跑步或骑行距离
     private var latestHeartRate: Double = 0
-    private var latestPower: Double? = nil
-    
+
     private var lastStepDate: Date? = nil
     private var lastStepSnapshot: Double? = nil
-    private var stepCadence: Double? = nil
+    @Published private(set) var stepCadence: Double? = nil
     let stepThreshold: Double = 10.0
-    
-    private var cycleCadence: Double? = nil
+
+    @Published private(set) var cycleCadence: Double? = nil
     
     
     var enableIMU: Bool = false
     var sportType: SportType = .Bike
+
+    // 当前 mode 与实时负载（供按 mode 分支渲染的实时页消费）
+    @Published private(set) var workoutMode: WorkoutMode = .freeTraining
+    @Published private(set) var live = WatchLivePayload()
+
+    // 手表自身定位/朝向：free 雷达本地算方位/距离用
+    @Published private(set) var currentLocation: CLLocation? = nil
+    @Published private(set) var heading: CLHeading? = nil
     
     @Published var showingAuthToast: Bool = false
     @Published var isNeedWaitingAuth: Bool = false
@@ -101,6 +145,7 @@ class WatchDataManager: NSObject, ObservableObject {
             }
             let activityType = context["activityType"] as? String ?? "bike"
             let locationType = context["locationType"] as? String ?? "outdoor"
+            updateWorkoutMode(context["mode"] as? String)
             // 动态配置运动类型
             let configuration = HKWorkoutConfiguration()
             switch activityType.lowercased() {
@@ -248,7 +293,10 @@ class WatchDataManager: NSObject, ObservableObject {
         
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
-        
+        if CLLocationManager.headingAvailable() {
+            locationManager.startUpdatingHeading()   // free 雷达朝向用
+        }
+
         // Start the workout session and begin data collection.
         let startDate = Date()
         WKsession?.startActivity(with: startDate)
@@ -416,6 +464,7 @@ class WatchDataManager: NSObject, ObservableObject {
         }*/
         WKsession?.end()
         locationManager.stopUpdatingLocation()
+        locationManager.stopUpdatingHeading()
         if isRecording {
             showingSummaryView = true
         }
@@ -487,6 +536,9 @@ class WatchDataManager: NSObject, ObservableObject {
                 }
             case HKQuantityType(.cyclingCadence):
                 self.cycleCadence = statistics.averageQuantity()?.doubleValue(for: .count())
+            case HKQuantityType(.distanceWalkingRunning), HKQuantityType(.distanceCycling):
+                // 累计距离（米），用于实时距离/配速/速度展示
+                self.distance = statistics.sumQuantity()?.doubleValue(for: .meter()) ?? self.distance
             default:
                 return
             }
@@ -504,6 +556,8 @@ class WatchDataManager: NSObject, ObservableObject {
         avgPower = nil
         latestHeartRate = 0
         latestPower = nil
+        distance = 0
+        live = WatchLivePayload()
         enableIMU = false
         stepCadence = nil
         cycleCadence = nil
@@ -531,6 +585,7 @@ extension WatchDataManager: WCSessionDelegate {
                 }
             }
             enableIMU = applicationContext["enableIMU"] as? Bool ?? false
+            updateWorkoutMode(applicationContext["mode"] as? String)
             //print(("Set enableIMU to \(enableIMU)"))
         }
         if let command = applicationContext["command"] as? String, command == "stopCollection" {
@@ -548,19 +603,43 @@ extension WatchDataManager: WCSessionDelegate {
         }
     }
     
-    // 收到 iPhone 端消息
-    /*func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-        if let command = message["command"] as? String, command == "stopCollection" {
-            if running {
-                print("stop collecting...")
-                DispatchQueue.main.async {
-                    self.showingSummaryView = true
-                    self.stopCollecting()
-                }
-                WKsession?.end()
+    // 收到 iPhone 端实时负载（race/route：pace 预测 + PB 对比；free：周围网格，后续接入）
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        if let live = message["live"] as? [String: Any] {
+            applyLivePayload(live)
+        }
+    }
+
+    // 解析 mode 握手；切换/开始时清空旧负载
+    private func updateWorkoutMode(_ raw: String?) {
+        let mode = raw.flatMap(WorkoutMode.init(rawValue:)) ?? .freeTraining
+        DispatchQueue.main.async {
+            self.workoutMode = mode
+            self.live = WatchLivePayload()
+        }
+    }
+
+    // 解析实时负载（缺省的可选键保持 nil → 展示 --）
+    private func applyLivePayload(_ dict: [String: Any]) {
+        var payload = WatchLivePayload()
+        payload.rank = dict["rank"] as? Int
+        payload.total = dict["total"] as? Int ?? 0
+        payload.pbDeltaTime = dict["pbDeltaTime"] as? Double
+        payload.pbDeltaDistance = dict["pbDeltaDistance"] as? Double
+        payload.hasPB = dict["hasPB"] as? Bool ?? false
+        payload.locked = dict["locked"] as? Bool ?? true
+        if let rawGrids = dict["grids"] as? [[String: Any]] {
+            payload.grids = rawGrids.compactMap { g in
+                guard let gx = g["gx"] as? Int, let gy = g["gy"] as? Int,
+                      let lat = g["lat"] as? Double, let lon = g["lon"] as? Double else { return nil }
+                return WatchGrid(gridX: gx, gridY: gy, lat: lat, lon: lon,
+                                 reward: g["reward"] as? String ?? "", count: g["count"] as? Int ?? 0)
             }
         }
-    }*/
+        DispatchQueue.main.async {
+            self.live = payload
+        }
+    }
     
     func sessionReachabilityDidChange(_ session: WCSession) {
         if session.isReachable {
@@ -711,6 +790,9 @@ extension WatchDataManager: HKLiveWorkoutBuilderDelegate {
 // MARK: - CLLocationManagerDelegate
 extension WatchDataManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let latest = locations.last {
+            DispatchQueue.main.async { self.currentLocation = latest }
+        }
         guard let routeBuilder = routeBuilder else { return }
         // Filter the raw data.
         let filteredLocations = locations.filter { (location: CLLocation) -> Bool in
@@ -725,6 +807,11 @@ extension WatchDataManager: CLLocationManagerDelegate {
         }
     }
     
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        guard newHeading.headingAccuracy >= 0 else { return }
+        DispatchQueue.main.async { self.heading = newHeading }
+    }
+
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location error: \(error.localizedDescription)")
     }
