@@ -712,6 +712,15 @@
 "training.free.grid.size" = "尺寸";
 "training.free.grid.common" = "一个普通网格 ";
 
+"training.free.nearby.title" = "附近网格";
+"training.free.nearby.occupied" = "已占领";
+"training.free.nearby.empty" = "附近暂无可领取的奖励网格";
+"training.free.nearby.no_location" = "无法获取当前位置";
+"training.free.nearby.distance.1km" = "1km";
+"training.free.nearby.distance.5km" = "5km";
+"training.free.nearby.distance.10km" = "10km";
+"training.free.nearby.distance.20km" = "20km";
+
 "training.route.info" = "路线信息";
 "training.route.delete.title" = "删除路线";
 "training.route.delete.content" = "你确定要删除路线吗？";

@@ -712,6 +712,15 @@
 "training.free.grid.size" = "Size";
 "training.free.grid.common" = "Standard Grid ";
 
+"training.free.nearby.title" = "Nearby Grids";
+"training.free.nearby.occupied" = "Occupied";
+"training.free.nearby.empty" = "No claimable reward grids nearby";
+"training.free.nearby.no_location" = "Unable to get current location";
+"training.free.nearby.distance.1km" = "1km";
+"training.free.nearby.distance.5km" = "5km";
+"training.free.nearby.distance.10km" = "10km";
+"training.free.nearby.distance.20km" = "20km";
+
 "training.route.info" = "Route Info";
 "training.route.delete.title" = "Delete Route";
 "training.route.delete.content" = "Are you sure you want to delete this route?";

@@ -14,6 +14,7 @@ struct CalendarDay: Identifiable {
     let date: Date
     let dayNumber: Int
     let delta: Int
+    let recordCount: Int      // 当天训练记录数，用于日期右上角角标
 
     var deltaText: String {
         if delta > 0 {
@@ -63,12 +64,14 @@ struct BikeFreeTrainingRecord: Identifiable {
     let endTime: Date?
     let delta: Int
     let trainingType: TrainingType
-    
+    let track: [CLLocationCoordinate2D]
+
     init(from record: TrainingRecordInfo) {
         self.record_id = record.record_id
         self.delta = record.delta_state
         self.endTime =  DateParser.parseISO8601(record.end_time)
         self.trainingType = record.training_type
+        self.track = record.track.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
     }
 }
 
@@ -78,13 +81,20 @@ struct RunningFreeTrainingRecord: Identifiable {
     let endTime: Date?
     let delta: Int
     let trainingType: TrainingType
-    
+    let track: [CLLocationCoordinate2D]
+
     init(from record: TrainingRecordInfo) {
         self.record_id = record.record_id
         self.delta = record.delta_state
         self.endTime =  DateParser.parseISO8601(record.end_time)
         self.trainingType = record.training_type
+        self.track = record.track.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
     }
+}
+
+struct TrackPointDTO: Codable {
+    let lat: Double
+    let lon: Double
 }
 
 struct TrainingRecordInfo: Codable {
@@ -92,6 +102,7 @@ struct TrainingRecordInfo: Codable {
     let delta_state: Int
     let end_time: String
     let training_type: TrainingType
+    let track: [TrackPointDTO]
 }
 
 struct TrainingRecordsResponse: Codable {

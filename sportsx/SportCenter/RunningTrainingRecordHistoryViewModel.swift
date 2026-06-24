@@ -94,7 +94,8 @@ class RunningTrainingRecordHistoryViewModel: ObservableObject {
                 CalendarDay(
                     date: date,
                     dayNumber: d,
-                    delta: 0
+                    delta: 0,
+                    recordCount: 0
                 )
             )
         }
@@ -136,20 +137,22 @@ class RunningTrainingRecordHistoryViewModel: ObservableObject {
     
     private func applyHistory(_ history: [RunningTrainingStatesHistoryInfo]) {
         var deltaMap: [Int: Int] = [:]
+        var countMap: [Int: Int] = [:]
 
         for item in history {
             if let date = dayFormatter.date(from: item.date) {
                 let day = calendar.component(.day, from: date)
                 deltaMap[day] = item.delta_state
+                countMap[day] = item.record_count
             }
         }
 
         calendarDays = calendarDays.map { day in
-            let newDelta = deltaMap[day.dayNumber] ?? 0
             return CalendarDay(
                 date: day.date,
                 dayNumber: day.dayNumber,
-                delta: newDelta
+                delta: deltaMap[day.dayNumber] ?? 0,
+                recordCount: countMap[day.dayNumber] ?? 0
             )
         }
     }
@@ -207,6 +210,7 @@ class RunningTrainingRecordHistoryViewModel: ObservableObject {
 class RunningTrainingStatesHistoryInfo: Codable {
     let date: String        // "2026-01-17"
     let delta_state: Int
+    let record_count: Int
 }
 
 struct RunningTrainingStatesHistoryResponse: Codable {

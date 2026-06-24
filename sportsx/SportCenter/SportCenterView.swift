@@ -667,6 +667,17 @@ struct CalendarDayCell: View {
                     .padding(.horizontal, 2)
             }
         }
+        // 日期右上角记录数角标：momentum 圆环攒满时仍能看清当天训练记录数
+        .overlay(alignment: .topTrailing) {
+            if day.recordCount > 0 {
+                Text("\(day.recordCount)")
+                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 3)
+                    .frame(minWidth: 15, minHeight: 15)
+                    .background(Circle().fill(Color.orange))
+            }
+        }
         // 不再写死宽高：由 LazyVGrid 的弹性列决定宽度，保持 1:1 方形，
         // 小屏（如 7 列下单列宽 < 50）也能自适应缩放而不溢出
         .aspectRatio(1, contentMode: .fit)
