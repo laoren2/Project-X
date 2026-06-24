@@ -1380,3 +1380,15 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "realtime.pace.predicted_rank" = "Predicted rank";
 "realtime.pace.vs_pb" = "vs. personal best";
 "realtime.pace.unlock" = "Unlock";
+
+"review.sentiment.title" = "Enjoying the app?";
+"review.sentiment.like" = "Love it";
+"review.sentiment.dislike" = "It's okay";
+"review.invite.title" = "Thanks for the support!";
+"review.invite.message" = "Rate us or leave a quick review — it really helps.";
+"review.action.rate" = "Quick Rate";
+"review.action.review" = "Write a Review";
+"review.action.later" = "Maybe Later";
+"review.feedback.title" = "We'd love your feedback";
+"review.feedback.message" = "Tell us what we could do better?";
+"review.action.feedback" = "Send Feedback";

@@ -1470,6 +1470,27 @@ struct LocalDebugPanelView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.gray, lineWidth: 2)
                     )
+                    VStack {
+                        Text("评价邀请")
+                            .bold()
+                            .padding(.bottom, 20)
+                        HStack {
+                            Spacer()
+                            Button("强制弹出") {
+                                ReviewRequestManager.shared.debugForcePrompt()
+                            }
+                            Spacer()
+                            Button("重置状态") {
+                                ReviewRequestManager.shared.debugResetState()
+                            }
+                            Spacer()
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.gray, lineWidth: 2)
+                    )
                 }
                 .padding()
             }

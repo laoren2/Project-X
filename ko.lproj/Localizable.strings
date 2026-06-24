@@ -1360,3 +1360,15 @@
 "realtime.pace.predicted_rank" = "예상 순위";
 "realtime.pace.vs_pb" = "최고 기록 대비";
 "realtime.pace.unlock" = "잠금 해제";
+
+"review.sentiment.title" = "앱이 마음에 드시나요?";
+"review.sentiment.like" = "좋아요";
+"review.sentiment.dislike" = "그냥 그래요";
+"review.invite.title" = "응원해 주셔서 감사합니다!";
+"review.invite.message" = "평점이나 짧은 리뷰를 남겨주시면 큰 힘이 됩니다.";
+"review.action.rate" = "빠른 평가";
+"review.action.review" = "리뷰 작성";
+"review.action.later" = "나중에";
+"review.feedback.title" = "의견을 들려주세요";
+"review.feedback.message" = "어떤 점을 개선하면 좋을지 알려주시겠어요?";
+"review.action.feedback" = "피드백 보내기";

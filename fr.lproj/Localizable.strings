@@ -1380,3 +1380,15 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "realtime.pace.predicted_rank" = "Rang prévu";
 "realtime.pace.vs_pb" = "vs. record perso";
 "realtime.pace.unlock" = "Débloquer";
+
+"review.sentiment.title" = "Vous aimez l'app ?";
+"review.sentiment.like" = "J'adore";
+"review.sentiment.dislike" = "Bof";
+"review.invite.title" = "Merci de votre soutien !";
+"review.invite.message" = "Notez-nous ou laissez un avis rapide, ça nous aide beaucoup.";
+"review.action.rate" = "Noter vite";
+"review.action.review" = "Écrire un avis";
+"review.action.later" = "Plus tard";
+"review.feedback.title" = "Votre avis nous intéresse";
+"review.feedback.message" = "Dites-nous ce que nous pourrions améliorer ?";
+"review.action.feedback" = "Envoyer un retour";

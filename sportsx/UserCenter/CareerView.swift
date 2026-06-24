@@ -30,8 +30,10 @@ struct CareerView: View {
                         .foregroundStyle(Color.secondText)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 10)
-                        .background(Color.white.opacity(0.4))
-                        .cornerRadius(8)
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.orange, lineWidth: 1)
+                        )
                 }
                 Spacer()
             }
@@ -215,7 +217,7 @@ struct LocalCareerView: View {
                             .padding(.horizontal, 10)
                             .overlay(
                                 Capsule()
-                                    .stroke(Color.orange, lineWidth: 2)
+                                    .stroke(Color.orange, lineWidth: 1)
                             )
                     }
                     Spacer()

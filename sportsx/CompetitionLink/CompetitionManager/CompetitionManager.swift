@@ -996,6 +996,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                         }
                         self.navigationManager.append(.bikeRaceRecordDetailView(recordID: record.record_id))
                         self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
+                        ReviewRequestManager.shared.onSessionFinishedSuccessfully()
                     }
                 case .failure(let error):
                     switch error {
@@ -1096,6 +1097,7 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
                         }
                         self.navigationManager.append(.runningRaceRecordDetailView(recordID: record.record_id))
                         self.dailyTaskManager.queryDailyTask(sport: self.userManager.user.defaultSport)
+                        ReviewRequestManager.shared.onSessionFinishedSuccessfully()
                     }
                 case .failure(let error):
                     switch error {
@@ -1945,6 +1947,7 @@ extension CompetitionManager {
                             .foregroundStyle(Color.white)
                         }
                         self.navigationManager.append(.bikeFreeTrainingRecordDetailView(recordID: unwrappedData.record_id))
+                        ReviewRequestManager.shared.onSessionFinishedSuccessfully()
                     }
                     GlobalConfig.shared.refreshFamiliarity = true
                     GlobalConfig.shared.refreshFreeTrainingView = true
@@ -2028,6 +2031,7 @@ extension CompetitionManager {
                             .foregroundStyle(Color.white)
                         }
                         self.navigationManager.append(.runningFreeTrainingRecordDetailView(recordID: unwrappedData.record_id))
+                        ReviewRequestManager.shared.onSessionFinishedSuccessfully()
                     }
                     GlobalConfig.shared.refreshFamiliarity = true
                     GlobalConfig.shared.refreshFreeTrainingView = true
@@ -2445,6 +2449,7 @@ extension CompetitionManager {
                             .foregroundStyle(Color.white)
                         }
                         self.navigationManager.append(.bikeRouteTrainingRecordDetailView(recordID: unwrappedData.record_id))
+                        ReviewRequestManager.shared.onSessionFinishedSuccessfully()
                     }
                 case .failure(let error):
                     switch error {
@@ -2526,6 +2531,7 @@ extension CompetitionManager {
                             .foregroundStyle(Color.white)
                         }
                         self.navigationManager.append(.runningRouteTrainingRecordDetailView(recordID: unwrappedData.record_id))
+                        ReviewRequestManager.shared.onSessionFinishedSuccessfully()
                     }
                 case .failure(let error):
                     switch error {

@@ -1380,3 +1380,15 @@
 "realtime.pace.predicted_rank" = "预测名次";
 "realtime.pace.vs_pb" = "对比个人最佳";
 "realtime.pace.unlock" = "解锁";
+
+"review.sentiment.title" = "喜欢这个 App 吗？";
+"review.sentiment.like" = "喜欢";
+"review.sentiment.dislike" = "一般";
+"review.invite.title" = "感谢支持！";
+"review.invite.message" = "给我们评分或写个评价吧，对我们帮助很大。";
+"review.action.rate" = "快速评分";
+"review.action.review" = "写评价";
+"review.action.later" = "以后再说";
+"review.feedback.title" = "想听听你的意见";
+"review.feedback.message" = "能告诉我们哪里可以做得更好吗？";
+"review.action.feedback" = "去反馈";
