@@ -707,13 +707,18 @@
 "training.error.no_login" = "登录查看运动状态和探索区域";
 "training.action.ready" = "准备就绪";
 "training.action.ready.no_login" = "登录以继续";
+"training.summary.title" = "本周训练";
+"training.summary.metric.time" = "时长";
+"training.summary.metric.momentum" = "状态变化";
+"training.summary.metric.distance" = "距离";
 
 "training.free.grid.info" = "网格信息";
 "training.free.grid.size" = "尺寸";
 "training.free.grid.common" = "一个普通网格 ";
 
 "training.free.nearby.title" = "附近网格";
-"training.free.nearby.occupied" = "已占领";
+"training.free.nearby.occupied.title" = "已占领网格";
+"training.free.nearby.occupied.description" = "当你在某个网格内的访问次数排名第一时，即占领该网格。这里显示你当前赛季已占领的网格总数。";
 "training.free.nearby.empty" = "附近暂无可领取的奖励网格";
 "training.free.nearby.no_location" = "无法获取当前位置";
 "training.free.nearby.distance.1km" = "1km";
@@ -1075,6 +1080,9 @@
 "user.page.features.email_box" = "邮箱";
 "user.page.tab.career" = "生涯";
 "user.page.tab.current_record" = "进行中";
+"user.page.tab.training" = "训练";
+"user.career.filter.completed" = "已完成";
+"user.career.filter.in_progress" = "进行中";
 "user.page.account_status.banned" = "此账号已封禁";
 "user.page.account_status.deleted" = "此账号已注销";
 "user.page.dailytask" = "每日运动任务";

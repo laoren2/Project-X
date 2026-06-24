@@ -707,13 +707,18 @@
 "training.error.no_login" = "Connectez-vous pour voir votre état d'activité et votre zone d'exploration.";
 "training.action.ready" = "Prêt";
 "training.action.ready.no_login" = "Connectez-vous pour continuer";
+"training.summary.title" = "Cette semaine";
+"training.summary.metric.time" = "Durée";
+"training.summary.metric.momentum" = "Momentum";
+"training.summary.metric.distance" = "Distance";
 
 "training.free.grid.info" = "Infos grille";
 "training.free.grid.size" = "Taille";
 "training.free.grid.common" = "Grille standard ";
 
 "training.free.nearby.title" = "Grilles à proximité";
-"training.free.nearby.occupied" = "Occupées";
+"training.free.nearby.occupied.title" = "Grilles occupées";
+"training.free.nearby.occupied.description" = "Vous occupez une grille lorsque vous y comptez le plus de visites. Ceci indique le nombre total de grilles que vous occupez actuellement cette saison.";
 "training.free.nearby.empty" = "Aucune grille de récompense à réclamer à proximité";
 "training.free.nearby.no_location" = "Impossible d'obtenir la position actuelle";
 "training.free.nearby.distance.1km" = "1km";
@@ -1075,6 +1080,9 @@
 "user.page.features.email_box" = "Messages";
 "user.page.tab.career" = "Carrière";
 "user.page.tab.current_record" = "En cours";
+"user.page.tab.training" = "Entraînement";
+"user.career.filter.completed" = "Terminé";
+"user.career.filter.in_progress" = "En cours";
 "user.page.account_status.banned" = "Ce compte a été banni";
 "user.page.account_status.deleted" = "Ce compte a été supprimé";
 "user.page.dailytask" = "Tâche quotidienne";

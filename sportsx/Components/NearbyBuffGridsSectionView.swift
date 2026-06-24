@@ -83,10 +83,18 @@ struct NearbyBuffGridsSectionView: View {
                     Image(systemName: "crown")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.orange)
-                    Text("training.free.nearby.occupied")
-                        .font(.system(size: 12))
                     Text("\(occupiedCount)")
                         .font(.system(size: 13, weight: .bold, design: .rounded))
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.secondText)
+                        .exclusiveTouchTapGesture {
+                            PopupWindowManager.shared.presentPopup(
+                                title: "training.free.nearby.occupied.title",
+                                message: "training.free.nearby.occupied.description",
+                                bottomButtons: [.confirm()]
+                            )
+                        }
                 }
                 .foregroundStyle(Color.white)
                 .padding(.vertical, 4)

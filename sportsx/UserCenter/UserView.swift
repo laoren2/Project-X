@@ -569,7 +569,7 @@ struct MainUserView: View {
                                         selectedTab = 0
                                     }
                                 
-                                Text("user.page.tab.current_record")
+                                Text("user.page.tab.training")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
@@ -602,7 +602,7 @@ struct MainUserView: View {
                             if selectedTab == 0 {
                                 CareerView(viewModel: viewModel)
                             } else {
-                                GameSummaryView(viewModel: viewModel)
+                                TrainingModuleView(sport: viewModel.sport, userID: viewModel.userID)
                             }
                         } else if user.status == .banned {
                             Text("user.page.account_status.banned")
@@ -710,7 +710,7 @@ struct MainUserView: View {
                                         selectedTab = 0
                                     }
                                 
-                                Text("user.page.tab.current_record")
+                                Text("user.page.tab.training")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
@@ -1371,7 +1371,7 @@ struct LocalMainUserView: View {
                                         selectedTab = 0
                                     }
                                 
-                                Text("user.page.tab.current_record")
+                                Text("user.page.tab.training")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)
@@ -1403,7 +1403,7 @@ struct LocalMainUserView: View {
                         if selectedTab == 0 {
                             LocalCareerView(viewModel: viewModel)
                         } else {
-                            LocalGameSummaryView(viewModel: viewModel)
+                            TrainingModuleView(sport: viewModel.sport, userID: userManager.user.userID)
                         }
                     }
                     .padding(.bottom, 100)
@@ -1512,7 +1512,7 @@ struct LocalMainUserView: View {
                                         selectedTab = 0
                                     }
                                 
-                                Text("user.page.tab.current_record")
+                                Text("user.page.tab.training")
                                     .font(.system(size: 16, weight: selectedTab == 1 ? .bold : .regular))
                                     .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                     .frame(maxWidth: .infinity)

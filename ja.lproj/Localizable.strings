@@ -707,13 +707,18 @@
 "training.error.no_login" = "ログインして運動状態と探索エリアを確認";
 "training.action.ready" = "準備完了";
 "training.action.ready.no_login" = "ログインして続行";
+"training.summary.title" = "今週のトレーニング";
+"training.summary.metric.time" = "時間";
+"training.summary.metric.momentum" = "モメンタム";
+"training.summary.metric.distance" = "距離";
 
 "training.free.grid.info" = "グリッド情報";
 "training.free.grid.size" = "サイズ";
 "training.free.grid.common" = "通常グリッド ";
 
 "training.free.nearby.title" = "近くのグリッド";
-"training.free.nearby.occupied" = "占領済み";
+"training.free.nearby.occupied.title" = "占領したグリッド";
+"training.free.nearby.occupied.description" = "あるグリッドへの訪問回数が1位になると、そのグリッドを占領します。ここには今シーズンに占領しているグリッドの総数が表示されます。";
 "training.free.nearby.empty" = "近くに獲得できる報酬グリッドはありません";
 "training.free.nearby.no_location" = "現在地を取得できません";
 "training.free.nearby.distance.1km" = "1km";
@@ -1075,6 +1080,9 @@
 "user.page.features.email_box" = "メール";
 "user.page.tab.career" = "キャリア";
 "user.page.tab.current_record" = "進行中";
+"user.page.tab.training" = "トレーニング";
+"user.career.filter.completed" = "完了";
+"user.career.filter.in_progress" = "進行中";
 "user.page.account_status.banned" = "このアカウントは停止されています";
 "user.page.account_status.deleted" = "このアカウントは削除されています";
 "user.page.dailytask" = "デイリースポーツミッション";
