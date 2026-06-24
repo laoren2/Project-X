@@ -712,6 +712,15 @@
 "training.free.grid.size" = "サイズ";
 "training.free.grid.common" = "通常グリッド ";
 
+"training.free.nearby.title" = "近くのグリッド";
+"training.free.nearby.occupied" = "占領済み";
+"training.free.nearby.empty" = "近くに獲得できる報酬グリッドはありません";
+"training.free.nearby.no_location" = "現在地を取得できません";
+"training.free.nearby.distance.1km" = "1km";
+"training.free.nearby.distance.5km" = "5km";
+"training.free.nearby.distance.10km" = "10km";
+"training.free.nearby.distance.20km" = "20km";
+
 "training.route.info" = "ルート情報";
 "training.route.delete.title" = "ルートを削除";
 "training.route.delete.content" = "このルートを削除しますか？";

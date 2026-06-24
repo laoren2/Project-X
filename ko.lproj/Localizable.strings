@@ -712,6 +712,15 @@
 "training.free.grid.size" = "크기";
 "training.free.grid.common" = "일반 그리드 ";
 
+"training.free.nearby.title" = "주변 그리드";
+"training.free.nearby.occupied" = "점령함";
+"training.free.nearby.empty" = "주변에 획득 가능한 보상 그리드가 없습니다";
+"training.free.nearby.no_location" = "현재 위치를 가져올 수 없습니다";
+"training.free.nearby.distance.1km" = "1km";
+"training.free.nearby.distance.5km" = "5km";
+"training.free.nearby.distance.10km" = "10km";
+"training.free.nearby.distance.20km" = "20km";
+
 "training.route.info" = "루트 정보";
 "training.route.delete.title" = "루트 삭제";
 "training.route.delete.content" = "이 루트를 삭제하시겠습니까?";

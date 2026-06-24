@@ -88,7 +88,10 @@ struct RunningFreeTrainingView: View {
                             }
                             .foregroundStyle(Color.white)
                         }
-                        
+
+                        // 附近 buff 网格列表 + 已占领网格数
+                        NearbyBuffGridsSectionView(sport: .Running)
+
                         // Map 视图显示当前的 region 完整轮廓，不可交互
                         if isExplorationLoading {
                             Rectangle()
@@ -163,7 +166,8 @@ struct RunningFreeTrainingView: View {
                             .foregroundStyle(Color.white)
                         }
                     }
-                    .padding()
+                    .padding(.horizontal)
+
                     if !userManager.isLoggedIn {
                         Text("training.error.no_login")
                             .font(.title2)
@@ -1419,6 +1423,15 @@ enum RunningGridConditionType: String, Codable {
     case distance = "distance"
     case speed = "speed"
     case none = "none"
+
+    /// 右上角条件角标图标（不同运动可在各自枚举中定义不同条件→角标映射）
+    var badgeImageName: String? {
+        switch self {
+        case .distance: return "buff_condition_distance"
+        case .speed: return "buff_condition_speed"
+        case .none: return nil
+        }
+    }
 }
 
 struct RunningGridBuffPreview: Codable {

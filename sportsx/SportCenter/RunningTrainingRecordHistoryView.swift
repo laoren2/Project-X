@@ -110,13 +110,15 @@ struct RunningTrainingRecordCardView: View {
             .foregroundStyle(Color.secondText)
             .font(.system(size: 15))
             Spacer()
+            MiniTrackView(coordinates: record.track)
+                .frame(width: 56, height: 32)
             HStack(spacing: 4) {
                 Image("momentum")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20)
-                Text("\(record.delta >= 0 ? "+" : "") \(record.delta)")
-                    .foregroundColor(record.delta >= 0 ? .orange : .red)
+                Text("\(record.delta)")
+                    .foregroundStyle(record.delta >= 0 ? Color.white : Color.red)
             }
             Image(systemName: "chevron.right")
                 .foregroundStyle(Color.secondText)

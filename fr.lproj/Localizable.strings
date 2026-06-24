@@ -712,6 +712,15 @@
 "training.free.grid.size" = "Taille";
 "training.free.grid.common" = "Grille standard ";
 
+"training.free.nearby.title" = "Grilles à proximité";
+"training.free.nearby.occupied" = "Occupées";
+"training.free.nearby.empty" = "Aucune grille de récompense à réclamer à proximité";
+"training.free.nearby.no_location" = "Impossible d'obtenir la position actuelle";
+"training.free.nearby.distance.1km" = "1km";
+"training.free.nearby.distance.5km" = "5km";
+"training.free.nearby.distance.10km" = "10km";
+"training.free.nearby.distance.20km" = "20km";
+
 "training.route.info" = "Infos parcours";
 "training.route.delete.title" = "Supprimer le parcours";
 "training.route.delete.content" = "Voulez-vous vraiment supprimer ce parcours ?";
