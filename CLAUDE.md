@@ -75,6 +75,7 @@ sportsxApp (@main)
 - **导航** [NavigationManager.swift](sportsx/NavigationManager.swift)：全局 `path: [AppRoute]`，`AppRoute` 是带关联值的大 enum；`append/removeLast/backToHome` 控制栈；`NavigationStore`/`NavigationStoreManager` 用 **weak** 方式在路由间传递可观察 store。
 - **魔法卡** `MagicCardFactory`：启动时按 `defID` 注册卡牌效果工厂（见 `BootstrapManager.registerAllCardTypes`）。
 - **ML 预测** `CompetitionManager/ModelManagerML`/`PredictionModelML`：本地模型索引加载与同步、比赛中数据融合与预测。
+- **应用评价邀请** [Tools/ReviewRequestManager.swift](sportsx/Tools/ReviewRequestManager.swift)：方案 R3「体验问句分流」。原生 `requestReview` 无回调/拿不到分数、也无法在评分后串联，故**不出现伪造星级、不按分数过滤**（规避审核 1.1.7）：先问「喜欢吗？喜欢/一般」→ **喜欢** 弹「快速评分（原生 `AppStore.requestReview(in:)`，真实 in-app 评分，需在 `@MainActor` 调用）/ 写评价（write-review 深链，App ID `6755963833`）」两个并列入口；**一般** → 站内反馈 `.feedbackView`。在**成功完成训练/比赛**（`CompetitionManager` 6 个 finish 成功分支调用 `onSessionFinishedSuccessfully()`）这一价值时刻触发；门槛/节流（UserDefaults 持久化）：累计成功 ≥3 次、距上次 ≥120 天、弹窗总次数 <3、当前版本未请求过；延迟 2.5s 且当前无其他弹窗才展示（避免盖住结算弹窗），仅实际展示才消耗额度。设置页另有常驻「手动评价」深链入口。调试入口在本地 debug 页 `LocalDebugPanelView`（`#if DEBUG` 的 `debugForcePrompt()` / `debugResetState()`）。改动触发时机/阈值时同步此处。
 
 ---
 
@@ -85,6 +86,7 @@ sportsxApp (@main)
 - **单例访问**：跨模块共享状态走 `XxxManager.shared`（`UserManager`、`AssetManager`、`ShopManager`、`IAPManager`、`LocationManager`、`ToastManager`、`PopupWindowManager`、`ModelManager`、`DeviceManager` 等）。
 - **线程**：网络回调在后台线程，**所有 UI/`@Published` 改动必须切回主线程**（`DispatchQueue.main.async` 或 `await MainActor.run`）；启动/可重入逻辑标注 `@MainActor`。
 - **文案**：用户可见字符串一律走本地化 key（`LocalizedStringKey`，如 `"toast.network_error"`），新增文案需补齐全部的 `Localizable.strings`，key的设计尽量遵循现有的结构。**不要硬编码中文/英文 UI 文案**（历史代码里 Toast 有少量硬编码中文，是待清理项，勿模仿）。
+- **本地化字符串的摆放位置**：新增 key 时，若其**场景/前缀已存在**（如已有 `training.free.*`），就近插入到该前缀同一处，保持聚合；若是**全新的场景/前缀**（如首次引入 `review.*`），整组**追加到文件末尾**。六份 `*.lproj/Localizable.strings` 的位置务必保持一致。
 - **配色/样式**：使用 Asset 中的语义色（`Color.defaultBackground`、`Color.secondText` 等），需要大量复用的颜色可以在 extansion 中定义新的标准 Color，仅在特殊场景硬编码 RGB。
 - **注释/文件头**：沿用现有中文注释风格与文件头格式。
 - **错误处理**：网络层用 `Result<T?, APIError>`，按 `APIError` 分支处理；需要用户感知时通过 Toast/Popup，不要静默吞掉关键失败。

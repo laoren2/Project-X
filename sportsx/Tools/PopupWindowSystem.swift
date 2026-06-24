@@ -188,7 +188,7 @@ struct PopupContainerView: View {
                     }
                 }
                 .padding(20)
-                .frame(width: 300)
+                .frame(width: 320)
                 .background(Color.defaultBackground)
                 .cornerRadius(18)
                 .transition(.asymmetric(

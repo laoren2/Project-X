@@ -1360,3 +1360,15 @@
 "realtime.pace.predicted_rank" = "予測順位";
 "realtime.pace.vs_pb" = "自己ベスト比";
 "realtime.pace.unlock" = "ロック解除";
+
+"review.sentiment.title" = "アプリは気に入っていますか？";
+"review.sentiment.like" = "気に入った";
+"review.sentiment.dislike" = "まあまあ";
+"review.invite.title" = "応援ありがとうございます！";
+"review.invite.message" = "評価またはレビューをいただけると、とても励みになります。";
+"review.action.rate" = "クイック評価";
+"review.action.review" = "レビューを書く";
+"review.action.later" = "後で";
+"review.feedback.title" = "ご意見をお聞かせください";
+"review.feedback.message" = "改善できる点を教えていただけますか？";
+"review.action.feedback" = "フィードバック";

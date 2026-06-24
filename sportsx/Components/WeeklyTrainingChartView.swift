@@ -2,7 +2,8 @@
 //  WeeklyTrainingChartView.swift
 //  sportsx
 //
-//  训练模块周折线图：7 个等宽可点击区域，折线 + 数据点，选中区高亮，底部星期标签。
+//  训练模块周折线图：7 个等宽可点击区域，折线 + 数据点（未选空心圈、选中实心放大）、
+//  每个数据点上方显示数值，选中区高亮，底部星期标签。
 //  纯 SwiftUI 自绘（Path），对齐项目 MiniTrackView/ProgressBar 风格；含 0 基线，兼容负值（momentum 变化量）。
 //
 
@@ -10,13 +11,16 @@ import SwiftUI
 
 
 struct WeeklyTrainingChartView: View {
+    let userManager = UserManager.shared
     let values: [Double]          // 7 个值（顺序：旧→新）
+    let valueLabels: [String]     // 7 个数值文案（由调用方按指标格式化）
     let labels: [String]          // 7 个星期短标签
     @Binding var selectedIndex: Int
     var lineColor: Color = .orange
+    //var pointBackground: Color = Color.defaultBackground   // 空心圈内部填充色，用于遮挡其下方折线
 
     private let labelHeight: CGFloat = 20
-    private let topPadding: CGFloat = 8
+    private let topPadding: CGFloat = 24      // 顶部留白容纳数据点上方的数值
     private let bottomPadding: CGFloat = 6
 
     var body: some View {
@@ -65,12 +69,32 @@ struct WeeklyTrainingChartView: View {
                 .stroke(lineColor, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
 
-            // 数据点
+            // 数据点上方数值
             ForEach(values.indices, id: \.self) { i in
-                Circle()
-                    .fill(i == selectedIndex ? lineColor : lineColor.opacity(0.6))
-                    .frame(width: i == selectedIndex ? 9 : 6, height: i == selectedIndex ? 9 : 6)
-                    .position(point(i, size: size))
+                let pt = point(i, size: size)
+                let isSel = i == selectedIndex
+                Text(valueLabels.indices.contains(i) ? valueLabels[i] : "")
+                    .font(.system(size: 12, weight: isSel ? .bold : .regular))
+                    .foregroundStyle(isSel ? Color.white : Color.secondText)
+                    .fixedSize()
+                    .position(x: pt.x, y: max(pt.y - 16, 9))
+            }
+
+            // 数据点：未选空心圈（内部填背景色遮挡折线）、选中实心并放大
+            ForEach(values.indices, id: \.self) { i in
+                let isSel = i == selectedIndex
+                Group {
+                    if isSel {
+                        Circle().fill(lineColor)
+                            .frame(width: 16, height: 16)
+                    } else {
+                        Circle()
+                            .fill(Color.lightBackground)
+                            .frame(width: 12, height: 12)
+                            .overlay(Circle().stroke(lineColor, lineWidth: 2))
+                    }
+                }
+                .position(point(i, size: size))
             }
 
             // 星期标签 + 整列点击区

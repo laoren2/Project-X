@@ -32,6 +32,15 @@ enum TrainingMetric: String, CaseIterable, Hashable {
         case .distance: return d.total_distance      // km
         }
     }
+
+    // 数据点上方显示的数值文案
+    func valueLabel(_ d: WeeklyTrainingDayDTO) -> String {
+        switch self {
+        case .time: return String(format: "%.1f", d.total_time / 3600.0)
+        case .momentum: return d.delta_state >= 0 ? "+\(d.delta_state)" : "\(d.delta_state)"
+        case .distance: return String(format: "%.1f", d.total_distance)
+        }
+    }
 }
 
 struct WeeklyTrainingDayDTO: Codable {
@@ -87,6 +96,7 @@ struct TrainingModuleView: View {
                 metricSelectorRow
                 WeeklyTrainingChartView(
                     values: days.map { metric.chartValue($0) },
+                    valueLabels: days.map { metric.valueLabel($0) },
                     labels: days.map { weekday(for: $0.date) },
                     selectedIndex: $selectedIndex
                 )

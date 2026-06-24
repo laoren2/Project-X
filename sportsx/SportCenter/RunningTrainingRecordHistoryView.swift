@@ -119,9 +119,9 @@ struct RunningTrainingRecordCardView: View {
                     .frame(width: 20)
                 Text("\(record.delta)")
                     .foregroundStyle(record.delta >= 0 ? Color.white : Color.red)
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Color.secondText)
             }
-            Image(systemName: "chevron.right")
-                .foregroundStyle(Color.secondText)
         }
         .foregroundStyle(Color.white)
         .padding()
