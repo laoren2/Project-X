@@ -11,8 +11,9 @@ struct CareerView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: UserViewModel
-    
-    
+    @State private var recordFilter: CareerRecordFilter = .completed
+
+
     var body: some View {
         VStack(spacing: 20) {
             HStack {
@@ -136,42 +137,15 @@ struct CareerView: View {
                 .padding(.horizontal)
             }
             
-            // 赛事积分记录
-            if viewModel.isCareerRecordsLoading {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray.opacity(0.5))
-                    .frame(height: 300)
-                    .padding(.horizontal)
-            } else {
-                VStack(spacing: 10) {
-                    HStack {
-                        Text("competition.season.event_records")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                        Spacer()
-                    }
-                    if viewModel.competitionScoreRecords.isEmpty {
-                        Spacer()
-                        VStack(spacing: 20) {
-                            Image("no_data")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 100)
-                            Text("error.nothing_here")
-                                .font(.headline)
-                                .foregroundStyle(Color.secondText)
-                        }
-                        Spacer()
-                    } else {
-                        LazyVStack(spacing: 15) {
-                            ForEach(viewModel.competitionScoreRecords) { record in
-                                CompetitionScoreCard(sport: viewModel.sport, trackRecord: record)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-            }
+            // 赛事记录（已完成 / 进行中 切换）
+            CareerRecordsSection(
+                sport: viewModel.sport,
+                completedRecords: viewModel.competitionScoreRecords,
+                inProgressRecords: viewModel.inProgressRecords,
+                isCompletedLoading: viewModel.isCareerRecordsLoading,
+                isInProgressLoading: viewModel.isCurrentRecordsLoading,
+                filter: $recordFilter
+            )
             Spacer()
         }
         .frame(minHeight: 700)
@@ -215,6 +189,7 @@ struct LocalCareerView: View {
     @ObservedObject var userManager = UserManager.shared
     @ObservedObject var viewModel: LocalUserViewModel
     @State private var showTierDetail: Bool = false
+    @State private var recordFilter: CareerRecordFilter = .completed
     
     var body: some View {
         VStack(spacing: 20) {
@@ -403,42 +378,15 @@ struct LocalCareerView: View {
                     .padding(.horizontal)
                 }
                 
-                // 赛事积分记录
-                if viewModel.isCareerRecordsLoading {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.gray.opacity(0.5))
-                        .frame(height: 300)
-                        .padding(.horizontal)
-                } else {
-                    VStack(spacing: 10) {
-                        HStack {
-                            Text("competition.season.event_records")
-                                .font(.headline)
-                                .foregroundStyle(.white)
-                            Spacer()
-                        }
-                        if viewModel.competitionScoreRecords.isEmpty {
-                            Spacer()
-                            VStack(spacing: 20) {
-                                Image("no_data")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 100)
-                                Text("error.nothing_here")
-                                    .font(.headline)
-                                    .foregroundStyle(Color.secondText)
-                            }
-                            Spacer()
-                        } else {
-                            LazyVStack(spacing: 15) {
-                                ForEach(viewModel.competitionScoreRecords) { record in
-                                    CompetitionScoreCard(sport: viewModel.sport, trackRecord: record)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
+                // 赛事记录（已完成 / 进行中 切换）
+                CareerRecordsSection(
+                    sport: viewModel.sport,
+                    completedRecords: viewModel.competitionScoreRecords,
+                    inProgressRecords: viewModel.inProgressRecords,
+                    isCompletedLoading: viewModel.isCareerRecordsLoading,
+                    isInProgressLoading: viewModel.isCurrentRecordsLoading,
+                    filter: $recordFilter
+                )
             }
             Spacer()
         }
@@ -533,6 +481,85 @@ struct AbilityPolygon: Shape {
         
         path.closeSubpath()
         return path
+    }
+}
+
+// 赛事记录筛选：已完成 / 进行中
+enum CareerRecordFilter: String, CaseIterable, Hashable {
+    case completed
+    case inProgress
+
+    var titleKey: String {
+        switch self {
+        case .completed: return "user.career.filter.completed"
+        case .inProgress: return "user.career.filter.in_progress"
+        }
+    }
+}
+
+// 赛事记录区：顶部用 CapsuleScrollSelector 切换 已完成/进行中，两种卡片视图保持不变
+struct CareerRecordsSection: View {
+    let sport: SportName
+    let completedRecords: [CareerRecord]
+    let inProgressRecords: [InProgressRecord]
+    let isCompletedLoading: Bool
+    let isInProgressLoading: Bool
+    @Binding var filter: CareerRecordFilter
+
+    private var isLoading: Bool {
+        filter == .completed ? isCompletedLoading : isInProgressLoading
+    }
+
+    private var isEmpty: Bool {
+        filter == .completed ? completedRecords.isEmpty : inProgressRecords.isEmpty
+    }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Text("competition.season.event_records")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Spacer()
+                CapsuleScrollSelector(
+                    options: CareerRecordFilter.allCases,
+                    selection: $filter,
+                    titleKey: { $0.titleKey },
+                    backgroundColor: Color.white.opacity(0.2)
+                )
+            }
+
+            if isLoading {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.gray.opacity(0.5))
+                    .frame(height: 300)
+            } else if isEmpty {
+                Spacer()
+                VStack(spacing: 20) {
+                    Image("no_data")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 100)
+                    Text("error.nothing_here")
+                        .font(.headline)
+                        .foregroundStyle(Color.secondText)
+                }
+                Spacer()
+            } else {
+                LazyVStack(spacing: 15) {
+                    if filter == .completed {
+                        ForEach(completedRecords) { record in
+                            CompetitionScoreCard(sport: sport, trackRecord: record)
+                        }
+                    } else {
+                        ForEach(inProgressRecords) { card in
+                            InProgressRecordCardView(sport: sport, record: card)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal)
     }
 }
 

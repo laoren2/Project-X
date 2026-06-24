@@ -707,13 +707,18 @@
 "training.error.no_login" = "로그인 후 운동 상태 및 탐색 지역을 확인하세요";
 "training.action.ready" = "준비 완료";
 "training.action.ready.no_login" = "로그인 후 계속 진행";
+"training.summary.title" = "이번 주 훈련";
+"training.summary.metric.time" = "시간";
+"training.summary.metric.momentum" = "모멘텀";
+"training.summary.metric.distance" = "거리";
 
 "training.free.grid.info" = "그리드 정보";
 "training.free.grid.size" = "크기";
 "training.free.grid.common" = "일반 그리드 ";
 
 "training.free.nearby.title" = "주변 그리드";
-"training.free.nearby.occupied" = "점령함";
+"training.free.nearby.occupied.title" = "점령한 그리드";
+"training.free.nearby.occupied.description" = "특정 그리드의 방문 횟수가 1위가 되면 해당 그리드를 점령합니다. 여기에는 이번 시즌에 점령한 그리드의 총 개수가 표시됩니다.";
 "training.free.nearby.empty" = "주변에 획득 가능한 보상 그리드가 없습니다";
 "training.free.nearby.no_location" = "현재 위치를 가져올 수 없습니다";
 "training.free.nearby.distance.1km" = "1km";
@@ -1075,6 +1080,9 @@
 "user.page.features.email_box" = "메일함";
 "user.page.tab.career" = "커리어";
 "user.page.tab.current_record" = "진행 중";
+"user.page.tab.training" = "훈련";
+"user.career.filter.completed" = "완료";
+"user.career.filter.in_progress" = "진행 중";
 "user.page.account_status.banned" = "계정이 정지되었습니다";
 "user.page.account_status.deleted" = "계정이 삭제되었습니다";
 "user.page.dailytask" = "일일 운동 미션";

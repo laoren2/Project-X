@@ -707,13 +707,18 @@
 "training.error.no_login" = "Log in to view your activity status and exploration area.";
 "training.action.ready" = "Ready";
 "training.action.ready.no_login" = "Login to continue";
+"training.summary.title" = "This Week";
+"training.summary.metric.time" = "Time";
+"training.summary.metric.momentum" = "Momentum";
+"training.summary.metric.distance" = "Distance";
 
 "training.free.grid.info" = "Grid Info";
 "training.free.grid.size" = "Size";
 "training.free.grid.common" = "Standard Grid ";
 
 "training.free.nearby.title" = "Nearby Grids";
-"training.free.nearby.occupied" = "Occupied";
+"training.free.nearby.occupied.title" = "Occupied Grids";
+"training.free.nearby.occupied.description" = "You occupy a grid when you have the most visits to it. This shows the total number of grids you currently occupy this season.";
 "training.free.nearby.empty" = "No claimable reward grids nearby";
 "training.free.nearby.no_location" = "Unable to get current location";
 "training.free.nearby.distance.1km" = "1km";
@@ -1075,6 +1080,9 @@
 "user.page.features.email_box" = "Mailbox";
 "user.page.tab.career" = "Career";
 "user.page.tab.current_record" = "In Progress";
+"user.page.tab.training" = "Training";
+"user.career.filter.completed" = "Completed";
+"user.career.filter.in_progress" = "In Progress";
 "user.page.account_status.banned" = "This account has been banned";
 "user.page.account_status.deleted" = "This account has been deleted";
 "user.page.dailytask" = "Daily Task";

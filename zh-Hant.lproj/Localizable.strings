@@ -707,13 +707,18 @@
 "training.error.no_login" = "登入查看運動狀態和探索區域";
 "training.action.ready" = "準備就緒";
 "training.action.ready.no_login" = "登入以繼續";
+"training.summary.title" = "本週訓練";
+"training.summary.metric.time" = "時長";
+"training.summary.metric.momentum" = "狀態變化";
+"training.summary.metric.distance" = "距離";
 
 "training.free.grid.info" = "網格資訊";
 "training.free.grid.size" = "尺寸";
 "training.free.grid.common" = "一個普通網格 ";
 
 "training.free.nearby.title" = "附近網格";
-"training.free.nearby.occupied" = "已佔領";
+"training.free.nearby.occupied.title" = "已佔領網格";
+"training.free.nearby.occupied.description" = "當你在某個網格內的造訪次數排名第一時，即佔領該網格。這裡顯示你目前賽季已佔領的網格總數。";
 "training.free.nearby.empty" = "附近暫無可領取的獎勵網格";
 "training.free.nearby.no_location" = "無法取得目前位置";
 "training.free.nearby.distance.1km" = "1km";
@@ -1075,6 +1080,9 @@
 "user.page.features.email_box" = "郵箱";
 "user.page.tab.career" = "生涯";
 "user.page.tab.current_record" = "進行中";
+"user.page.tab.training" = "訓練";
+"user.career.filter.completed" = "已完成";
+"user.career.filter.in_progress" = "進行中";
 "user.page.account_status.banned" = "此帳號已封禁";
 "user.page.account_status.deleted" = "此帳號已註銷";
 "user.page.dailytask" = "每日運動任務";

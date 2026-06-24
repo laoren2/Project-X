@@ -64,6 +64,7 @@ struct BikeFreeTrainingView: View {
                             VStack {
                                 HStack(spacing: 5) {
                                     Text("training.sport_state")
+                                        .font(.system(size: 15, weight: .semibold))
                                     Image(systemName: "info.circle")
                                         .foregroundStyle(Color.secondText)
                                         .font(.subheadline)

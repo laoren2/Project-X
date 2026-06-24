@@ -43,7 +43,7 @@ class UserViewModel: ObservableObject {
     // 赛季赛事积分记录汇总
     @Published var competitionScoreRecords: [CareerRecord] = []
     
-    @Published var gameSummaryCards: [GameSummaryCard] = []
+    @Published var inProgressRecords: [InProgressRecord] = []
     
     @Published var selectedSeason: SeasonSelectableInfo?
     @Published var seasons: [SeasonSelectableInfo] = []
@@ -197,13 +197,13 @@ class UserViewModel: ObservableObject {
         let request = APIRequest(path: urlPath, method: .get)
         
         self.isCurrentRecordsLoading = true
-        NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: InProgressRecordsResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
-                    let records = unwrappedData.records.map { GameSummaryCard(from: $0) }
+                    let records = unwrappedData.records.map { InProgressRecord(from: $0) }
                     DispatchQueue.main.async {
-                        self.gameSummaryCards = records
+                        self.inProgressRecords = records
                     }
                 }
             default: break
@@ -337,7 +337,7 @@ class LocalUserViewModel: ObservableObject {
     // 赛季赛事积分记录汇总
     @Published var competitionScoreRecords: [CareerRecord] = []
     
-    @Published var gameSummaryCards: [GameSummaryCard] = []
+    @Published var inProgressRecords: [InProgressRecord] = []
     
     @Published var selectedSeason: SeasonSelectableInfo?
     @Published var seasons: [SeasonSelectableInfo] = []
@@ -457,13 +457,13 @@ class LocalUserViewModel: ObservableObject {
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         
         isCurrentRecordsLoading = true
-        NetworkService.sendRequest(with: request, decodingType: GameSummaryResponse.self, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: InProgressRecordsResponse.self, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
-                    let records = unwrappedData.records.map { GameSummaryCard(from: $0) }
+                    let records = unwrappedData.records.map { InProgressRecord(from: $0) }
                     DispatchQueue.main.async {
-                        self.gameSummaryCards = records
+                        self.inProgressRecords = records
                     }
                 }
             default: break
