@@ -274,6 +274,10 @@ struct BikeRouteTrainingView: View {
                             Circle()
                                 .fill(Color.white.opacity(0.3))
                         )
+                        .overlay(
+                            Circle()
+                                .stroke(Color.orange, lineWidth: 1)
+                        )
                 }
                 .disabled(competitionManager.isRecording)
             }

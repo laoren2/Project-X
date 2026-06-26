@@ -1244,6 +1244,8 @@
 "iap.subscription.benefits.4" = "高度なルート編集機能";
 "iap.subscription.benefits.5" = "ワークアウト中の詳細統計データ";
 "iap.subscription.benefits.5.description" = "高度なデータには、リアルタイムのフィニッシャーランキング予測や自己ベストとの比較が含まれ、アリーナモードとコースモードの練習に対応しています。";
+"iap.subscription.benefits.1.description" = "カード対応のコース練習またはアリーナモードで、カードを1枚追加で持ち込めます。";
+"iap.subscription.benefits.4.description" = "コース編集で最大100個のポイントを追加できます。総合ランキングは人数制限なしで、男女ランキングも同時に解放されます。";
 "iap.subscription.action.purchase" = "今すぐ登録";
 "iap.subscription.action.update_purchase" = "サブスクリプション更新";
 "iap.subscription.toast.purchase.failed.sub_off" = "このApple IDに紐づく別アカウントで既に登録されています";

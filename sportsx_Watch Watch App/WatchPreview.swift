@@ -92,7 +92,7 @@ struct PaceComparePreviewScene: View {
         task = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 2_000_000_000)   // 等 1s
             // 逐帧驱动（~60fps 直接更新，不用 withAnimation）：避免弹簧被反复打断的卡顿与起始跳变
-            let duration = 4.2
+            let duration = 4.0
             let begin = Date()
             while !Task.isCancelled {
                 let u = min(Date().timeIntervalSince(begin) / duration, 1.0)

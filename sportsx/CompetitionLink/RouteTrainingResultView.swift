@@ -157,6 +157,9 @@ struct BikeRouteTrainingRecordDetailView: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.white)
                 }
+                // 仅本人记录可分享：他人记录隐藏并禁用，保留占位以维持标题居中
+                .opacity(viewModel.isMine ? 1 : 0)
+                .disabled(!viewModel.isMine)
             }
             .padding(.horizontal)
             
@@ -917,6 +920,9 @@ struct RunningRouteTrainingRecordDetailView: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.white)
                 }
+                // 仅本人记录可分享：他人记录隐藏并禁用，保留占位以维持标题居中
+                .opacity(viewModel.isMine ? 1 : 0)
+                .disabled(!viewModel.isMine)
             }
             .padding(.horizontal)
             

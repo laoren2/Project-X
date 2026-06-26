@@ -44,10 +44,10 @@ struct PreviewLaunchView: View {
                     .padding(.vertical, 20)
                     .padding(.horizontal, 32)
                     .opacity(sloganOpacity)
-                //ProgressBar(progress: progress)
-                //    .frame(height: 10)
-                //    .padding(.top, 10)
-                //    .padding(.bottom, 50)
+                ProgressBar(progress: progress)
+                    .frame(height: 10)
+                    .padding(.top, 10)
+                    .padding(.bottom, 50)
                 Spacer()
             }
             .scaleEffect(contentScale)
@@ -81,13 +81,13 @@ struct PreviewLaunchView: View {
                     iconScale = 1.0
                 }
 
-                /*withAnimation(
+                withAnimation(
                     .timingCurve(0.2, 0.75, 0.8, 0.25, duration: 1.5)
                 ) {
                     progress = 1.0
                 }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
+                /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.72)) {
                         textScale = 1
                         contentScale = 0.25
@@ -1644,10 +1644,10 @@ struct PreviewRealtimeRankView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            PreviewRealtimeRankMapView(track: track, duration: 4.2, play: playTrack)
+            PreviewRealtimeRankMapView(track: track, duration: 4.0, play: playTrack)
                 .ignoresSafeArea()
 
-            sheet.offset(y: sheetUp ? 0 : 470)
+            sheet.offset(y: sheetUp ? 0 : 350)
         }
         .ignoresSafeArea(edges: .bottom)
         .onAppear { runSequence() }
@@ -1734,6 +1734,7 @@ struct PreviewRealtimeRankView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 20)
+                .geometryGroupCompat()
                 ScrollView {
                     VStack(spacing: 20) {
                         // 时间行 / start 按钮
@@ -1862,20 +1863,19 @@ struct PreviewRealtimeRankView: View {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
                 startButtonScale = 0.2; startButtonOpacity = 0
             }
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            //withAnimation(.easeInOut(duration: 0.35)) { isRecording = true }
-            isRecording = true
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            withAnimation(.easeInOut(duration: 0.25)) { isRecording = true }
             startStats()
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             // 3) 名次 / PB 从中间弹出，挤开上下
             withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { showPace = true }
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             // 4) 收起 sheet + 赛道动画（统计继续，不停）
-            //withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) { sheetUp = false }
-            try? await Task.sleep(nanoseconds: 300_000_000)
-            //playTrack = true
-            statsTimer?.invalidate()
-            statsTimer = nil
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) { sheetUp = false }
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            playTrack = true
+            //statsTimer?.invalidate()
+            //statsTimer = nil
         }
     }
 
@@ -1883,7 +1883,7 @@ struct PreviewRealtimeRankView: View {
         statsTimer?.invalidate()
         statsTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
             withAnimation(.easeInOut(duration: 0.3)) {
-                elapsed += Double.random(in: 9...15)
+                elapsed += Double.random(in: 18...25)
                 distance += Double.random(in: 0.05...0.2)
                 avgSpeed = Double.random(in: 22...30)
                 heartRate = Int.random(in: 120...165)
@@ -1905,7 +1905,7 @@ struct PreviewRealtimeRankMapView: UIViewRepresentable {
     // 预设赛道：东京·上野一带的控制点 → Catmull-Rom 平滑曲线（~400m，较短，移动更慢）
     static func makeTrack() -> [CLLocationCoordinate2D] {
         let waypoints: [CLLocationCoordinate2D] = [
-            .init(latitude: 33.5713, longitude: 131.1267),
+            .init(latitude: 35.7113, longitude: 139.7751),
             .init(latitude: 35.7128, longitude: 139.7764),
             .init(latitude: 35.7124, longitude: 139.7780),
             .init(latitude: 35.7134, longitude: 139.7792),
@@ -1998,7 +1998,7 @@ struct PreviewRealtimeRankMapView: UIViewRepresentable {
             ov.addSubview(pbBadge)
             ov.layer.addSublayer(pbDot)
             ov.layer.addSublayer(userDot)
-            //map.addSubview(ov)
+            map.addSubview(ov)
             overlay = ov
 
             map.setCamera(MKMapCamera(lookingAtCenter: interpolate(0), fromDistance: 600, pitch: 0, heading: 0),

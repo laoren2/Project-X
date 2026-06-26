@@ -1264,6 +1264,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.benefits.4" = "Advanced route edit features";
 "iap.subscription.benefits.5" = "Advanced Workout Statistics";
 "iap.subscription.benefits.5.description" = "Advanced data includes real-time finisher ranking predictions and comparisons with personal bests, supports both Arena and Route training mode.";
+"iap.subscription.benefits.1.description" = "Carry one extra card in card-enabled Route training or Arena modes.";
+"iap.subscription.benefits.4.description" = "Add up to 100 waypoints when editing a route; the overall leaderboard has no participant limit and both men's and women's rankings are unlocked.";
 "iap.subscription.action.purchase" = "Subscribe Now";
 "iap.subscription.action.update_purchase" = "Update Subscription";
 "iap.subscription.toast.purchase.failed.sub_off" = "This Apple ID is already associated with another account that has subscribed, so you cannot subscribe again";

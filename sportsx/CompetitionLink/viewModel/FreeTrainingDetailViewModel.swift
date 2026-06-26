@@ -10,32 +10,36 @@ import Foundation
 class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: BikeFreeTrainingRecordDetailInfo?
-    
+    @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [BikeFreeTrainingPathPoint] = []
     @Published var samplePath: [BikeFreeTrainingSamplePathPoint] = []
-    
-    
+
+    // 仅本人记录可分享
+    var isMine: Bool { UserManager.shared.isLoggedIn && ownerUserID == UserManager.shared.user.userID }
+
     init(recordID: String) {
         self.recordID = recordID
         self.recordDetailInfo = nil
         queryRecordDetail()
     }
-    
+
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/training/bike/query_free_training_record_detail") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        
+
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
+
         NetworkService.sendRequest(with: request, decodingType: BikeFreeTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        self.ownerUserID = unwrappedData.owner_user_id
                         self.recordDetailInfo = BikeFreeTrainingRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
@@ -106,6 +110,7 @@ struct BikeGridBuffSnapshot: Identifiable {
 }
 
 struct BikeFreeTrainingRecordDetailResponse: Codable {
+    let owner_user_id: String               // 记录归属者业务 ID
     let duration: Double                    // 训练时间
     let path: [BikeFreeTrainingPathPoint]   // 训练路径记录
     let settlements: JSONValue              // 训练结算
@@ -127,32 +132,36 @@ struct BikeFreeTrainingSamplePathPoint {
 class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: RunningFreeTrainingRecordDetailInfo?
-    
+    @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [RunningFreeTrainingPathPoint] = []
     @Published var samplePath: [RunningFreeTrainingSamplePathPoint] = []
-    
-    
+
+    // 仅本人记录可分享
+    var isMine: Bool { UserManager.shared.isLoggedIn && ownerUserID == UserManager.shared.user.userID }
+
     init(recordID: String) {
         self.recordID = recordID
         self.recordDetailInfo = nil
         queryRecordDetail()
     }
-    
+
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/training/running/query_free_training_record_detail") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        
+
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
+
         NetworkService.sendRequest(with: request, decodingType: RunningFreeTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        self.ownerUserID = unwrappedData.owner_user_id
                         self.recordDetailInfo = RunningFreeTrainingRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
@@ -217,6 +226,7 @@ struct RunningGridBuffSnapshot: Identifiable {
 }
 
 struct RunningFreeTrainingRecordDetailResponse: Codable {
+    let owner_user_id: String                   // 记录归属者业务 ID
     let duration: Double                        // 训练时间
     let path: [RunningFreeTrainingPathPoint]    // 训练路径记录
     let settlements: JSONValue                  // 训练结算

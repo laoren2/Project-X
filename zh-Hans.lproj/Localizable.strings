@@ -1264,6 +1264,8 @@
 "iap.subscription.benefits.4" = "高级的路线编辑功能";
 "iap.subscription.benefits.5" = "高级的运动数据分析";
 "iap.subscription.benefits.5.description" = "高级数据包括实时的完赛排名预测和与个人最佳记录的对比，支持竞技场和路线训练模式。";
+"iap.subscription.benefits.1.description" = "在支持卡牌玩法的路线训练或竞技场模式中，可额外多携带一张卡牌。";
+"iap.subscription.benefits.4.description" = "路线编辑中最多可添加 100 个路径点；总排行榜不限人数，并同时解锁男女榜单。";
 "iap.subscription.action.purchase" = "立即订阅";
 "iap.subscription.action.update_purchase" = "更新订阅";
 "iap.subscription.toast.purchase.failed.sub_off" = "此AppleID关联的其他账号已订阅，无法重复订阅";
