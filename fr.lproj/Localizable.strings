@@ -1264,6 +1264,8 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "iap.subscription.benefits.4" = "fonctions avancées d'édition de parcours";
 "iap.subscription.benefits.5" = "Statistiques avancées pendant l'entraînement";
 "iap.subscription.benefits.5.description" = "Les données avancées incluent des prédictions en temps réel du classement des coureurs et des comparaisons avec leurs meilleurs résultats personnels, et prennent en charge les modes d'entraînement en Arène et Parcours.";
+"iap.subscription.benefits.1.description" = "Emportez une carte supplémentaire dans les modes Parcours ou Arène compatibles avec les cartes.";
+"iap.subscription.benefits.4.description" = "Ajoutez jusqu'à 100 points lors de l'édition d'un parcours ; le classement général est sans limite de participants et les classements hommes et femmes sont débloqués simultanément.";
 "iap.subscription.action.purchase" = "S'abonner";
 "iap.subscription.action.update_purchase" = "Mettre à jour l'abonnement";
 "iap.subscription.toast.purchase.failed.sub_off" = "Cet identifiant Apple est déjà associé à un autre compte abonné ; vous ne pouvez pas vous abonner à nouveau";

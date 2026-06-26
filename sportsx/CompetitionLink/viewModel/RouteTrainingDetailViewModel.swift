@@ -10,32 +10,36 @@ import Foundation
 class BikeRouteTrainingRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: BikeRouteTrainingRecordDetailInfo?
-    
+    @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [BikeRouteTrainingPathPoint] = []
     @Published var samplePath: [BikeRouteTrainingSamplePathPoint] = []
-    
-    
+
+    // 仅本人记录可分享
+    var isMine: Bool { UserManager.shared.isLoggedIn && ownerUserID == UserManager.shared.user.userID }
+
     init(recordID: String) {
         self.recordID = recordID
         self.recordDetailInfo = nil
         queryRecordDetail()
     }
-    
+
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/training/bike/query_route_training_record_detail") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        
+
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
+
         NetworkService.sendRequest(with: request, decodingType: BikeRouteTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        self.ownerUserID = unwrappedData.owner_user_id
                         self.recordDetailInfo = BikeRouteTrainingRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
@@ -94,6 +98,7 @@ struct BikeRouteTrainingRecordDetailInfo {
 }
 
 struct BikeRouteTrainingRecordDetailResponse: Codable {
+    let owner_user_id: String                   // 记录归属者业务 ID
     let original_time: Double                   // 原始成绩
     let final_time: Double                      // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
     let penalty_time: Double                    // 总罚时
@@ -116,32 +121,36 @@ struct BikeRouteTrainingSamplePathPoint {
 class RunningRouteTrainingRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: RunningRouteTrainingRecordDetailInfo?
-    
+    @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [RunningRouteTrainingPathPoint] = []
     @Published var samplePath: [RunningRouteTrainingSamplePathPoint] = []
-    
-    
+
+    // 仅本人记录可分享
+    var isMine: Bool { UserManager.shared.isLoggedIn && ownerUserID == UserManager.shared.user.userID }
+
     init(recordID: String) {
         self.recordID = recordID
         self.recordDetailInfo = nil
         queryRecordDetail()
     }
-    
+
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/training/running/query_route_training_record_detail") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
         guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
-        
+
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
+
         NetworkService.sendRequest(with: request, decodingType: RunningRouteTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        self.ownerUserID = unwrappedData.owner_user_id
                         self.recordDetailInfo = RunningRouteTrainingRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
@@ -200,6 +209,7 @@ struct RunningRouteTrainingRecordDetailInfo {
 }
 
 struct RunningRouteTrainingRecordDetailResponse: Codable {
+    let owner_user_id: String                   // 记录归属者业务 ID
     let original_time: Double                   // 原始成绩
     let final_time: Double                      // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
     let penalty_time: Double                    // 总罚时

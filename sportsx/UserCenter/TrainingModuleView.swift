@@ -242,7 +242,8 @@ struct TrainingModuleView: View {
         components.queryItems = [URLQueryItem(name: "user_id", value: userID)]
         guard let urlPath = components.string else { return }
 
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        // 可选鉴权：查看本人或他人训练汇总，登录则带 token，未登录也可匿名查看
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
         NetworkService.sendRequest(
             with: request,
             decodingType: WeeklyTrainingSummaryResponse.self,
@@ -286,7 +287,8 @@ struct TrainingModuleView: View {
         ]
         guard let urlPath = components.string else { return }
 
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
+        // 可选鉴权：查看本人或他人当天训练记录，登录则带 token，未登录也可匿名查看
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
         NetworkService.sendRequest(
             with: request,
             decodingType: TrainingRecordsResponse.self,

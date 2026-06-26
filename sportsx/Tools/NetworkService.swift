@@ -30,6 +30,8 @@ struct APIRequest {
     var headers: [String: String]?
     var body: Data?
     var requiresAuth: Bool = false
+    // 可选鉴权：已登录则带上 token（供服务端识别 viewer），未登录也照常匿名请求，不强制弹登录
+    var optionalAuth: Bool = false
     var isInternal: Bool = false
     var cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
     
@@ -94,6 +96,11 @@ struct NetworkService {
                 }
                 completion(.failure(.businessError(code: 401, message: "toast.no_login")))
                 return
+            }
+        } else if apiRequest.optionalAuth {
+            // 可选鉴权：有 token 就带上，没有就匿名请求
+            if let token = KeychainHelper.standard.token {
+                allHeaders["Authorization"] = "Bearer \(token)"
             }
         }
         for (key, value) in allHeaders {

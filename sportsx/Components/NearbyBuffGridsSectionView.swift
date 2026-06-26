@@ -110,6 +110,7 @@ struct NearbyBuffGridsSectionView: View {
                     selection: $distance,
                     titleKey: { $0.titleKey },
                     expandedWidth: 150,
+                    backgroundColor: Color.black.opacity(0.2),
                     onSelect: { _ in
                         selected = nil
                         fetchGrids()

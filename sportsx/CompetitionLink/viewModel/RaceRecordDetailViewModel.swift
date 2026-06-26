@@ -10,34 +10,35 @@ import Foundation
 class BikeRaceRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: BikeRaceRecordDetailInfo?
-    
+    @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [BikePathPoint] = []
     @Published var samplePath: [BikeSamplePathPoint] = []
-    
-    
+
+    // 仅本人记录可分享
+    var isMine: Bool { UserManager.shared.isLoggedIn && ownerUserID == UserManager.shared.user.userID }
+
     init(recordID: String) {
         self.recordID = recordID
         self.recordDetailInfo = nil
     }
-    
+
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/competition/bike/query_record_detail") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
-        if UserManager.shared.isLoggedIn {
-            components.queryItems?.append(URLQueryItem(name: "user_id", value: UserManager.shared.user.userID))
-        }
         guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
-        
+
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
+
         NetworkService.sendRequest(with: request, decodingType: BikeRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        self.ownerUserID = unwrappedData.owner_user_id
                         self.recordDetailInfo = BikeRaceRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
@@ -53,33 +54,35 @@ class BikeRaceRecordDetailViewModel: ObservableObject {
 class RunningRaceRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: RunningRaceRecordDetailInfo?
-    
+    @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [RunningPathPoint] = []
     @Published var samplePath: [RunningSamplePathPoint] = []
-    
+
+    // 仅本人记录可分享
+    var isMine: Bool { UserManager.shared.isLoggedIn && ownerUserID == UserManager.shared.user.userID }
+
     init(recordID: String) {
         self.recordID = recordID
         self.recordDetailInfo = nil
     }
-    
+
     func queryRecordDetail() {
         guard var components = URLComponents(string: "/competition/running/query_record_detail") else { return }
         components.queryItems = [
             URLQueryItem(name: "record_id", value: recordID)
         ]
-        if UserManager.shared.isLoggedIn {
-            components.queryItems?.append(URLQueryItem(name: "user_id", value: UserManager.shared.user.userID))
-        }
         guard let urlPath = components.url?.absoluteString else { return }
-        
-        let request = APIRequest(path: urlPath, method: .get, requiresAuth: false)
-        
+
+        let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
+
         NetworkService.sendRequest(with: request, decodingType: RunningRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
                     DispatchQueue.main.async {
+                        self.ownerUserID = unwrappedData.owner_user_id
                         self.recordDetailInfo = RunningRaceRecordDetailInfo(from: unwrappedData)
                         self.pathData = unwrappedData.path
                         self.basePath = unwrappedData.path.map { $0.base }
@@ -257,6 +260,7 @@ struct MemberScoreDTO: Codable {
 }
 
 struct BikeRaceRecordDetailResponse: Codable {
+    let owner_user_id: String           // 记录归属者业务 ID
     let status: CompetitionStatus
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
@@ -271,6 +275,7 @@ struct BikeRaceRecordDetailResponse: Codable {
 }
 
 struct RunningRaceRecordDetailResponse: Codable {
+    let owner_user_id: String           // 记录归属者业务 ID
     let status: CompetitionStatus
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）

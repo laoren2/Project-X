@@ -124,10 +124,22 @@ struct SubscriptionDetailView: View {
                                 .foregroundStyle(Color.white)
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack(spacing: 20) {
-                                    Image("vip_benefit_extra_card")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 30)
+                                    ZStack {
+                                        Image("vip_benefit_extra_card")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 30)
+                                        Image(systemName: "info.circle")
+                                            .foregroundStyle(Color.secondText)
+                                            .font(.system(size: 15))
+                                            .offset(x: 16, y: -12)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    message: "iap.subscription.benefits.1.description",
+                                                    bottomButtons: [.confirm()]
+                                                )
+                                            }
+                                    }
                                     Text("iap.subscription.benefits.1")
                                 }
                                 Divider()
@@ -140,10 +152,22 @@ struct SubscriptionDetailView: View {
                                 }
                                 Divider()
                                 HStack(spacing: 20) {
-                                    Image("vip_benefit_route")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 30)
+                                    ZStack {
+                                        Image("vip_benefit_route")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 30)
+                                        Image(systemName: "info.circle")
+                                            .foregroundStyle(Color.secondText)
+                                            .font(.system(size: 15))
+                                            .offset(x: 16, y: -12)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    message: "iap.subscription.benefits.4.description",
+                                                    bottomButtons: [.confirm()]
+                                                )
+                                            }
+                                    }
                                     Text("iap.subscription.benefits.4")
                                 }
                                 Divider()

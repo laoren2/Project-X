@@ -168,6 +168,7 @@ struct RunningFreeTrainingView: View {
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.vertical, 5)
 
                     if !userManager.isLoggedIn {
                         Text("training.error.no_login")
