@@ -296,14 +296,21 @@ struct TrainingModuleView: View {
             showErrorToast: true
         ) { result in
             DispatchQueue.main.async {
-                isDayLoading = false
                 switch result {
                 case .success(let data):
                     let records = data?.records ?? []
+                    // 缓存按日期 key，无论该请求是否仍对应当前选中日期都可安全写入
                     dayRecordsCache[day] = records
+                    // 仅当本次请求发起时的日期仍是当前选中日期时才更新 UI / loading 状态。
+                    guard days.indices.contains(selectedIndex),
+                          days[selectedIndex].date == day else { return }
                     dayRecords = records
+                    isDayLoading = false
                 default:
-                    break
+                    // 失败同理，仅当仍为当前选中日期时才结束 loading，避免提前关闭其他在途请求的 loading
+                    guard days.indices.contains(selectedIndex),
+                          days[selectedIndex].date == day else { return }
+                    isDayLoading = false
                 }
             }
         }
