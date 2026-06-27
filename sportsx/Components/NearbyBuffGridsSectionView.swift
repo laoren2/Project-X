@@ -152,11 +152,11 @@ struct NearbyBuffGridsSectionView: View {
         }
         .onStableAppear {
             guard userManager.isLoggedIn else { return }
-            if !didLoad {
+            if !didLoad || GlobalConfig.shared.refreshFreeTrainingView {
                 fetchGrids()
                 fetchOccupiedCount()
-                DispatchQueue.main.async { didLoad = true }
             }
+            DispatchQueue.main.async { didLoad = true }
         }
         .onValueChange(of: locationManager.regionID) { _, _ in
             guard userManager.isLoggedIn else { return }
