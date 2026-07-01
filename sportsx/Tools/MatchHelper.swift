@@ -179,15 +179,27 @@ struct RunningPathPointTool {
                 )
             }
         }
-        // 当点数超过80时，按时间段采样，将数据划分为80段
-        let minTime = pathData.first!.base.timestamp
-        let maxTime = pathData.last!.base.timestamp
-        let interval = (maxTime - minTime) / 80.0
+        // 当点数超过80时，按"有效时间"划分为80段：累计跨点时长，跨 segment（暂停缺口）不计，
+        // 避免暂停的墙钟空档产生大段 0 值采样。race/route 单段，退化为原墙钟分段。
+        let n = pathData.count
+        var activeAt = [Double](repeating: 0, count: n)
+        for i in 1..<n {
+            let prev = pathData[i - 1].base
+            let cur = pathData[i].base
+            let dt = cur.timestamp - prev.timestamp
+            activeAt[i] = activeAt[i - 1] + (cur.segment == prev.segment ? max(dt, 0) : 0)
+        }
+        let totalActive = activeAt[n - 1]
+        let interval = totalActive / 80.0
         var segments: [[RunningFreeTrainingPathPoint]] = Array(repeating: [], count: 80)
-        
-        for point in pathData {
-            let index = min(Int((point.base.timestamp - minTime) / interval), 79)
-            segments[index].append(point)
+
+        if interval <= 0 {
+            segments[0] = pathData   // 退化：所有点有效时间相同
+        } else {
+            for (i, point) in pathData.enumerated() {
+                let index = min(Int(activeAt[i] / interval), 79)
+                segments[index].append(point)
+            }
         }
         
         var samples: [RunningFreeTrainingSamplePathPoint] = []
@@ -583,15 +595,27 @@ struct BikePathPointTool {
                 )
             }
         }
-        // 当点数超过80时，按时间段采样，将数据划分为80段
-        let minTime = pathData.first!.base.timestamp
-        let maxTime = pathData.last!.base.timestamp
-        let interval = (maxTime - minTime) / 80.0
+        // 当点数超过80时，按"有效时间"划分为80段：累计跨点时长，跨 segment（暂停缺口）不计，
+        // 避免暂停的墙钟空档产生大段 0 值采样。race/route 单段，退化为原墙钟分段。
+        let n = pathData.count
+        var activeAt = [Double](repeating: 0, count: n)
+        for i in 1..<n {
+            let prev = pathData[i - 1].base
+            let cur = pathData[i].base
+            let dt = cur.timestamp - prev.timestamp
+            activeAt[i] = activeAt[i - 1] + (cur.segment == prev.segment ? max(dt, 0) : 0)
+        }
+        let totalActive = activeAt[n - 1]
+        let interval = totalActive / 80.0
         var segments: [[BikeFreeTrainingPathPoint]] = Array(repeating: [], count: 80)
-        
-        for point in pathData {
-            let index = min(Int((point.base.timestamp - minTime) / interval), 79)
-            segments[index].append(point)
+
+        if interval <= 0 {
+            segments[0] = pathData   // 退化：所有点有效时间相同
+        } else {
+            for (i, point) in pathData.enumerated() {
+                let index = min(Int(activeAt[i] / interval), 79)
+                segments[index].append(point)
+            }
         }
         
         var samples: [BikeFreeTrainingSamplePathPoint] = []

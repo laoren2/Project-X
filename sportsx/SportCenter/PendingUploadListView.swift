@@ -112,7 +112,6 @@ struct PendingUploadListView: View {
                                 onReupload: { vm.retry(upload) },
                                 onDelete: {
                                     PopupWindowManager.shared.presentPopup(
-                                        title: "upload.pending.delete",
                                         message: "upload.pending.delete_confirm",
                                         bottomButtons: [
                                             .cancel(),

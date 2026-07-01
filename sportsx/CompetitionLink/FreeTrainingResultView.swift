@@ -74,47 +74,51 @@ struct BikeFreeTrainingRecordDetailView: View {
     }
     
     var speedAvg: Double {
-        guard !viewModel.basePath.isEmpty else { return 0 }
-        
+        guard viewModel.basePath.count > 1 else { return 0 }
+
+        // 段感知：跨 segment（暂停缺口）的弦不计距离、其时长不计入有效时长
         var totalDistance: Double = 0
+        var activeDuration: Double = 0
         for i in 0..<(viewModel.basePath.count - 1) {
             let p1 = viewModel.basePath[i]
             let p2 = viewModel.basePath[i + 1]
+            guard p1.segment == p2.segment else { continue }
             totalDistance += GeographyTool.haversineDistance(
                 lat1: p1.lat, lon1: p1.lon,
                 lat2: p2.lat, lon2: p2.lon
             )
+            activeDuration += max(p2.timestamp - p1.timestamp, 0)
         }
-        let duration = max(viewModel.basePath.last!.timestamp - viewModel.basePath.first!.timestamp, 0.0001)
-        return (totalDistance / duration) * 3.6
+        return (totalDistance / max(activeDuration, 0.0001)) * 3.6
     }
-    
+
     var altitudeAvg: Double {
         let altitudes = viewModel.basePath.map { $0.altitude }
         guard !altitudes.isEmpty else { return 0 }
         return altitudes.reduce(0, +) / Double(altitudes.count)
     }
-    
+
     var powerAvg: Double? {
         let powers = viewModel.pathData.compactMap { $0.power }
         guard !powers.isEmpty else { return nil }
         return powers.reduce(0, +) / Double(powers.count)
     }
-    
+
     var pedalCadenceAvg: Double? {
         let pedals = viewModel.pathData.compactMap { $0.pedal_cadence }
         guard !pedals.isEmpty else { return nil }
         return pedals.reduce(0, +) / Double(pedals.count)
     }
-    
+
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
-    
+
     var total_distance: Double {
         guard viewModel.basePath.count > 1 else { return 0 }
         var dist: Double = 0
         for i in 0..<(viewModel.basePath.count - 1) {
             let p1 = viewModel.basePath[i]
             let p2 = viewModel.basePath[i + 1]
+            guard p1.segment == p2.segment else { continue }   // 跨暂停弦不计入距离
             dist += GeographyTool.haversineDistance(
                 lat1: p1.lat, lon1: p1.lon,
                 lat2: p2.lat, lon2: p2.lon
@@ -122,7 +126,20 @@ struct BikeFreeTrainingRecordDetailView: View {
         }
         return dist
     }
-    
+
+    // 段感知有效时长（图表横轴跨度；与 samplePath 的有效时间分桶一致，排除暂停缺口）
+    var activeDuration: TimeInterval {
+        guard viewModel.basePath.count > 1 else { return 0 }
+        var duration: TimeInterval = 0
+        for i in 0..<(viewModel.basePath.count - 1) {
+            let p1 = viewModel.basePath[i]
+            let p2 = viewModel.basePath[i + 1]
+            guard p1.segment == p2.segment else { continue }
+            duration += max(p2.timestamp - p1.timestamp, 0)
+        }
+        return duration
+    }
+
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: BikeFreeTrainingRecordDetailViewModel(recordID: recordID))
     }
@@ -391,9 +408,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                    }
+                                                    Text("\(TimeDisplay.formattedTime(activeDuration))")
                                                 }
                                                 .font(.caption)
                                                 .foregroundStyle(Color.gray)
@@ -457,9 +472,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                             HStack {
                                                 Text("00:00")
                                                 Spacer()
-                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                }
+                                                Text("\(TimeDisplay.formattedTime(activeDuration))")
                                             }
                                             .font(.caption)
                                             .foregroundStyle(Color.gray)
@@ -520,9 +533,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                             HStack {
                                                 Text("00:00")
                                                 Spacer()
-                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                }
+                                                Text("\(TimeDisplay.formattedTime(activeDuration))")
                                             }
                                             .font(.caption)
                                             .foregroundStyle(Color.gray)
@@ -600,9 +611,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                    }
+                                                    Text("\(TimeDisplay.formattedTime(activeDuration))")
                                                 }
                                                 .font(.caption)
                                                 .foregroundStyle(Color.gray)
@@ -683,9 +692,7 @@ struct BikeFreeTrainingRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                    }
+                                                    Text("\(TimeDisplay.formattedTime(activeDuration))")
                                                 }
                                                 .font(.caption)
                                                 .foregroundStyle(Color.gray)
@@ -813,47 +820,51 @@ struct RunningFreeTrainingRecordDetailView: View {
     }
     
     var speedAvg: Double {
-        guard !viewModel.basePath.isEmpty else { return 0 }
-        
+        guard viewModel.basePath.count > 1 else { return 0 }
+
+        // 段感知：跨 segment（暂停缺口）的弦不计距离、其时长不计入有效时长
         var totalDistance: Double = 0
+        var activeDuration: Double = 0
         for i in 0..<(viewModel.basePath.count - 1) {
             let p1 = viewModel.basePath[i]
             let p2 = viewModel.basePath[i + 1]
+            guard p1.segment == p2.segment else { continue }
             totalDistance += GeographyTool.haversineDistance(
                 lat1: p1.lat, lon1: p1.lon,
                 lat2: p2.lat, lon2: p2.lon
             )
+            activeDuration += max(p2.timestamp - p1.timestamp, 0)
         }
-        let duration = max(viewModel.basePath.last!.timestamp - viewModel.basePath.first!.timestamp, 0.0001)
-        return (totalDistance / duration) * 3.6
+        return (totalDistance / max(activeDuration, 0.0001)) * 3.6
     }
-    
+
     var altitudeAvg: Double {
         let altitudes = viewModel.basePath.map { $0.altitude }
         guard !altitudes.isEmpty else { return 0 }
         return altitudes.reduce(0, +) / Double(altitudes.count)
     }
-    
+
     var stepCadenceAvg: Double? {
         let steps = viewModel.pathData.compactMap { $0.step_cadence }
         guard !steps.isEmpty else { return nil }
         return steps.reduce(0, +) / Double(steps.count)
     }
-    
+
     var powerAvg: Double? {
         let powers = viewModel.pathData.compactMap { $0.power }
         guard !powers.isEmpty else { return nil }
         return powers.reduce(0, +) / Double(powers.count)
     }
-    
+
     var spacingWidth: CGFloat { return ((UIScreen.main.bounds.width - 32) / (1 + CGFloat(viewModel.samplePath.count)) - 2) }
-    
+
     var total_distance: Double {
         guard viewModel.basePath.count > 1 else { return 0 }
         var dist: Double = 0
         for i in 0..<(viewModel.basePath.count - 1) {
             let p1 = viewModel.basePath[i]
             let p2 = viewModel.basePath[i + 1]
+            guard p1.segment == p2.segment else { continue }   // 跨暂停弦不计入距离
             dist += GeographyTool.haversineDistance(
                 lat1: p1.lat, lon1: p1.lon,
                 lat2: p2.lat, lon2: p2.lon
@@ -861,7 +872,20 @@ struct RunningFreeTrainingRecordDetailView: View {
         }
         return dist
     }
-    
+
+    // 段感知有效时长（图表横轴跨度；与 samplePath 的有效时间分桶一致，排除暂停缺口）
+    var activeDuration: TimeInterval {
+        guard viewModel.basePath.count > 1 else { return 0 }
+        var duration: TimeInterval = 0
+        for i in 0..<(viewModel.basePath.count - 1) {
+            let p1 = viewModel.basePath[i]
+            let p2 = viewModel.basePath[i + 1]
+            guard p1.segment == p2.segment else { continue }
+            duration += max(p2.timestamp - p1.timestamp, 0)
+        }
+        return duration
+    }
+
     init(recordID: String) {
         _viewModel = StateObject(wrappedValue: RunningFreeTrainingRecordDetailViewModel(recordID: recordID))
     }
@@ -1130,9 +1154,7 @@ struct RunningFreeTrainingRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                    }
+                                                    Text("\(TimeDisplay.formattedTime(activeDuration))")
                                                 }
                                                 .font(.caption)
                                                 .foregroundStyle(Color.gray)
@@ -1196,9 +1218,7 @@ struct RunningFreeTrainingRecordDetailView: View {
                                             HStack {
                                                 Text("00:00")
                                                 Spacer()
-                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                }
+                                                Text("\(TimeDisplay.formattedTime(activeDuration))")
                                             }
                                             .font(.caption)
                                             .foregroundStyle(Color.gray)
@@ -1259,9 +1279,7 @@ struct RunningFreeTrainingRecordDetailView: View {
                                             HStack {
                                                 Text("00:00")
                                                 Spacer()
-                                                if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                    Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                }
+                                                Text("\(TimeDisplay.formattedTime(activeDuration))")
                                             }
                                             .font(.caption)
                                             .foregroundStyle(Color.gray)
@@ -1340,9 +1358,7 @@ struct RunningFreeTrainingRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                    }
+                                                    Text("\(TimeDisplay.formattedTime(activeDuration))")
                                                 }
                                                 .font(.caption)
                                                 .foregroundStyle(Color.gray)
@@ -1423,9 +1439,7 @@ struct RunningFreeTrainingRecordDetailView: View {
                                                 HStack {
                                                     Text("00:00")
                                                     Spacer()
-                                                    if let EndTime = viewModel.basePath.last?.timestamp, let startTime = viewModel.basePath.first?.timestamp {
-                                                        Text("\(TimeDisplay.formattedTime(EndTime - startTime))")
-                                                    }
+                                                    Text("\(TimeDisplay.formattedTime(activeDuration))")
                                                 }
                                                 .font(.caption)
                                                 .foregroundStyle(Color.gray)

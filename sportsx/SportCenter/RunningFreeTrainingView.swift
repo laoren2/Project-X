@@ -18,6 +18,8 @@ struct RunningFreeTrainingView: View {
     @State private var explorationProgress: Double = 0
     @State private var isExplorationLoading: Bool = false
     @State private var isStateLoading: Bool = false
+    // 训练结束等场景的刷新信号下发给附近网格 section：外层消费 refreshFreeTrainingView 后递增，section 据此重拉
+    @State private var nearbyRefreshToken: Int = 0
     
     let globalConfig = GlobalConfig.shared
     
@@ -91,7 +93,7 @@ struct RunningFreeTrainingView: View {
                         }
 
                         // 附近 buff 网格列表 + 已占领网格数
-                        NearbyBuffGridsSectionView(sport: .Running)
+                        NearbyBuffGridsSectionView(sport: .Running, refreshToken: nearbyRefreshToken)
 
                         // Map 视图显示当前的 region 完整轮廓，不可交互
                         if isExplorationLoading {
@@ -233,10 +235,16 @@ struct RunningFreeTrainingView: View {
             .padding(.bottom, 85)
         }
         .onStableAppear {
-            if (!viewModel.didLoad) || globalConfig.refreshFreeTrainingView {
+            let shouldRefresh = globalConfig.refreshFreeTrainingView
+            if (!viewModel.didLoad) || shouldRefresh {
                 queryTrainingState()
                 if let regionID = locationManager.regionID {
                     queryExploration(with: regionID)
+                }
+                // 由外层统一消费刷新信号：首次加载时各 section 自行拉取，
+                // 收到刷新信号时再递增 token 驱动附近网格 section 重拉（避免与其首拉重复）
+                if shouldRefresh {
+                    nearbyRefreshToken += 1
                 }
                 globalConfig.refreshFreeTrainingView  = false
             }

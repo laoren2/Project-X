@@ -763,6 +763,9 @@
 "training.history.no_record" = "Aucun enregistrement d'entraînement";
 
 "training.realtime.action.finish" = "Terminer";
+"training.realtime.action.pause" = "Pause";
+"training.realtime.action.resume" = "Reprendre";
+"training.realtime.status.paused" = "En pause";
 "training.realtime.popup.finish" = "Voulez-vous vraiment terminer l'entraînement ?";
 "training.realtime.popup.cannot_save" = "Enregistrement impossible";
 "training.realtime.popup.cannot_save.content" = "Durée ou distance d'entraînement trop courte ; l'enregistrement risque de ne pas être sauvegardé.";

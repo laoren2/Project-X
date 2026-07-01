@@ -10,32 +10,44 @@ import SwiftUI
 import CoreLocation
 
 struct ShareTrackShape: Shape {
-    let coordinates: [CLLocationCoordinate2D]
+    /// 按活动段（segment）分组的轨迹坐标：段间为暂停缺口，绘制时各段独立成一条子路径，绝不跨段连线。
+    /// race/route 恒为单段；free training 暂停后会拆成多段。
+    let segments: [[CLLocationCoordinate2D]]
     /// 归一化时四周留白比例
     var inset: CGFloat = 0.08
 
     func path(in rect: CGRect) -> Path {
-        guard coordinates.count > 1 else { return Path() }
+        // 仅保留 ≥2 点的有效段，单点段无法成线
+        let validSegments = segments.filter { $0.count > 1 }
+        guard !validSegments.isEmpty else { return Path() }
+        let allCoords = validSegments.flatMap { $0 }
 
         // 1. 等距投影：经度按中心纬度缩放，纬度直接用，得到近似等比的平面坐标
-        let lats = coordinates.map { $0.latitude }
-        let lons = coordinates.map { $0.longitude }
+        let lats = allCoords.map { $0.latitude }
         let lat0 = (lats.min()! + lats.max()!) / 2
         let cosLat = cos(lat0 * .pi / 180)
-        var planar = coordinates.map { CGPoint(x: $0.longitude * cosLat, y: $0.latitude) }
-
-        // 点过多时按步长抽稀，降低绘制成本同时保留形状
-        if planar.count > 400 {
-            let step = Int(ceil(Double(planar.count) / 400.0))
-            var sampled: [CGPoint] = []
-            var i = 0
-            while i < planar.count { sampled.append(planar[i]); i += step }
-            if let last = planar.last, sampled.last != last { sampled.append(last) }
-            planar = sampled
+        // 各段独立投影 + 抽稀，保持段边界（缺口）不被连接
+        var planarSegments: [[CGPoint]] = validSegments.map { seg in
+            seg.map { CGPoint(x: $0.longitude * cosLat, y: $0.latitude) }
         }
 
-        // 2. 归一化到 rect（保持长宽比、居中、y 翻转：北→上）
-        let xs = planar.map { $0.x }, ys = planar.map { $0.y }
+        // 点过多时按步长抽稀，降低绘制成本同时保留形状（按全局总点数估算步长，逐段抽稀并保留段尾点）
+        let totalCount = planarSegments.reduce(0) { $0 + $1.count }
+        if totalCount > 400 {
+            let step = Int(ceil(Double(totalCount) / 400.0))
+            planarSegments = planarSegments.map { seg in
+                guard seg.count > 1 else { return seg }
+                var sampled: [CGPoint] = []
+                var i = 0
+                while i < seg.count { sampled.append(seg[i]); i += step }
+                if let last = seg.last, sampled.last != last { sampled.append(last) }
+                return sampled
+            }
+        }
+
+        // 2. 归一化到 rect（保持长宽比、居中、y 翻转：北→上）。bounds 用全部点，确保各段相对位置正确
+        let allPlanar = planarSegments.flatMap { $0 }
+        let xs = allPlanar.map { $0.x }, ys = allPlanar.map { $0.y }
         let minX = xs.min()!, maxX = xs.max()!
         let minY = ys.min()!, maxY = ys.max()!
         let spanX = max(maxX - minX, 1e-9), spanY = max(maxY - minY, 1e-9)
@@ -46,16 +58,21 @@ struct ShareTrackShape: Shape {
         let ox = drawRect.minX + (drawRect.width - contentW) / 2
         let oy = drawRect.minY + (drawRect.height - contentH) / 2
 
-        var pts = planar.map { p in
-            CGPoint(x: ox + (p.x - minX) * scale,
-                    y: oy + (maxY - p.y) * scale)
+        var path = Path()
+        for seg in planarSegments {
+            var pts = seg.map { p in
+                CGPoint(x: ox + (p.x - minX) * scale,
+                        y: oy + (maxY - p.y) * scale)
+            }
+            guard pts.count > 1 else { continue }
+
+            // 3. 轻度滑动平均，弱化 GPS 抖动（逐段，避免跨缺口平滑）
+            pts = movingAverage(pts, window: 5)
+
+            // 4. Catmull-Rom 转三次贝塞尔，输出平滑曲线，各段独立 move 到起点
+            path.addPath(catmullRomPath(points: pts))
         }
-
-        // 3. 轻度滑动平均，弱化 GPS 抖动
-        pts = movingAverage(pts, window: 5)
-
-        // 4. Catmull-Rom 转三次贝塞尔，输出平滑曲线
-        return catmullRomPath(points: pts)
+        return path
     }
 
     private func movingAverage(_ points: [CGPoint], window: Int) -> [CGPoint] {

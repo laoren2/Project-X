@@ -64,14 +64,15 @@ struct BikeFreeTrainingRecord: Identifiable {
     let endTime: Date?
     let delta: Int
     let trainingType: TrainingType
-    let track: [CLLocationCoordinate2D]
+    // 按活动段（segment）分组的缩略轨迹：段间为暂停缺口，绘制时各段独立不连线。
+    let trackSegments: [[CLLocationCoordinate2D]]
 
     init(from record: TrainingRecordInfo) {
         self.record_id = record.record_id
         self.delta = record.delta_state
         self.endTime =  DateParser.parseISO8601(record.end_time)
         self.trainingType = record.training_type
-        self.track = record.track.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
+        self.trackSegments = record.track.groupedBySegment()
     }
 }
 
@@ -81,20 +82,41 @@ struct RunningFreeTrainingRecord: Identifiable {
     let endTime: Date?
     let delta: Int
     let trainingType: TrainingType
-    let track: [CLLocationCoordinate2D]
+    // 按活动段（segment）分组的缩略轨迹：段间为暂停缺口，绘制时各段独立不连线。
+    let trackSegments: [[CLLocationCoordinate2D]]
 
     init(from record: TrainingRecordInfo) {
         self.record_id = record.record_id
         self.delta = record.delta_state
         self.endTime =  DateParser.parseISO8601(record.end_time)
         self.trainingType = record.training_type
-        self.track = record.track.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
+        self.trackSegments = record.track.groupedBySegment()
     }
 }
 
 struct TrackPointDTO: Codable {
     let lat: Double
     let lon: Double
+    // 活动段序号：free training 暂停恢复 +1；race/route 恒为 0。旧记录/旧服务端缺字段时默认 0。
+    var segment: Int = 0
+}
+
+extension Array where Element == TrackPointDTO {
+    /// 按 segment 把缩略轨迹点分组：相邻点 segment 不同即开启新段（暂停缺口）。
+    func groupedBySegment() -> [[CLLocationCoordinate2D]] {
+        var segments: [[CLLocationCoordinate2D]] = []
+        var prevSegment: Int? = nil
+        for p in self {
+            let coord = CLLocationCoordinate2D(latitude: p.lat, longitude: p.lon)
+            if p.segment == prevSegment, !segments.isEmpty {
+                segments[segments.count - 1].append(coord)
+            } else {
+                segments.append([coord])
+            }
+            prevSegment = p.segment
+        }
+        return segments
+    }
 }
 
 struct TrainingRecordInfo: Codable {

@@ -58,6 +58,7 @@ class WatchDataManager: NSObject, ObservableObject {
     static let shared = WatchDataManager()
     
     @Published var isRecording = false
+    @Published var isPaused = false      // 暂停态（仅 free training）；HK 会自动把暂停时段排除出 workout.duration 与统计
     
     // 实时统计：对 View 只读发布（manager 内部仍可写），供 MetricsView 统计页展示
     @Published var heartRate: Double = 0
@@ -356,26 +357,28 @@ class WatchDataManager: NSObject, ObservableObject {
             if timerTickCount >= 60 {
                 timerTickCount = 0
                 
-                // 长时间未更新则置零
-                if let lastUpdate = self.lastStepDate, Date().timeIntervalSince(lastUpdate) > self.stepThreshold {
-                    self.stepCadence = 0
-                }
-                
-                let currentSummary = SummaryData(
-                    avgHeartRate: self.avgHeartRate,
-                    totalEnergy: self.totalEnergy,
-                    avgPower: self.avgPower,
-                    latestHeartRate: self.latestHeartRate,
-                    latestPower: self.latestPower,
-                    stepCadence: self.stepCadence,
-                    cycleCadence: self.cycleCadence
-                )
-                
-                // incremental detection: only send if values changed significantly
-                if self.shouldSendSummary(currentSummary) {
-                    //print("Send summary data to phone...")
-                    self.sendSummaryToiPhone(currentSummary)
-                    self.lastSummarySent = currentSummary
+                DispatchQueue.main.async {
+                    // 长时间未更新则置零
+                    if let lastUpdate = self.lastStepDate, Date().timeIntervalSince(lastUpdate) > self.stepThreshold {
+                        self.stepCadence = 0
+                    }
+                    
+                    let currentSummary = SummaryData(
+                        avgHeartRate: self.avgHeartRate,
+                        totalEnergy: self.totalEnergy,
+                        avgPower: self.avgPower,
+                        latestHeartRate: self.latestHeartRate,
+                        latestPower: self.latestPower,
+                        stepCadence: self.stepCadence,
+                        cycleCadence: self.cycleCadence
+                    )
+                    
+                    // incremental detection: only send if values changed significantly
+                    if self.shouldSendSummary(currentSummary) {
+                        //print("Send summary data to phone...")
+                        self.sendSummaryToiPhone(currentSummary)
+                        self.lastSummarySent = currentSummary
+                    }
                 }
             }
         }
@@ -470,7 +473,57 @@ class WatchDataManager: NSObject, ObservableObject {
         }
         //resetWorkout()
     }
-    
+
+    // MARK: - 暂停 / 恢复（仅 free training）
+
+    /// 手表端用户点击暂停：本地立即暂停，并通知手机（手机为唯一真源，收到后以 fromRemote 应用，不回发避免回环）
+    func requestPause() {
+        guard workoutMode == .freeTraining else { return }
+        applyPause()
+        sendControlToiPhone("pause")
+    }
+
+    /// 手表端用户点击恢复
+    func requestResume() {
+        guard workoutMode == .freeTraining else { return }
+        applyResume()
+        sendControlToiPhone("resume")
+    }
+
+    /// 手表端用户点击结束。free training 下需通知手机真正结束训练（手机为唯一真源，
+    /// 收到后会驱动结算/上传并回发 stopCollection 兜底停采）；race/route 仅本地停采，逻辑不变。
+    func requestStop() {
+        if workoutMode == .freeTraining {
+            sendControlToiPhone("stop")
+        }
+        stopCollecting()
+    }
+
+    /// 应用暂停（本地或手机下发）。幂等。HK 原生会把暂停时段排除出 workout.duration 与统计。
+    func applyPause() {
+        guard isRecording, !isPaused else { return }
+        WKsession?.pause()
+        DispatchQueue.main.async { self.isPaused = true }
+    }
+
+    /// 应用恢复（本地或手机下发）。幂等。
+    func applyResume() {
+        guard isRecording, isPaused else { return }
+        WKsession?.resume()
+        DispatchQueue.main.async { self.isPaused = false }
+    }
+
+    private func sendControlToiPhone(_ command: String) {
+        guard session.isReachable else {
+            // 不可达时手机侧会通过自身按钮或后续重连兜底；此处仅尽力实时通知
+            print("Session not reachable, control \(command) send failed")
+            return
+        }
+        session.sendMessage(["control": command], replyHandler: nil) { error in
+            print("Error sending control \(command): \(error.localizedDescription)")
+        }
+    }
+
     private func sendBufferToiPhone() {
         guard session.isReachable else {
             // isReachable 表示 iPhone 当前与 Watch App 前台可直连
@@ -525,7 +578,10 @@ class WatchDataManager: NSObject, ObservableObject {
                 if let step = statistics.sumQuantity()?.doubleValue(for: .count()) {
                     if let last = self.lastStepSnapshot, let lastDate = self.lastStepDate {
                         let delta = step - last
-                        self.stepCadence = 60 * delta / statistics.endDate.timeIntervalSince(lastDate)
+                        let interval = statistics.endDate.timeIntervalSince(lastDate)
+                        if interval > 0 {
+                            self.stepCadence = 60 * delta / interval
+                        }
                         //print("delta: \(delta) lastDate: \(lastDate) newDate: \(statistics.endDate)")
                         //print(self.stepCadence)
                     }
@@ -559,6 +615,7 @@ class WatchDataManager: NSObject, ObservableObject {
         distance = 0
         live = WatchLivePayload()
         enableIMU = false
+        isPaused = false
         stepCadence = nil
         cycleCadence = nil
         lastStepDate = nil
@@ -601,12 +658,36 @@ extension WatchDataManager: WCSessionDelegate {
                 self.stopCollecting()
             }
         }
+        // 暂停/恢复命令兜底（reachable 时已走 sendMessage，此处覆盖后台/断连场景；带 30s 过期）
+        if let command = applicationContext["command"] as? String, command == "pause" || command == "resume" {
+            if let ts = applicationContext["timestamp"] as? Double {
+                let now = Date().timeIntervalSince1970
+                if abs(now - ts) > 30 { return }
+            }
+            DispatchQueue.main.async {
+                if command == "pause" {
+                    self.applyPause()
+                } else {
+                    self.applyResume()
+                }
+            }
+        }
     }
     
     // 收到 iPhone 端实时负载（race/route：pace 预测 + PB 对比；free：周围网格，后续接入）
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         if let live = message["live"] as? [String: Any] {
             applyLivePayload(live)
+        }
+        // 手机下发的暂停/恢复命令（手机为唯一真源）
+        if let control = message["control"] as? String {
+            DispatchQueue.main.async {
+                switch control {
+                case "pause": self.applyPause()
+                case "resume": self.applyResume()
+                default: break
+                }
+            }
         }
     }
 
@@ -659,9 +740,11 @@ extension WatchDataManager: HKWorkoutSessionDelegate {
                         from fromState: HKWorkoutSessionState,
                         date: Date) {
         DispatchQueue.main.async {
-            self.isRecording = toState == .running
+            // running 与 paused 都视为"录制中"（暂停只是冻结，未结束）
+            self.isRecording = (toState == .running || toState == .paused)
+            self.isPaused = (toState == .paused)
         }
-        
+
         if toState == .running {
             print("WKsession state change to running")
         }

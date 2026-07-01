@@ -176,6 +176,7 @@ struct XPProgressView: View {
                 }
                 // 图标动画
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.4)) {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     iconScale = 1.3
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {

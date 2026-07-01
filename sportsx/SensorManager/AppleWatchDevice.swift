@@ -37,23 +37,8 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     private var liveTimer: DispatchSourceTimer?
     private let liveTimerQueue = DispatchQueue(label: "com.sportsx.watch.livepush", qos: .utility)
 
-    // free training 网格推送：移动门控 + 集合变化才发
-    private var lastGridQueryLocation: CLLocation?
+    // free training 网格推送：集合变化才发（数据来源为 CompetitionManager.nearbyGrids）
     private var lastPushedGridKeys: [String] = []
-    private let gridQueryMoveThreshold: CLLocationDistance = 100   // 移动 ≥100m 才重查
-
-    // 附近奖励网格响应（仅解码手表需要的字段）
-    private struct NearbyGridsResponse: Codable {
-        struct Grid: Codable {
-            let grid_x: Int
-            let grid_y: Int
-            let center_lat: Double
-            let center_lon: Double
-            let reward_type: String
-            let reward_count: Int
-        }
-        let grids: [Grid]
-    }
 
     init(deviceID: String, deviceName: String, sensorPos: Int) {
         self.deviceID = deviceID
@@ -186,7 +171,28 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         canReceiveData = false
         enableIMU = false
     }
-    
+
+    /// 手机→手表下发暂停/恢复命令（仅 free training 使用）。
+    /// 手机为唯一真源：无论暂停由手机还是手表发起，最终都由手机调用此方法广播给手表。
+    /// reachable 时用 sendMessage 实时下发，并始终用 applicationContext 兜底（带 timestamp/30s 过期，沿用 start/stop 约定）。
+    func sendControlCommand(_ command: String) {
+        guard session.activationState == .activated else {
+            Logger.competition.notice_public("[AppleWatchDevice] WCSession not activated, cannot send control command \(command).")
+            return
+        }
+        let ts = Date().timeIntervalSince1970
+        if session.isReachable {
+            session.sendMessage(["control": command, "timestamp": ts], replyHandler: nil) { error in
+                Logger.competition.notice_public("[AppleWatchDevice] control \(command) sendMessage failed: \(error.localizedDescription)")
+            }
+        }
+        do {
+            try session.updateApplicationContext(["command": command, "timestamp": ts])
+        } catch {
+            Logger.competition.notice_public("[AppleWatchDevice] Failed to update control applicationContext: \(error)")
+        }
+    }
+
     // 保存批次数据为CSV
     private func saveBatchAsCSV(dataBatch: [SensorData]) {
         let fileManager = FileManager.default
@@ -256,7 +262,6 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
     }
 
     private func startLivePush() {
-        lastGridQueryLocation = nil
         lastPushedGridKeys = []
         liveTimer?.cancel()
         let timer = DispatchSource.makeTimerSource(queue: liveTimerQueue)
@@ -308,44 +313,20 @@ class AppleWatchDevice: NSObject, SensorDeviceProtocol, ObservableObject {
         }
     }
 
-    // free：移动 ≥ 阈值才重查附近奖励网格，集合变化才推
+    // free：读取 CompetitionManager 共享的附近网格，集合变化才推给手表
     private func pushNearbyGridsIfNeeded() {
-        guard let loc = LocationManager.shared.getLocation() else { return }
-        if let last = lastGridQueryLocation, loc.distance(from: last) < gridQueryMoveThreshold { return }
-        guard let sport = competitionManager.sport?.rawValue else { return }   // "bike" / "running"
-        lastGridQueryLocation = loc
-        Task { [weak self] in
-            await self?.queryAndPushGrids(lat: loc.coordinate.latitude, lon: loc.coordinate.longitude, sport: sport)
+        let grids = competitionManager.nearbyGrids
+        let keys = grids.map { $0.id }
+        guard keys != lastPushedGridKeys else { return }   // 集合没变不重复推
+        lastPushedGridKeys = keys
+
+        let payload: [[String: Any]] = grids.map {
+            ["gx": $0.gridX, "gy": $0.gridY,
+             "lat": $0.lat, "lon": $0.lon,
+             "reward": $0.reward.rawValue, "count": $0.count]
         }
-    }
-
-    private func queryAndPushGrids(lat: Double, lon: Double, sport: String) async {
-        var components = URLComponents(string: "/training/\(sport)/query_nearby_grids")
-        components?.queryItems = [
-            URLQueryItem(name: "lat", value: "\(lat)"),
-            URLQueryItem(name: "lon", value: "\(lon)"),
-            URLQueryItem(name: "count", value: "3")
-        ]
-        guard let path = components?.string else { return }
-
-        let request = APIRequest(path: path, method: .get, requiresAuth: true)
-        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: NearbyGridsResponse.self)
-        guard case .success(let data?) = result else { return }
-
-        await MainActor.run {
-            guard self.canReceiveData, self.session.isReachable else { return }
-            let keys = data.grids.map { "\($0.grid_x),\($0.grid_y)" }
-            guard keys != self.lastPushedGridKeys else { return }   // 集合没变不重复推
-            self.lastPushedGridKeys = keys
-
-            let payload: [[String: Any]] = data.grids.map {
-                ["gx": $0.grid_x, "gy": $0.grid_y,
-                 "lat": $0.center_lat, "lon": $0.center_lon,
-                 "reward": $0.reward_type, "count": $0.reward_count]
-            }
-            self.session.sendMessage(["live": ["grids": payload]], replyHandler: nil) { error in
-                Logger.competition.notice_public("[AppleWatchDevice] grids push failed: \(error.localizedDescription)")
-            }
+        session.sendMessage(["live": ["grids": payload]], replyHandler: nil) { error in
+            Logger.competition.notice_public("[AppleWatchDevice] grids push failed: \(error.localizedDescription)")
         }
     }
 }
@@ -422,6 +403,22 @@ extension AppleWatchDevice: WCSessionDelegate {
             if canReceiveData {
                 //Logger.competition.notice_public("set statsData")
                 competitionManager.handleStatsData(stats: statsData)
+            }
+        }
+        // 手表端暂停/恢复/结束命令（仅 free training）：手机为唯一真源
+        if let control = message["control"] as? String {
+            DispatchQueue.main.async {
+                switch control {
+                case "pause":
+                    self.competitionManager.pauseFreeTraining(fromRemote: true)
+                case "resume":
+                    self.competitionManager.resumeFreeTraining(fromRemote: true)
+                case "stop":
+                    // 手表点击结束：由手机真正结束训练（含结算/上传），并经 stopCollection 回发兜底停采
+                    self.competitionManager.stopFreeTraining()
+                default:
+                    break
+                }
             }
         }
     }

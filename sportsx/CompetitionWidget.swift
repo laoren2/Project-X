@@ -68,6 +68,19 @@ struct CompetitionWidget: View {
                                     .scaledToFit()
                                     .frame(height: 30)
                             )
+                            .overlay(
+                                // 暂停态：橙色 pause.fill 覆盖在运动图标上层
+                                Group {
+                                    if appState.competitionManager.isPaused {
+                                        Image(systemName: "pause.fill")
+                                            .font(.system(size: 26, weight: .bold))
+                                            .frame(width: 60, height: 60)
+                                            .foregroundStyle(Color.orange)
+                                            .background(Color.orange.opacity(0.2))
+                                            .clipShape(Circle())
+                                    }
+                                }
+                            )
                     }
                 }
                 // 在浮窗可拖动区域埋标记，让 window 级的侧边栏手势（SidebarPanGesture）在此让位，
