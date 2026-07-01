@@ -109,7 +109,7 @@ struct BikeTrainingRecordCardView: View {
             .foregroundStyle(Color.secondText)
             .font(.system(size: 15))
             Spacer()
-            MiniTrackView(coordinates: record.track)
+            MiniTrackView(segments: record.trackSegments)
                 .frame(width: 56, height: 32)
             HStack(spacing: 4) {
                 Image("momentum")

@@ -85,12 +85,24 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     
     @Published var isRecording: Bool = false // 当前比赛状态
     @Published var isShowWidget: Bool = false // 是否显示Widget
+
+    // MARK: - 自由训练暂停（仅 free training 使用）
+    @Published var isPaused: Bool = false           // 当前是否处于暂停态
+    private var currentSegment: Int = 0             // 当前活动段序号，每次 resume +1
+    private var pausedAccumulated: TimeInterval = 0 // 已累计的暂停总时长（秒）
+    private var pauseStartedAt: Date?               // 本次暂停的起始时刻
+    private var skipNextDelta: Bool = false         // resume 后首个点跳过跨暂停弦的距离/海拔累加
     
     @Published var showAlert = false // 是否弹出提示
     @Published var alertTitle = ""
     @Published var alertMessage = ""
     @Published var userLocation: CLLocation? = nil // 当前用户位置
     @Published var isInValidArea: Bool = false // 是否在比赛出发点（routePoints[0] 检查区）
+
+    // MARK: - 附近 buff 奖励网格（free training 实时指引；手机地图 + 手表雷达共用同一份数据）
+    @Published var nearbyGrids: [NearbyGrid] = []
+    private var lastGridQueryLocation: CLLocation?                  // 上次查询网格时的位置（移动门控）
+    private let gridQueryMoveThreshold: CLLocationDistance = 100    // 移动 ≥100m 才重查
 
     private var motionManager: CMMotionManager = CMMotionManager()
     private var audioRecorder: AVAudioRecorder!
@@ -472,31 +484,37 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     func handleStatsData(stats: [String: Any]) {
         statsQueue.async {
             var newData = self.realtimeStatisticData
-            
-            if let avgHeartRate = stats["avgHeartRate"] as? Double {
+
+            // 只接受有限值，过滤掉外设可能传来的 NaN/inf（否则 Int() 转换会崩溃，Double 字段也会被污染）
+            func finite(_ key: String) -> Double? {
+                guard let v = stats[key] as? Double, v.isFinite else { return nil }
+                return v
+            }
+
+            if let avgHeartRate = finite("avgHeartRate") {
                 self.matchContext.avgHeartRate = avgHeartRate
             }
-            if let totalEnergy = stats["totalEnergy"] as? Double {
+            if let totalEnergy = finite("totalEnergy") {
                 self.matchContext.totalEnergy = totalEnergy
                 newData.totalEnergy = Int(totalEnergy)
             }
-            if let avgPower = stats["avgPower"] as? Double {
+            if let avgPower = finite("avgPower") {
                 self.matchContext.avgPower = avgPower
             }
-            if let latestHeartRate = stats["latestHeartRate"] as? Double {
+            if let latestHeartRate = finite("latestHeartRate") {
                 self.matchContext.latestHeartRate = latestHeartRate
                 newData.heartRate = Int(latestHeartRate)
             }
-            if let latestPower = stats["latestPower"] as? Double {
+            if let latestPower = finite("latestPower") {
                 self.matchContext.latestPower = latestPower
                 newData.power = Int(latestPower)
             }
-            if let stepCadence = stats["stepCadence"] as? Double {
+            if let stepCadence = finite("stepCadence") {
                 //print("receive stepCadence: \(stepCadence)")
                 self.matchContext.stepCadence = stepCadence
                 newData.stepCadence = Int(stepCadence)
             }
-            if let cycleCadence = stats["cycleCadence"] as? Double {
+            if let cycleCadence = finite("cycleCadence") {
                 self.matchContext.pedalCadence = cycleCadence
                 newData.pedalCadence = Int(cycleCadence)
             }
@@ -876,9 +894,14 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
 
     // 运动时长（基于轨迹首尾时间戳，仅用于待上传记录的展示）
     private var workoutDuration: TimeInterval {
-        guard let first = basePathData.first?.timestamp,
-              let last = basePathData.last?.timestamp else { return 0 }
-        return max(last - first, 0)
+        guard basePathData.count >= 2 else { return 0 }
+        // 段感知有效时长：跨 segment（暂停缺口）的时间不计入（race/route 单段，退化为首尾差）
+        var duration: TimeInterval = 0
+        for i in 1..<basePathData.count {
+            guard basePathData[i-1].segment == basePathData[i].segment else { continue }
+            duration += max(basePathData[i].timestamp - basePathData[i-1].timestamp, 0)
+        }
+        return duration
     }
 
     // 写前落盘：发起 finish 请求前保存完整请求数据，确保即使请求中途 App 被杀数据仍在
@@ -1655,7 +1678,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         startTime = nil
         sportFeature = nil
         userLocation = nil
-        
+        nearbyGrids = []
+        lastGridQueryLocation = nil
+
         basePathData = []
         bikePathData = []
         runningPathData = []
@@ -1671,6 +1696,13 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         recentAltitudeSamples = []
         horizontalDistanceWindow = 0.0
         pendingElevationGain = 0.0
+
+        // 暂停态/分段复位
+        isPaused = false
+        currentSegment = 0
+        pausedAccumulated = 0
+        pauseStartedAt = nil
+        skipNextDelta = false
     }
 }
 
@@ -1691,8 +1723,42 @@ extension CompetitionManager {
     
     private func handleFreeTrainingLocationUpdate(_ location: CLLocation) {
         userLocation = location
+        queryNearbyGridsIfNeeded(location)
     }
-    
+
+    /// 移动 ≥ 阈值才重查附近最近 3 个 buff 奖励网格；仅 free training 有效。
+    /// 结果发布到 `nearbyGrids`，手机地图指引与手表雷达推送共用。
+    func queryNearbyGridsIfNeeded(_ location: CLLocation) {
+        guard sportFeature?.featureType == .freeTraining else { return }
+        if let last = lastGridQueryLocation, location.distance(from: last) < gridQueryMoveThreshold { return }
+        guard let sport = sport?.rawValue else { return }   // "bike" / "running"
+        lastGridQueryLocation = location
+        Task { [weak self] in
+            await self?.queryNearbyGrids(lat: location.coordinate.latitude, lon: location.coordinate.longitude, sport: sport)
+        }
+    }
+
+    private func queryNearbyGrids(lat: Double, lon: Double, sport: String) async {
+        var components = URLComponents(string: "/training/\(sport)/query_nearby_grids")
+        components?.queryItems = [
+            URLQueryItem(name: "lat", value: "\(lat)"),
+            URLQueryItem(name: "lon", value: "\(lon)"),
+            URLQueryItem(name: "count", value: "3")
+        ]
+        guard let path = components?.string else { return }
+
+        let request = APIRequest(path: path, method: .get, requiresAuth: true)
+        let result = await NetworkService.sendAsyncRequest(with: request, decodingType: NearbyGridsResponse.self)
+        guard case .success(let data?) = result else { return }
+
+        await MainActor.run {
+            let grids = data.grids.map { NearbyGrid(from: $0) }
+            // 集合 key 不变则跳过赋值，避免无谓刷新
+            guard grids.map(\.id) != self.nearbyGrids.map(\.id) else { return }
+            self.nearbyGrids = grids
+        }
+    }
+
     func startFreeTraining() {
         Logger.competition.notice_public("free training start")
         // 检查 Always Location 权限
@@ -1716,14 +1782,21 @@ extension CompetitionManager {
     func startFreeTrainingSession() {
         guard let sport, sportFeature?.featureType == .freeTraining else { return }
         startTime = Date()
-        
+
         // 清理定时器任务可能残留的数据
         realtimeStatisticData = .empty
         basePathData = []
         bikeFreeTrainingPathData = []
         runningFreeTrainingPathData = []
         dataFusionManager.elapsedTime = 0
-        
+
+        // 重置暂停态/分段
+        isPaused = false
+        currentSegment = 0
+        pausedAccumulated = 0
+        pauseStartedAt = nil
+        skipNextDelta = false
+
         isRecording = true
         
         // Start location updates
@@ -1749,31 +1822,42 @@ extension CompetitionManager {
         }
     }
     
+    // 有效训练时长（秒）：墙钟总时长扣除累计暂停时长，暂停期间冻结。
+    // 仅 free training 会产生暂停；race/route 的 pausedAccumulated 恒为 0，退化为墙钟。
+    private func effectiveElapsedTime(now: Date = Date()) -> TimeInterval {
+        guard let start = startTime else { return 0 }
+        let ongoingPause = pauseStartedAt.map { now.timeIntervalSince($0) } ?? 0
+        return max(0, now.timeIntervalSince(start) - pausedAccumulated - ongoingPause)
+    }
+
     private func startFreeTrainingTimer() {
         // 在比赛开始时已记录下 startTime = Date()
         let timer = DispatchSource.makeTimerSource(queue: timerQueue)
         timer.schedule(deadline: .now(), repeating: 1.0) // 每1秒触发一次
         var tickCounter = 0 // 用于计数，每次事件触发加1
-        
+
         timer.setEventHandler { [weak self] in
-            guard let self = self, self.isRecording, let start = self.startTime else { return }
-            
+            guard let self = self, self.isRecording, self.startTime != nil else { return }
+
+            // 暂停期间冻结计时与记录
+            guard !self.isPaused else { return }
+
             // 更新计数器
             tickCounter += 1
-            
-            // 更新 elapsedTime
-            let newElapsedTime = Date().timeIntervalSince(start)
+
+            // 更新 elapsedTime（有效时长，暂停时长已扣除）
+            let newElapsedTime = self.effectiveElapsedTime()
             DispatchQueue.main.async {
                 // 再次检查比赛状态，避免比赛结束时计时器闭包延迟更新重置elapsedTime
                 if self.isRecording {
                     self.dataFusionManager.elapsedTime = newElapsedTime
                 }
             }
-            
+
             // 每3秒记录一次 path 数据
             if tickCounter % 3 == 0 && self.isRecording {
-                // 当前支持的最大训练时间为 5h
-                if self.dataFusionManager.elapsedTime > 18000 {
+                // 当前支持的最大训练时间为 5h（按有效时长计）
+                if newElapsedTime > 18000 {
                     DispatchQueue.main.async {
                         self.stopFreeTraining()
                     }
@@ -1788,8 +1872,11 @@ extension CompetitionManager {
         timer.resume()
         Logger.competition.notice_public("start phone free training timer.")
     }
-    
+
     private func recordFreeTrainingPath() {
+        // 暂停期间不记点（定时器闭包已 guard；此处覆盖 stopFreeTrainingTimer 的强制补录，
+        // 避免暂停态下结束时补录终点产生跨暂停弦）
+        guard !isPaused else { return }
         guard let location = LocationManager.shared.getLocation() else { return }
         let basePoint = PathPoint(
             lat: location.coordinate.latitude,
@@ -1797,11 +1884,13 @@ extension CompetitionManager {
             speed: location.speed,
             altitude: location.altitude,
             heart_rate: matchContext.latestHeartRate,
-            timestamp: Date().timeIntervalSince1970
+            timestamp: Date().timeIntervalSince1970,
+            segment: currentSegment
         )
-        if let lastPoint = basePathData.last {
+        // resume 后首个点：与上一段末点之间是跨暂停弦，不能计入距离/海拔（否则把暂停期间的位移补回来）
+        if let lastPoint = basePathData.last, !skipNextDelta {
             let distance = horizontalDistance(from: lastPoint, to: basePoint)
-            
+
             self.horizontalDistanceWindow += distance
             let allowElevationUpdate = horizontalDistanceWindow >= 5
             if allowElevationUpdate {
@@ -1814,7 +1903,7 @@ extension CompetitionManager {
                 matchContext.altitude = smoothedAlt
                 pendingElevationGain = max(pendingElevationGain + elevGain, 0)
             }
-            
+
             matchContext.speed = 3.6 * distance / 3.0
             matchContext.distance += distance
             DispatchQueue.main.async {
@@ -1825,6 +1914,12 @@ extension CompetitionManager {
                     self.pendingElevationGain = 0
                 }
             }
+        }
+        // 跨段首点的海拔基准对齐到当前点，避免下一点用旧基准产生跨暂停海拔跳变
+        if skipNextDelta {
+            recentAltitudeSamples = []
+            matchContext.altitude = smoothedAltitude(from: location.altitude)
+            skipNextDelta = false
         }
         basePathData.append(basePoint)
         if sport == .Bike {
@@ -1853,7 +1948,52 @@ extension CompetitionManager {
         recordFreeTrainingPath()
         Logger.competition.notice_public("stop phone training timer.")
     }
-    
+
+    /// 暂停自由训练（仅 free training 有效）。手机为唯一真源，幂等。
+    /// - Parameter fromRemote: 是否由手表端命令触发（true 时不再回发命令给手表，避免回环）。
+    func pauseFreeTraining(fromRemote: Bool = false) {
+        guard sportFeature?.featureType == .freeTraining else { return }
+        guard isRecording, !isPaused else { return }   // 幂等：未在录制或已暂停则忽略
+        isPaused = true
+        pauseStartedAt = Date()
+        // 冻结当前有效时长，定时器在 isPaused 期间不再推进
+        DispatchQueue.main.async {
+            self.dataFusionManager.elapsedTime = self.effectiveElapsedTime()
+        }
+        // 广播给手表（手机为唯一真源；fromRemote 时手表已自行暂停，无需回发）
+        if !fromRemote {
+            notifyWatchControl("pause")
+        }
+        Logger.competition.notice_public("free training paused (fromRemote: \(fromRemote)).")
+    }
+
+    /// 恢复自由训练（仅 free training 有效）。结算本次暂停时长并开启新的活动段。幂等。
+    func resumeFreeTraining(fromRemote: Bool = false) {
+        guard sportFeature?.featureType == .freeTraining else { return }
+        guard isRecording, isPaused else { return }    // 幂等：未暂停则忽略
+        if let pauseStartedAt {
+            pausedAccumulated += Date().timeIntervalSince(pauseStartedAt)
+        }
+        pauseStartedAt = nil
+        isPaused = false
+        currentSegment += 1                            // 开启新活动段
+        skipNextDelta = true                           // 下一个记录点不与上一段末点连线/累距
+        // 广播给手表（手机为唯一真源；fromRemote 时手表已自行恢复，无需回发）
+        if !fromRemote {
+            notifyWatchControl("resume")
+        }
+        Logger.competition.notice_public("free training resumed, segment -> \(currentSegment) (fromRemote: \(fromRemote)).")
+    }
+
+    /// 向已连接的 Apple Watch 下发暂停/恢复命令
+    private func notifyWatchControl(_ command: String) {
+        for (_, dev) in deviceManager.deviceMap {
+            if let watch = dev as? AppleWatchDevice {
+                watch.sendControlCommand(command)
+            }
+        }
+    }
+
     func stopFreeTraining() {
         isRecording = false
         isShowWidget = false
@@ -2590,6 +2730,7 @@ extension CompetitionManager {
         guard path.count >= 2 else { return 0.0 }
         var total: Double = 0
         for i in 1..<path.count {
+            guard path[i-1].segment == path[i].segment else { continue }   // 跨暂停弦不计（race/route 单段无影响）
             total += horizontalDistance(from: path[i-1], to: path[i])
         }
         return total
@@ -2924,6 +3065,9 @@ struct PathPoint: Codable {
     let altitude: Double
     let heart_rate: Double?
     let timestamp: TimeInterval
+    // 活动段序号：free training 每次从暂停恢复时 +1，同段内连续记录；默认 0。
+    // race/route training 不暂停，恒为 0。后端 PathPoint.segment 默认 0，新旧记录回读均合法。
+    var segment: Int = 0
 }
 
 struct BikePathPoint: Codable {
@@ -3094,6 +3238,48 @@ struct StatisticData {
     var power: Int? = nil              // 功率
     
     static let empty = StatisticData()
+}
+
+// MARK: - 附近 buff 奖励网格（free training 实时指引）
+
+// 网格指引展示模型：网格中心坐标 + 奖励类型 + 数量 + 描述/条件。id 用网格坐标，供 diff 复用。
+struct NearbyGrid: Identifiable {
+    var id: String { "\(gridX),\(gridY)" }
+    let gridX: Int
+    let gridY: Int
+    let lat: Double
+    let lon: Double
+    let reward: CCAssetType      // reward_type 映射；取 iconName 显示图标
+    let count: Int
+    let description: String      // buff 描述模板（含 {reward} 占位），sheet 卡片展示
+    let conditionType: String    // "distance" / "speed" / "none"，映射右上角条件角标
+
+    init(from dto: NearbyGridDTO) {
+        self.gridX = dto.grid_x
+        self.gridY = dto.grid_y
+        self.lat = dto.center_lat
+        self.lon = dto.center_lon
+        self.reward = CCAssetType(rawValue: dto.reward_type) ?? .coin
+        self.count = dto.reward_count
+        self.description = dto.description
+        self.conditionType = dto.condition_type
+    }
+}
+
+// query_nearby_grids 响应（仅解码指引所需字段，bike/running 同构）
+struct NearbyGridsResponse: Codable {
+    let grids: [NearbyGridDTO]
+}
+
+struct NearbyGridDTO: Codable {
+    let grid_x: Int
+    let grid_y: Int
+    let center_lat: Double
+    let center_lon: Double
+    let description: String
+    let condition_type: String
+    let reward_type: String
+    let reward_count: Int
 }
 
 class IMUFilter {

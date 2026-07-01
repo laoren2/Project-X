@@ -61,7 +61,7 @@ final class ReviewRequestManager {
     }
 
     // 延迟触发，避免盖住结算弹窗；当前有弹窗时重试，仍占用则放弃（不消耗额度，下次再来）
-    private func attemptPrompt(retries: Int = 2) {
+    private func attemptPrompt(retries: Int = 3) {
         guard isEligible else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             guard self.isEligible else { return }

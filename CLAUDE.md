@@ -104,6 +104,7 @@ sportsxApp (@main)
 5. **启动顺序**：`BootstrapManager.start()` 的步骤有依赖关系（先 token 后用户/资产/IAP）。新增启动任务要放对位置并维护 `advanceProgress` 权重，勿打乱串行依赖。
 6. **单例生命周期**：`*.shared` 为全局唯一，`init` 私有。不要在别处重复实例化这些 manager，也不要在 `NavigationStoreManager` 里强引用 store（用 `WeakBox`，避免内存泄漏）。
 7. **本地化完整性**：新增/修改文案必须同步全部的本地化语言，避免缺 key 露出原始字符串，同时避免同一个语言文件内key的重复。
+8. **git**：只在当前工作区进行编辑操作，不要自动commit和push分支。
 ---
 
 ## 6. 常见工作流

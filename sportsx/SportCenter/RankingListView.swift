@@ -344,7 +344,7 @@ struct BikeRouteRankListView: View {
                                 .fill(Color.defaultBackground)
                                 .overlay(
                                     Capsule()
-                                        .stroke(Color.orange, lineWidth: 2)
+                                        .stroke(Color.orange, lineWidth: 1)
                                 )
                         )
                         .exclusiveTouchTapGesture {
@@ -905,7 +905,7 @@ struct RunningRouteRankListView: View {
                                 .fill(Color.defaultBackground)
                                 .overlay(
                                     Capsule()
-                                        .stroke(Color.orange, lineWidth: 2)
+                                        .stroke(Color.orange, lineWidth: 1)
                                 )
                         )
                         .exclusiveTouchTapGesture {

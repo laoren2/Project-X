@@ -763,6 +763,9 @@
 "training.history.no_record" = "トレーニング記録がありません";
 
 "training.realtime.action.finish" = "練習終了";
+"training.realtime.action.pause" = "一時停止";
+"training.realtime.action.resume" = "再開";
+"training.realtime.status.paused" = "一時停止中";
 "training.realtime.popup.finish" = "トレーニングを終了しますか？";
 "training.realtime.popup.cannot_save" = "保存できません";
 "training.realtime.popup.cannot_save.content" = "トレーニング時間または距離が短すぎるため、記録を保存できない可能性があります。";

@@ -763,6 +763,9 @@
 "training.history.no_record" = "No training records";
 
 "training.realtime.action.finish" = "Finish";
+"training.realtime.action.pause" = "Pause";
+"training.realtime.action.resume" = "Resume";
+"training.realtime.status.paused" = "Paused";
 "training.realtime.popup.finish" = "Are you sure you want to end the training?";
 "training.realtime.popup.cannot_save" = "Unable to save";
 "training.realtime.popup.cannot_save.content" = "Training time or distance is too short, the record may not be saved.";

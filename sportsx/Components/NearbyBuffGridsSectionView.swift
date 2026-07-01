@@ -61,6 +61,8 @@ struct GridOccupancyResponse: Codable {
 
 struct NearbyBuffGridsSectionView: View {
     let sport: SportName
+    // 外层（FreeTrainingView）统一消费 refreshFreeTrainingView 刷新信号后递增此值，驱动本 section 重拉。
+    let refreshToken: Int
 
     @ObservedObject var locationManager = LocationManager.shared
     @ObservedObject var userManager = UserManager.shared
@@ -152,11 +154,17 @@ struct NearbyBuffGridsSectionView: View {
         }
         .onStableAppear {
             guard userManager.isLoggedIn else { return }
-            if !didLoad || GlobalConfig.shared.refreshFreeTrainingView {
+            // 首次加载：section 自行拉取；后续的训练结束等刷新由外层通过 refreshToken 驱动
+            if !didLoad {
                 fetchGrids()
                 fetchOccupiedCount()
             }
             DispatchQueue.main.async { didLoad = true }
+        }
+        .onValueChange(of: refreshToken) { _, _ in
+            guard userManager.isLoggedIn else { return }
+            fetchGrids()
+            fetchOccupiedCount()
         }
         .onValueChange(of: locationManager.regionID) { _, _ in
             guard userManager.isLoggedIn else { return }

@@ -51,7 +51,7 @@ struct ShareElementContent: View {
     var body: some View {
         switch kind {
         case .track:
-            ShareTrackShape(coordinates: metrics.coordinates)
+            ShareTrackShape(segments: metrics.coordinateSegments)
                 .stroke(trackColor, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
                 .frame(width: trackBaseSize, height: trackBaseSize)
                 .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 1)
@@ -631,6 +631,18 @@ struct ShareEditorView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 14, height: 14)
+            } else if kind == .logo {
+                Image(kind.iconName)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
+            } else if kind == .cadence {
+                Image(metrics.cadenceImageName)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 14, height: 14)
             } else {
                 Image(systemName: kind.iconName)
                     .font(.system(size: 12))
@@ -857,7 +869,7 @@ struct ShareEditorView: View {
     // 在缓存的地图快照上绘制平滑轨迹（含深色描边底衬，提升任意颜色的可读性）
     private func compositeTrack(on snapshot: MKMapSnapshotter.Snapshot) {
         let base = snapshot.image
-        let coords = metrics.coordinates
+        let segments = metrics.coordinateSegments
         let stroke = UIColor(trackColor)
 
         let format = UIGraphicsImageRendererFormat()
@@ -867,10 +879,14 @@ struct ShareEditorView: View {
 
         mapImage = renderer.image { ctx in
             base.draw(at: .zero)
-            guard coords.count > 1 else { return }
             let cg = ctx.cgContext
-            let pts = coords.map { snapshot.point(for: $0) }
-            let path = Self.smoothedCGPath(points: pts)
+            // 各活动段独立成路径，段间（暂停缺口）不连线
+            let path = CGMutablePath()
+            for seg in segments where seg.count > 1 {
+                let pts = seg.map { snapshot.point(for: $0) }
+                path.addPath(Self.smoothedCGPath(points: pts))
+            }
+            guard !path.isEmpty else { return }
             cg.setLineJoin(.round)
             cg.setLineCap(.round)
             cg.addPath(path)

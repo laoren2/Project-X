@@ -763,6 +763,9 @@
 "training.history.no_record" = "훈련 기록 없음";
 
 "training.realtime.action.finish" = "교육 종료";
+"training.realtime.action.pause" = "일시정지";
+"training.realtime.action.resume" = "계속";
+"training.realtime.status.paused" = "일시정지됨";
 "training.realtime.popup.finish" = "정말 교육을 종료하시겠습니까?";
 "training.realtime.popup.cannot_save" = "저장할 수 없습니다";
 "training.realtime.popup.cannot_save.content" = "훈련 시간이나 거리가 너무 짧으면 기록이 저장되지 않을 수 있습니다.";

@@ -763,6 +763,9 @@
 "training.history.no_record" = "無訓練記錄";
 
 "training.realtime.action.finish" = "結束訓練";
+"training.realtime.action.pause" = "暫停";
+"training.realtime.action.resume" = "繼續";
+"training.realtime.status.paused" = "已暫停";
 "training.realtime.popup.finish" = "你確定要結束訓練嗎？";
 "training.realtime.popup.cannot_save" = "無法保存";
 "training.realtime.popup.cannot_save.content" = "訓練時間過短或距離過短，可能無法保存記錄。";
