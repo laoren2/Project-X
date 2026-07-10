@@ -313,7 +313,7 @@ struct FreeTrainingRealtimeView: View {
                             if appState.competitionManager.isPaused {
                                 HStack(spacing: 8) {
                                     Image(systemName: "pause.fill")
-                                    Text("training.realtime.status.paused")
+                                    Text(appState.competitionManager.pausedByAuto ? "training.realtime.status.paused.auto" : "training.realtime.status.paused")
                                         .font(.system(size: 25, weight: .bold, design: .rounded))
                                 }
                                 .foregroundStyle(Color.secondText)

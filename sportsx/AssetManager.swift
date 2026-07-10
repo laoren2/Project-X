@@ -327,14 +327,16 @@ struct CPAssetUserInfo: Identifiable {
     let name: String
     let description: String
     let image_url: String
+    let sportType: SportName
     var amount: Int
-    
+
     init(from asset: CPAssetUserInfoDTO) {
         self.id = UUID()
         self.asset_id = asset.asset_id
         self.name = asset.name
         self.description = asset.description
         self.image_url = asset.image_url
+        self.sportType = asset.sport_type
         self.amount = asset.amount
     }
 }
@@ -344,6 +346,7 @@ struct CPAssetUserInfoDTO: Codable {
     let name: String
     let description: String
     let image_url: String
+    let sport_type: SportName
     let amount: Int
 }
 
@@ -357,15 +360,17 @@ struct CPAssetShopInfo: Identifiable {
     let name: String
     let description: String
     let image_url: String
+    let sportType: SportName
     let ccassetType: CCAssetType
     let price: Int
-    
+
     init(from asset: CPAssetShopInfoDTO) {
         self.id = UUID()
         self.asset_id = asset.asset_id
         self.name = asset.name
         self.description = asset.description
         self.image_url = asset.image_url
+        self.sportType = asset.sport_type
         self.ccassetType = asset.ccasset_type
         self.price = asset.price
     }
@@ -376,6 +381,7 @@ struct CPAssetShopInfoDTO: Codable {
     let name: String
     let description: String
     let image_url: String
+    let sport_type: SportName
     let ccasset_type: CCAssetType
     let price: Int
 }

@@ -766,6 +766,7 @@
 "training.realtime.action.pause" = "Pause";
 "training.realtime.action.resume" = "Reprendre";
 "training.realtime.status.paused" = "En pause";
+"training.realtime.status.paused.auto" = "Pause auto";
 "training.realtime.popup.finish" = "Voulez-vous vraiment terminer l'entraînement ?";
 "training.realtime.popup.cannot_save" = "Enregistrement impossible";
 "training.realtime.popup.cannot_save.content" = "Durée ou distance d'entraînement trop courte ; l'enregistrement risque de ne pas être sauvegardé.";
@@ -1118,6 +1119,11 @@
 "user.setup.realname_auth.method.driving_license" = "Permis de conduire";
 "user.setup.vip_center" = "Centre d'abonnement";
 "user.setup.clean_cache" = "Vider le cache";
+"user.setup.sport_settings" = "Réglages sportifs";
+"user.setup.auto_pause" = "Pause automatique";
+"user.setup.global_default_sport" = "Sport par défaut";
+"user.setup.external_default_sport" = "Sport du profil";
+"user.setup.external_default_sport.description" = "Sport affiché sur votre profil public.";
 "user.setup.toast.clean_cache.success" = "Nettoyage réussi";
 "user.setup.toast.clean_cache.failed" = "Échec du nettoyage, veuillez réessayer";
 "user.setup.aboutus" = "À propos";
@@ -1397,3 +1403,25 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "review.feedback.title" = "Votre avis nous intéresse";
 "review.feedback.message" = "Dites-nous ce que nous pourrions améliorer ?";
 "review.action.feedback" = "Envoyer un retour";
+
+// MARK: 新用户引导 guide
+"guide.action.skip" = "Passer";
+"guide.action.previous" = "Précédent";
+"guide.action.next" = "Suivant";
+"guide.action.done" = "Terminé";
+"guide.stage1.title" = "Bienvenue sur Movmov";
+"guide.stage1.content" = "Avant de commencer, prenons un instant pour effectuer quelques réglages rapides !";
+"guide.stage2.title" = "Choisissez votre sport";
+"guide.stage2.note" = "Ce sport sera défini par défaut. Vous pourrez le modifier dans les réglages.";
+"guide.stage3.title" = "Comment ça marche";
+"guide.feature.race.desc" = "Affrontez de nouveaux défis dans l’Arène, découvrez le plaisir de différents parcours, progressez avec vos coéquipiers dans le classement saisonnier et construisez votre propre parcours sportif.";
+"guide.feature.free_training.desc" = "Commencez votre activité où que vous soyez, conquérez les territoires autour de vous et découvrez encore plus de récompenses.";
+"guide.feature.route_training.desc" = "Créez vos propres parcours et utilisez vos compétences ainsi que votre stratégie pour relever des défis d’entraînement. Partagez vos parcours avec la communauté et, s’ils deviennent populaires, ils pourront même rejoindre l’Arène en tant que parcours officiels.";
+"guide.stage4.title" = "Complétez votre profil";
+"guide.stage4.nickname" = "Pseudo";
+"guide.stage4.nickname.placeholder" = "Saisissez un pseudo";
+"guide.stage4.gender" = "Sexe";
+"guide.stage4.gender.note" = "Le sexe ne peut pas être modifié après confirmation.";
+"guide.stage4.birthday" = "Date de naissance";
+"guide.stage5.title" = "Cadeau de bienvenue";
+"guide.stage5.distributed" = "Vos récompenses ont bien été ajoutées à votre compte. Profitez-en !";

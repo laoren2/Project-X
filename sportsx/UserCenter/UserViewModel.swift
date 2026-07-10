@@ -348,9 +348,10 @@ class LocalUserViewModel: ObservableObject {
     @Published var isCurrentRecordsLoading: Bool = false
     
     init() {
-        self.sport = userManager.user.defaultSport
-        self.activeSport = userManager.user.defaultSport
-        
+        // local profile 由全局默认运动驱动初始展示（external profile 仍用目标用户的 defaultSport）
+        self.sport = userManager.user.globalDefaultSport
+        self.activeSport = userManager.user.globalDefaultSport
+
         queryHistoryCareers()
         queryCurrentRecords()
         DailyTaskManager.shared.queryDailyTask(sport: self.activeSport)

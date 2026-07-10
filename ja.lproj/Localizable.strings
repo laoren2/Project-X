@@ -766,6 +766,7 @@
 "training.realtime.action.pause" = "一時停止";
 "training.realtime.action.resume" = "再開";
 "training.realtime.status.paused" = "一時停止中";
+"training.realtime.status.paused.auto" = "自動一時停止";
 "training.realtime.popup.finish" = "トレーニングを終了しますか？";
 "training.realtime.popup.cannot_save" = "保存できません";
 "training.realtime.popup.cannot_save.content" = "トレーニング時間または距離が短すぎるため、記録を保存できない可能性があります。";
@@ -1118,6 +1119,11 @@
 "user.setup.realname_auth.method.driving_license" = "運転免許証";
 "user.setup.vip_center" = "VIP会員";
 "user.setup.clean_cache" = "キャッシュを削除";
+"user.setup.sport_settings" = "スポーツ設定";
+"user.setup.auto_pause" = "自動一時停止";
+"user.setup.global_default_sport" = "デフォルトの運動";
+"user.setup.external_default_sport" = "プロフィールの運動";
+"user.setup.external_default_sport.description" = "プロフィールで公開表示されるスポーツ。";
 "user.setup.toast.clean_cache.success" = "削除完了";
 "user.setup.toast.clean_cache.failed" = "削除失敗、再試行してください";
 "user.setup.aboutus" = "私たちについて";
@@ -1377,3 +1383,25 @@
 "review.feedback.title" = "ご意見をお聞かせください";
 "review.feedback.message" = "改善できる点を教えていただけますか？";
 "review.action.feedback" = "フィードバック";
+
+// MARK: 新用户引导 guide
+"guide.action.skip" = "スキップ";
+"guide.action.previous" = "前へ";
+"guide.action.next" = "次へ";
+"guide.action.done" = "完了";
+"guide.stage1.title" = "Movmovへようこそ";
+"guide.stage1.content" = "始める前に、いくつか簡単な設定を済ませましょう！";
+"guide.stage2.title" = "興味のある運動を選択";
+"guide.stage2.note" = "アプリのデフォルト運動として設定されます。後で設定から変更できます。";
+"guide.stage3.title" = "遊び方の紹介";
+"guide.feature.race.desc" = "アリーナで競い合い、さまざまなコースを楽しみながら、仲間とともにシーズンランキングに挑戦し、自分だけのスポーツキャリアを築きましょう。";
+"guide.feature.free_training.desc" = "いつでもどこでも運動を始め、周囲のエリアを制覇しながら、さまざまな報酬を見つけましょう。";
+"guide.feature.route_training.desc" = "自分だけのルートを作成し、スキルや戦略を活用してトレーニングに挑戦しましょう。ルートを公開すれば他のプレイヤーも挑戦でき、人気のルートはアリーナの公式コースとして採用されることがあります。";
+"guide.stage4.title" = "プロフィールを入力";
+"guide.stage4.nickname" = "ニックネーム";
+"guide.stage4.nickname.placeholder" = "ニックネームを入力";
+"guide.stage4.gender" = "性別";
+"guide.stage4.gender.note" = "性別は設定後に変更できません。";
+"guide.stage4.birthday" = "誕生日";
+"guide.stage5.title" = "新人ギフト";
+"guide.stage5.distributed" = "報酬を受け取りました！スポーツの旅を楽しみましょう！";

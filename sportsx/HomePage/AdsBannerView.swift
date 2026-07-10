@@ -305,62 +305,64 @@ struct TextBannerView: View {
 
     var body: some View {
         ZStack {
-            VerticalScrollView(
-                currentIndex: $currentIndex,
-                itemCount: texts.count,
-                height: height,
-                onScrollWillBegin: {
-                    isUserInteracting = true
-                    if cancellable != nil {
-                        stopAutoScroll()
-                    }
-                },
-                onScrollDidEnd: {
-                    isUserInteracting = false
-                    
-                    currentTask?.cancel()  // 取消之前的计时任务
-                    currentTask = Task {
-                        try? await Task.sleep(nanoseconds: UInt64(2 * 1_000_000_000))
-                        if !Task.isCancelled {
-                            await MainActor.run {
-                                startAutoScroll()
+            if !texts.isEmpty {
+                VerticalScrollView(
+                    currentIndex: $currentIndex,
+                    itemCount: texts.count,
+                    height: height,
+                    onScrollWillBegin: {
+                        isUserInteracting = true
+                        if cancellable != nil {
+                            stopAutoScroll()
+                        }
+                    },
+                    onScrollDidEnd: {
+                        isUserInteracting = false
+                        
+                        currentTask?.cancel()  // 取消之前的计时任务
+                        currentTask = Task {
+                            try? await Task.sleep(nanoseconds: UInt64(2 * 1_000_000_000))
+                            if !Task.isCancelled {
+                                await MainActor.run {
+                                    startAutoScroll()
+                                }
                             }
                         }
                     }
-                }
-            ) {
-                // 尾部复制页
-                HStack {
-                    TextCard(
-                        //width: width,
-                        height: height,
-                        text: texts.last ?? ""
-                    )
-                    Spacer()
-                }
-
-                ForEach(texts.indices, id: \.self) { index in
+                ) {
+                    // 尾部复制页
                     HStack {
                         TextCard(
                             //width: width,
                             height: height,
-                            text: texts[index]
+                            text: texts.last ?? ""
+                        )
+                        Spacer()
+                    }
+                    
+                    ForEach(texts.indices, id: \.self) { index in
+                        HStack {
+                            TextCard(
+                                //width: width,
+                                height: height,
+                                text: texts[index]
+                            )
+                            Spacer()
+                        }
+                    }
+                    
+                    // 头部复制页
+                    HStack {
+                        TextCard(
+                            //width: width,
+                            height: height,
+                            text: texts.first ?? ""
                         )
                         Spacer()
                     }
                 }
-
-                // 头部复制页
-                HStack {
-                    TextCard(
-                        //width: width,
-                        height: height,
-                        text: texts.first ?? ""
-                    )
-                    Spacer()
-                }
+                .frame(/*width: width, */height: height)
             }
-            .frame(/*width: width, */height: height)
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .onAppear {

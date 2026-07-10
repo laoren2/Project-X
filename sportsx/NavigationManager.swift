@@ -33,6 +33,7 @@ enum AppRoute: Hashable {
     //case realNameAuthView
     case identityAuthView
     case userSetUpAccountView
+    case sportSetUpView
     case smsLoginView
     case phoneBindView
     case appleBindView
@@ -140,8 +141,8 @@ enum AppRoute: Hashable {
             return "friendListView"
         case .userIntroEditView:
             return "userIntroEditView"
-        //case .realNameAuthView:
-        //    return "realNameAuthView"
+        case .sportSetUpView:
+            return "sportSetUpView"
         case .identityAuthView:
             return "identityAuthView"
         case .userSetUpAccountView:

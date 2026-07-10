@@ -55,9 +55,9 @@ struct UserSetUpView: View {
                             NavigationManager.shared.append(.userSetUpAccountView)
                         }
                         
-                        /*SetUpItemView(icon: "person.text.rectangle", title: "user.setup.realname_auth") {
-                            NavigationManager.shared.append(.realNameAuthView)
-                        }*/
+                        SetUpItemView(icon: "sportscourt", title: "user.setup.sport_settings") {
+                            NavigationManager.shared.append(.sportSetUpView)
+                        }
                         
                         SetUpItemView(icon: "vip_icon", title: "user.setup.vip_center", isSysIcon: false) {
                             NavigationManager.shared.append(.subscriptionDetailView)
@@ -212,6 +212,151 @@ struct UserSetUpView: View {
                 isCleaning = false
                 let toast = Toast(message: success ? "user.setup.toast.clean_cache.success" : "user.setup.toast.clean_cache.failed")
                 ToastManager.shared.show(toast: toast)
+            }
+        }
+    }
+}
+
+struct SportSetUpView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject private var userManager = UserManager.shared
+    
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                
+                Spacer()
+                
+                Text("user.setup.sport_settings")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                // 平衡布局的空按钮
+                Button(action: {}) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
+            
+            ScrollView {
+                VStack(spacing: 0) {
+                    // 自动暂停（running/bike 共用）
+                    SetUpItemView(icon: "pause.circle", title: "user.setup.auto_pause", showChevron: false) {
+                    } trailingView: {
+                        Toggle("", isOn: Binding(
+                            get: { userManager.user.autoPause },
+                            set: { updateAutoPause($0) }
+                        ))
+                        .labelsHidden()
+                    }
+                    // 全局默认运动（启动时商店/运动中心/仓库/local profile 的初始展示运动）
+                    SetUpItemView(icon: "sportscourt", title: "user.setup.global_default_sport", showChevron: false) {
+                    } trailingView: {
+                        CapsuleScrollSelector(
+                            options: [.Bike, .Running],
+                            selection: Binding(get: { userManager.user.globalDefaultSport }, set: { _ in }),
+                            titleKey: { $0.name },
+                            expandedWidth: 100,
+                            backgroundColor: Color.secondBackground,
+                            onSelect: { updateGlobalDefaultSport($0) }
+                        )
+                    }
+                    // 外部主页默认运动（他人查看我的主页时展示的运动）
+                    SetUpItemView(icon: "person.crop.circle", title: "user.setup.external_default_sport", showChevron: false, showDivider: false) {
+                    } trailingView: {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(Color.secondText)
+                                .font(.system(size: 15))
+                                .exclusiveTouchTapGesture {
+                                    PopupWindowManager.shared.presentPopup(
+                                        message: "user.setup.external_default_sport.description",
+                                        bottomButtons: [.confirm()]
+                                    )
+                                }
+                            CapsuleScrollSelector(
+                                options: [.Bike, .Running],
+                                selection: Binding(get: { userManager.user.defaultSport }, set: { _ in }),
+                                titleKey: { $0.name },
+                                expandedWidth: 100,
+                                backgroundColor: Color.secondBackground,
+                                onSelect: { updateExternalDefaultSport($0) }
+                            )
+                        }
+                    }
+                }
+                .cornerRadius(20)
+                .padding()
+            }
+        }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+    }
+    
+    // MARK: - 运动设置更新
+    func updateAutoPause(_ enable: Bool) {
+        guard var components = URLComponents(string: "/user/update_auto_pause") else { return }
+        components.queryItems = [URLQueryItem(name: "enable", value: enable ? "true" : "false")]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: false, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let value = data {
+                    DispatchQueue.main.async {
+                        userManager.user.autoPause = value
+                        UserDefaults.standard.set(value, forKey: "user.autoPause")
+                    }
+                }
+            default: break
+            }
+        }
+    }
+
+    func updateGlobalDefaultSport(_ sport: SportName) {
+        guard var components = URLComponents(string: "/user/update_global_default_sport") else { return }
+        components.queryItems = [URLQueryItem(name: "sport", value: sport.rawValue)]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: SportName.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let value = data {
+                    DispatchQueue.main.async {
+                        userManager.user.globalDefaultSport = value
+                        UserDefaults.standard.set(value.rawValue, forKey: "user.globalDefaultSport")
+                    }
+                }
+            default: break
+            }
+        }
+    }
+
+    func updateExternalDefaultSport(_ sport: SportName) {
+        guard var components = URLComponents(string: "/user/update_user_default_sport") else { return }
+        components.queryItems = [URLQueryItem(name: "sport", value: sport.rawValue)]
+        guard let urlPath = components.string else { return }
+        let request = APIRequest(path: urlPath, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: SportName.self, showLoadingToast: true, showErrorToast: true) { result in
+            switch result {
+            case .success(let data):
+                if let value = data {
+                    DispatchQueue.main.async {
+                        userManager.user.defaultSport = value
+                        UserDefaults.standard.set(value.rawValue, forKey: "user.defaultSport")
+                    }
+                }
+            default: break
             }
         }
     }
@@ -1504,6 +1649,6 @@ struct LocalDebugPanelView: View {
 
 #Preview {
     let appState = AppState.shared
-    PhoneBindView()
+    SportSetUpView()
         .environmentObject(appState)
 }

@@ -13,9 +13,20 @@ struct ShopView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var assetManager = AssetManager.shared
     @ObservedObject var shopManager = ShopManager.shared
+    @ObservedObject var userManager = UserManager.shared
     @State var selectedTab: Int = 0
     @State private var rewardCard: MagicCard? = nil     // 动画效果
-    
+    // 当前展示运动：启动时初始化为全局默认运动，之后本场景可独立切换（不回写全局设置）
+    @State private var selectedSport: SportName = UserManager.shared.user.globalDefaultSport
+
+    // CCAsset（货币）不受运动过滤；CPAsset/装备卡按当前展示运动过滤
+    private var filteredCPAssets: [CPAssetShopInfo] {
+        shopManager.cpassets.filter { $0.sportType == selectedSport }
+    }
+    private var filteredMagicCards: [MagicCardShop] {
+        shopManager.magicCards.filter { $0.sportType == selectedSport }
+    }
+
     var body: some View {
         ZStack {
             ZStack(alignment: .bottom) {
@@ -81,6 +92,19 @@ struct ShopView: View {
                     
                     HStack {
                         Spacer()
+                        // 运动过滤器（本场景独立切换）
+                        CapsuleScrollSelector(
+                            options: [.Bike, .Running],
+                            selection: $selectedSport,
+                            titleKey: { $0.name },
+                            expandedWidth: 150
+                        )
+                    }
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 10)
+                    
+                    HStack {
+                        Spacer()
                         VStack(spacing: 10) {
                             Text("shop.tab.props")
                                 .font(.system(size: 16, weight: .semibold))
@@ -119,7 +143,7 @@ struct ShopView: View {
                         
                         ScrollView {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
-                                ForEach(shopManager.cpassets) { asset in
+                                ForEach(filteredCPAssets) { asset in
                                     CPAssetShopCardView(asset: asset)
                                     //.frame(width: itemWidth)
                                         .overlay(
@@ -149,7 +173,7 @@ struct ShopView: View {
                         
                         ScrollView {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
-                                ForEach(shopManager.magicCards) { card in
+                                ForEach(filteredMagicCards) { card in
                                     ZStack {
                                         MagicCardShopCardView(card: card)
                                         //.frame(width: itemWidth)
@@ -271,6 +295,10 @@ struct ShopView: View {
         }
         .onStableAppear {
             // empty, for fix TabView + ScrollView offset sync issue
+        }
+        .onFirstAppear {
+            // 启动后首次进入商店时以全局默认运动作为初始展示运动
+            selectedSport = userManager.user.globalDefaultSport
         }
     }
 }

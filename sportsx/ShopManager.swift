@@ -23,7 +23,7 @@ class ShopManager: ObservableObject {
             selectedAsset = nil
         }
         let request = APIRequest(path: "/asset/query_cpassets_on_shelves", method: .get)
-        
+
         let result = await NetworkService.sendAsyncRequest(with: request, decodingType: CPAssetShopResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
         
         switch result {
@@ -46,7 +46,7 @@ class ShopManager: ObservableObject {
             selectedAsset = nil
         }
         let request = APIRequest(path: "/asset/query_equip_cards_on_shelves", method: .get)
-        
+
         let result = await NetworkService.sendAsyncRequest(with: request, decodingType: MagicCardShopResponse.self, showLoadingToast: withLoadingToast, showErrorToast: true)
         
         switch result {

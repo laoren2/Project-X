@@ -833,6 +833,8 @@ struct LocalUserView: View {
                 .offset(x: (viewModel.showSidebar ? 0 : -viewModel.sidebarWidth))
         }
         .onFirstAppear {
+            viewModel.sport = userManager.user.globalDefaultSport
+            viewModel.activeSport = userManager.user.globalDefaultSport
             if userManager.user.gender == nil {
                 PopupWindowManager.shared.presentPopup(
                     title: "user.page.popup.complete_info.title",
@@ -862,12 +864,12 @@ struct LocalUserView: View {
                     await userManager.fetchMeInfo()
                     await MainActor.run {
                         userManager.queryMailBox()
-                        if viewModel.activeSport == userManager.user.defaultSport {
+                        if viewModel.activeSport == userManager.user.globalDefaultSport {
                             viewModel.queryHistoryCareers()
                             viewModel.queryCurrentRecords()
                             DailyTaskManager.shared.queryDailyTask(sport: viewModel.activeSport)
                         } else {
-                            viewModel.sport = userManager.user.defaultSport
+                            viewModel.sport = userManager.user.globalDefaultSport
                             viewModel.activeSport = viewModel.sport
                         }
                     }

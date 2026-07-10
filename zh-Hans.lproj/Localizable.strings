@@ -766,6 +766,7 @@
 "training.realtime.action.pause" = "暂停";
 "training.realtime.action.resume" = "继续";
 "training.realtime.status.paused" = "已暂停";
+"training.realtime.status.paused.auto" = "自动暂停";
 "training.realtime.popup.finish" = "你确定要结束训练吗？";
 "training.realtime.popup.cannot_save" = "无法保存";
 "training.realtime.popup.cannot_save.content" = "训练时间过短或距离过短，可能无法保存记录。";
@@ -1118,6 +1119,11 @@
 "user.setup.realname_auth.method.driving_license" = "驾照";
 "user.setup.vip_center" = "会员订阅中心";
 "user.setup.clean_cache" = "清理缓存";
+"user.setup.sport_settings" = "运动设置";
+"user.setup.auto_pause" = "自动暂停";
+"user.setup.global_default_sport" = "默认运动";
+"user.setup.external_default_sport" = "主页默认运动";
+"user.setup.external_default_sport.description" = "个人主页对外展示的运动类型。";
 "user.setup.toast.clean_cache.success" = "清理成功";
 "user.setup.toast.clean_cache.failed" = "清理失败，请重试";
 "user.setup.aboutus" = "关于我们";
@@ -1397,3 +1403,25 @@
 "review.feedback.title" = "想听听你的意见";
 "review.feedback.message" = "能告诉我们哪里可以做得更好吗？";
 "review.action.feedback" = "去反馈";
+
+// MARK: 新用户引导 guide
+"guide.action.skip" = "跳过";
+"guide.action.previous" = "上一步";
+"guide.action.next" = "下一步";
+"guide.action.done" = "完成";
+"guide.stage1.title" = "欢迎来到 Movmov";
+"guide.stage1.content" = "开启运动体验之前，让我们先进行一个简单的设置吧！";
+"guide.stage2.title" = "选择你感兴趣的运动";
+"guide.stage2.note" = "将设为 app 的默认展示运动，稍后可在设置里调整。";
+"guide.stage3.title" = "玩法介绍";
+"guide.feature.race.desc" = "在竞技场上挥洒汗水，享受不同赛道带来的乐趣，与队友一起冲击赛季排行榜，打造自己的运动生涯。";
+"guide.feature.free_training.desc" = "随时随地开始运动，占领周围的领地，探索更多的奖励。";
+"guide.feature.route_training.desc" = "自定义路线，充分利用技能和策略完成训练，公开它让大家一起挑战，热门路线还可以加入竞技场成为赛道。";
+"guide.stage4.title" = "完善个人资料";
+"guide.stage4.nickname" = "昵称";
+"guide.stage4.nickname.placeholder" = "请输入昵称";
+"guide.stage4.gender" = "性别";
+"guide.stage4.gender.note" = "性别选择后不可修改。";
+"guide.stage4.birthday" = "生日";
+"guide.stage5.title" = "新人礼包";
+"guide.stage5.distributed" = "奖励已发放至你的账户，玩的开心！";

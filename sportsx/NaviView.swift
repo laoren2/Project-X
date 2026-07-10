@@ -132,6 +132,14 @@ enum SportFeature: String, CaseIterable, Identifiable {
     static func features(for sport: SportName) -> [SportFeature] {
         Self.allCases.filter { $0.sportType == sport }
     }
+
+    /// 某运动的默认玩法（free training），用于启动时按全局默认运动播种运动中心
+    static func defaultFeature(for sport: SportName) -> SportFeature {
+        switch sport {
+        case .Running, .Default: return .runningFreeTraining
+        default: return .bikeFreeTraining
+        }
+    }
 }
 
 enum Tab: Int, CaseIterable {
@@ -177,7 +185,15 @@ struct NaviView: View {
                     .opacity(user.showingLogin ? 1 : 0)
                     .animation(.easeInOut(duration: 0.2), value: user.showingLogin)
                     .allowsHitTesting(user.showingLogin)
+
+                // 新用户引导流程
+                if user.showingGuide {
+                    NewUserGuideView()
+                        .transition(.opacity)
+                        .zIndex(998)
+                }
             }
+            .animation(.easeInOut(duration: 0.25), value: user.showingGuide)
         }
     }
 }
@@ -283,8 +299,8 @@ struct RealNaviView: View {
                     FriendListView(id: id, selectedTab: selectedTab)
                 case .userIntroEditView:
                     UserIntroEditView()
-                //case .realNameAuthView:
-                //    RealNameAuthView()
+                case .sportSetUpView:
+                    SportSetUpView()
                 case .identityAuthView:
                     IdentityAuthView()
                 case .userSetUpAccountView:
@@ -498,7 +514,8 @@ struct SidebarDrawer<Content: View>: View {
             SidebarPanGesture(
                 enabled: navigationManager.selectedTab == .sportCenter
                     && navigationManager.path.isEmpty
-                    && !user.showingLogin,
+                    && !user.showingLogin
+                    && !user.showingGuide,
                 isOpen: navigationManager.showSideBar,
                 onChanged: { translation in
                     if !isDragging { isDragging = true }
