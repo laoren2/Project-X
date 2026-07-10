@@ -14,11 +14,20 @@ struct StoreHouseView: View {
     @ObservedObject var userManager = UserManager.shared
     
     @State var selectedAsset: CommonAssetUserInfo? = nil
-    
+
     @State var selectedTab: Int = 0
     let globalConfig = GlobalConfig.shared
-    
-    
+    // 当前展示运动：启动时初始化为全局默认运动，之后本场景可独立切换（不回写全局设置）
+    @State private var selectedSport: SportName = UserManager.shared.user.globalDefaultSport
+
+    // 按当前展示运动过滤（CCAsset 货币不在此列，不受影响）
+    private var filteredCPAssets: [CPAssetUserInfo] {
+        assetManager.cpassets.filter { $0.sportType == selectedSport }
+    }
+    private var filteredMagicCards: [MagicCard] {
+        assetManager.magicCards.filter { $0.sportType == selectedSport }
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Rectangle()
@@ -35,6 +44,19 @@ struct StoreHouseView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
+                HStack {
+                    Spacer()
+                    // 运动过滤器（本场景独立切换）
+                    CapsuleScrollSelector(
+                        options: [.Bike, .Running],
+                        selection: $selectedSport,
+                        titleKey: { $0.name },
+                        expandedWidth: 150
+                    )
+                }
+                .padding(.horizontal, 15)
+                .padding(.bottom, 8)
+
                 HStack {
                     Spacer()
                     VStack(spacing: 10) {
@@ -74,7 +96,7 @@ struct StoreHouseView: View {
                     let cpCount = 5
                     
                     ScrollView {
-                        if assetManager.cpassets.isEmpty {
+                        if filteredCPAssets.isEmpty {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 20) {
@@ -91,7 +113,7 @@ struct StoreHouseView: View {
                             .padding(.top, 100)
                         } else {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cpSpacing), count: cpCount), spacing: 10) {
-                                ForEach(assetManager.cpassets) { asset in
+                                ForEach(filteredCPAssets) { asset in
                                     CPAssetUserCardView(asset: asset)
                                     //.frame(width: itemWidth)
                                         .overlay(
@@ -124,7 +146,7 @@ struct StoreHouseView: View {
                     let cardCount = 3
                     
                     ScrollView {
-                        if assetManager.magicCards.isEmpty {
+                        if filteredMagicCards.isEmpty {
                             HStack {
                                 Spacer()
                                 VStack(spacing: 20) {
@@ -141,7 +163,7 @@ struct StoreHouseView: View {
                             .padding(.top, 100)
                         } else {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: cardSpacing), count: cardCount), spacing: 10) {
-                                ForEach(assetManager.magicCards) { card in
+                                ForEach(filteredMagicCards) { card in
                                     ZStack {
                                         MagicCardView(card: card)
                                         //.frame(width: itemWidth)
@@ -259,6 +281,10 @@ struct StoreHouseView: View {
                 }
                 globalConfig.refreshStoreHouseView  = false
             }
+        }
+        .onFirstAppear {
+            // 启动后首次进入仓库时以全局默认运动作为初始展示运动
+            selectedSport = userManager.user.globalDefaultSport
         }
     }
 }

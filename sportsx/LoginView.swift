@@ -239,16 +239,8 @@ struct SmsLoginView: View {
                         userManager.isLoggedIn = true
                         navigationManager.removeLast()
                         if unwrappedData.isRegister {
-                            PopupWindowManager.shared.presentPopup(
-                                title: "login.reigster.popup.welcome",
-                                message: "login.reigster.popup.content",
-                                bottomButtons: [
-                                    .cancel("login.reigster.popup.action.later"),
-                                    .confirm("login.reigster.popup.action.claim") {
-                                        navigationManager.append(.mailBoxView)
-                                    }
-                                ]
-                            )
+                            // 新用户引导流程
+                            userManager.showingGuide = true
                         }
                     }
                     
@@ -613,16 +605,8 @@ struct LoginView: View {
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
                         if unwrappedData.isRegister {
-                            PopupWindowManager.shared.presentPopup(
-                                title: "login.reigster.popup.welcome",
-                                message: "login.reigster.popup.content",
-                                bottomButtons: [
-                                    .cancel("login.reigster.popup.action.later"),
-                                    .confirm("login.reigster.popup.action.claim") {
-                                        navigationManager.append(.mailBoxView)
-                                    }
-                                ]
-                            )
+                            // 新用户引导流程
+                            userManager.showingGuide = true
                         }
                     }
                     
@@ -720,16 +704,8 @@ struct LoginView: View {
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
                         if unwrappedData.isRegister {
-                            PopupWindowManager.shared.presentPopup(
-                                title: "login.reigster.popup.welcome",
-                                message: "login.reigster.popup.content",
-                                bottomButtons: [
-                                    .cancel("login.reigster.popup.action.later"),
-                                    .confirm("login.reigster.popup.action.claim") {
-                                        navigationManager.append(.mailBoxView)
-                                    }
-                                ]
-                            )
+                            // 新用户引导流程
+                            userManager.showingGuide = true
                         }
                     }
                     
@@ -851,16 +827,8 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
                         userManager.isLoggedIn = true
                         userManager.showingLogin = false
                         if unwrappedData.isRegister {
-                            PopupWindowManager.shared.presentPopup(
-                                title: "login.reigster.popup.welcome",
-                                message: "login.reigster.popup.content",
-                                bottomButtons: [
-                                    .cancel("login.reigster.popup.action.later"),
-                                    .confirm("login.reigster.popup.action.claim") {
-                                        NavigationManager.shared.append(.mailBoxView)
-                                    }
-                                ]
-                            )
+                            // 新用户引导流程
+                            userManager.showingGuide = true
                         }
                     }
                     

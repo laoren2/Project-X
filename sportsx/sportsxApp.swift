@@ -99,8 +99,12 @@ final class BootstrapManager: ObservableObject {
         UserManager.shared.fetchMeRole()
 #endif
         await UserManager.shared.fetchMeInfo()
+        // 启动时按全局默认运动播种运动中心（各场景后续仍可独立切换）
+        await MainActor.run {
+            AppState.shared.sportFeature = SportFeature.defaultFeature(for: UserManager.shared.user.globalDefaultSport)
+        }
         advanceProgress(by: 10)
-        
+
         // 5. 资产系统（依赖 token）
         await AssetManager.shared.queryCCAssets()
         await AssetManager.shared.queryCPAssets(withLoadingToast: false)

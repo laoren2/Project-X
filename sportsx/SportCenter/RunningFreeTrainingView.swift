@@ -293,6 +293,7 @@ struct RunningFreeTrainingView: View {
     }
     
     func queryTrainingState() {
+        guard userManager.isLoggedIn else { return }
         guard let components = URLComponents(string: "/training/running/training_states/me") else { return }
         guard let urlPath = components.url?.absoluteString else { return }
         
@@ -315,6 +316,7 @@ struct RunningFreeTrainingView: View {
     }
     
     func queryExploration(with regionID: String) {
+        guard userManager.isLoggedIn else { return }
         var components = URLComponents(string: "/training/running/query_region_exploration")
         components?.queryItems = [
             URLQueryItem(name: "region_id", value: regionID)

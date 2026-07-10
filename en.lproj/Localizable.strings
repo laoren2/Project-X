@@ -766,6 +766,7 @@
 "training.realtime.action.pause" = "Pause";
 "training.realtime.action.resume" = "Resume";
 "training.realtime.status.paused" = "Paused";
+"training.realtime.status.paused.auto" = "Auto Paused";
 "training.realtime.popup.finish" = "Are you sure you want to end the training?";
 "training.realtime.popup.cannot_save" = "Unable to save";
 "training.realtime.popup.cannot_save.content" = "Training time or distance is too short, the record may not be saved.";
@@ -1118,6 +1119,11 @@
 "user.setup.realname_auth.method.driving_license" = "Drving license";
 "user.setup.vip_center" = "Member Subscription Center";
 "user.setup.clean_cache" = "Clear Cache";
+"user.setup.sport_settings" = "Sport Settings";
+"user.setup.auto_pause" = "Auto Pause";
+"user.setup.global_default_sport" = "Default Sport";
+"user.setup.external_default_sport" = "Profile Default Sport";
+"user.setup.external_default_sport.description" = "Sport displayed on your public profile.";
 "user.setup.toast.clean_cache.success" = "Cleanup successful";
 "user.setup.toast.clean_cache.failed" = "Cleanup failed, please try again";
 "user.setup.aboutus" = "About Us";
@@ -1397,3 +1403,25 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "review.feedback.title" = "We'd love your feedback";
 "review.feedback.message" = "Tell us what we could do better?";
 "review.action.feedback" = "Send Feedback";
+
+// MARK: 新用户引导 guide
+"guide.action.skip" = "Skip";
+"guide.action.previous" = "Previous";
+"guide.action.next" = "Next";
+"guide.action.done" = "Done";
+"guide.stage1.title" = "Welcome to Movmov";
+"guide.stage1.content" = "Before you get started, let's complete a few quick setup steps!";
+"guide.stage2.title" = "Choose your sport";
+"guide.stage2.note" = "This will be set as the app's default sport. You can change it later in Settings.";
+"guide.stage3.title" = "How it works";
+"guide.feature.race.desc" = "Compete in the Arena, explore the excitement of different routes, climb the seasonal rankings with your teammates, and build your own athletic journey.";
+"guide.feature.free_training.desc" = "Start your activity anytime, anywhere. Capture nearby territories and discover even more rewards.";
+"guide.feature.route_training.desc" = "Create your own routes and use skills and strategy to complete your training. Share your routes with the community, challenge others to take them on, and popular routes may even become official Arena tracks.";
+"guide.stage4.title" = "Complete your profile";
+"guide.stage4.nickname" = "Nickname";
+"guide.stage4.nickname.placeholder" = "Enter a nickname";
+"guide.stage4.gender" = "Gender";
+"guide.stage4.gender.note" = "Gender cannot be changed after it is set.";
+"guide.stage4.birthday" = "Birthday";
+"guide.stage5.title" = "Newcomer Gift";
+"guide.stage5.distributed" = "Rewards have been added to your account. Have fun!";

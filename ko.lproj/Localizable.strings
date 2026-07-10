@@ -766,6 +766,7 @@
 "training.realtime.action.pause" = "일시정지";
 "training.realtime.action.resume" = "계속";
 "training.realtime.status.paused" = "일시정지됨";
+"training.realtime.status.paused.auto" = "자동 일시정지";
 "training.realtime.popup.finish" = "정말 교육을 종료하시겠습니까?";
 "training.realtime.popup.cannot_save" = "저장할 수 없습니다";
 "training.realtime.popup.cannot_save.content" = "훈련 시간이나 거리가 너무 짧으면 기록이 저장되지 않을 수 있습니다.";
@@ -1118,6 +1119,11 @@
 "user.setup.realname_auth.method.driving_license" = "운전면허증";
 "user.setup.vip_center" = "멤버십 센터";
 "user.setup.clean_cache" = "캐시 정리";
+"user.setup.sport_settings" = "운동 설정";
+"user.setup.auto_pause" = "자동 일시정지";
+"user.setup.global_default_sport" = "기본 운동";
+"user.setup.external_default_sport" = "프로필 기본 운동";
+"user.setup.external_default_sport.description" = "프로필에 공개 표시되는 운동 종목.";
 "user.setup.toast.clean_cache.success" = "정리 완료";
 "user.setup.toast.clean_cache.failed" = "정리 실패, 다시 시도해주세요";
 "user.setup.aboutus" = "회사 소개";
@@ -1377,3 +1383,25 @@
 "review.feedback.title" = "의견을 들려주세요";
 "review.feedback.message" = "어떤 점을 개선하면 좋을지 알려주시겠어요?";
 "review.action.feedback" = "피드백 보내기";
+
+// MARK: 新用户引导 guide
+"guide.action.skip" = "건너뛰기";
+"guide.action.previous" = "이전";
+"guide.action.next" = "다음";
+"guide.action.done" = "완료";
+"guide.stage1.title" = "Movmov에 오신 것을 환영합니다";
+"guide.stage1.content" = "시작하기 전에 간단한 설정을 먼저 완료해 볼까요?";
+"guide.stage2.title" = "관심 있는 운동을 선택하세요";
+"guide.stage2.note" = "앱의 기본 운동으로 설정되며 나중에 설정에서 변경할 수 있습니다.";
+"guide.stage3.title" = "플레이 방법";
+"guide.feature.race.desc" = "아레나에서 도전하고 다양한 코스의 즐거움을 경험하며, 팀원들과 함께 시즌 랭킹을 향해 나아가고 자신만의 스포츠 커리어를 만들어 보세요.";
+"guide.feature.free_training.desc" = "언제 어디서나 운동을 시작하고, 주변 지역을 점령하며 다양한 보상을 발견해 보세요.";
+"guide.feature.route_training.desc" = "나만의 루트를 만들고 스킬과 전략을 활용해 훈련에 도전해 보세요. 루트를 공개하면 다른 플레이어들도 함께 도전할 수 있으며, 인기 있는 루트는 아레나의 공식 코스로 선정될 수 있습니다.";
+"guide.stage4.title" = "프로필 작성";
+"guide.stage4.nickname" = "닉네임";
+"guide.stage4.nickname.placeholder" = "닉네임을 입력하세요";
+"guide.stage4.gender" = "성별";
+"guide.stage4.gender.note" = "성별은 설정 후 변경할 수 없습니다.";
+"guide.stage4.birthday" = "생일";
+"guide.stage5.title" = "신규 사용자 선물";
+"guide.stage5.distributed" = "보상이 지급되었습니다. 즐거운 운동을 시작해 보세요!";

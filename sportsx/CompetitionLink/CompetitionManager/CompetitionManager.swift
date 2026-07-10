@@ -92,7 +92,22 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
     private var pausedAccumulated: TimeInterval = 0 // 已累计的暂停总时长（秒）
     private var pauseStartedAt: Date?               // 本次暂停的起始时刻
     private var skipNextDelta: Bool = false         // resume 后首个点跳过跨暂停弦的距离/海拔累加
-    
+
+    // MARK: - 自动暂停（仅 free training；开关由 user.autoPause 控制，running/bike 共用）
+    @Published var pausedByAuto: Bool = false       // 当前暂停是否由自动逻辑触发（手动暂停为 false，不会被移动自动恢复）
+    private var autoPauseAnchor: CLLocationCoordinate2D?  // 自动暂停时记录的锚点位置
+    private var lowSpeedStreakSeconds: Int = 0      // 连续低速累计秒数（定时器每秒 +1）
+    private let autoPauseLowSpeedDuration: Int = 5  // 低速持续达到该秒数触发自动暂停
+    private let autoResumeMoveDistance: CLLocationDistance = 10  // 离锚点位移超过该距离触发自动恢复
+    // 按运动的低速阈值（m/s）：停下时不同运动的残余速度不同
+    private func autoPauseSpeedThreshold(for sport: SportName?) -> Double {
+        switch sport {
+        case .Running: return 0.5   // ~2.9 km/h
+        case .Bike: return 1.5      // ~5.4 km/h
+        default: return 1.0
+        }
+    }
+
     @Published var showAlert = false // 是否弹出提示
     @Published var alertTitle = ""
     @Published var alertMessage = ""
@@ -1703,6 +1718,9 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         pausedAccumulated = 0
         pauseStartedAt = nil
         skipNextDelta = false
+        pausedByAuto = false
+        autoPauseAnchor = nil
+        lowSpeedStreakSeconds = 0
     }
 }
 
@@ -1796,6 +1814,9 @@ extension CompetitionManager {
         pausedAccumulated = 0
         pauseStartedAt = nil
         skipNextDelta = false
+        pausedByAuto = false
+        autoPauseAnchor = nil
+        lowSpeedStreakSeconds = 0
 
         isRecording = true
         
@@ -1830,6 +1851,41 @@ extension CompetitionManager {
         return max(0, now.timeIntervalSince(start) - pausedAccumulated - ongoingPause)
     }
 
+    /// 自动启停评估（free training 每秒调用一次）。
+    /// - 未暂停：GPS 实时速度持续低于运动阈值达 `autoPauseLowSpeedDuration` 秒 → 自动暂停并记录锚点。
+    /// - 自动暂停中：离锚点位移超过 `autoResumeMoveDistance` → 自动恢复。
+    /// 手动暂停（pausedByAuto == false）不会被移动自动恢复；开关关闭时不做任何自动控制。
+    /// 与手动控制共存：手动暂停/恢复照常可用（自动逻辑可能稍后再次接管）。
+    private func evaluateAutoPauseResume() {
+        guard sportFeature?.featureType == .freeTraining else { return }
+        guard userManager.user.autoPause else {
+            lowSpeedStreakSeconds = 0
+            return
+        }
+        guard let location = LocationManager.shared.getLocation() else { return }
+
+        if isPaused {
+            // 仅自动暂停可被移动自动恢复
+            guard pausedByAuto, let anchor = autoPauseAnchor else { return }
+            let anchorLoc = CLLocation(latitude: anchor.latitude, longitude: anchor.longitude)
+            if location.distance(from: anchorLoc) > autoResumeMoveDistance {
+                DispatchQueue.main.async { self.resumeFreeTraining() }
+            }
+        } else {
+            // GPS 速度 <0 视为无效（如信号丢失），不计入低速，避免误暂停
+            let speed = location.speed
+            if speed >= 0 && speed < autoPauseSpeedThreshold(for: sport) {
+                lowSpeedStreakSeconds += 1
+                if lowSpeedStreakSeconds >= autoPauseLowSpeedDuration {
+                    lowSpeedStreakSeconds = 0
+                    DispatchQueue.main.async { self.pauseFreeTraining(auto: true) }
+                }
+            } else {
+                lowSpeedStreakSeconds = 0
+            }
+        }
+    }
+
     private func startFreeTrainingTimer() {
         // 在比赛开始时已记录下 startTime = Date()
         let timer = DispatchSource.makeTimerSource(queue: timerQueue)
@@ -1838,6 +1894,9 @@ extension CompetitionManager {
 
         timer.setEventHandler { [weak self] in
             guard let self = self, self.isRecording, self.startTime != nil else { return }
+
+            // 自动启停评估（放在暂停判断之前：暂停期间也需要评估「离锚点位移」以自动恢复）
+            self.evaluateAutoPauseResume()
 
             // 暂停期间冻结计时与记录
             guard !self.isPaused else { return }
@@ -1951,10 +2010,14 @@ extension CompetitionManager {
 
     /// 暂停自由训练（仅 free training 有效）。手机为唯一真源，幂等。
     /// - Parameter fromRemote: 是否由手表端命令触发（true 时不再回发命令给手表，避免回环）。
-    func pauseFreeTraining(fromRemote: Bool = false) {
+    /// - Parameter auto: 是否由自动逻辑触发（true 时记录锚点，且可被移动自动恢复；手动暂停为 false）。
+    func pauseFreeTraining(fromRemote: Bool = false, auto: Bool = false) {
         guard sportFeature?.featureType == .freeTraining else { return }
         guard isRecording, !isPaused else { return }   // 幂等：未在录制或已暂停则忽略
         isPaused = true
+        pausedByAuto = auto
+        autoPauseAnchor = auto ? LocationManager.shared.getLocation()?.coordinate : nil
+        lowSpeedStreakSeconds = 0
         pauseStartedAt = Date()
         // 冻结当前有效时长，定时器在 isPaused 期间不再推进
         DispatchQueue.main.async {
@@ -1976,6 +2039,9 @@ extension CompetitionManager {
         }
         pauseStartedAt = nil
         isPaused = false
+        pausedByAuto = false                           // 清理自动暂停状态
+        autoPauseAnchor = nil
+        lowSpeedStreakSeconds = 0
         currentSegment += 1                            // 开启新活动段
         skipNextDelta = true                           // 下一个记录点不与上一段末点连线/累距
         // 广播给手表（手机为唯一真源；fromRemote 时手表已自行恢复，无需回发）

@@ -360,6 +360,11 @@ struct SquareView: View {
                 //}
                 //.padding(.top, 20)
                 
+                // guide测试
+                //Button("test") {
+                //    UserManager.shared.showingGuide = true
+                //}
+                
                 // 进度条动画测试
                 /*Button("test") {
                     PopupWindowManager.shared.presentPopup(

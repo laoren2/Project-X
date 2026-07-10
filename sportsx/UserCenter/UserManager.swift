@@ -26,7 +26,8 @@ class UserManager: ObservableObject {
     
     @Published var isLoggedIn: Bool = false
     @Published var showingLogin: Bool = false
-    
+    @Published var showingGuide: Bool = false   // 新用户引导流程（注册后 isRegister 触发）
+
     @Published var mailboxUnreadCount: Int = 0
     
     @Published var role: UserRole = UserRole.user  // 用户权限
@@ -260,6 +261,8 @@ class UserManager: ObservableObject {
         defaults.set(followerCount, forKey: "followerCount")
         defaults.set(friendCount, forKey: "friendCount")
         defaults.set(user.defaultSport.rawValue, forKey: "user.defaultSport")
+        defaults.set(user.globalDefaultSport.rawValue, forKey: "user.globalDefaultSport")
+        defaults.set(user.autoPause, forKey: "user.autoPause")
         defaults.set(user.isVip, forKey: "user.isVip")
     }
     
@@ -267,8 +270,11 @@ class UserManager: ObservableObject {
         let defaults = UserDefaults.standard
         let genderRaw = defaults.string(forKey: "user.gender")
         let sportRaw = defaults.string(forKey: "user.defaultSport")
+        let globalSportRaw = defaults.string(forKey: "user.globalDefaultSport")
         let gender = genderRaw.flatMap { Gender(rawValue: $0) }
         let defaultSport = sportRaw.flatMap { SportName(rawValue: $0) }
+        let globalDefaultSport = globalSportRaw.flatMap { SportName(rawValue: $0) }
+        let autoPause = defaults.object(forKey: "user.autoPause") == nil ? true : defaults.bool(forKey: "user.autoPause")
         user = User(
             userID: defaults.string(forKey: "user.userID") ?? "未知",
             appleIAPToken: defaults.string(forKey: "user.appleIAPToken") ?? "未知",
@@ -290,6 +296,8 @@ class UserManager: ObservableObject {
             enableAutoLocation: defaults.bool(forKey: "user.enableAutoLocation"),
             isDisplayIdentity: defaults.bool(forKey: "user.isDisplayIdentity"),
             defaultSport: defaultSport ?? .Bike,
+            globalDefaultSport: globalDefaultSport ?? .Bike,
+            autoPause: autoPause,
             isVip: defaults.bool(forKey: "user.isVip")
         )
         
@@ -337,6 +345,8 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.enableAutoLocation")
         defaults.removeObject(forKey: "user.isDisplayIdentity")
         defaults.removeObject(forKey: "user.defaultSport")
+        defaults.removeObject(forKey: "user.globalDefaultSport")
+        defaults.removeObject(forKey: "user.autoPause")
         defaults.removeObject(forKey: "user.isVip")
         
         defaults.removeObject(forKey: "followedCount")
@@ -649,7 +659,9 @@ struct UserDTO: Codable {
     let enable_auto_location: Bool    // 是否使用最新定位的地理位置
     let is_display_identity: Bool     // 是否展示身份名称
     
-    let default_sport: SportName      // 主页默认展示的运动
+    let default_sport: SportName      // 外部主页默认展示的运动（他人查看时）
+    let global_default_sport: SportName  // 全局默认运动：每次启动 app 时商店/运动中心/仓库/local profile 的初始展示运动
+    let auto_pause: Bool              // free training 自动暂停开关
     let status: UserStatus              // 用户账号状态
     let is_vip: Bool
 }
@@ -679,10 +691,12 @@ struct User: Identifiable, Codable, Hashable {
     var isDisplayLocation: Bool     // 是否展示地理位置
     var enableAutoLocation: Bool    // 是否使用最新定位的地理位置
     var isDisplayIdentity: Bool     // 是否展示身份名称
-    var defaultSport: SportName     // 主页默认展示的运动
+    var defaultSport: SportName     // 外部主页默认展示的运动（他人查看时）
+    var globalDefaultSport: SportName  // 全局默认运动：启动时商店/运动中心/仓库/local profile 的初始展示运动
+    var autoPause: Bool             // free training 自动暂停开关
     let status: UserStatus
     var isVip: Bool
-    
+
     init(
         userID: String = "未知",
         appleIAPToken: String = "",
@@ -704,6 +718,8 @@ struct User: Identifiable, Codable, Hashable {
         enableAutoLocation: Bool = false,
         isDisplayIdentity: Bool = false,
         defaultSport: SportName = .Bike,
+        globalDefaultSport: SportName = .Bike,
+        autoPause: Bool = true,
         status: UserStatus = .normal,
         isVip: Bool = false
     ) {
@@ -727,6 +743,8 @@ struct User: Identifiable, Codable, Hashable {
         self.enableAutoLocation = enableAutoLocation
         self.isDisplayIdentity = isDisplayIdentity
         self.defaultSport = defaultSport
+        self.globalDefaultSport = globalDefaultSport
+        self.autoPause = autoPause
         self.status = status
         self.isVip = isVip
     }
@@ -752,6 +770,8 @@ struct User: Identifiable, Codable, Hashable {
         self.enableAutoLocation = dto.enable_auto_location
         self.isDisplayIdentity = dto.is_display_identity
         self.defaultSport = dto.default_sport
+        self.globalDefaultSport = dto.global_default_sport
+        self.autoPause = dto.auto_pause
         self.status = dto.status
         self.isVip = dto.is_vip
     }
