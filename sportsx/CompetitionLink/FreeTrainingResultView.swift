@@ -147,7 +147,7 @@ struct BikeFreeTrainingRecordDetailView: View {
     @State private var showShareEditor: Bool = false
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg)
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
     }
 
     var body: some View {
@@ -208,6 +208,10 @@ struct BikeFreeTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
+                                    .padding(.top, 10)
+                            }
                             // 结算信息
                             HStack {
                                 Text("competition.record.settlement_rewards")
@@ -287,6 +291,11 @@ struct BikeFreeTrainingRecordDetailView: View {
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(width: 15)
+                                                        .offset(x: 4, y: -4)
+                                                } else if buff.conditionType == .weather {
+                                                    Image(systemName: "cloud.sun.fill")
+                                                        .font(.system(size: 13))
+                                                        .foregroundStyle(Color.white)
                                                         .offset(x: 4, y: -4)
                                                 }
                                             }
@@ -716,6 +725,10 @@ struct BikeFreeTrainingRecordDetailView: View {
                                     }
                                 }
                             }
+                            if detailInfo.weather != nil {
+                                WeatherDataAttribution()
+                                    .padding(.bottom, 0)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 80)
@@ -893,7 +906,7 @@ struct RunningFreeTrainingRecordDetailView: View {
     @State private var showShareEditor: Bool = false
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg)
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
     }
 
     var body: some View {
@@ -954,6 +967,10 @@ struct RunningFreeTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
+                                    .padding(.top, 10)
+                            }
                             // 结算信息
                             HStack {
                                 Text("competition.record.settlement_rewards")
@@ -1033,6 +1050,11 @@ struct RunningFreeTrainingRecordDetailView: View {
                                                         .resizable()
                                                         .scaledToFit()
                                                         .frame(width: 15)
+                                                        .offset(x: 4, y: -4)
+                                                } else if buff.conditionType == .weather {
+                                                    Image(systemName: "cloud.sun.fill")
+                                                        .font(.system(size: 13))
+                                                        .foregroundStyle(Color.white)
                                                         .offset(x: 4, y: -4)
                                                 }
                                             }
@@ -1462,6 +1484,10 @@ struct RunningFreeTrainingRecordDetailView: View {
                                         }
                                     }
                                 }
+                            }
+                            if detailInfo.weather != nil {
+                                WeatherDataAttribution()
+                                    .padding(.bottom, 0)
                             }
                         }
                         .padding(.horizontal)

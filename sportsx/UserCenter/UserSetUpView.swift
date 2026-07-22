@@ -424,6 +424,21 @@ struct UserSetUpAccountView: View {
                             }
                         }
                     }
+                    SetUpItemView(icon: "globe", title: "user.setup.google_account") {
+                        appState.navigationManager.append(.googleBindView)
+                    } trailingView: {
+                        if userManager.user.google_email != nil {
+                            Text("user.setup.phone.status.has_bind")
+                                .foregroundStyle(Color.secondText)
+                        } else {
+                            HStack(alignment: .bottom, spacing: 2) {
+                                Image(systemName: "exclamationmark.circle")
+                                    .foregroundStyle(Color.pink)
+                                Text("user.setup.phone.status.no_bind")
+                                    .foregroundStyle(Color.secondText)
+                            }
+                        }
+                    }
                     SetUpItemView(icon: "envelope.fill", title: "user.page.features.email_box", showDivider: false) {
                         appState.navigationManager.append(.emailBindView)
                     } trailingView: {
@@ -472,6 +487,7 @@ struct UserSetUpAccountView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
     }
+
 }
 
 struct PhoneBindView: View {
@@ -806,6 +822,75 @@ struct AppleBindView: View {
                     ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
                 }
             default: break
+            }
+        }
+    }
+}
+
+struct GoogleBindView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject private var userManager = UserManager.shared
+
+    var body: some View {
+        VStack(spacing: 20) {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+
+                Spacer()
+
+                Text("user.setup.google_account")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Button(action: {}) {
+                    Image(systemName: "chevron.left").foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
+
+            Spacer()
+            if let email = userManager.user.google_email {
+                Text("user.setup.google.bind_info \(email.maskedEmail())")
+                    .foregroundStyle(.white)
+                    .padding(.horizontal)
+                Button(action: unbindGoogle) {
+                    Text("user.setup.action.phone.unbind")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                        .padding(.top, 10)
+                }
+            } else {
+                GoogleRoundSignInButton {
+                    GoogleSignInCoordinator.shared.startBinding()
+                }
+                .accessibilityLabel("user.setup.action.google.bind")
+            }
+            Spacer()
+        }
+        .padding(.horizontal)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+    }
+
+    private func unbindGoogle() {
+        let request = APIRequest(path: "/user/account/unbind_google", method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            guard case .success = result else { return }
+            DispatchQueue.main.async {
+                UserManager.shared.user.google_email = nil
+                UserManager.shared.saveUserInfoToCache()
+                ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
             }
         }
     }
@@ -1373,10 +1458,14 @@ struct FeedbackView: View {
 
 struct AboutUsView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
+    @Environment(\.openURL) private var openURL
     
-    let XAccount: String = "Passionkc26"
     let emailAdress: String = "contact@valbara.top"
     let vxAccount: String = "97784765"
+    private let xProfileURL = URL(string: "https://x.com/passionkc26")!
+    private let tiktokProfileURL = URL(string: "www.tiktok.com/@movmov141")!
+    private let youtubeProfileURL = URL(string: "https://www.youtube.com/@movmov-qy1bl8ry1z")!
+    private let instagramProfileURL = URL(string: "https://www.instagram.com/movmov55")!
     
     var body: some View {
         VStack {
@@ -1429,19 +1518,6 @@ struct AboutUsView: View {
                             Spacer()
                         }
                         VStack(spacing: 0) {
-                            SetUpItemView(icon: "X_icon", title: "X(Twitter)", showChevron: false, isSysIcon: false) {
-                                UIPasteboard.general.string = emailAdress
-                                let toast = Toast(message: "toast.copied", duration: 2)
-                                ToastManager.shared.show(toast: toast)
-                            } trailingView: {
-                                HStack(spacing: 4) {
-                                    Text(XAccount)
-                                    Image(systemName: "doc.on.doc")
-                                }
-                                .foregroundStyle(Color.thirdText)
-                                .font(.subheadline)
-                            }
-                            
                             SetUpItemView(icon: "envelope", title: "user.setup.contact_us.email", showChevron: false) {
                                 UIPasteboard.general.string = emailAdress
                                 let toast = Toast(message: "toast.copied", duration: 2)
@@ -1455,7 +1531,7 @@ struct AboutUsView: View {
                                 .font(.subheadline)
                             }
                             
-                            SetUpItemView(icon: "wechat", title: "user.setup.contact_us.wx", showChevron: false, showDivider: false, isSysIcon: false) {
+                            SetUpItemView(icon: "wechat", title: "user.setup.contact_us.wx", showChevron: false, isSysIcon: false) {
                                 UIPasteboard.general.string = vxAccount
                                 let toast = Toast(message: "toast.copied", duration: 2)
                                 ToastManager.shared.show(toast: toast)
@@ -1466,6 +1542,22 @@ struct AboutUsView: View {
                                 }
                                 .foregroundStyle(Color.thirdText)
                                 .font(.subheadline)
+                            }
+                            
+                            SetUpItemView(icon: "X_icon", title: "X(Twitter)", showChevron: true, isSysIcon: false) {
+                                openURL(xProfileURL)
+                            }
+                            
+                            SetUpItemView(icon: "tiktok_icon", title: "Tiktok", showChevron: true, isSysIcon: false) {
+                                openURL(tiktokProfileURL)
+                            }
+
+                            SetUpItemView(icon: "youtube_icon", title: "Youtube", showChevron: true, isSysIcon: false) {
+                                openURL(youtubeProfileURL)
+                            }
+
+                            SetUpItemView(icon: "instagram_icon", title: "Instagram", showChevron: true, showDivider: false, isSysIcon: false) {
+                                openURL(instagramProfileURL)
                             }
                         }
                         .cornerRadius(20)
@@ -1478,6 +1570,15 @@ struct AboutUsView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
+    }
+
+    private func socialProfileLabel(_ account: String) -> some View {
+        HStack(spacing: 4) {
+            Text(account)
+            Image(systemName: "arrow.up.right.square")
+        }
+        .foregroundStyle(Color.thirdText)
+        .font(.subheadline)
     }
 }
 

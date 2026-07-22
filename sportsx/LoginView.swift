@@ -155,7 +155,7 @@ struct SmsLoginView: View {
             .padding(.top, 50)
             
             HStack(spacing: 5) {
-                Image(systemName: agreed ? "checkmark.circle" : "circle")
+                Image(systemName: agreed ? "checkmark.circle.fill" : "circle")
                     .frame(width: 15, height: 15)
                     .foregroundStyle(agreed ? Color.orange : Color.secondText)
                     .onTapGesture {
@@ -401,16 +401,13 @@ struct LoginView: View {
                     .minimumScaleFactor(0.7)
                     .padding(.top, 40)
                 
-                HStack {
-                    Text("login.subtitle")
-                        .foregroundStyle(Color.thirdText)
-                        .font(.headline)
-                    Spacer()
-                }
                 VStack(spacing: 20) {
                     Text("login.email.title")
                         .foregroundStyle(Color.white)
                         .font(.title2)
+                    Text("login.subtitle")
+                        .foregroundStyle(Color.thirdText)
+                        .font(.headline)
                     TextField(text: $emailAddress) {
                         Text("login.email.placeholder")
                             .foregroundStyle(Color.gray)
@@ -475,7 +472,7 @@ struct LoginView: View {
                 .padding(.top, 50)
                 
                 HStack(spacing: 5) {
-                    Image(systemName: agreed ? "checkmark.circle" : "circle")
+                    Image(systemName: agreed ? "checkmark.circle.fill" : "circle")
                         .frame(width: 15, height: 15)
                         .foregroundStyle(agreed ? Color.orange : Color.secondText)
                         .onTapGesture {
@@ -526,43 +523,36 @@ struct LoginView: View {
             // 使用ZStack布局可以暂时解决键盘弹出挤压问题
             VStack {
                 Spacer()
-                HStack(spacing: 6) {
-                    Spacer()
-                    VStack {
+                HStack(spacing: 24) {
+                    Button(action: loginWithAppleID) {
                         Image("appleid_button")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 55)
-                        Text("login.apple.action")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.secondText)
+                            .frame(width: 48, height: 48)
+                            .overlay(Circle().stroke(Color(red: 0.46, green: 0.47, blue: 0.47), lineWidth: 1))
                     }
-                    .onTapGesture {
-                        loginWithAppleID()
+                    .accessibilityLabel("login.apple.action")
+
+                    GoogleRoundSignInButton {
+                        startGoogleSignIn()
                     }
-                    Spacer()
-                    VStack(spacing: 6) {
+
+                    Button(action: {
+                        navigationManager.append(.smsLoginView)
+                        userManager.showingLogin = false
+                    }) {
                         ZStack {
-                            Circle()
-                                .fill(Color.secondText)
-                                .frame(width: 55, height: 55)
+                            Circle().fill(Color.secondText).frame(width: 48, height: 48)
+                                .overlay(Circle().stroke(Color(red: 0.46, green: 0.47, blue: 0.47), lineWidth: 1))
                             Image("sms_login")
                                 .renderingMode(.template)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 28)
+                                .frame(width: 24)
                                 .foregroundStyle(Color.black)
                         }
-                            
-                        Text("login.sms.action")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.secondText)
                     }
-                    .onTapGesture {
-                        navigationManager.append(.smsLoginView)
-                        userManager.showingLogin = false
-                    }
-                    Spacer()
+                    .accessibilityLabel("login.sms.action")
                 }
                 .padding(.bottom, 50)
             }
@@ -736,6 +726,14 @@ struct LoginView: View {
         controller.presentationContextProvider = AppleSignInCoordinator.shared
         controller.performRequests()
     }
+
+    func startGoogleSignIn() {
+        guard agreed else {
+            ToastManager.shared.show(toast: Toast(message: "login.toast.privacy_and_user_agreement"))
+            return
+        }
+        GoogleSignInCoordinator.shared.startLogin()
+    }
     
     func startCodeTimer() {
         timer?.invalidate()
@@ -858,5 +856,5 @@ struct LoginResponse: Codable {
 }
 
 #Preview {
-    SmsLoginView()
+    LoginView()
 }

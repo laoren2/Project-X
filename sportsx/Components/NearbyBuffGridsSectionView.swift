@@ -215,6 +215,11 @@ struct NearbyBuffGridsSectionView: View {
                     .scaledToFit()
                     .frame(width: 15)
                     .offset(x: 4, y: -4)
+            } else if grid.condition_type == "weather" {
+                Image(systemName: "cloud.sun.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.white)
+                    .offset(x: 4, y: -4)
             }
         }
         .frame(width: 40, height: 40)
@@ -248,6 +253,11 @@ struct NearbyBuffGridsSectionView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 15)
+                            .offset(x: 4, y: -4)
+                    } else if grid.condition_type == "weather" {
+                        Image(systemName: "cloud.sun.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.white)
                             .offset(x: 4, y: -4)
                     }
                 }

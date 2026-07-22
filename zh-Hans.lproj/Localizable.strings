@@ -1134,6 +1134,9 @@
 "user.setup.logout" = "退出登录";
 "user.setup.phone_number" = "手机号";
 "user.setup.apple_account" = "Apple账号";
+"user.setup.google_account" = "Google账号";
+"user.setup.google.bind_info %@" = "已绑定 Google 账号：%@";
+"user.setup.action.google.bind" = "绑定 Google 账号";
 "user.setup.phone.status.no_bind" = "未绑定";
 "user.setup.phone.status.has_bind" = "已绑定";
 "user.setup.phone.bind_info %@" = "已绑定手机号：%@";
@@ -1303,6 +1306,7 @@
 "login.email.send_result.1 %lld" = "邮件已发送，%lld 秒后可重新发送";
 "login.email.send_result.2" = "没收到邮件？点击重新发送";
 "login.apple.action" = "通过 Apple 登录";
+"login.google.not_configured" = "Google 登录尚未配置，请稍后再试";
 "login.toast.privacy_and_user_agreement" = "请同意用户协议和隐私政策";
 "login.toast.error_number" = "请输入正确的号码";
 "login.toast.error_code" = "请输入正确的验证码";
@@ -1358,6 +1362,7 @@
 "share.editor.title" = "分享图";
 "share.action.save" = "保存";
 "share.editor.track_color" = "轨迹颜色";
+"share.editor.text_color" = "文字颜色";
 "share.editor.choose_background" = "选择背景图";
 "share.element.track" = "轨迹";
 "share.element.sport" = "运动";
@@ -1425,3 +1430,10 @@
 "guide.stage4.birthday" = "生日";
 "guide.stage5.title" = "新人礼包";
 "guide.stage5.distributed" = "奖励已发放至你的账户，玩的开心！";
+"share.element.weather" = "天气";
+"weather.condition.clear" = "晴";
+"weather.condition.cloudy" = "多云";
+"weather.condition.rain" = "雨";
+"weather.condition.snow" = "雪";
+"weather.condition.fog" = "雾";
+"weather.condition.unknown" = "未知";

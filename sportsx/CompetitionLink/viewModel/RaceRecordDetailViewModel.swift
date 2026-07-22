@@ -105,6 +105,7 @@ struct BikeRaceRecordDetailInfo {
     let originalTime: Double            // 原始成绩
     let finalTime: Double               // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
     let penaltyTime: Double             // 总罚时
+    let endTime: String?
     let isFinishComputed: Bool          // 有效成绩是否还在后台计算中
     let cardBonus: [CardBonusInfo]      // 我的卡牌奖励
     let extraCardBonus: [CardBonusInfo]      // 其他卡牌奖励
@@ -113,12 +114,14 @@ struct BikeRaceRecordDetailInfo {
     let familiarityTime: Double         // 熟悉度收益时间
     let trainingStateTime: Double       // 训练状态收益时间
     let totalCardTime: Double           // 总卡牌时间收益
+    let weather: WorkoutWeather?
     
     init(from detail: BikeRaceRecordDetailResponse) {
         self.status = detail.status
         self.originalTime = detail.original_time
         self.finalTime = detail.final_time
         self.penaltyTime = detail.penalty_time
+        self.endTime = detail.end_time
         self.isFinishComputed = detail.is_finish_computed
         var myBonus: [CardBonusInfo] = []
         var otherBonus: [CardBonusInfo] = []
@@ -161,6 +164,7 @@ struct BikeRaceRecordDetailInfo {
             cardTime += card_bonus.bonus_time
         }
         self.totalCardTime = cardTime
+        self.weather = detail.weather
     }
 }
 
@@ -169,6 +173,7 @@ struct RunningRaceRecordDetailInfo {
     let originalTime: Double            // 原始成绩
     let finalTime: Double               // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
     let penaltyTime: Double             // 总罚时
+    let endTime: String?
     let isFinishComputed: Bool          // 有效成绩是否还在后台计算中
     let cardBonus: [CardBonusInfo]      // 我的卡牌奖励
     let extraCardBonus: [CardBonusInfo]      // 其他卡牌奖励
@@ -177,12 +182,14 @@ struct RunningRaceRecordDetailInfo {
     let familiarityTime: Double         // 熟悉度收益时间
     let trainingStateTime: Double       // 训练状态收益时间
     let totalCardTime: Double
+    let weather: WorkoutWeather?
     
     init(from detail: RunningRaceRecordDetailResponse) {
         self.status = detail.status
         self.originalTime = detail.original_time
         self.finalTime = detail.final_time
         self.penaltyTime = detail.penalty_time
+        self.endTime = detail.end_time
         self.isFinishComputed = detail.is_finish_computed
         var myBonus: [CardBonusInfo] = []
         var otherBonus: [CardBonusInfo] = []
@@ -225,6 +232,7 @@ struct RunningRaceRecordDetailInfo {
             cardTime += card_bonus.bonus_time
         }
         self.totalCardTime = cardTime
+        self.weather = detail.weather
     }
 }
 
@@ -265,6 +273,7 @@ struct BikeRaceRecordDetailResponse: Codable {
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
     let penalty_time: Double            // 总罚时
+    let end_time: String?
     let is_finish_computed: Bool        // 是否已完成有效成绩计算
     let path: [BikePathPoint]           // 比赛路径记录
     let card_bonus: [CardBonusDTO]      // 所有卡牌的奖励时间
@@ -272,6 +281,7 @@ struct BikeRaceRecordDetailResponse: Codable {
     let settlements: JSONValue?         // 比赛结算
     let familiarity_time: Double        // 熟悉度收益时间
     let training_state_time: Double     // 训练状态收益时间
+    let weather: WorkoutWeather?
 }
 
 struct RunningRaceRecordDetailResponse: Codable {
@@ -280,6 +290,7 @@ struct RunningRaceRecordDetailResponse: Codable {
     let original_time: Double           // 原始成绩
     let final_time: Double              // 有效成绩 （ = 原始成绩 + 总罚时 - 所有卡牌的奖励时间 ）
     let penalty_time: Double            // 总罚时
+    let end_time: String?
     let is_finish_computed: Bool        // 是否已完成有效成绩计算
     let path: [RunningPathPoint]        // 比赛路径记录
     let card_bonus: [CardBonusDTO]      // 所有卡牌的奖励时间
@@ -287,6 +298,7 @@ struct RunningRaceRecordDetailResponse: Codable {
     let settlements: JSONValue?         // 比赛结算
     let familiarity_time: Double        // 熟悉度收益时间
     let training_state_time: Double     // 训练状态收益时间
+    let weather: WorkoutWeather?
 }
 
 struct BikeSamplePathPoint {

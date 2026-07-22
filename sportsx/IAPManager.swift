@@ -31,7 +31,7 @@ class IAPManager: ObservableObject {
     
     let subscriptionProductIDs: [String] = [
         "com.valbara.sporreer.subscription.1m.auto",
-        "com.valbara.sporreer.subscription.3m.auto",
+        //"com.valbara.sporreer.subscription.3m.auto",
         "com.valbara.sporreer.subscription.6m.auto",
         "com.valbara.sporreer.subscription.1y.auto"
     ]

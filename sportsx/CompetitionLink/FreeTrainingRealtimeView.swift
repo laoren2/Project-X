@@ -524,6 +524,11 @@ private struct NearbyGridGuideCardView: View {
                         .scaledToFit()
                         .frame(width: 15)
                         .offset(x: 4, y: -4)
+                } else if grid.conditionType == "weather" {
+                    Image(systemName: "cloud.sun.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.white)
+                        .offset(x: 4, y: -4)
                 }
             }
             .frame(width: 35, height: 35)

@@ -1134,6 +1134,9 @@
 "user.setup.logout" = "退出登入";
 "user.setup.phone_number" = "手機號";
 "user.setup.apple_account" = "Apple帳號";
+"user.setup.google_account" = "Google帳號";
+"user.setup.google.bind_info %@" = "已綁定 Google 帳號：%@";
+"user.setup.action.google.bind" = "綁定 Google 帳號";
 "user.setup.phone.status.no_bind" = "未綁定";
 "user.setup.phone.status.has_bind" = "已綁定";
 "user.setup.phone.bind_info %@" = "已綁定手機號：%@";
@@ -1303,6 +1306,7 @@
 "login.email.send_result.1 %lld" = "郵件已發送，%lld 秒後可重新發送";
 "login.email.send_result.2" = "沒收到郵件？點擊重新發送";
 "login.apple.action" = "通過 Apple 登入";
+"login.google.not_configured" = "Google 登入尚未設定，請稍後再試";
 "login.toast.privacy_and_user_agreement" = "請同意使用者協議和隱私權政策";
 "login.toast.error_number" = "請輸入正確的號碼";
 "login.toast.error_code" = "請輸入正確的驗證碼";
@@ -1358,6 +1362,7 @@
 "share.editor.title" = "分享圖";
 "share.action.save" = "儲存";
 "share.editor.track_color" = "軌跡顏色";
+"share.editor.text_color" = "文字顏色";
 "share.editor.choose_background" = "選擇背景圖";
 "share.element.track" = "軌跡";
 "share.element.sport" = "運動";
@@ -1425,3 +1430,10 @@
 "guide.stage4.birthday" = "生日";
 "guide.stage5.title" = "新人禮包";
 "guide.stage5.distributed" = "獎勵已發放至你的帳戶，玩的開心！";
+"share.element.weather" = "天氣";
+"weather.condition.clear" = "晴";
+"weather.condition.cloudy" = "多雲";
+"weather.condition.rain" = "雨";
+"weather.condition.snow" = "雪";
+"weather.condition.fog" = "霧";
+"weather.condition.unknown" = "未知";

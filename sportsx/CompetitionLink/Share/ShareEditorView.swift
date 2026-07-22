@@ -43,7 +43,7 @@ struct ShareElementContent: View {
     let kind: ShareElementKind
     let metrics: ShareMetrics
     let trackColor: Color
-    /// metricChip / logo 的文字色（根据所覆盖背景自适应黑/白）
+    /// 所有文字、图标与 Logo 共用的颜色。
     var textColor: Color = .white
     /// 轨迹元素基础边长（再由 element.scale 缩放）
     var trackBaseSize: CGFloat = 160
@@ -73,6 +73,16 @@ struct ShareElementContent: View {
             metricChip(value: metrics.elevationGainText, unitKey: "distance.m", labelKey: "share.element.elevation_gain")
         case .cadence:
             metricChip(value: metrics.cadenceText, unitKey: metrics.cadenceUnitKey, labelKey: metrics.cadenceLabelKey)
+        case .weather:
+            if let weather = metrics.weather {
+                HStack(spacing: 5) {
+                    Image(systemName: weather.symbolName)
+                    Text(String(format: "%.1f°C", weather.temperature_c))
+                }
+                .font(.system(.title3, design: .rounded, weight: .bold))
+                .foregroundStyle(textColor)
+                .shadow(color: shadowColor, radius: 3, x: 0, y: 1)
+            }
         case .logo:
             HStack(spacing: 6) {
                 Image("single_app_icon")
@@ -81,7 +91,7 @@ struct ShareElementContent: View {
                     .scaledToFit()
                     .frame(height: 25)
                 Image("app_logo_text")
-                    .renderingMode(.template)      // 作为模板，用 textColor 着色（支持动态黑/白）
+                    .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
                     .frame(height: 25)
@@ -92,9 +102,9 @@ struct ShareElementContent: View {
         }
     }
 
-    // 文字为白时用深阴影、为黑时用浅阴影，弱化边缘
+    // 保持阴影固定，避免随文字颜色切换而造成风格不统一。
     private var shadowColor: Color {
-        textColor == .white ? .black.opacity(0.4) : .white.opacity(0.4)
+        .black.opacity(0.4)
     }
 
     private func metricChip(value: String, unitKey: String?, labelKey: String) -> some View {
@@ -132,10 +142,6 @@ struct InteractiveShareElement<Content: View>: View {
     let onSizeChange: (CGSize) -> Void
     // 上报对齐辅助线位置（吸附时为目标中心相对画布中心的偏移，否则 nil）
     let onGuides: (_ x: CGFloat?, _ y: CGFloat?) -> Void
-    // 拖动/缩放结束后回调（用于重算自适应文字色）
-    var onCommit: () -> Void = {}
-    // 拖动过程中的实时回调（限频在父级做，用于实时文字色）
-    var onLiveMove: () -> Void = {}
     let content: Content
 
     // 本元素未缩放固有尺寸（自身测量，限制范围时直接用，避免依赖父级字典/闭包导致的过期值）
@@ -187,14 +193,12 @@ struct InteractiveShareElement<Content: View>: View {
                         wasSnappedX = finalSnapX
                         wasSnappedY = finalSnapY
                         onGuides(finalSnapX ? clamped.width : nil, finalSnapY ? clamped.height : nil)
-                        onLiveMove()
                     }
                     .onEnded { _ in
                         dragStart = nil
                         wasSnappedX = false
                         wasSnappedY = false
                         onGuides(nil, nil)
-                        onCommit()
                     }
             )
             .onTapGesture { onSelect() }
@@ -227,7 +231,7 @@ struct ShareExportCanvas: View {
     let metrics: ShareMetrics
     let states: [ShareElementKind: ShareElementState]
     let trackColor: Color
-    let textColors: [ShareElementKind: Color]
+    let textColor: Color
     let bgImage: UIImage?
     let size: CGSize
 
@@ -236,7 +240,7 @@ struct ShareExportCanvas: View {
             ShareBackground(bgImage: bgImage)
             ForEach(ShareElementKind.allCases) { kind in
                 if let st = states[kind], st.enabled {
-                    ShareElementContent(kind: kind, metrics: metrics, trackColor: trackColor, textColor: textColors[kind] ?? .white)
+                    ShareElementContent(kind: kind, metrics: metrics, trackColor: trackColor, textColor: textColor)
                         .scaleEffect(st.scale)
                         .offset(st.offset)
                 }
@@ -288,24 +292,22 @@ struct ShareEditorView: View {
     @State private var snapEnabled: Bool = true            // 是否启用自动吸附
     @State private var guideX: CGFloat? = nil              // 竖向对齐辅助线位置（相对画布中心）
     @State private var guideY: CGFloat? = nil              // 横向对齐辅助线位置
-    @State private var textColors: [ShareElementKind: Color] = [:]   // 各文字元素自适应黑/白色
-    @State private var lastLiveSampleTime: TimeInterval = 0           // 拖动实时取色限频时间戳
-#if DEBUG
-    @State private var debugSampleText: String = ""                  // DEBUG: 采样对比度信息
-    @State private var debugSampleColor: Color = .clear              // DEBUG: 采样到的平均色
-#endif
+    @State private var textColor: Color = .white
 
     private let aspect: CGFloat = 9.0 / 16.0      // 宽 : 高
     private let exportWidth: CGFloat = 1080
     private let minScale: CGFloat = 0.5
     private let snapThreshold: CGFloat = 8
-    private let liveSampleInterval: TimeInterval = 0.04    // 拖动实时取色最小间隔（~25fps）
 
     // 当前生效的背景图（照片 / 轨迹地图）
     private var backgroundImage: UIImage? {
         backgroundMode == .map ? mapImage : photoImage
     }
     private var canUseMap: Bool { metrics.coordinates.count > 1 }
+    private var canvasReservedHeight: CGFloat {
+        // 照片模式多出「选择背景图」按钮，需为完整控制面板保留更多空间。
+        backgroundMode == .photo ? 300 : 250
+    }
 
     init(metrics: ShareMetrics) {
         self.metrics = metrics
@@ -336,7 +338,6 @@ struct ShareEditorView: View {
                     let normalized = ImageTool.normalizedUp(img)   // 烘焙 .up 朝向，保证采样坐标与像素一致
                     await MainActor.run {
                         photoImage = normalized
-                        updateAllTextColors()
                     }
                 }
             }
@@ -407,9 +408,7 @@ struct ShareEditorView: View {
                         onSelect: { selected = kind },
                         onSizeChange: { setElementSize(kind, $0) },
                         onGuides: { x, y in guideX = x; guideY = y },
-                        onCommit: { updateTextColor(for: kind) },
-                        onLiveMove: { liveUpdateTextColor(for: kind) },
-                        content: ShareElementContent(kind: kind, metrics: metrics, trackColor: trackColor, textColor: textColors[kind] ?? .white)
+                        content: ShareElementContent(kind: kind, metrics: metrics, trackColor: trackColor, textColor: textColor)
                     )
                 }
             }
@@ -438,40 +437,9 @@ struct ShareEditorView: View {
                 .allowsHitTesting(false)
             }
 
-            #if DEBUG
-            // DEBUG: 红框标出当前选中文字元素「实际被采样」的背景区域
-            if let sel = selected, sel != .track, let sz = elementSizes[sel], let st = states[sel] {
-                Rectangle()
-                    .stroke(Color.red, lineWidth: 1)
-                    .frame(width: sz.width * st.scale, height: sz.height * st.scale)
-                    .offset(st.offset)
-                    .allowsHitTesting(false)
-            }
-            #endif
         }
         .frame(width: size.width, height: size.height)
         .clipped()
-        #if DEBUG
-        .overlay(alignment: .top) {
-            if let sel = selected, sel != .track {
-                HStack(spacing: 6) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(debugSampleColor)
-                        .frame(width: 16, height: 16)
-                        .overlay(RoundedRectangle(cornerRadius: 3).stroke(.white.opacity(0.6), lineWidth: 1))
-                    Text(debugSampleText)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(Capsule().fill(.black.opacity(0.65)))
-                .padding(.top, 6)
-            }
-        }
-        #endif
         .overlay(
             RoundedRectangle(cornerRadius: 2)
                 .stroke(Color.white.opacity(0.15), lineWidth: 1)
@@ -560,6 +528,14 @@ struct ShareEditorView: View {
                 }
                 .padding(.horizontal)
             }
+
+            HStack {
+                Image(systemName: "textformat")
+                    .foregroundStyle(Color.secondText)
+                ColorPicker("share.editor.text_color", selection: $textColor, supportsOpacity: false)
+                    .foregroundStyle(Color.white)
+            }
+            .padding(.horizontal)
             
             // 背景模式选择
             HStack {
@@ -620,6 +596,7 @@ struct ShareEditorView: View {
         // 心率 / 踏频步频 无数据时禁用
         let disabled = (kind == .heartRate && !metrics.hasHeartRate)
             || (kind == .cadence && !metrics.hasCadence)
+            || (kind == .weather && !metrics.hasWeather)
             || isLogo
         // 踏频/步频标签按运动自适应，其余用元素自身标题
         let titleKey = kind == .cadence ? metrics.cadenceLabelKey : kind.titleKey
@@ -676,7 +653,6 @@ struct ShareEditorView: View {
     private func setElementSize(_ kind: ShareElementKind, _ size: CGSize) {
         guard size.width > 0, size.height > 0, elementSizes[kind] != size else { return }
         elementSizes[kind] = size
-        updateTextColor(for: kind)      // 尺寸确定后即可算覆盖区域的自适应文字色
     }
 
     // 把偏移限制在画布内（元素缩放后的外框不超出边界）
@@ -721,7 +697,6 @@ struct ShareEditorView: View {
                 st.scale = min(max(newVal, minScale), maxScale(for: kind))
                 st.offset = clampOffset(st.offset, size: elementSizes[kind] ?? .zero, scale: st.scale)
                 states[kind] = st
-                updateTextColor(for: kind)
             }
         )
     }
@@ -730,9 +705,8 @@ struct ShareEditorView: View {
         // 首帧或异常布局时 available 可能为 0/非有限，直接返回 .zero 避免负/非有限 frame
         guard available.width.isFinite, available.height.isFinite,
               available.width > 0, available.height > 0 else { return .zero }
-        // 预留顶部栏 + 底部面板高度
-        let reservedH: CGFloat = 220
-        let maxH = max(available.height - reservedH, 1)
+        // 预留顶部栏与当前背景模式下完整的底部控制面板高度，避免画布挤出底部按钮。
+        let maxH = max(available.height - canvasReservedHeight, 1)
         let maxW = max(available.width - 24, 1)
         var w = maxW
         var h = w / aspect
@@ -746,15 +720,19 @@ struct ShareEditorView: View {
     // 仅在拿到有效画布尺寸时记录并放置默认位置（首帧可能为 .zero）
     private func applyCanvasSize(_ size: CGSize) {
         guard size.width > 0, size.height > 0 else { return }
+        let canvasSizeChanged = canvasSizeState != size
         canvasSizeState = size
         setupDefaultsIfNeeded(canvasSize: size)
+        if canvasSizeChanged {
+            clampElementsToCanvas()
+        }
     }
 
     private func setupDefaultsIfNeeded(canvasSize: CGSize) {
         guard canvasSize.width > 0 else { return }
         var changed = false
         for kind in ShareElementKind.allCases {
-            var st = states[kind] ?? ShareElementState(enabled: defaultEnabled(kind))
+            var st = states[kind] ?? ShareElementState(enabled: defaultEnabled(kind), scale: defaultScale(kind))
             if states[kind] == nil { changed = true }
             if !st.placed {
                 let anchor = defaultAnchor(kind)
@@ -767,6 +745,14 @@ struct ShareEditorView: View {
         if changed { /* 触发刷新 */ }
     }
 
+    private func clampElementsToCanvas() {
+        for kind in ShareElementKind.allCases {
+            guard var state = states[kind], let size = elementSizes[kind] else { continue }
+            state.offset = clampOffset(state.offset, size: size, scale: state.scale)
+            states[kind] = state
+        }
+    }
+
     private func defaultEnabled(_ kind: ShareElementKind) -> Bool {
         switch kind {
         case .duration, .pace, .logo, .sportIcon: return true
@@ -774,7 +760,12 @@ struct ShareEditorView: View {
         case .heartRate: return false
         case .elevationGain: return false
         case .cadence: return false
+        case .weather: return false
         }
+    }
+
+    private func defaultScale(_ kind: ShareElementKind) -> CGFloat {
+        kind == .logo ? 0.8 : 1
     }
 
     // 默认锚点（画布尺寸的比例，原点为画布中心）
@@ -787,7 +778,8 @@ struct ShareEditorView: View {
         case .heartRate:     return CGPoint(x: -0.22, y: 0.40)
         case .elevationGain: return CGPoint(x: 0.22, y: 0.40)
         case .cadence:       return CGPoint(x: 0, y: 0.40)
-        case .logo:          return CGPoint(x: 0, y: 0.46)
+        case .weather:       return CGPoint(x: 0, y: 0.34)
+        case .logo:          return CGPoint(x: 0, y: 0.42)
         }
     }
 
@@ -795,7 +787,7 @@ struct ShareEditorView: View {
         var st = states[kind] ?? ShareElementState(enabled: false)
         st.enabled.toggle()
         states[kind] = st
-        if st.enabled { selected = kind; updateTextColor(for: kind) } else if selected == kind { selected = nil }
+        if st.enabled { selected = kind } else if selected == kind { selected = nil }
     }
 
     // MARK: 背景模式 / 地图
@@ -822,7 +814,6 @@ struct ShareEditorView: View {
                 states[.track]?.enabled = true
             }
         }
-        updateAllTextColors()       // 背景切换后按新背景重算文字色（地图生成完成会再算一次）
     }
 
     // 用 MKMapSnapshotter 渲染轨迹所在区域的地图，再把轨迹画上去作为背景
@@ -898,7 +889,6 @@ struct ShareEditorView: View {
             cg.setLineWidth(8)
             cg.strokePath()
         }
-        updateAllTextColors()       // 地图背景就绪/变色后重算文字色
     }
 
     private static func smoothedCGPath(points: [CGPoint]) -> CGPath {
@@ -920,117 +910,6 @@ struct ShareEditorView: View {
         return path
     }
 
-    // MARK: 文字色自适应（按所覆盖背景的平均色选黑/白）
-
-    // 一次性精确更新（拖动结束 / 缩放 / 切背景 / 尺寸确定）
-    private func updateTextColor(for kind: ShareElementKind) {
-        guard kind != .track, let st = states[kind], let size = elementSizes[kind] else { return }
-        let r = Self.sampleBackground(image: backgroundImage, canvasSize: canvasSizeState,
-                                      offset: st.offset, elementSize: size, scale: st.scale)
-        textColors[kind] = r.color
-#if DEBUG
-        recordDebug(kind, r.avg)
-#endif
-    }
-
-    private func updateAllTextColors() {
-        for kind in ShareElementKind.allCases where kind != .track {
-            if states[kind]?.enabled == true { updateTextColor(for: kind) }
-        }
-    }
-
-    // 拖动过程中的实时文字色：限频 + 后台采样，避免阻塞拖动主线程
-    private func liveUpdateTextColor(for kind: ShareElementKind) {
-        guard kind != .track, let st = states[kind], let size = elementSizes[kind] else { return }
-        let now = Date().timeIntervalSinceReferenceDate
-        guard now - lastLiveSampleTime >= liveSampleInterval else { return }
-        lastLiveSampleTime = now
-        let image = backgroundImage
-        let canvas = canvasSizeState
-        let offset = st.offset
-        let scale = st.scale
-        Self.sampleQueue.async {
-            let r = Self.sampleBackground(image: image, canvasSize: canvas, offset: offset, elementSize: size, scale: scale)
-            DispatchQueue.main.async {
-                if textColors[kind] != r.color { textColors[kind] = r.color }
-#if DEBUG
-                recordDebug(kind, r.avg)
-#endif
-            }
-        }
-    }
-
-#if DEBUG
-    // 记录当前选中文字元素的采样调试信息
-    private func recordDebug(_ kind: ShareElementKind, _ avg: UIColor) {
-        guard kind == selected else { return }
-        debugSampleColor = Color(uiColor: avg)
-        let (rr, gg, bb) = avg.rgbComponents
-        let wc = avg.contrastRatio(with: .white)
-        let bc = avg.contrastRatio(with: .black)
-        debugSampleText = String(format: "RGB %.2f/%.2f/%.2f  W:%.2f B:%.2f → %@",
-                                 rr, gg, bb, wc, bc, wc >= 1.5 ? "WHITE" : "BLACK")
-    }
-#endif
-
-    // 无背景图时为深色渐变背景 → 返回深色（结果取白字）
-    private static let fallbackBgColor = UIColor(red: 0.1, green: 0.11, blue: 0.16, alpha: 1)
-    private static let ciContext = CIContext(options: [.workingColorSpace: CGColorSpaceCreateDeviceRGB()])
-    private static let sampleQueue = DispatchQueue(label: "com.sportsx.share.colorSample", qos: .userInitiated)
-
-    // 纯函数：算元素覆盖区域平均色及对应黑/白文字色（可在后台线程调用，考虑 scaledToFill 裁切）
-    private static func sampleBackground(image: UIImage?, canvasSize: CGSize, offset: CGSize, elementSize: CGSize, scale: CGFloat) -> (color: Color, avg: UIColor) {
-        guard let image, canvasSize.width > 0, elementSize.width > 0 else {
-            return (fallbackBgColor.adaptiveTextColor(), fallbackBgColor)
-        }
-        let cw = canvasSize.width, ch = canvasSize.height
-        let halfW = elementSize.width * scale / 2
-        let halfH = elementSize.height * scale / 2
-        let cx0 = cw / 2 + offset.width - halfW
-        let cy0 = ch / 2 + offset.height - halfH
-        let cx1 = cw / 2 + offset.width + halfW
-        let cy1 = ch / 2 + offset.height + halfH
-        let iw = image.size.width, ih = image.size.height
-        guard iw > 0, ih > 0 else { return (fallbackBgColor.adaptiveTextColor(), fallbackBgColor) }
-        let fill = max(cw / iw, ch / ih)
-        let dw = iw * fill, dh = ih * fill
-        func c01(_ v: CGFloat) -> CGFloat { min(max(v, 0), 1) }
-        let nx0 = c01((cx0 + (dw - cw) / 2) / dw)
-        let nx1 = c01((cx1 + (dw - cw) / 2) / dw)
-        let ny0 = c01((cy0 + (dh - ch) / 2) / dh)
-        let ny1 = c01((cy1 + (dh - ch) / 2) / dh)
-        guard nx1 > nx0, ny1 > ny0,
-              let avg = averageColor(of: image, normalizedRect: CGRect(x: nx0, y: ny0, width: nx1 - nx0, height: ny1 - ny0)) else {
-            return (fallbackBgColor.adaptiveTextColor(), fallbackBgColor)
-        }
-        return (avg.adaptiveTextColor(), avg)
-    }
-
-    private static func averageColor(of image: UIImage, normalizedRect: CGRect) -> UIColor? {
-        guard let cg = image.cgImage else { return nil }
-        let ci = CIImage(cgImage: cg)
-        let ext = ci.extent
-        // CIImage 原点在左下，归一化矩形用左上原点 → 翻转 y
-        let rect = CGRect(
-            x: ext.minX + normalizedRect.minX * ext.width,
-            y: ext.minY + (1 - normalizedRect.maxY) * ext.height,
-            width: normalizedRect.width * ext.width,
-            height: normalizedRect.height * ext.height
-        ).intersection(ext)
-        guard !rect.isNull, rect.width >= 1, rect.height >= 1,
-              let filter = CIFilter(name: "CIAreaAverage", parameters: [
-                kCIInputImageKey: ci,
-                kCIInputExtentKey: CIVector(cgRect: rect)
-              ]),
-              let output = filter.outputImage else { return nil }
-        var bitmap = [UInt8](repeating: 0, count: 4)
-        ciContext.render(output, toBitmap: &bitmap, rowBytes: 4,
-                         bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
-                         format: .RGBA8, colorSpace: CGColorSpaceCreateDeviceRGB())
-        return UIColor(red: CGFloat(bitmap[0]) / 255, green: CGFloat(bitmap[1]) / 255,
-                       blue: CGFloat(bitmap[2]) / 255, alpha: 1)
-    }
-
     @MainActor
     private func save() {
         let size = canvasSizeState
@@ -1042,7 +921,7 @@ struct ShareEditorView: View {
             metrics: metrics,
             states: states,
             trackColor: trackColor,
-            textColors: textColors,
+            textColor: textColor,
             bgImage: backgroundImage,
             size: size
         )
@@ -1059,4 +938,21 @@ struct ShareEditorView: View {
             ToastManager.shared.show(toast: Toast(message: success ? "share.toast.saved" : "share.toast.failed"))
         }
     }
+}
+
+#Preview("Share Editor") {
+    ShareEditorView(
+        metrics: .make(
+            sport: .Running,
+            basePath: [
+                PathPoint(lat: 37.77490, lon: -122.41940, speed: 3.1, altitude: 18, heart_rate: 142, timestamp: 0),
+                PathPoint(lat: 37.77545, lon: -122.41885, speed: 3.3, altitude: 21, heart_rate: 148, timestamp: 75),
+                PathPoint(lat: 37.77615, lon: -122.41820, speed: 3.4, altitude: 26, heart_rate: 153, timestamp: 155),
+                PathPoint(lat: 37.77690, lon: -122.41770, speed: 3.2, altitude: 29, heart_rate: 150, timestamp: 235),
+                PathPoint(lat: 37.77750, lon: -122.41715, speed: 3.5, altitude: 33, heart_rate: 156, timestamp: 315)
+            ],
+            avgCadence: 174,
+            weather: WorkoutWeather(condition: "clear", temperature_c: 22.5)
+        )
+    )
 }

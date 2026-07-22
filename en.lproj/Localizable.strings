@@ -1134,6 +1134,9 @@
 "user.setup.logout" = "Log out";
 "user.setup.phone_number" = "Phone Number";
 "user.setup.apple_account" = "Apple Account";
+"user.setup.google_account" = "Google Account";
+"user.setup.google.bind_info %@" = "Linked Google account: %@";
+"user.setup.action.google.bind" = "Link Google account";
 "user.setup.phone.status.no_bind" = "Unbound";
 "user.setup.phone.status.has_bind" = "Already Bound";
 "user.setup.phone.bind_info %@" = "Mobile phone number already bound: %@";
@@ -1303,6 +1306,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "login.email.send_result.1 %lld" = "Email has been sent, you can resend it in %lld s.";
 "login.email.send_result.2" = "Didn't receive the email? Click to resend.";
 "login.apple.action" = "Sign in with Apple";
+"login.google.not_configured" = "Google Sign-In is not configured yet. Please try again later.";
 "login.toast.privacy_and_user_agreement" = "Please agree to the User Agreement and Privacy Policy";
 "login.toast.error_number" = "Please enter the correct number";
 "login.toast.error_code" = "Please enter the correct verification code";
@@ -1358,6 +1362,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "share.editor.title" = "Share Image";
 "share.action.save" = "Save";
 "share.editor.track_color" = "Track Color";
+"share.editor.text_color" = "Text Color";
 "share.editor.choose_background" = "Choose Background";
 "share.element.track" = "Track";
 "share.element.sport" = "Sport";
@@ -1425,3 +1430,10 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "guide.stage4.birthday" = "Birthday";
 "guide.stage5.title" = "Newcomer Gift";
 "guide.stage5.distributed" = "Rewards have been added to your account. Have fun!";
+"share.element.weather" = "Weather";
+"weather.condition.clear" = "Clear";
+"weather.condition.cloudy" = "Cloudy";
+"weather.condition.rain" = "Rain";
+"weather.condition.snow" = "Snow";
+"weather.condition.fog" = "Fog";
+"weather.condition.unknown" = "Unknown";

@@ -521,6 +521,11 @@ struct BikeGridBuffCardView: View {
                             .scaledToFit()
                             .frame(width: 15)
                             .offset(x: 4, y: -4)
+                    } else if grid.conditionType == .weather {
+                        Image(systemName: "cloud.sun.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.white)
+                            .offset(x: 4, y: -4)
                     }
                 }
                 .frame(width: 35, height: 35)
@@ -951,6 +956,10 @@ final class BikeGridBuffAnnotationView: MKAnnotationView {
         case .speed:
             badgeImageView.isHidden = false
             badgeImageView.image = UIImage(named: "buff_condition_speed")
+        case .weather:
+            badgeImageView.isHidden = false
+            badgeImageView.image = UIImage(systemName: "cloud.sun.fill")
+            badgeImageView.tintColor = UIColor.white
         case .none:
             badgeImageView.isHidden = true
         }
@@ -1437,6 +1446,7 @@ class BikeFreeTrainingViewModel: ObservableObject {
 enum BikeGridConditionType: String, Codable {
     case distance = "distance"
     case speed = "speed"
+    case weather = "weather"
     case none = "none"
 
     /// 右上角条件角标图标（不同运动可在各自枚举中定义不同条件→角标映射）
@@ -1444,7 +1454,7 @@ enum BikeGridConditionType: String, Codable {
         switch self {
         case .distance: return "buff_condition_distance"
         case .speed: return "buff_condition_speed"
-        case .none: return nil
+        case .weather, .none: return nil
         }
     }
 }

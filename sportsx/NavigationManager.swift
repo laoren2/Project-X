@@ -37,6 +37,7 @@ enum AppRoute: Hashable {
     case smsLoginView
     case phoneBindView
     case appleBindView
+    case googleBindView
     case bikeRankingListView(trackID: String, gender: Gender, isHistory: Bool = false)
     case bikeScoreRankingView(seasonName: String, seasonID: String, gender: Gender)
     case bikeTeamCreateView(trackID: String, competitionDate: Date)
@@ -151,6 +152,8 @@ enum AppRoute: Hashable {
             return "phoneBindView"
         case .appleBindView:
             return "appleBindView"
+        case .googleBindView:
+            return "googleBindView"
         case .bikeRankingListView:
             return "bikeRankingListView"
         case .bikeScoreRankingView:

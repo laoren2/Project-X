@@ -309,6 +309,8 @@ struct RealNaviView: View {
                     PhoneBindView()
                 case .appleBindView:
                     AppleBindView()
+                case .googleBindView:
+                    GoogleBindView()
                 case .bikeRankingListView(let id, let gender, let isHistory):
                     BikeRankingListView(trackID: id, gender: gender, isHistory: isHistory)
                 case .bikeScoreRankingView(let name, let id, let gender):

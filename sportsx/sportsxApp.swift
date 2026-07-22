@@ -6,6 +6,7 @@
 //
 import Foundation
 import SwiftUI
+import GoogleSignIn
 import Combine
 import Network
 
@@ -445,23 +446,29 @@ struct sportsxApp: App {
     
     var body: some Scene {
         WindowGroup {
-            switch bootstrap.state {
-            case .launching:
-                TestLaunchView()
-                    .task {
-                        bootstrap.prepare()
-                        await bootstrap.start()
-                    }
-            case .ready:
-                NaviView()
-                    .environmentObject(appState)
-                    .preferredColorScheme(.dark)    // 暂时解决 NavigationStack 导致的页面边缘白线问题
-                //TestView()
-            case .failed(let msg):
-                TestErrorView(message: msg)
+            Group {
+                switch bootstrap.state {
+                case .launching:
+                    TestLaunchView()
+                        .task {
+                            bootstrap.prepare()
+                            await bootstrap.start()
+                        }
+                case .ready:
+                    NaviView()
+                        .environmentObject(appState)
+                        .preferredColorScheme(.dark)    // 暂时解决 NavigationStack 导致的页面边缘白线问题
+                    //TestView()
+                case .failed(let msg):
+                    TestErrorView(message: msg)
+                }
+                //HUDPreview()
+                //    .preferredColorScheme(.dark)
             }
-            //PreviewRealtimeRankView()
-            //    .preferredColorScheme(.dark)
+            .onOpenURL { url in
+                // Google 授权从浏览器回到 App 时由 SDK 继续处理回调。
+                _ = GIDSignIn.sharedInstance.handle(url)
+            }
         }
     }
     

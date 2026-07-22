@@ -60,11 +60,14 @@ struct TrainingSettlementsInfo {
 
 struct BikeFreeTrainingRecordDetailInfo {
     let duration: Double            // 原始成绩
+    let endTime: String
     let settlements: TrainingSettlementsInfo            // 结算数据
     let buffInfos: [BikeGridBuffSnapshot]
+    let weather: WorkoutWeather?
     
     init(from detail: BikeFreeTrainingRecordDetailResponse) {
         self.duration = detail.duration
+        self.endTime = detail.end_time
         var xp: Int = 0
         var state_value: Int = 0
         var temp_assets: [CCUpdateResponse] = []
@@ -98,6 +101,7 @@ struct BikeFreeTrainingRecordDetailInfo {
             }
         }
         self.buffInfos = tempBuffInfos
+        self.weather = detail.weather
     }
 }
 
@@ -112,9 +116,11 @@ struct BikeGridBuffSnapshot: Identifiable {
 struct BikeFreeTrainingRecordDetailResponse: Codable {
     let owner_user_id: String               // 记录归属者业务 ID
     let duration: Double                    // 训练时间
+    let end_time: String
     let path: [BikeFreeTrainingPathPoint]   // 训练路径记录
     let settlements: JSONValue              // 训练结算
     let triggered_buffs: [JSONValue]        // buff 快照
+    let weather: WorkoutWeather?
 }
 
 struct BikeFreeTrainingSamplePathPoint {
@@ -176,11 +182,14 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
 
 struct RunningFreeTrainingRecordDetailInfo {
     let duration: Double            // 原始成绩
+    let endTime: String
     let settlements: TrainingSettlementsInfo            // 结算数据
     let buffInfos: [RunningGridBuffSnapshot]
+    let weather: WorkoutWeather?
     
     init(from detail: RunningFreeTrainingRecordDetailResponse) {
         self.duration = detail.duration
+        self.endTime = detail.end_time
         var xp: Int = 0
         var state_value: Int = 0
         var temp_assets: [CCUpdateResponse] = []
@@ -214,6 +223,7 @@ struct RunningFreeTrainingRecordDetailInfo {
             }
         }
         self.buffInfos = tempBuffInfos
+        self.weather = detail.weather
     }
 }
 
@@ -228,9 +238,11 @@ struct RunningGridBuffSnapshot: Identifiable {
 struct RunningFreeTrainingRecordDetailResponse: Codable {
     let owner_user_id: String                   // 记录归属者业务 ID
     let duration: Double                        // 训练时间
+    let end_time: String
     let path: [RunningFreeTrainingPathPoint]    // 训练路径记录
     let settlements: JSONValue                  // 训练结算
     let triggered_buffs: [JSONValue]            // buff 快照
+    let weather: WorkoutWeather?
 }
 
 struct RunningFreeTrainingSamplePathPoint {

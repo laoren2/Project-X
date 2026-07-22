@@ -1134,6 +1134,9 @@
 "user.setup.logout" = "로그아웃";
 "user.setup.phone_number" = "전화번호";
 "user.setup.apple_account" = "Apple 계정";
+"user.setup.google_account" = "Google 계정";
+"user.setup.google.bind_info %@" = "연결된 Google 계정: %@";
+"user.setup.action.google.bind" = "Google 계정 연결";
 "user.setup.phone.status.no_bind" = "미연결";
 "user.setup.phone.status.has_bind" = "연결됨";
 "user.setup.phone.bind_info %@" = "연결된 전화번호: %@";
@@ -1283,6 +1286,7 @@
 "login.email.send_result.1 %lld" = "이메일이 전송되었습니다. %lld초 후 재전송 가능";
 "login.email.send_result.2" = "이메일을 받지 못했나요? 다시 보내기를 눌러주세요";
 "login.apple.action" = "Apple로 로그인";
+"login.google.not_configured" = "Google 로그인이 아직 설정되지 않았습니다. 나중에 다시 시도해 주세요.";
 "login.toast.privacy_and_user_agreement" = "이용약관 및 개인정보 처리방침에 동의해주세요";
 "login.toast.error_number" = "올바른 전화번호를 입력하세요";
 "login.toast.error_code" = "올바른 인증 코드를 입력하세요";
@@ -1338,6 +1342,7 @@
 "share.editor.title" = "공유 이미지";
 "share.action.save" = "저장";
 "share.editor.track_color" = "경로 색상";
+"share.editor.text_color" = "텍스트 색상";
 "share.editor.choose_background" = "배경 이미지 선택";
 "share.element.track" = "경로";
 "share.element.sport" = "종목";
@@ -1405,3 +1410,10 @@
 "guide.stage4.birthday" = "생일";
 "guide.stage5.title" = "신규 사용자 선물";
 "guide.stage5.distributed" = "보상이 지급되었습니다. 즐거운 운동을 시작해 보세요!";
+"share.element.weather" = "날씨";
+"weather.condition.clear" = "맑음";
+"weather.condition.cloudy" = "흐림";
+"weather.condition.rain" = "비";
+"weather.condition.snow" = "눈";
+"weather.condition.fog" = "안개";
+"weather.condition.unknown" = "알 수 없음";

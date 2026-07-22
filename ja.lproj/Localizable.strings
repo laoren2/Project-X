@@ -1134,6 +1134,9 @@
 "user.setup.logout" = "ログアウト";
 "user.setup.phone_number" = "電話番号";
 "user.setup.apple_account" = "Appleアカウント";
+"user.setup.google_account" = "Google アカウント";
+"user.setup.google.bind_info %@" = "連携済みの Google アカウント：%@";
+"user.setup.action.google.bind" = "Google アカウントを連携";
 "user.setup.phone.status.no_bind" = "未連携";
 "user.setup.phone.status.has_bind" = "連携済み";
 "user.setup.phone.bind_info %@" = "連携済み電話番号：%@";
@@ -1283,6 +1286,7 @@
 "login.email.send_result.1 %lld" = "メールを送信しました。%lld秒後に再送できます";
 "login.email.send_result.2" = "メールが届きませんか？再送信してください";
 "login.apple.action" = "Appleでサインイン";
+"login.google.not_configured" = "Google ログインはまだ設定されていません。後でもう一度お試しください。";
 "login.toast.privacy_and_user_agreement" = "利用規約とプライバシーポリシーに同意してください";
 "login.toast.error_number" = "正しい電話番号を入力してください";
 "login.toast.error_code" = "正しい認証コードを入力してください";
@@ -1338,6 +1342,7 @@
 "share.editor.title" = "シェア画像";
 "share.action.save" = "保存";
 "share.editor.track_color" = "軌跡の色";
+"share.editor.text_color" = "文字色";
 "share.editor.choose_background" = "背景画像を選択";
 "share.element.track" = "軌跡";
 "share.element.sport" = "種目";
@@ -1405,3 +1410,10 @@
 "guide.stage4.birthday" = "誕生日";
 "guide.stage5.title" = "新人ギフト";
 "guide.stage5.distributed" = "報酬を受け取りました！スポーツの旅を楽しみましょう！";
+"share.element.weather" = "天気";
+"weather.condition.clear" = "晴れ";
+"weather.condition.cloudy" = "曇り";
+"weather.condition.rain" = "雨";
+"weather.condition.snow" = "雪";
+"weather.condition.fog" = "霧";
+"weather.condition.unknown" = "不明";

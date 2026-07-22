@@ -1134,6 +1134,9 @@
 "user.setup.logout" = "Se déconnecter";
 "user.setup.phone_number" = "Numéro de téléphone";
 "user.setup.apple_account" = "Compte Apple";
+"user.setup.google_account" = "Compte Google";
+"user.setup.google.bind_info %@" = "Compte Google associé : %@";
+"user.setup.action.google.bind" = "Associer un compte Google";
 "user.setup.phone.status.no_bind" = "Non lié";
 "user.setup.phone.status.has_bind" = "Déjà lié";
 "user.setup.phone.bind_info %@" = "Numéro de téléphone déjà lié : %@";
@@ -1303,6 +1306,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "login.email.send_result.1 %lld" = "E-mail envoyé. Vous pourrez le renvoyer dans %lld s.";
 "login.email.send_result.2" = "E-mail non reçu ? Touchez pour renvoyer.";
 "login.apple.action" = "Apple";
+"login.google.not_configured" = "La connexion Google n’est pas encore configurée. Veuillez réessayer plus tard.";
 "login.toast.privacy_and_user_agreement" = "Veuillez accepter les Conditions d'utilisation et la Politique de confidentialité";
 "login.toast.error_number" = "Veuillez saisir un numéro correct";
 "login.toast.error_code" = "Veuillez saisir le bon code de vérification";
@@ -1358,6 +1362,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "share.editor.title" = "Image de partage";
 "share.action.save" = "Enregistrer";
 "share.editor.track_color" = "Couleur du tracé";
+"share.editor.text_color" = "Couleur du texte";
 "share.editor.choose_background" = "Choisir un arrière-plan";
 "share.element.track" = "Parcours";
 "share.element.sport" = "Sport";
@@ -1425,3 +1430,10 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "guide.stage4.birthday" = "Date de naissance";
 "guide.stage5.title" = "Cadeau de bienvenue";
 "guide.stage5.distributed" = "Vos récompenses ont bien été ajoutées à votre compte. Profitez-en !";
+"share.element.weather" = "Météo";
+"weather.condition.clear" = "Dégagé";
+"weather.condition.cloudy" = "Nuageux";
+"weather.condition.rain" = "Pluie";
+"weather.condition.snow" = "Neige";
+"weather.condition.fog" = "Brouillard";
+"weather.condition.unknown" = "Inconnu";

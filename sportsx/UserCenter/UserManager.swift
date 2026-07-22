@@ -243,6 +243,7 @@ class UserManager: ObservableObject {
         defaults.set(user.nickname, forKey: "user.nickname")
         defaults.set(user.phoneNumber, forKey: "user.phoneNumber")
         defaults.set(user.apple_email, forKey: "user.appleEmail")
+        defaults.set(user.google_email, forKey: "user.googleEmail")
         defaults.set(user.email, forKey: "user.email")
         defaults.set(user.avatarImageURL, forKey: "user.avatarImageURL")
         defaults.set(user.backgroundImageURL, forKey: "user.backgroundImageURL")
@@ -281,6 +282,7 @@ class UserManager: ObservableObject {
             nickname: defaults.string(forKey: "user.nickname") ?? "未登录",
             phoneNumber: defaults.string(forKey: "user.phoneNumber"),
             apple_email: defaults.string(forKey: "user.appleEmail"),
+            google_email: defaults.string(forKey: "user.googleEmail"),
             email: defaults.string(forKey: "user.email"),
             avatarImageURL: defaults.string(forKey: "user.avatarImageURL") ?? "",
             backgroundImageURL: defaults.string(forKey: "user.backgroundImageURL") ?? "",
@@ -330,6 +332,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.nickname")
         defaults.removeObject(forKey: "user.phoneNumber")
         defaults.removeObject(forKey: "user.appleEmail")
+        defaults.removeObject(forKey: "user.googleEmail")
         defaults.removeObject(forKey: "user.email")
         defaults.removeObject(forKey: "user.avatarImageURL")
         defaults.removeObject(forKey: "user.backgroundImageURL")
@@ -643,6 +646,7 @@ struct UserDTO: Codable {
     let nickname: String                // 昵称
     let phone_number: String?           // 手机号
     let apple_email: String?            // apple账号
+    let google_email: String?           // Google 账号
     let email: String?                  // 邮箱
     let avatar_image_url: String        // 头像url
     let background_image_url: String    // 封面url
@@ -673,6 +677,7 @@ struct User: Identifiable, Codable, Hashable {
     var nickname: String            // 昵称
     var phoneNumber: String?        // 手机号
     var apple_email: String?        // Apple 账号
+    var google_email: String?       // Google 账号
     var email: String?              // 邮箱
     var avatarImageURL: String      // 头像url
     var backgroundImageURL: String  // 封面url
@@ -703,6 +708,7 @@ struct User: Identifiable, Codable, Hashable {
         nickname: String = "未知",
         phoneNumber: String? = nil,
         apple_email: String? = nil,
+        google_email: String? = nil,
         email: String? = nil,
         avatarImageURL: String = "",
         backgroundImageURL: String = "",
@@ -728,6 +734,7 @@ struct User: Identifiable, Codable, Hashable {
         self.nickname = nickname
         self.phoneNumber = phoneNumber
         self.apple_email = apple_email
+        self.google_email = google_email
         self.email = email
         self.avatarImageURL = avatarImageURL
         self.backgroundImageURL = backgroundImageURL
@@ -755,6 +762,7 @@ struct User: Identifiable, Codable, Hashable {
         self.nickname = dto.nickname
         self.phoneNumber = dto.phone_number
         self.apple_email = dto.apple_email
+        self.google_email = dto.google_email
         self.email = dto.email
         self.avatarImageURL = dto.avatar_image_url
         self.backgroundImageURL = dto.background_image_url

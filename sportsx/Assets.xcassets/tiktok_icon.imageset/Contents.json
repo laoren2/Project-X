@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "phone_1x.png",
+      "filename" : "tiktok_icon_1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "phone_2x.png",
+      "filename" : "tiktok_icon_2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "phone_3x.png",
+      "filename" : "tiktok_icon_3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

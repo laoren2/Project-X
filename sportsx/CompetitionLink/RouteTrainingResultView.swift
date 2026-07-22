@@ -19,7 +19,7 @@ struct BikeRouteTrainingRecordDetailView: View {
     @State private var showShareEditor: Bool = false
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg)
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
     }
     
     let formHeight: CGFloat = 80
@@ -187,6 +187,10 @@ struct BikeRouteTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
+                                    .padding(.top, 10)
+                            }
                             // 结算信息
                             HStack {
                                 Text("competition.record.settlement_rewards")
@@ -725,6 +729,10 @@ struct BikeRouteTrainingRecordDetailView: View {
                                     .cornerRadius(12)
                                 }
                             }
+                            if detailInfo.weather != nil {
+                                WeatherDataAttribution()
+                                    .padding(.bottom, 0)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 80)
@@ -782,7 +790,7 @@ struct RunningRouteTrainingRecordDetailView: View {
     @State private var showShareEditor: Bool = false
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg)
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
     }
     
     let formHeight: CGFloat = 80
@@ -950,6 +958,10 @@ struct RunningRouteTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
+                                    .padding(.top, 10)
+                            }
                             // 结算信息
                             HStack {
                                 Text("competition.record.settlement_rewards")
@@ -1487,6 +1499,10 @@ struct RunningRouteTrainingRecordDetailView: View {
                                     .background(Color.white.opacity(0.4))
                                     .cornerRadius(12)
                                 }
+                            }
+                            if detailInfo.weather != nil {
+                                WeatherDataAttribution()
+                                    .padding(.bottom, 0)
                             }
                         }
                         .padding(.horizontal)
