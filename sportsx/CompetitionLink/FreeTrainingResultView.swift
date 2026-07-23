@@ -734,6 +734,8 @@ struct BikeFreeTrainingRecordDetailView: View {
                         .padding(.bottom, 80)
                     }
                 }
+            } else if viewModel.accessDenied {
+                RecordAccessDeniedView()
             } else {
                 VStack {
                     Spacer()
@@ -1494,6 +1496,8 @@ struct RunningFreeTrainingRecordDetailView: View {
                         .padding(.bottom, 80)
                     }
                 }
+            } else if viewModel.accessDenied {
+                RecordAccessDeniedView()
             } else {
                 VStack {
                     Spacer()

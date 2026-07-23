@@ -1437,3 +1437,22 @@
 "weather.condition.snow" = "雪";
 "weather.condition.fog" = "雾";
 "weather.condition.unknown" = "未知";
+
+// MARK: 比赛结果隐私
+"user.setup.privacy_settings" = "隐私设置";
+"user.privacy.record_visibility" = "运动记录详情";
+"user.privacy.record_visibility.description" = "数据可见性";
+"user.privacy.visibility.public" = "所有人可见";
+"user.privacy.visibility.followers" = "粉丝可见";
+"user.privacy.visibility.friends" = "朋友可见";
+"competition.record.access_denied.title" = "无访问权限";
+
+// MARK: 订阅试用
+"iap.subscription.plan.monthly" = "月度";
+"iap.subscription.plan.semiannual" = "半年";
+"iap.subscription.plan.annual" = "年度";
+"iap.subscription.trial.title" = "7 天免费试用";
+"iap.subscription.trial.description" = "先体验完整会员权益";
+"iap.subscription.trial.free" = "免费";
+"iap.subscription.trial.renewal" = "之后 %@ / 月，随时可取消";
+"iap.subscription.action.start_trial" = "开始 7 天免费试用";

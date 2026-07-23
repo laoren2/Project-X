@@ -634,6 +634,20 @@ enum UserRelationshipStatus: String, Codable {
     }
 }
 
+enum RecordVisibility: String, Codable, CaseIterable {
+    case `public`
+    case followers
+    case friends
+
+    var displayName: String {
+        switch self {
+        case .public: return "user.privacy.visibility.public"
+        case .followers: return "user.privacy.visibility.followers"
+        case .friends: return "user.privacy.visibility.friends"
+        }
+    }
+}
+
 struct RelationInfoResponse: Codable {
     let follower: Int
     let followed: Int
@@ -666,6 +680,7 @@ struct UserDTO: Codable {
     let default_sport: SportName      // 外部主页默认展示的运动（他人查看时）
     let global_default_sport: SportName  // 全局默认运动：每次启动 app 时商店/运动中心/仓库/local profile 的初始展示运动
     let auto_pause: Bool              // free training 自动暂停开关
+    let record_visibility: RecordVisibility
     let status: UserStatus              // 用户账号状态
     let is_vip: Bool
 }
@@ -699,6 +714,8 @@ struct User: Identifiable, Codable, Hashable {
     var defaultSport: SportName     // 外部主页默认展示的运动（他人查看时）
     var globalDefaultSport: SportName  // 全局默认运动：启动时商店/运动中心/仓库/local profile 的初始展示运动
     var autoPause: Bool             // free training 自动暂停开关
+    // 可选以兼容旧版本写入的本地用户缓存；缺失时按历史默认值 public 处理。
+    var recordVisibility: RecordVisibility?
     let status: UserStatus
     var isVip: Bool
 
@@ -726,6 +743,7 @@ struct User: Identifiable, Codable, Hashable {
         defaultSport: SportName = .Bike,
         globalDefaultSport: SportName = .Bike,
         autoPause: Bool = true,
+        recordVisibility: RecordVisibility? = .public,
         status: UserStatus = .normal,
         isVip: Bool = false
     ) {
@@ -752,6 +770,7 @@ struct User: Identifiable, Codable, Hashable {
         self.defaultSport = defaultSport
         self.globalDefaultSport = globalDefaultSport
         self.autoPause = autoPause
+        self.recordVisibility = recordVisibility
         self.status = status
         self.isVip = isVip
     }
@@ -780,6 +799,7 @@ struct User: Identifiable, Codable, Hashable {
         self.defaultSport = dto.default_sport
         self.globalDefaultSport = dto.global_default_sport
         self.autoPause = dto.auto_pause
+        self.recordVisibility = dto.record_visibility
         self.status = dto.status
         self.isVip = dto.is_vip
     }

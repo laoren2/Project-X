@@ -1437,3 +1437,22 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "weather.condition.snow" = "Neige";
 "weather.condition.fog" = "Brouillard";
 "weather.condition.unknown" = "Inconnu";
+
+// MARK: Confidentialité des résultats
+"user.setup.privacy_settings" = "Paramètres de confidentialité";
+"user.privacy.record_visibility" = "Détails de l’activité";
+"user.privacy.record_visibility.description" = "Visibilité des données";
+"user.privacy.visibility.public" = "Tout le monde";
+"user.privacy.visibility.followers" = "Abonnés";
+"user.privacy.visibility.friends" = "Amis";
+"competition.record.access_denied.title" = "Accès refusé";
+
+// MARK: Essai d’abonnement
+"iap.subscription.plan.monthly" = "Mensuel";
+"iap.subscription.plan.semiannual" = "6 mois";
+"iap.subscription.plan.annual" = "Annuel";
+"iap.subscription.trial.title" = "Essai gratuit de 7 jours";
+"iap.subscription.trial.description" = "Essayez d’abord tous les avantages membres";
+"iap.subscription.trial.free" = "Gratuit";
+"iap.subscription.trial.renewal" = "Puis %@ / mois. Annulez à tout moment.";
+"iap.subscription.action.start_trial" = "Commencer l’essai gratuit de 7 jours";

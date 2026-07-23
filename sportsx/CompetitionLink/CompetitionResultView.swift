@@ -833,6 +833,8 @@ struct BikeRaceRecordDetailView: View {
                         .padding(.bottom, 80)
                     }
                 }
+            } else if viewModel.accessDenied {
+                RecordAccessDeniedView()
             } else {
                 VStack {
                     Spacer()
@@ -1799,6 +1801,8 @@ struct RunningRaceRecordDetailView: View {
                         .padding(.bottom, 80)
                     }
                 }
+            } else if viewModel.accessDenied {
+                RecordAccessDeniedView()
             } else {
                 VStack {
                     Spacer()
@@ -1837,6 +1841,22 @@ struct RunningRaceRecordDetailView: View {
         }
         let lastToRemove = max(1, cardSelectViewIndex, realtimeViewIndex)
         appState.navigationManager.removeLast(lastToRemove)
+    }
+}
+
+struct RecordAccessDeniedView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Image(systemName: "lock.fill")
+                .font(.system(size: 42, weight: .semibold))
+                .foregroundStyle(Color.gray)
+            Text("competition.record.access_denied.title")
+                .font(.headline)
+                .foregroundStyle(Color.white)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

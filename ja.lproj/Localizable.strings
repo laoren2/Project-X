@@ -1417,3 +1417,22 @@
 "weather.condition.snow" = "雪";
 "weather.condition.fog" = "霧";
 "weather.condition.unknown" = "不明";
+
+// MARK: レース結果のプライバシー
+"user.setup.privacy_settings" = "プライバシー設定";
+"user.privacy.record_visibility" = "ワークアウトの詳細";
+"user.privacy.record_visibility.description" = "データの公開範囲";
+"user.privacy.visibility.public" = "すべての人";
+"user.privacy.visibility.followers" = "フォロワー";
+"user.privacy.visibility.friends" = "友達";
+"competition.record.access_denied.title" = "アクセスできません";
+
+// MARK: サブスクリプション無料体験
+"iap.subscription.plan.monthly" = "月額";
+"iap.subscription.plan.semiannual" = "6か月";
+"iap.subscription.plan.annual" = "年額";
+"iap.subscription.trial.title" = "7日間無料体験";
+"iap.subscription.trial.description" = "すべての会員特典を先に体験";
+"iap.subscription.trial.free" = "無料";
+"iap.subscription.trial.renewal" = "その後は月額 %@。いつでもキャンセルできます。";
+"iap.subscription.action.start_trial" = "7日間無料体験を始める";

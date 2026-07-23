@@ -1437,3 +1437,22 @@
 "weather.condition.snow" = "雪";
 "weather.condition.fog" = "霧";
 "weather.condition.unknown" = "未知";
+
+// MARK: 比賽結果隱私
+"user.setup.privacy_settings" = "隱私設定";
+"user.privacy.record_visibility" = "運動數據詳情";
+"user.privacy.record_visibility.description" = "數據可見性";
+"user.privacy.visibility.public" = "所有人可見";
+"user.privacy.visibility.followers" = "粉絲可見";
+"user.privacy.visibility.friends" = "朋友可見";
+"competition.record.access_denied.title" = "無訪問權限";
+
+// MARK: 訂閱試用
+"iap.subscription.plan.monthly" = "月度";
+"iap.subscription.plan.semiannual" = "半年";
+"iap.subscription.plan.annual" = "年度";
+"iap.subscription.trial.title" = "7 天免費試用";
+"iap.subscription.trial.description" = "先體驗完整會員權益";
+"iap.subscription.trial.free" = "免費";
+"iap.subscription.trial.renewal" = "之後 %@ / 月，可隨時取消";
+"iap.subscription.action.start_trial" = "開始 7 天免費試用";

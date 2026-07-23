@@ -1173,7 +1173,7 @@
 "user.setup.contact_us.wx" = "WeChat";
 "user.setup.popup.logout.content" = "Are you sure you want to log out of your account?";
 "user.setup.toast.logout_failed" = "The game is in progress and you cannot quit";
-"user.setup.healthkit" = "Health permission";
+"user.setup.healthkit" = "Health Permission";
 "user.setup.healthkit.content" = "When you use your Apple Watch or other external sensors to help record your activity, we access your Apple Health data (HealthKit) to track and analyze your performance. This data includes, but is not limited to:
 
 - Heart rate
@@ -1437,3 +1437,22 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "weather.condition.snow" = "Snow";
 "weather.condition.fog" = "Fog";
 "weather.condition.unknown" = "Unknown";
+
+// MARK: Race result privacy
+"user.setup.privacy_settings" = "Privacy Settings";
+"user.privacy.record_visibility" = "Workout detail data";
+"user.privacy.record_visibility.description" = "Data visibility";
+"user.privacy.visibility.public" = "Everyone";
+"user.privacy.visibility.followers" = "Followers";
+"user.privacy.visibility.friends" = "Friends";
+"competition.record.access_denied.title" = "Access Restricted";
+
+// MARK: Subscription trial
+"iap.subscription.plan.monthly" = "Monthly";
+"iap.subscription.plan.semiannual" = "6 Months";
+"iap.subscription.plan.annual" = "Annual";
+"iap.subscription.trial.title" = "7-Day Free Trial";
+"iap.subscription.trial.description" = "Try all member benefits first";
+"iap.subscription.trial.free" = "Free";
+"iap.subscription.trial.renewal" = "Then %@ / month. Cancel anytime.";
+"iap.subscription.action.start_trial" = "Start 7-Day Free Trial";

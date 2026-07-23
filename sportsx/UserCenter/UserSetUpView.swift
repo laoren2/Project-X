@@ -30,7 +30,7 @@ struct UserSetUpView: View {
                 }
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
-                
+
                 Spacer()
                 
                 Text("action.setup")
@@ -57,6 +57,10 @@ struct UserSetUpView: View {
                         
                         SetUpItemView(icon: "sportscourt", title: "user.setup.sport_settings") {
                             NavigationManager.shared.append(.sportSetUpView)
+                        }
+
+                        SetUpItemView(icon: "lock.shield", title: "user.setup.privacy_settings") {
+                            NavigationManager.shared.append(.recordPrivacySetUpView)
                         }
                         
                         SetUpItemView(icon: "vip_icon", title: "user.setup.vip_center", isSysIcon: false) {
@@ -212,6 +216,84 @@ struct UserSetUpView: View {
                 isCleaning = false
                 let toast = Toast(message: success ? "user.setup.toast.clean_cache.success" : "user.setup.toast.clean_cache.failed")
                 ToastManager.shared.show(toast: toast)
+            }
+        }
+    }
+}
+
+struct RecordPrivacySetUpView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject private var userManager = UserManager.shared
+
+    private var recordVisibility: RecordVisibility {
+        userManager.user.recordVisibility ?? .public
+    }
+
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+
+                Spacer()
+
+                Text("user.setup.privacy_settings")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.clear)
+            }
+            .padding(.horizontal)
+
+            ScrollView {
+                Text("user.privacy.record_visibility.description")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.secondText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 28)
+                    .padding(.top, 10)
+
+                VStack(spacing: 0) {
+                    SetUpItemView(icon: "eye", title: "user.privacy.record_visibility", showChevron: false, showDivider: false) {
+                    } trailingView: {
+                        CapsuleScrollSelector(
+                            options: RecordVisibility.allCases,
+                            selection: Binding(get: { recordVisibility }, set: { _ in }),
+                            titleKey: { $0.displayName },
+                            expandedWidth: 260,
+                            backgroundColor: Color.secondBackground,
+                            onSelect: updateRecordVisibility
+                        )
+                    }
+                }
+                .cornerRadius(20)
+                .padding(.horizontal)
+
+                Spacer()
+            }
+        }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+    }
+
+    private func updateRecordVisibility(_ visibility: RecordVisibility) {
+        guard var components = URLComponents(string: "/user/update_record_visibility") else { return }
+        components.queryItems = [URLQueryItem(name: "visibility", value: visibility.rawValue)]
+        guard let path = components.string else { return }
+
+        let request = APIRequest(path: path, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: RecordVisibility.self, showLoadingToast: false, showErrorToast: true) { result in
+            guard case .success(let response) = result, let value = response else { return }
+            DispatchQueue.main.async {
+                userManager.user.recordVisibility = value
             }
         }
     }
@@ -424,7 +506,7 @@ struct UserSetUpAccountView: View {
                             }
                         }
                     }
-                    SetUpItemView(icon: "globe", title: "user.setup.google_account") {
+                    SetUpItemView(icon: "google_icon", title: "user.setup.google_account", isSysIcon: false) {
                         appState.navigationManager.append(.googleBindView)
                     } trailingView: {
                         if userManager.user.google_email != nil {

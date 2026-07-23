@@ -11,6 +11,7 @@ class BikeRaceRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: BikeRaceRecordDetailInfo?
     @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+    @Published var accessDenied = false
 
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [BikePathPoint] = []
@@ -33,7 +34,7 @@ class BikeRaceRecordDetailViewModel: ObservableObject {
 
         let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
 
-        NetworkService.sendRequest(with: request, decodingType: BikeRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: BikeRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: false) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -45,7 +46,12 @@ class BikeRaceRecordDetailViewModel: ObservableObject {
                         self.samplePath = BikePathPointTool.computeRaceSamplePoints(pathData: self.pathData)
                     }
                 }
-            default: break
+            case .failure(let error):
+                if case .businessError(code: 3004, message: _) = error {
+                    DispatchQueue.main.async {
+                        self.accessDenied = true
+                    }
+                }
             }
         }
     }
@@ -55,6 +61,7 @@ class RunningRaceRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: RunningRaceRecordDetailInfo?
     @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+    @Published var accessDenied = false
 
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [RunningPathPoint] = []
@@ -77,7 +84,7 @@ class RunningRaceRecordDetailViewModel: ObservableObject {
 
         let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
 
-        NetworkService.sendRequest(with: request, decodingType: RunningRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningRaceRecordDetailResponse.self, showLoadingToast: true, showErrorToast: false) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -89,7 +96,12 @@ class RunningRaceRecordDetailViewModel: ObservableObject {
                         self.samplePath = RunningPathPointTool.computeRaceSamplePoints(pathData: self.pathData)
                     }
                 }
-            default: break
+            case .failure(let error):
+                if case .businessError(code: 3004, message: _) = error {
+                    DispatchQueue.main.async {
+                        self.accessDenied = true
+                    }
+                }
             }
         }
     }

@@ -14,11 +14,13 @@ struct SubscriptionDetailView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
     @ObservedObject var userManager = UserManager.shared
     @State private var selectedProduct: Product? = nil
+    @State private var animatedProduct: Product? = nil
     @State private var isSubscribed: Bool = false
     @State private var autoRenew: Bool?
     @State private var startDate: Date?
     @State private var expireDate: Date?
     @State private var isLoading: Bool = true
+    @State private var isEligibleForMonthlyTrial = false
     
     @State private var webPage: WebPage?
     @State private var agreed = false
@@ -262,7 +264,9 @@ struct SubscriptionDetailView: View {
         .onFirstAppear {
             Task {
                 await manager.loadSubscriptionProducts()
+                let eligibleForTrial = await manager.isEligibleForMonthlyIntroductoryOffer()
                 DispatchQueue.main.async {
+                    isEligibleForMonthlyTrial = eligibleForTrial
                     if !manager.subscriptionProducts.isEmpty {
                         selectedProduct = manager.subscriptionProducts[0]
                     }
@@ -322,11 +326,30 @@ struct SubscriptionDetailView: View {
 
 // MARK: - 子视图拆分
 extension SubscriptionDetailView {
-    // 4 个订阅卡片区域
+    // 订阅卡片区域
     private var subscriptionCards: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
-                ForEach(manager.subscriptionProducts, id: \.id) { product in
+                if isEligibleForMonthlyTrial,
+                   let monthlyProduct = manager.subscriptionProducts.first(where: { $0.id == manager.monthlySubscriptionProductID }) {
+                    TrialSubscriptionCardView(
+                        product: monthlyProduct,
+                        isSelected: selectedProduct?.id == monthlyProduct.id,
+                        isAnimated: animatedProduct?.id == monthlyProduct.id
+                    )
+                    .onTapGesture {
+                        selectedProduct = monthlyProduct
+                        animatedProduct = monthlyProduct
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            if animatedProduct == monthlyProduct {
+                                animatedProduct = nil
+                            }
+                        }
+                    }
+                }
+                ForEach(manager.subscriptionProducts.filter {
+                    !isEligibleForMonthlyTrial || $0.id != manager.monthlySubscriptionProductID
+                }, id: \.id) { product in
                     SubscriptionCardView(
                         product: product,
                         isSelected: selectedProduct?.id == product.id
@@ -389,7 +412,7 @@ extension SubscriptionDetailView {
                 }
             }
         } label: {
-            Text(isSubscribed ? "iap.subscription.action.update_purchase" : "iap.subscription.action.purchase")
+            Text(isSubscribed ? "iap.subscription.action.update_purchase" : (isTrialPurchase ? "iap.subscription.action.start_trial" : "iap.subscription.action.purchase"))
                 .font(.headline)
                 .foregroundColor(.white)
                 .padding(.vertical)
@@ -399,40 +422,136 @@ extension SubscriptionDetailView {
         }
         .disabled(selectedProduct == nil)
     }
+
+    private var isTrialPurchase: Bool {
+        !isSubscribed
+            && isEligibleForMonthlyTrial
+            && selectedProduct?.id == manager.monthlySubscriptionProductID
+    }
+}
+
+struct TrialSubscriptionCardView: View {
+    let product: Product
+    let isSelected: Bool
+    let isAnimated: Bool
+
+    var body: some View {
+        ZStack {
+            Image("vip_icon_off")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 150)
+                .opacity(0.1)
+                .rotationEffect(
+                    .degrees(-30)
+                )
+                .offset(x: -50, y: -50)
+            VStack(spacing: 16) {
+                Text("iap.subscription.trial.title")
+                    .font(.system(.title2, weight: .bold))
+                    .foregroundStyle(isSelected ? Color.white : Color.thirdText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                Spacer()
+                Text("iap.subscription.trial.free")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(isSelected ? Color.white : Color.thirdText)
+                    .rotationEffect(
+                        .degrees(isAnimated ? 12 : 0)
+                    )
+                    .scaleEffect(isAnimated ? 1.1 : 1.0)
+                    .animation(
+                        .spring(response: 0.15, dampingFraction: 0.45)
+                        .repeatCount(1, autoreverses: true),
+                        value: isAnimated
+                    )
+                Text(renewalText)
+                    .font(.system(size: 14))
+                    .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
+                    .multilineTextAlignment(.center)
+                if let dailyPriceText = dailyPriceText {
+                    Text(dailyPriceText)
+                        .font(.system(size: 12))
+                        .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
+                }
+            }
+        }
+        .frame(width: 160, height: 200)
+        .padding()
+        .background(isSelected ? LinearGradient(
+            gradient: Gradient(colors: [Color(hex: "#CD6600"), Color(hex: "#8B4500")]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        ) : LinearGradient(
+            gradient: Gradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.2)]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        ))
+        .cornerRadius(14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(isSelected ? Color.orange : Color.clear, lineWidth: 2)
+        )
+    }
+
+    private var renewalText: String {
+        String(format: NSLocalizedString("iap.subscription.trial.renewal", comment: ""), product.displayPrice)
+    }
+
+    private var dailyPriceText: LocalizedStringKey? {
+        let dailyPrice = product.price / Decimal(30)
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = product.priceFormatStyle.currencyCode
+        formatter.maximumFractionDigits = 2
+
+        guard let formatted = formatter.string(from: dailyPrice as NSDecimalNumber) else { return nil }
+        return "time.per_day \(formatted)"
+    }
 }
 
 struct SubscriptionCardView: View {
     let product: Product
     let isSelected: Bool
-    
+
     var body: some View {
-        VStack(spacing: 20) {
-            Text(product.displayName)
-                .font(.headline)
+        ZStack {
+            Image("vip_icon_off")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 150)
+                .opacity(0.1)
+                .rotationEffect(
+                    .degrees(-30)
+                )
+                .offset(x: -50, y: -50)
+            VStack(spacing: 20) {
+                Text(planTitle)
+                    .font(.system(.title2, weight: .bold))
+                    .foregroundStyle(isSelected ? Color.white : Color.thirdText)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(currencySymbol)
+                        .font(isSelected ? .system(size: 20, weight: .bold) : .system(size: 18, weight: .semibold))
+                    Text(priceNumberString)
+                        .font(isSelected ? .system(size: 35, weight: .bold) : .system(size: 30, weight: .semibold))
+                        .lineLimit(1)
+                }
                 .foregroundStyle(isSelected ? Color.white : Color.thirdText)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(product.description)
-                .font(.subheadline)
-                .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer()
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(currencySymbol)
-                    .font(isSelected ? .system(size: 20, weight: .bold) : .system(size: 18, weight: .semibold))
-                Text(priceNumberString)
-                    .font(isSelected ? .system(size: 35, weight: .bold) : .system(size: 30, weight: .semibold))
-                    .lineLimit(1)
-            }
-            .foregroundStyle(isSelected ? Color.white : Color.thirdText)
-            .minimumScaleFactor(0.7)
-            // 显示平均到每天的价格
-            if let dailyPriceText = dailyPriceText {
-                Text(dailyPriceText)
-                    .font(.system(size: 15))
-                    .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
+                .minimumScaleFactor(0.7)
+                // 显示平均到每天的价格
+                if let dailyPriceText = dailyPriceText {
+                    Text(dailyPriceText)
+                        .font(.system(size: 15))
+                        .foregroundStyle(isSelected ? Color.secondText : Color.thirdText)
+                }
             }
         }
-        .frame(width: 160, height: 240)
+        .frame(width: 160, height: 200)
         .padding()
         .background(isSelected ? LinearGradient(
             gradient: Gradient(colors: [
@@ -454,6 +573,23 @@ struct SubscriptionCardView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(isSelected ? Color.orange : Color.clear, lineWidth: 2)
         )
+    }
+
+    private var planTitle: LocalizedStringKey {
+        guard let period = product.subscription?.subscriptionPeriod else {
+            return LocalizedStringKey(product.displayName)
+        }
+
+        switch (period.unit, period.value) {
+        case (.month, 1):
+            return "iap.subscription.plan.monthly"
+        case (.month, 6):
+            return "iap.subscription.plan.semiannual"
+        case (.year, 1):
+            return "iap.subscription.plan.annual"
+        default:
+            return LocalizedStringKey(product.displayName)
+        }
     }
     
     private var currencySymbol: String {

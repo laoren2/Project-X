@@ -301,6 +301,8 @@ struct RealNaviView: View {
                     UserIntroEditView()
                 case .sportSetUpView:
                     SportSetUpView()
+                case .recordPrivacySetUpView:
+                    RecordPrivacySetUpView()
                 case .identityAuthView:
                     IdentityAuthView()
                 case .userSetUpAccountView:

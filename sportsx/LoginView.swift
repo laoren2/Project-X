@@ -53,16 +53,13 @@ struct SmsLoginView: View {
                 .minimumScaleFactor(0.7)
                 .padding(.top, 40)
             
-            HStack {
-                Text("login.subtitle")
-                    .foregroundStyle(Color.thirdText)
-                    .font(.headline)
-                Spacer()
-            }
             VStack(spacing: 20) {
                 Text("login.sms.title")
                     .foregroundStyle(Color.white)
                     .font(.title2)
+                Text("login.subtitle")
+                    .foregroundStyle(Color.thirdText)
+                    .font(.headline)
                 HStack {
                     HStack {
                         Text("+\(selectedCountry.phoneCode)")

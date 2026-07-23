@@ -1417,3 +1417,22 @@
 "weather.condition.snow" = "눈";
 "weather.condition.fog" = "안개";
 "weather.condition.unknown" = "알 수 없음";
+
+// MARK: 경기 결과 개인정보
+"user.setup.privacy_settings" = "개인정보 설정";
+"user.privacy.record_visibility" = "운동 기록 상세";
+"user.privacy.record_visibility.description" = "데이터 공개 범위";
+"user.privacy.visibility.public" = "모두에게 공개";
+"user.privacy.visibility.followers" = "팔로워에게 공개";
+"user.privacy.visibility.friends" = "친구에게 공개";
+"competition.record.access_denied.title" = "접근 권한이 없습니다";
+
+// MARK: 구독 무료 체험
+"iap.subscription.plan.monthly" = "월간";
+"iap.subscription.plan.semiannual" = "6개월";
+"iap.subscription.plan.annual" = "연간";
+"iap.subscription.trial.title" = "7일 무료 체험";
+"iap.subscription.trial.description" = "모든 회원 혜택을 먼저 체험하세요";
+"iap.subscription.trial.free" = "무료";
+"iap.subscription.trial.renewal" = "이후 월 %@, 언제든 취소할 수 있습니다.";
+"iap.subscription.action.start_trial" = "7일 무료 체험 시작";
