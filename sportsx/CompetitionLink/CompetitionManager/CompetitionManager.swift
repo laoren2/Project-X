@@ -3318,7 +3318,8 @@ struct NearbyGrid: Identifiable {
     let reward: CCAssetType      // reward_type 映射；取 iconName 显示图标
     let count: Int
     let description: String      // buff 描述模板（含 {reward} 占位），sheet 卡片展示
-    let conditionType: String    // "distance" / "speed" / "none"，映射右上角条件角标
+    let conditionType: String    // "distance" / "speed" / "weather" / "none"
+    let conditionParams: JSONValue
 
     init(from dto: NearbyGridDTO) {
         self.gridX = dto.grid_x
@@ -3329,6 +3330,7 @@ struct NearbyGrid: Identifiable {
         self.count = dto.reward_count
         self.description = dto.description
         self.conditionType = dto.condition_type
+        self.conditionParams = dto.condition_params
     }
 }
 
@@ -3344,6 +3346,7 @@ struct NearbyGridDTO: Codable {
     let center_lon: Double
     let description: String
     let condition_type: String
+    let condition_params: JSONValue
     let reward_type: String
     let reward_count: Int
 }

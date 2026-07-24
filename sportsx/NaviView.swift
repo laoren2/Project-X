@@ -381,6 +381,10 @@ struct RealNaviView: View {
                     BikeTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
                 case .runningTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng):
                     RunningTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
+                case .bikeRegionOccupiedGridRankListView(let regionID):
+                    RegionOccupiedGridRankListView(sport: .Bike, regionID: regionID)
+                case .runningRegionOccupiedGridRankListView(let regionID):
+                    RegionOccupiedGridRankListView(sport: .Running, regionID: regionID)
                 case .bikeRouteCreateView:
                     BikeRouteCreateView()
                 case .runningRouteCreateView:

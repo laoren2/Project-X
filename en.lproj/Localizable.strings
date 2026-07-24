@@ -718,7 +718,13 @@
 
 "training.free.nearby.title" = "Nearby Grids";
 "training.free.nearby.occupied.title" = "Occupied Grids";
-"training.free.nearby.occupied.description" = "You occupy a grid when you have the most visits to it. This shows the total number of grids you currently occupy this season.";
+"training.free.nearby.occupied.description" = "You occupy a grid when you have the most visits to it. This shows the number of grids you currently occupy in the selected region this season.";
+"training.free.occupied.ranklist.title" = "Occupied Grids Ranking";
+"training.free.occupied.ranklist.me" = "My ranking";
+"training.free.occupied.ranklist.count" = "Occupied grids";
+"training.free.occupied.ranklist.count %lld" = "%lld occupied grids";
+"training.free.occupied.ranklist.empty" = "No occupied grids yet";
+"training.free.occupied.ranklist.unranked" = "Not ranked yet";
 "training.free.nearby.empty" = "No claimable reward grids nearby";
 "training.free.nearby.no_location" = "Unable to get current location";
 "training.free.nearby.distance.1km" = "1km";

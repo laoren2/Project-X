@@ -718,7 +718,13 @@
 
 "training.free.nearby.title" = "附近網格";
 "training.free.nearby.occupied.title" = "已佔領網格";
-"training.free.nearby.occupied.description" = "當你在某個網格內的造訪次數排名第一時，即佔領該網格。這裡顯示你目前賽季已佔領的網格總數。";
+"training.free.nearby.occupied.description" = "當你在某個網格內的造訪次數排名第一時，即佔領該網格。這裡顯示你目前賽季在所選區域內已佔領的網格數量。";
+"training.free.occupied.ranklist.title" = "已佔領網格排行榜";
+"training.free.occupied.ranklist.me" = "我的排名";
+"training.free.occupied.ranklist.count" = "佔領網格";
+"training.free.occupied.ranklist.count %lld" = "已佔領 %lld 個網格";
+"training.free.occupied.ranklist.empty" = "暫時還沒有已佔領網格";
+"training.free.occupied.ranklist.unranked" = "暫未上榜";
 "training.free.nearby.empty" = "附近暫無可領取的獎勵網格";
 "training.free.nearby.no_location" = "無法取得目前位置";
 "training.free.nearby.distance.1km" = "1km";

@@ -718,7 +718,13 @@
 
 "training.free.nearby.title" = "Grilles à proximité";
 "training.free.nearby.occupied.title" = "Grilles occupées";
-"training.free.nearby.occupied.description" = "Vous occupez une grille lorsque vous y comptez le plus de visites. Ceci indique le nombre total de grilles que vous occupez actuellement cette saison.";
+"training.free.nearby.occupied.description" = "Vous occupez une grille lorsque vous y comptez le plus de visites. Ceci indique le nombre de grilles que vous occupez dans la région sélectionnée cette saison.";
+"training.free.occupied.ranklist.title" = "Classement des grilles occupées";
+"training.free.occupied.ranklist.me" = "Mon classement";
+"training.free.occupied.ranklist.count" = "Grilles occupées";
+"training.free.occupied.ranklist.count %lld" = "%lld grilles occupées";
+"training.free.occupied.ranklist.empty" = "Aucune grille occupée pour le moment";
+"training.free.occupied.ranklist.unranked" = "Pas encore classé";
 "training.free.nearby.empty" = "Aucune grille de récompense à réclamer à proximité";
 "training.free.nearby.no_location" = "Impossible d'obtenir la position actuelle";
 "training.free.nearby.distance.1km" = "1km";

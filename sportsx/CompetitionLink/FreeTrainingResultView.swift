@@ -280,22 +280,12 @@ struct BikeFreeTrainingRecordDetailView: View {
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: 20)
-                                                if buff.conditionType == .distance {
-                                                    Image("buff_condition_distance")
-                                                        .resizable()
-                                                        .scaledToFit()
+                                                if let badge = GridConditionPresentation.badge(
+                                                    conditionType: buff.conditionType.rawValue,
+                                                    conditionParams: buff.conditionParams
+                                                ) {
+                                                    GridConditionBadgeImage(badge: badge)
                                                         .frame(width: 15)
-                                                        .offset(x: 4, y: -4)
-                                                } else if buff.conditionType == .speed {
-                                                    Image("buff_condition_speed")
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 15)
-                                                        .offset(x: 4, y: -4)
-                                                } else if buff.conditionType == .weather {
-                                                    Image(systemName: "cloud.sun.fill")
-                                                        .font(.system(size: 13))
-                                                        .foregroundStyle(Color.white)
                                                         .offset(x: 4, y: -4)
                                                 }
                                             }
@@ -1041,22 +1031,12 @@ struct RunningFreeTrainingRecordDetailView: View {
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: 20)
-                                                if buff.conditionType == .distance {
-                                                    Image("buff_condition_distance")
-                                                        .resizable()
-                                                        .scaledToFit()
+                                                if let badge = GridConditionPresentation.badge(
+                                                    conditionType: buff.conditionType.rawValue,
+                                                    conditionParams: buff.conditionParams
+                                                ) {
+                                                    GridConditionBadgeImage(badge: badge)
                                                         .frame(width: 15)
-                                                        .offset(x: 4, y: -4)
-                                                } else if buff.conditionType == .speed {
-                                                    Image("buff_condition_speed")
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 15)
-                                                        .offset(x: 4, y: -4)
-                                                } else if buff.conditionType == .weather {
-                                                    Image(systemName: "cloud.sun.fill")
-                                                        .font(.system(size: 13))
-                                                        .foregroundStyle(Color.white)
                                                         .offset(x: 4, y: -4)
                                                 }
                                             }

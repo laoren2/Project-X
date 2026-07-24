@@ -718,7 +718,13 @@
 
 "training.free.nearby.title" = "주변 그리드";
 "training.free.nearby.occupied.title" = "점령한 그리드";
-"training.free.nearby.occupied.description" = "특정 그리드의 방문 횟수가 1위가 되면 해당 그리드를 점령합니다. 여기에는 이번 시즌에 점령한 그리드의 총 개수가 표시됩니다.";
+"training.free.nearby.occupied.description" = "특정 그리드의 방문 횟수가 1위가 되면 해당 그리드를 점령합니다. 여기에는 이번 시즌 선택한 지역에서 점령한 그리드 수가 표시됩니다.";
+"training.free.occupied.ranklist.title" = "점령 그리드 순위";
+"training.free.occupied.ranklist.me" = "내 순위";
+"training.free.occupied.ranklist.count" = "점령 그리드";
+"training.free.occupied.ranklist.count %lld" = "%lld개 그리드 점령";
+"training.free.occupied.ranklist.empty" = "아직 점령한 그리드가 없습니다";
+"training.free.occupied.ranklist.unranked" = "아직 순위에 없습니다";
 "training.free.nearby.empty" = "주변에 획득 가능한 보상 그리드가 없습니다";
 "training.free.nearby.no_location" = "현재 위치를 가져올 수 없습니다";
 "training.free.nearby.distance.1km" = "1km";

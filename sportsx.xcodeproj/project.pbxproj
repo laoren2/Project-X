@@ -852,7 +852,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
 				PRODUCT_NAME = Movmov;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = sporreer_iOS_Development;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = movmov_iOS_dev;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -909,7 +909,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
 				PRODUCT_NAME = Movmov;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = sporreer_iOS_Distribution;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = movmov_iOS_distribution;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

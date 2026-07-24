@@ -73,6 +73,8 @@ enum AppRoute: Hashable {
     case runningFreeTrainingRecordDetailView(recordID: String)
     case bikeTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
     case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
+    case bikeRegionOccupiedGridRankListView(regionID: String)
+    case runningRegionOccupiedGridRankListView(regionID: String)
     case bikeRouteCreateView
     case runningRouteCreateView
     case bikeRouteEditView(route: BikeRouteManageItem)
@@ -227,6 +229,10 @@ enum AppRoute: Hashable {
             return "bikeTrainingMapView"
         case .runningTrainingMapView:
             return "runningTrainingMapView"
+        case .bikeRegionOccupiedGridRankListView:
+            return "bikeRegionOccupiedGridRankListView"
+        case .runningRegionOccupiedGridRankListView:
+            return "runningRegionOccupiedGridRankListView"
         case .bikeRouteCreateView:
             return "bikeRouteCreateView"
         case .runningRouteCreateView:

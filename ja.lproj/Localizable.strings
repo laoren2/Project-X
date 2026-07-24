@@ -718,7 +718,13 @@
 
 "training.free.nearby.title" = "近くのグリッド";
 "training.free.nearby.occupied.title" = "占領したグリッド";
-"training.free.nearby.occupied.description" = "あるグリッドへの訪問回数が1位になると、そのグリッドを占領します。ここには今シーズンに占領しているグリッドの総数が表示されます。";
+"training.free.nearby.occupied.description" = "あるグリッドへの訪問回数が1位になると、そのグリッドを占領します。ここには今シーズン、選択中の地域で占領しているグリッド数が表示されます。";
+"training.free.occupied.ranklist.title" = "占領グリッドランキング";
+"training.free.occupied.ranklist.me" = "自分の順位";
+"training.free.occupied.ranklist.count" = "占領グリッド";
+"training.free.occupied.ranklist.count %lld" = "%lld グリッドを占領";
+"training.free.occupied.ranklist.empty" = "占領済みグリッドはまだありません";
+"training.free.occupied.ranklist.unranked" = "まだランクインしていません";
 "training.free.nearby.empty" = "近くに獲得できる報酬グリッドはありません";
 "training.free.nearby.no_location" = "現在地を取得できません";
 "training.free.nearby.distance.1km" = "1km";

@@ -44,6 +44,7 @@ struct NearbyBuffGridDTO: Codable, Identifiable {
     let center_lon: Double
     let description: String
     let condition_type: String
+    let condition_params: JSONValue
     let reward_type: String
     let reward_count: Int
 
@@ -56,6 +57,7 @@ struct NearbyBuffGridsResponse: Codable {
 
 struct GridOccupancyResponse: Codable {
     let occupied_count: Int
+    let rank: Int?
 }
 
 
@@ -63,6 +65,8 @@ struct NearbyBuffGridsSectionView: View {
     let sport: SportName
     // 外层（FreeTrainingView）统一消费 refreshFreeTrainingView 刷新信号后递增此值，驱动本 section 重拉。
     let refreshToken: Int
+    // bike/running 自由训练页共用的区域排行榜入口。
+    let onOpenOccupiedRankList: (String) -> Void
 
     @ObservedObject var locationManager = LocationManager.shared
     @ObservedObject var userManager = UserManager.shared
@@ -71,6 +75,7 @@ struct NearbyBuffGridsSectionView: View {
     @State private var grids: [NearbyBuffGridDTO] = []
     @State private var selected: NearbyBuffGridDTO? = nil
     @State private var occupiedCount: Int = 0
+    @State private var occupiedRank: Int? = nil
     @State private var isLoading: Bool = true
     @State private var didLoad: Bool = false
 
@@ -81,29 +86,19 @@ struct NearbyBuffGridsSectionView: View {
                 Text("training.free.nearby.title")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Color.white)
-                HStack(spacing: 4) {
-                    Image(systemName: "crown")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.orange)
-                    Text("\(occupiedCount)")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.secondText)
-                        .exclusiveTouchTapGesture {
-                            PopupWindowManager.shared.presentPopup(
-                                title: "training.free.nearby.occupied.title",
-                                message: "training.free.nearby.occupied.description",
-                                bottomButtons: [.confirm()]
-                            )
-                        }
-                }
-                .foregroundStyle(Color.white)
-                .padding(.vertical, 4)
-                .padding(.horizontal, 8)
-                .background(
-                    Capsule().fill(Color.white.opacity(0.15))
-                )
+
+                occupancyBadge
+
+                Image(systemName: "info.circle")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.secondText)
+                    .exclusiveTouchTapGesture {
+                        PopupWindowManager.shared.presentPopup(
+                            title: "training.free.nearby.occupied.title",
+                            message: "training.free.nearby.occupied.description",
+                            bottomButtons: [.confirm()]
+                        )
+                    }
 
                 Spacer()
 
@@ -168,7 +163,8 @@ struct NearbyBuffGridsSectionView: View {
         }
         .onValueChange(of: locationManager.regionID) { _, _ in
             guard userManager.isLoggedIn else { return }
-            fetchGrids()
+            // nearby grids 以当前 GPS 坐标为查询依据，不受手动选择 region 影响。
+            fetchOccupiedCount()
         }
         .onValueChange(of: userManager.isLoggedIn) { _, newValue in
             if newValue {
@@ -178,11 +174,45 @@ struct NearbyBuffGridsSectionView: View {
                 grids = []
                 selected = nil
                 occupiedCount = 0
+                occupiedRank = nil
             }
         }
     }
 
     // MARK: - 子视图
+
+    private var occupancyBadge: some View {
+        Button {
+            guard let regionID = locationManager.regionID else { return }
+            onOpenOccupiedRankList(regionID)
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "crown")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.orange)
+                Text("\(occupiedCount)")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .padding(.trailing, 4)
+                if let occupiedRank {
+                    Text("#\(occupiedRank)")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.white)
+                } else {
+                    Text("#-")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.thirdText)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Color.secondText)
+            }
+            .foregroundStyle(Color.white)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(Capsule().fill(Color.white.opacity(0.15)))
+        }
+        .buttonStyle(.plain)
+    }
 
     // 加载骨架：与卡片同尺寸的灰色占位块（风格对齐 FreeTrainingView 的 Color.gray.opacity(0.5)）
     private var skeletonRow: some View {
@@ -209,16 +239,9 @@ struct NearbyBuffGridsSectionView: View {
                     .scaledToFit()
                     .frame(width: 22)
             }
-            if let badge = conditionBadgeName(grid.condition_type) {
-                Image(badge)
-                    .resizable()
-                    .scaledToFit()
+            if let badge = conditionBadge(for: grid) {
+                GridConditionBadgeImage(badge: badge)
                     .frame(width: 15)
-                    .offset(x: 4, y: -4)
-            } else if grid.condition_type == "weather" {
-                Image(systemName: "cloud.sun.fill")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.white)
                     .offset(x: 4, y: -4)
             }
         }
@@ -248,16 +271,9 @@ struct NearbyBuffGridsSectionView: View {
                             .scaledToFit()
                             .frame(width: 20)
                     }
-                    if let badge = conditionBadgeName(grid.condition_type) {
-                        Image(badge)
-                            .resizable()
-                            .scaledToFit()
+                    if let badge = conditionBadge(for: grid) {
+                        GridConditionBadgeImage(badge: badge)
                             .frame(width: 15)
-                            .offset(x: 4, y: -4)
-                    } else if grid.condition_type == "weather" {
-                        Image(systemName: "cloud.sun.fill")
-                            .font(.system(size: 13))
-                            .foregroundStyle(Color.white)
                             .offset(x: 4, y: -4)
                     }
                 }
@@ -288,10 +304,7 @@ struct NearbyBuffGridsSectionView: View {
             if let iconName = rewardIconName(grid.reward_type) {
                 RichTextLabel(
                     templateKey: grid.description,
-                    items: [
-                        ("reward", .image(iconName, width: 20)),
-                        ("reward", .text(" * \(grid.reward_count)"))
-                    ],
+                    items: richTextItems(for: grid, rewardIconName: iconName),
                     font: .systemFont(ofSize: 15)
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -310,17 +323,23 @@ struct NearbyBuffGridsSectionView: View {
         CCAssetType(rawValue: rewardType)?.iconName
     }
 
-    // condition_type 字符串 → 右上角角标图标：按运动解码到各自的条件枚举，
-    // 便于后续不同运动设计不同的条件类型与角标映射。
-    private func conditionBadgeName(_ conditionType: String) -> String? {
-        switch sport {
-        case .Bike:
-            return BikeGridConditionType(rawValue: conditionType)?.badgeImageName
-        case .Running, .Default:
-            return RunningGridConditionType(rawValue: conditionType)?.badgeImageName
-        case .Badminton:
-            return nil
+    private func conditionBadge(for grid: NearbyBuffGridDTO) -> GridConditionBadge? {
+        GridConditionPresentation.badge(
+            conditionType: grid.condition_type,
+            conditionParams: grid.condition_params
+        )
+    }
+
+    private func richTextItems(for grid: NearbyBuffGridDTO, rewardIconName: String) -> [(String, RichTextItem)] {
+        var items: [(String, RichTextItem)] = [
+            ("reward", .image(rewardIconName, width: 20)),
+            ("reward", .text(" * \(grid.reward_count)"))
+        ]
+        if grid.condition_type == "weather" {
+            let symbolName = WeatherConditionIcon.symbolName(for: grid.condition_params["match"]?.stringValue)
+            items.append(("weather", .systemSymbol(symbolName, width: 15, height: 15)))
         }
+        return items
     }
 
     private func distanceText(to grid: NearbyBuffGridDTO) -> String? {
@@ -377,8 +396,14 @@ struct NearbyBuffGridsSectionView: View {
     }
 
     private func fetchOccupiedCount() {
-        guard userManager.isLoggedIn else { return }
-        guard let urlPath = URLComponents(string: "/training/\(sport.rawValue)/query_occupied_grids_count")?.string else { return }
+        guard userManager.isLoggedIn, let regionID = locationManager.regionID else {
+            occupiedCount = 0
+            occupiedRank = nil
+            return
+        }
+        var components = URLComponents(string: "/training/\(sport.rawValue)/query_occupied_grids_count")
+        components?.queryItems = [URLQueryItem(name: "region_id", value: regionID)]
+        guard let urlPath = components?.string else { return }
 
         let request = APIRequest(path: urlPath, method: .get, requiresAuth: true)
         NetworkService.sendRequest(
@@ -390,7 +415,12 @@ struct NearbyBuffGridsSectionView: View {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let data):
-                    if let data { occupiedCount = data.occupied_count }
+                    // 切换 region 时旧请求可能晚返回，不能覆盖新 region 的统计。
+                    guard locationManager.regionID == regionID else { return }
+                    if let data {
+                        occupiedCount = data.occupied_count
+                        occupiedRank = data.rank
+                    }
                 default:
                     break
                 }

@@ -101,6 +101,7 @@ struct BikeFreeTrainingRecordDetailInfo {
                     gridX: gridX,
                     gridY: gridY,
                     conditionType: conditionType,
+                    conditionParams: buffJson["condition_params"] ?? .object([:]),
                     rewardType: rewardType
                 )
                 tempBuffInfos.append(info)
@@ -116,6 +117,7 @@ struct BikeGridBuffSnapshot: Identifiable {
     let gridX: Int
     let gridY: Int
     let conditionType: BikeGridConditionType
+    let conditionParams: JSONValue
     let rewardType: CCAssetType
 }
 
@@ -229,6 +231,7 @@ struct RunningFreeTrainingRecordDetailInfo {
                     gridX: gridX,
                     gridY: gridY,
                     conditionType: conditionType,
+                    conditionParams: buffJson["condition_params"] ?? .object([:]),
                     rewardType: rewardType
                 )
                 tempBuffInfos.append(info)
@@ -244,6 +247,7 @@ struct RunningGridBuffSnapshot: Identifiable {
     let gridX: Int
     let gridY: Int
     let conditionType: RunningGridConditionType
+    let conditionParams: JSONValue
     let rewardType: CCAssetType
 }
 

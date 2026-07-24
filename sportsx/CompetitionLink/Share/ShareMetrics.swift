@@ -16,14 +16,7 @@ struct WorkoutWeather: Codable, Equatable {
     let temperature_c: Double
 
     var symbolName: String {
-        switch condition {
-        case "clear": return "sun.max.fill"
-        case "cloudy": return "cloud.fill"
-        case "rain": return "cloud.rain.fill"
-        case "snow": return "cloud.snow.fill"
-        case "fog": return "cloud.fog.fill"
-        default: return "cloud.fill"
-        }
+        WeatherConditionIcon.symbolName(for: condition, fallback: "cloud.fill")
     }
 }
 

@@ -943,6 +943,7 @@ struct JustifiedText: UIViewRepresentable {
 enum RichTextItem {
     case text(String)
     case image(String, width: CGFloat? = nil, height: CGFloat? = nil)
+    case systemSymbol(String, width: CGFloat? = nil, height: CGFloat? = nil)
 }
 
 struct RichTextGenerator {
@@ -976,6 +977,17 @@ struct RichTextGenerator {
                     let w = width ?? 20
                     let h: CGFloat = height ?? img.size.height * (w / img.size.width)
                     attachment.bounds = CGRect(x: 0, y: -3, width: w, height: h)
+                    appended.append(NSAttributedString(attachment: attachment))
+                }
+            case .systemSymbol(let symbolName, let width, let height):
+                let attachment = NSTextAttachment()
+                let w = width ?? font.capHeight
+                let h = height ?? w
+                let configuration = UIImage.SymbolConfiguration(pointSize: h, weight: .regular)
+                if let image = UIImage(systemName: symbolName, withConfiguration: configuration)?
+                    .withTintColor(textColor, renderingMode: .alwaysOriginal) {
+                    attachment.image = image
+                    attachment.bounds = CGRect(x: 0, y: font.descender, width: w, height: h)
                     appended.append(NSAttributedString(attachment: attachment))
                 }
             }
