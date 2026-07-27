@@ -1453,6 +1453,9 @@
 "video_watermark.metric.speed" = "速度";
 "video_watermark.metric.altitude" = "標高";
 "video_watermark.metric.heart_rate" = "心拍数";
+"video_watermark.metric.predicted_rank" = "予測順位";
+"video_watermark.metric.pb_time" = "PB タイム差";
+"video_watermark.metric.pb_distance" = "PB 距離差";
 "video_watermark.metric.logo" = "アプリロゴ";
 "video_watermark.format.title" = "動画形式";
 "video_watermark.format.effective %@" = "有効な動画：%@";

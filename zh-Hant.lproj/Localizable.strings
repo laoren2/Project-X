@@ -1473,6 +1473,9 @@
 "video_watermark.metric.speed" = "速度";
 "video_watermark.metric.altitude" = "海拔";
 "video_watermark.metric.heart_rate" = "心率";
+"video_watermark.metric.predicted_rank" = "預測名次";
+"video_watermark.metric.pb_time" = "PB 時間差";
+"video_watermark.metric.pb_distance" = "PB 距離差";
 "video_watermark.metric.logo" = "應用程式標誌";
 "video_watermark.format.title" = "影片格式";
 "video_watermark.format.effective %@" = "有效影片：%@";

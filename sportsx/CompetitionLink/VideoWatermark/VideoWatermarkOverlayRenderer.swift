@@ -37,12 +37,12 @@ enum VideoWatermarkOverlayRenderer {
         guard let motion = motionPoint(for: task, videoTime: videoTime), size.width > 0, size.height > 0 else { return nil }
         let referenceSize = designSize ?? size
         let drawingScale = min(size.width / max(referenceSize.width, 1), size.height / max(referenceSize.height, 1))
-        return image(metrics: task.selectedMetrics, layouts: task.layouts, motion: motion, routePoints: task.workout.points, size: size, drawingScale: drawingScale)
+        return image(metrics: task.selectedMetrics, layouts: task.layouts, motion: motion, routePoints: task.workout.points, paceTimeline: task.paceTimeline ?? [], size: size, drawingScale: drawingScale)
     }
 
     /// 编辑器与导出共用同一绘制路径。预览使用真实轨迹与当前有效视频时刻的数据；
     /// `designSize` 保留视频像素坐标比例，避免小画布把水印放大到和成片不一致的尺寸。
-    static func previewImage(metrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout], workoutPoints: [VideoWatermarkMotionPoint], videoTime: TimeInterval, mediaCreationTime: TimeInterval, size: CGSize, designSize: CGSize) -> CGImage? {
+    static func previewImage(metrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout], workoutPoints: [VideoWatermarkMotionPoint], paceTimeline: [VideoWatermarkPaceFrame] = [], videoTime: TimeInterval, mediaCreationTime: TimeInterval, size: CGSize, designSize: CGSize) -> CGImage? {
         guard size.width > 0, size.height > 0, designSize.width > 0, designSize.height > 0 else { return nil }
         let fallbackPoints = fallbackMotionPoints
         let routePoints = workoutPoints.count > 1 ? workoutPoints : fallbackPoints
@@ -51,10 +51,10 @@ enum VideoWatermarkOverlayRenderer {
         let pixelScale: CGFloat = 2
         let pixelSize = CGSize(width: size.width * pixelScale, height: size.height * pixelScale)
         let scale = min(pixelSize.width / designSize.width, pixelSize.height / designSize.height)
-        return image(metrics: metrics, layouts: layouts, motion: motion, routePoints: routePoints, size: pixelSize, drawingScale: scale)
+        return image(metrics: metrics, layouts: layouts, motion: motion, routePoints: routePoints, paceTimeline: paceTimeline, size: pixelSize, drawingScale: scale)
     }
 
-    private static func image(metrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout], motion: VideoWatermarkMotionPoint, routePoints: [VideoWatermarkMotionPoint], size: CGSize, drawingScale: CGFloat) -> CGImage? {
+    private static func image(metrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout], motion: VideoWatermarkMotionPoint, routePoints: [VideoWatermarkMotionPoint], paceTimeline: [VideoWatermarkPaceFrame], size: CGSize, drawingScale: CGFloat) -> CGImage? {
         // `size` 是导出视频的像素尺寸。默认 renderer 会使用设备 Retina scale，生成 2x/3x
         // CGImage 后直接交给 Core Image 会让水印坐标落到视频画布之外。
         let format = UIGraphicsImageRendererFormat()
@@ -67,12 +67,12 @@ enum VideoWatermarkOverlayRenderer {
             cgContext.setShouldAntialias(true)
             for metric in metrics {
                 guard let layout = layouts[metric] else { continue }
-                draw(metric: metric, layout: layout, motion: motion, routePoints: routePoints, in: cgContext, size: size, drawingScale: drawingScale)
+                draw(metric: metric, layout: layout, motion: motion, routePoints: routePoints, paceFrame: paceFrame(in: paceTimeline, at: motion.timestamp), in: cgContext, size: size, drawingScale: drawingScale)
             }
         }.cgImage
     }
 
-    private static func draw(metric: VideoWatermarkMetric, layout: VideoWatermarkLayout, motion: VideoWatermarkMotionPoint, routePoints: [VideoWatermarkMotionPoint], in context: CGContext, size: CGSize, drawingScale: CGFloat) {
+    private static func draw(metric: VideoWatermarkMetric, layout: VideoWatermarkLayout, motion: VideoWatermarkMotionPoint, routePoints: [VideoWatermarkMotionPoint], paceFrame: VideoWatermarkPaceFrame?, in context: CGContext, size: CGSize, drawingScale: CGFloat) {
         // 编辑器已按视频封面尺寸为每个水印限制合法范围；导出不能再使用另一套
         // 固定倍数截断，否则高分辨率视频的预览与成片尺寸会不一致。
         let layoutScale = CGFloat(layout.scale)
@@ -85,6 +85,9 @@ enum VideoWatermarkOverlayRenderer {
             drawRoute(points: routePoints, currentTimestamp: motion.timestamp, rect: rect, scale: scale, in: context)
         case .speed, .altitude, .heartRate:
             guard let presentation = metricPresentation(for: metric, motion: motion) else { return }
+            drawMetric(presentation, rect: rect, scale: scale)
+        case .predictedRank, .pbTime, .pbDistance:
+            guard let presentation = pacePresentation(for: metric, frame: paceFrame) else { return }
             drawMetric(presentation, rect: rect, scale: scale)
         case .logo:
             drawLogo(in: rect, scale: scale)
@@ -141,7 +144,24 @@ enum VideoWatermarkOverlayRenderer {
         case .heartRate:
             guard let heartRate = motion.heartRate else { return nil }
             return MetricPresentation(value: String(format: "%.0f", heartRate), unit: "bpm", icon: "heart.fill")
-        case .route, .logo:
+        case .route, .predictedRank, .pbTime, .pbDistance, .logo:
+            return nil
+        }
+    }
+
+    private static func pacePresentation(for metric: VideoWatermarkMetric, frame: VideoWatermarkPaceFrame?) -> MetricPresentation? {
+        guard let frame else { return nil }
+        switch metric {
+        case .predictedRank:
+            guard let rank = frame.rank, frame.total > 0 else { return nil }
+            return MetricPresentation(value: "#\(rank) / \(frame.total)", unit: "RANK", icon: "list.number")
+        case .pbTime:
+            guard let delta = frame.deltaTime else { return nil }
+            return MetricPresentation(value: "\(delta >= 0 ? "+" : "−")\(TimeDisplay.formattedTime(abs(delta)))", unit: "PB", icon: "clock.arrow.circlepath")
+        case .pbDistance:
+            guard let delta = frame.deltaDistance else { return nil }
+            return MetricPresentation(value: String(format: "%@%.0f", delta >= 0 ? "+" : "−", abs(delta)), unit: "PB m", icon: "ruler")
+        default:
             return nil
         }
     }
@@ -150,6 +170,8 @@ enum VideoWatermarkOverlayRenderer {
         switch metric {
         case .route:
             return CGSize(width: 150, height: 116)
+        case .predictedRank, .pbTime, .pbDistance:
+            return CGSize(width: 215, height: 32)
         case .logo:
             return CGSize(width: 180, height: 30)
         case .speed, .altitude, .heartRate:
@@ -233,6 +255,17 @@ enum VideoWatermarkOverlayRenderer {
             heartRate: lower.heartRate ?? upper.heartRate,
             timestamp: target
         )
+    }
+
+    private static func paceFrame(in frames: [VideoWatermarkPaceFrame], at target: TimeInterval) -> VideoWatermarkPaceFrame? {
+        guard let first = frames.first, target >= first.timestamp else { return nil }
+        var lo = 0
+        var hi = frames.count
+        while lo + 1 < hi {
+            let mid = (lo + hi) / 2
+            if frames[mid].timestamp <= target { lo = mid } else { hi = mid }
+        }
+        return frames[lo]
     }
 
     private static func rect(centerX: Double, centerY: Double, width: CGFloat, height: CGFloat, size: CGSize) -> CGRect {

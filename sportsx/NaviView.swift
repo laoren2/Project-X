@@ -427,7 +427,7 @@ struct RealNaviView: View {
                     VideoWatermarkResourceView()
                 case .videoWatermarkEditorView(let storeID):
                     if let store = NavigationStoreManager.shared.resolve(storeID, as: VideoWatermarkEditorStore.self) {
-                        VideoWatermarkEditorView(workout: store.workout)
+                        VideoWatermarkEditorView(workout: store.workout, paceSnapshotPath: store.paceSnapshotPath)
                     } else {
                         EmptyView()
                     }

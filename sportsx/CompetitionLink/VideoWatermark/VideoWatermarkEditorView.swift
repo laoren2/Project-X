@@ -114,6 +114,7 @@ private enum VideoWatermarkPhotoImporter {
 
 struct VideoWatermarkEditorView: View {
     let workout: VideoWatermarkWorkoutSnapshot
+    let paceSnapshotPath: String?
     @ObservedObject private var taskManager = VideoWatermarkTaskManager.shared
     @ObservedObject private var navigationManager = NavigationManager.shared
     @ObservedObject private var userManager = UserManager.shared
@@ -135,11 +136,17 @@ struct VideoWatermarkEditorView: View {
     @State private var importStage: VideoWatermarkImportStage = .preparing
     @State private var importProgress: Double?
     @State private var importErrorKey: String?
+    @State private var paceSnapshot: VideoWatermarkPaceSnapshot?
+    @State private var isLoadingPaceSnapshot = false
 
     // 导入完成前不会展示编辑画布，这组值只用于保持 State 的初始状态完整。
     // 真实初始尺寸会在拿到视频封面画布尺寸后重新计算。
     private static let placeholderLayouts: [VideoWatermarkMetric: VideoWatermarkLayout] = [
-        .route: .route, .speed: .speed, .altitude: .altitude, .heartRate: .heartRate, .logo: .logo
+        .route: .route, .speed: .speed, .altitude: .altitude, .heartRate: .heartRate,
+        .predictedRank: VideoWatermarkLayout(x: 0.5, y: 0.57, scale: 1),
+        .pbTime: VideoWatermarkLayout(x: 0.5, y: 0.47, scale: 1),
+        .pbDistance: VideoWatermarkLayout(x: 0.5, y: 0.37, scale: 1),
+        .logo: .logo
     ]
 
     private static func maximumContentSizes(for media: VideoWatermarkMediaInfo, workout: VideoWatermarkWorkoutSnapshot) -> [VideoWatermarkMetric: CGSize] {
@@ -180,6 +187,9 @@ struct VideoWatermarkEditorView: View {
         case .speed: return .speed
         case .altitude: return .altitude
         case .heartRate: return .heartRate
+        case .predictedRank: return VideoWatermarkLayout(x: 0.5, y: 0.57, scale: 1)
+        case .pbTime: return VideoWatermarkLayout(x: 0.5, y: 0.47, scale: 1)
+        case .pbDistance: return VideoWatermarkLayout(x: 0.5, y: 0.37, scale: 1)
         case .logo: return .logo
         }
     }
@@ -254,6 +264,7 @@ struct VideoWatermarkEditorView: View {
         }
         .onAppear {
             if !workout.hasHeartRate { selectedMetrics.remove(.heartRate) }
+            loadPaceSnapshot()
         }
     }
 
@@ -323,7 +334,8 @@ struct VideoWatermarkEditorView: View {
                         selectedMetric: $selectedMetric,
                         maximumContentSizes: maximumContentSizes,
                         media: media,
-                        workout: workout
+                        workout: workout,
+                        paceTimeline: VideoWatermarkPaceTimelineBuilder.make(snapshot: paceSnapshot, workout: workout)
                     )
                         .frame(width: previewSize.width, height: previewSize.height)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -393,8 +405,8 @@ struct VideoWatermarkEditorView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(VideoWatermarkMetric.allCases) { metric in
-                        let unavailable = metric == .heartRate && !workout.hasHeartRate
-                        let islocked = metric == .logo && !userManager.user.isVip
+                        let unavailable = (metric == .heartRate && !workout.hasHeartRate) || (metric.isPaceMetric && paceSnapshot == nil)
+                        let islocked = (metric == .logo || metric.isPaceMetric) && !userManager.user.isVip
                         let selected = selectedMetrics.contains(metric)
                         HStack(spacing: 5) {
                             if metric == .logo {
@@ -644,7 +656,8 @@ struct VideoWatermarkEditorView: View {
             ToastManager.shared.show(toast: Toast(message: "toast.no_login"))
             return
         }
-        let task = VideoWatermarkTask(userID: userID, workout: workout, media: media, photoAssetReference: photoAssetReference, outputFormat: outputFormat, selectedMetrics: selectedMetrics, layouts: layouts)
+        let paceTimeline = VideoWatermarkPaceTimelineBuilder.make(snapshot: paceSnapshot, workout: workout)
+        let task = VideoWatermarkTask(userID: userID, workout: workout, paceSnapshot: paceSnapshot, paceTimeline: paceTimeline, media: media, photoAssetReference: photoAssetReference, outputFormat: outputFormat, selectedMetrics: selectedMetrics, layouts: layouts)
         isCreatingTask = true
         Task {
             do {
@@ -656,6 +669,23 @@ struct VideoWatermarkEditorView: View {
                 Logger.videoWatermark.error_public("create task failed: \(error.localizedDescription)")
                 ToastManager.shared.show(toast: Toast(message: "video_watermark.error.create_failed"))
                 isCreatingTask = false
+            }
+        }
+    }
+
+    private func loadPaceSnapshot() {
+        guard let paceSnapshotPath, !isLoadingPaceSnapshot else { return }
+        isLoadingPaceSnapshot = true
+        guard var components = URLComponents(string: paceSnapshotPath) else { return }
+        components.queryItems = [URLQueryItem(name: "record_id", value: workout.recordID)]
+        guard let path = components.url?.absoluteString else { return }
+        let request = APIRequest(path: path, method: .get, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: VideoWatermarkPaceSnapshot.self, showErrorToast: false) { result in
+            DispatchQueue.main.async {
+                self.isLoadingPaceSnapshot = false
+                if case .success(let snapshot) = result {
+                    self.paceSnapshot = snapshot
+                }
             }
         }
     }
@@ -689,7 +719,7 @@ private struct VideoWatermarkScalePolicy {
         }
 
         switch metric {
-        case .speed, .altitude, .heartRate:
+        case .speed, .altitude, .heartRate, .predictedRank, .pbTime, .pbDistance:
             // 三种数据水印的主数字均使用 26pt 基础字体，因此用字号换算 scale，
             // 使不同文本长度仍保持一致的数字视觉层级。
             let minimum = coverShortSide * minimumMetricFontRatio / baseMetricFontSize
@@ -709,7 +739,7 @@ private struct VideoWatermarkScalePolicy {
     func defaultScale(for metric: VideoWatermarkMetric, contentSize: CGSize, maximumContentSize: CGSize) -> CGFloat {
         let range = range(for: metric, contentSize: contentSize, maximumContentSize: maximumContentSize)
         switch metric {
-        case .speed, .altitude, .heartRate:
+        case .speed, .altitude, .heartRate, .predictedRank, .pbTime, .pbDistance:
             let coverShortSide = min(coverCanvasSize.width, coverCanvasSize.height)
             let preferred = coverShortSide * defaultMetricFontRatio / baseMetricFontSize
             return min(max(preferred, range.lowerBound), range.upperBound)
@@ -742,6 +772,7 @@ private struct WatermarkLayoutPreview: View {
     let maximumContentSizes: [VideoWatermarkMetric: CGSize]
     let media: VideoWatermarkMediaInfo
     let workout: VideoWatermarkWorkoutSnapshot
+    let paceTimeline: [VideoWatermarkPaceFrame]
     @State private var draggingMetric: VideoWatermarkMetric?
 
     var body: some View {
@@ -751,6 +782,7 @@ private struct WatermarkLayoutPreview: View {
                 metrics: visibleMetrics,
                 layouts: layouts,
                 workoutPoints: workout.points,
+                paceTimeline: paceTimeline,
                 videoTime: media.effectiveVideoStart,
                 mediaCreationTime: media.creationTime,
                 size: geometry.size,
@@ -785,6 +817,7 @@ private struct WatermarkLayoutPreview: View {
                                     metrics: Set([metric]),
                                     layouts: layouts,
                                     workoutPoints: workout.points,
+                                    paceTimeline: paceTimeline,
                                     videoTime: media.effectiveVideoStart,
                                     mediaCreationTime: media.creationTime,
                                     size: geometry.size,

@@ -1473,6 +1473,9 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "video_watermark.metric.speed" = "Speed";
 "video_watermark.metric.altitude" = "Altitude";
 "video_watermark.metric.heart_rate" = "Heart Rate";
+"video_watermark.metric.predicted_rank" = "Predicted Rank";
+"video_watermark.metric.pb_time" = "PB Time";
+"video_watermark.metric.pb_distance" = "PB Distance";
 "video_watermark.metric.logo" = "App Logo";
 "video_watermark.format.title" = "Video format";
 "video_watermark.format.effective %@" = "Usable video: %@";

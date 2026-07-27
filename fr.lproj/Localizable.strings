@@ -1473,6 +1473,9 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "video_watermark.metric.speed" = "Vitesse";
 "video_watermark.metric.altitude" = "Altitude";
 "video_watermark.metric.heart_rate" = "Fréquence cardiaque";
+"video_watermark.metric.predicted_rank" = "Rang prévu";
+"video_watermark.metric.pb_time" = "Écart de temps PB";
+"video_watermark.metric.pb_distance" = "Écart de distance PB";
 "video_watermark.metric.logo" = "Logo de l’app";
 "video_watermark.format.title" = "Format vidéo";
 "video_watermark.format.effective %@" = "Vidéo utilisable : %@";

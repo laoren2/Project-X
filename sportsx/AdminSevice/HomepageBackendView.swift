@@ -33,6 +33,12 @@ struct HomepageBackendView: View {
     @State var adImage_ko: UIImage? = nil
     @State var showImagePicker_ko: Bool = false
     @State var selectedImageItem_ko: PhotosPickerItem?
+    @State var adImage_ja: UIImage? = nil
+    @State var showImagePicker_ja: Bool = false
+    @State var selectedImageItem_ja: PhotosPickerItem?
+    @State var adImage_fr: UIImage? = nil
+    @State var showImagePicker_fr: Bool = false
+    @State var selectedImageItem_fr: PhotosPickerItem?
     
     var body: some View {
         VStack {
@@ -124,6 +130,16 @@ struct HomepageBackendView: View {
                                 showImagePicker_ko = true
                             }
                         }
+                        GroupBox("图片 ja") {
+                            imagePickerView(image: adImage_ja) {
+                                showImagePicker_ja = true
+                            }
+                        }
+                        GroupBox("图片 fr") {
+                            imagePickerView(image: adImage_fr) {
+                                showImagePicker_fr = true
+                            }
+                        }
                         Section {
                             TextField("web_url", text: $web_url)
                                 .background(.gray.opacity(0.1))
@@ -135,7 +151,7 @@ struct HomepageBackendView: View {
                             Button("添加Ad") {
                                 createBannerAds()
                             }
-                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil || adImage_ko == nil)
+                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil || adImage_ko == nil || adImage_ja == nil || adImage_fr == nil)
                         }
                     }
                 }
@@ -149,6 +165,8 @@ struct HomepageBackendView: View {
         .photosPicker(isPresented: $showImagePicker_hant, selection: $selectedImageItem_hant, matching: .images)
         .photosPicker(isPresented: $showImagePicker_en, selection: $selectedImageItem_en, matching: .images)
         .photosPicker(isPresented: $showImagePicker_ko, selection: $selectedImageItem_ko, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_ja, selection: $selectedImageItem_ja, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_fr, selection: $selectedImageItem_fr, matching: .images)
         .onValueChange(of: selectedImageItem_hans) { _, newState in
             Task {
                 if let data = try? await newState?.loadTransferable(type: Data.self),
@@ -186,6 +204,26 @@ struct HomepageBackendView: View {
                     adImage_ko = uiImage
                 } else {
                     adImage_ko = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_ja) { _, newState in
+            Task {
+                if let data = try? await newState?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_ja = uiImage
+                } else {
+                    adImage_ja = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_fr) { _, newState in
+            Task {
+                if let data = try? await newState?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_fr = uiImage
+                } else {
+                    adImage_fr = nil
                 }
             }
         }
@@ -270,7 +308,9 @@ struct HomepageBackendView: View {
             ("image_hans", adImage_hans, "ad_hans.jpg"),
             ("image_hant", adImage_hant, "ad_hant.jpg"),
             ("image_en", adImage_en, "ad_en.jpg"),
-            ("image_ko", adImage_en, "ad_ko.jpg")
+            ("image_ko", adImage_en, "ad_ko.jpg"),
+            ("image_ja", adImage_ja, "ad_ja.jpg"),
+            ("image_fr", adImage_fr, "ad_fr.jpg")
         ]
         for (name, image, filename) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
@@ -286,7 +326,7 @@ struct HomepageBackendView: View {
         
         let request = APIRequest(path: "/homepage/create_banner_ad", method: .post, headers: headers, body: body, isInternal: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true, timeout: 30) { _ in }
     }
     
     func queryBannerAds() {

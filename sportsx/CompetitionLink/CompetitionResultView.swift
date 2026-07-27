@@ -132,7 +132,10 @@ struct BikeRaceRecordDetailView: View {
     }
 
     private var videoWatermarkWorkout: VideoWatermarkWorkoutSnapshot {
-        VideoWatermarkWorkoutSnapshot(recordID: viewModel.recordID, sport: .Bike, kind: .race, basePath: viewModel.basePath)
+        VideoWatermarkWorkoutSnapshot(
+            recordID: viewModel.recordID, sport: .Bike, kind: .race, basePath: viewModel.basePath,
+            pacePoints: viewModel.pathData.map { VideoWatermarkPacePoint(timestamp: $0.base.timestamp, cumulativeCardBonus: $0.card_bonus.reduce(0) { $0 + $1.bonus_time }) }
+        )
     }
 
     var body: some View {
@@ -194,7 +197,7 @@ struct BikeRaceRecordDetailView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
                             Button(action: {
-                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
+                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout, paceSnapshotPath: "/competition/bike/video_watermark_pace_snapshot")
                                 videoWatermarkEditorStore = store
                                 appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
                             }) {
@@ -1055,7 +1058,10 @@ struct RunningRaceRecordDetailView: View {
     }
 
     private var videoWatermarkWorkout: VideoWatermarkWorkoutSnapshot {
-        VideoWatermarkWorkoutSnapshot(recordID: viewModel.recordID, sport: .Running, kind: .race, basePath: viewModel.basePath)
+        VideoWatermarkWorkoutSnapshot(
+            recordID: viewModel.recordID, sport: .Running, kind: .race, basePath: viewModel.basePath,
+            pacePoints: viewModel.pathData.map { VideoWatermarkPacePoint(timestamp: $0.base.timestamp, cumulativeCardBonus: $0.card_bonus.reduce(0) { $0 + $1.bonus_time }) }
+        )
     }
 
     var body: some View {
@@ -1117,7 +1123,7 @@ struct RunningRaceRecordDetailView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
                             Button(action: {
-                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
+                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout, paceSnapshotPath: "/competition/running/video_watermark_pace_snapshot")
                                 videoWatermarkEditorStore = store
                                 appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
                             }) {

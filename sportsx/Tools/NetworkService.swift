@@ -70,6 +70,7 @@ struct NetworkService {
         showSuccessToast: Bool = false,
         showErrorToast: Bool = false,
         customErrorToast: ((APIError) -> Toast?)? = nil,
+        timeout: Double = 10.0,
         completion: @escaping (Result<T?, APIError>) -> Void
     ) {
         // request
@@ -84,7 +85,7 @@ struct NetworkService {
             return
         }
         
-        var request = URLRequest(url: url, timeoutInterval: 10)
+        var request = URLRequest(url: url, timeoutInterval: timeout)
         request.httpMethod = apiRequest.method.rawValue
         
         // Headers

@@ -1453,6 +1453,9 @@
 "video_watermark.metric.speed" = "속도";
 "video_watermark.metric.altitude" = "고도";
 "video_watermark.metric.heart_rate" = "심박수";
+"video_watermark.metric.predicted_rank" = "예상 순위";
+"video_watermark.metric.pb_time" = "PB 시간 차이";
+"video_watermark.metric.pb_distance" = "PB 거리 차이";
 "video_watermark.metric.logo" = "앱 로고";
 "video_watermark.format.title" = "동영상 형식";
 "video_watermark.format.effective %@" = "유효 동영상: %@";
