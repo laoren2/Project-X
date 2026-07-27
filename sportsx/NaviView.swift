@@ -239,6 +239,11 @@ struct RealNaviView: View {
             }
             .ignoresSafeArea(edges: .bottom)
             .onValueChange(of: scenePhase) { oldPhase, newPhase  in
+                if newPhase == .background {
+                    VideoWatermarkTaskManager.shared.applicationDidEnterBackground()
+                } else if newPhase == .active {
+                    VideoWatermarkTaskManager.shared.applicationDidBecomeActive()
+                }
                 switch (oldPhase, newPhase) {
                 case (_, .active):
                     if isAppLaunching {
@@ -416,6 +421,16 @@ struct RealNaviView: View {
                     RunningRouteRankListView(routeID: id, isPremium: isPremium)
                 case .pendingUploadListView(let category, let sport):
                     PendingUploadListView(category: category, sport: sport)
+                case .videoWatermarkManageView:
+                    VideoWatermarkManageView()
+                case .videoWatermarkResourceView:
+                    VideoWatermarkResourceView()
+                case .videoWatermarkEditorView(let storeID):
+                    if let store = NavigationStoreManager.shared.resolve(storeID, as: VideoWatermarkEditorStore.self) {
+                        VideoWatermarkEditorView(workout: store.workout)
+                    } else {
+                        EmptyView()
+                    }
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()

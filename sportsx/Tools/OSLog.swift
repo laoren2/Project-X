@@ -12,6 +12,7 @@ extension Logger {
     private static var subsystem = Bundle.main.bundleIdentifier!
 
     static let competition = Logger(subsystem: subsystem, category: "competition")
+    static let videoWatermark = Logger(subsystem: subsystem, category: "video_watermark")
     
     func info_public(_ message: String) {
         info("\(message, privacy: .public)")

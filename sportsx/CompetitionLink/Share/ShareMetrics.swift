@@ -42,16 +42,12 @@ struct WorkoutWeatherSummaryRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 8) {
-                Image(systemName: "clock")
-                Text(endTimeText)
-                Text("·")
-                Image(systemName: weather.symbolName)
-                Text(conditionText)
-                Text("·")
-                Text(String(format: "%.1f°C", weather.temperature_c))
-            }
+        HStack(spacing: 8) {
+            Image(systemName: weather.symbolName)
+            Text(conditionText)
+            Text(String(format: "%.1f°C", weather.temperature_c))
+            Spacer()
+            Text(endTimeText)
         }
         .font(.system(.subheadline, design: .rounded, weight: .semibold))
         .foregroundStyle(Color.secondText)

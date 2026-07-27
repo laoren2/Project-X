@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-本文件为 Claude Code（及其他 AI 助手）提供在本仓库工作的指引。仓库为 **sportsx** —— 一个以骑行/跑步为核心的运动竞技平台 iOS App（含 watchOS 伴侣 App）。
+本文件为 agents（及其他 AI 助手）提供在本仓库工作的指引。仓库为 **sportsx** —— 一个以骑行/跑步为核心的运动竞技平台 iOS App（含 watchOS 伴侣 App）。
 
 > 维护约定：本文件描述的是「约定与边界」，不是 API 文档。改动架构（导航、网络层、启动流程、单例边界）时，请同步更新本文件。
 
@@ -18,7 +18,7 @@
   - `sportsxTests` / `sportsxUITests` —— iOS 测试
 - **本地化**： 所有支持的语言 `zh-Hans` / `zh-Hant` / `en` / `ja` / `ko` / `fr` /...，文案在各 `*.lproj/Localizable.strings`。
 
-### 常用命令
+### iOS构建
 ```bash
 # 构建（模拟器）
 xcodebuild -project sportsx.xcodeproj -scheme sportsx \
@@ -28,7 +28,17 @@ xcodebuild -project sportsx.xcodeproj -scheme sportsx \
 xcodebuild -project sportsx.xcodeproj -scheme sportsx \
   -destination 'platform=iOS Simulator,name=iPhone 16' test
 ```
-> 日常开发以 Xcode GUI（Cmd+R / Cmd+U）为主，CI/批量验证用上面的 `xcodebuild`。
+
+仅校验客户端编译时，优先使用以下命令；不要先运行 `xcodebuild -list`：
+
+```sh
+xcodebuild -project sportsX/sportsx.xcodeproj -scheme sportsx -destination 'generic/platform=iOS' -configuration Debug -derivedDataPath /private/tmp/movmov-sportsx-derived CODE_SIGNING_ALLOWED=NO -quiet build
+```
+
+- 不要传入 `-sdk iphoneos`。该 scheme 同时包含 watchOS target，强制 iPhone SDK 会让 watch target 以错误的平台编译，并报 `WatchKit` 无法解析的误导性错误。
+- 使用固定的临时 `DerivedData` 路径以复用本次会话的构建与 SwiftPM 产物；`-quiet` 只输出诊断，避免数万行依赖编译日志。
+- 若受沙箱限制无法读取 `~/Library/Caches/org.swift.swiftpm` 或 Xcode 日志/缓存，应立即以 `require_escalated` 重跑同一条命令；不要改用冗长的探测命令或多次完整重试。
+- 构建成功时允许保留项目既有 warning；仅当新增 error 或本次改动相关 warning 时再处理。
 
 ---
 
@@ -115,6 +125,11 @@ sportsxApp (@main)
 3. 在 [NaviView.swift](sportsx/NaviView.swift) 的 `navigationDestination` 中注册该路由 → View。
 4. 用 `NavigationManager.shared.append(.xxx)` 跳转。
 5. UI 文案加进 5 份 `Localizable.strings`。
+
+注意事项：
+- 需要自定义顶部栏的页面，以 `HStack` 构建返回、居中标题和右侧操作；左右操作区使用相同宽度，确保标题视觉居中。
+- 此类页面必须添加 `.toolbar(.hidden, for: .navigationBar)` 和 `.enableSwipeBackGesture()`；返回操作调用既有的 `NavigationManager.removeLast()`。
+- 继续使用 `CommonIconButton`、`Color.defaultBackground` 和既有的文字颜色 token，避免混入系统导航栏或新的视觉样式。
 
 ### 新增一个后端接口调用
 1. 在 ViewModel/Manager 里构造 `APIRequest(path:method:requiresAuth:...)`。

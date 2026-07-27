@@ -145,9 +145,14 @@ struct BikeFreeTrainingRecordDetailView: View {
     }
 
     @State private var showShareEditor: Bool = false
+    @State private var videoWatermarkEditorStore: VideoWatermarkEditorStore?
 
     private var shareMetrics: ShareMetrics {
         ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
+    }
+
+    private var videoWatermarkWorkout: VideoWatermarkWorkoutSnapshot {
+        VideoWatermarkWorkoutSnapshot(recordID: viewModel.recordID, sport: .Bike, kind: .freeTraining, basePath: viewModel.basePath)
     }
 
     var body: some View {
@@ -208,13 +213,30 @@ struct BikeFreeTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
-                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
-                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
-                                    .padding(.top, 10)
+                            Button(action: {
+                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
+                                videoWatermarkEditorStore = store
+                                appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
+                            }) {
+                                HStack {
+                                    Image("sport_camera")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    Text("video_watermark.action.overlay_to_video")
+                                        .foregroundStyle(Color.white)
+                                        .font(.system(size: 18, weight: .medium))
+                                }
+                                .padding(.vertical, 12)
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.orange)
+                                )
                             }
                             // 结算信息
                             HStack {
-                                Text("competition.record.settlement_rewards")
+                                Text("competition.team.basic_info")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
@@ -222,38 +244,39 @@ struct BikeFreeTrainingRecordDetailView: View {
                             }
                             .padding(.top, 10)
                             
-                            HStack(spacing: 20) {
-                                HStack(spacing: 4) {
-                                    Image("experience_points")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 25)
-                                    Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
-                                Spacer()
-                                HStack(spacing: 4) {
-                                    Image("momentum")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 20)
-                                    Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
+                                    .padding(.top, 10)
                             }
-                            .foregroundStyle(Color.white)
                             
-                            HStack(spacing: 20) {
-                                Spacer()
-                                ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                            ScrollView(.horizontal) {
+                                HStack(spacing: 20) {
                                     HStack(spacing: 4) {
-                                        Image(ccasset.ccasset_type.iconName)
+                                        Image("experience_points")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 25)
-                                        Text("+\(ccasset.new_ccamount)")
+                                        Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
                                             .font(.system(.body, design: .rounded, weight: .bold))
-                                            .foregroundStyle(Color.white)
+                                    }
+                                    HStack(spacing: 4) {
+                                        Image("momentum")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20)
+                                        Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
+                                            .font(.system(.body, design: .rounded, weight: .bold))
+                                    }
+                                    ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                                        HStack(spacing: 4) {
+                                            Image(ccasset.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 25)
+                                            Text("+\(ccasset.new_ccamount)")
+                                                .font(.system(.body, design: .rounded, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        }
                                     }
                                 }
                             }
@@ -323,6 +346,15 @@ struct BikeFreeTrainingRecordDetailView: View {
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    Text("competition.realtime.elev_gain")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    (Text(String(format: "%.0f ", shareMetrics.elevationGain)) + Text("distance.m"))
                                         .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }
@@ -896,9 +928,14 @@ struct RunningFreeTrainingRecordDetailView: View {
     }
 
     @State private var showShareEditor: Bool = false
+    @State private var videoWatermarkEditorStore: VideoWatermarkEditorStore?
 
     private var shareMetrics: ShareMetrics {
         ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
+    }
+
+    private var videoWatermarkWorkout: VideoWatermarkWorkoutSnapshot {
+        VideoWatermarkWorkoutSnapshot(recordID: viewModel.recordID, sport: .Running, kind: .freeTraining, basePath: viewModel.basePath)
     }
 
     var body: some View {
@@ -959,13 +996,31 @@ struct RunningFreeTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
-                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
-                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
-                                    .padding(.top, 10)
+                            Button(action: {
+                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
+                                videoWatermarkEditorStore = store
+                                appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
+                            }) {
+                                HStack {
+                                    Image("sport_camera")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 25)
+                                    Text("video_watermark.action.overlay_to_video")
+                                        .foregroundStyle(Color.white)
+                                        .font(.system(size: 18, weight: .medium))
+                                }
+                                .padding(.vertical, 12)
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.orange)
+                                )
                             }
+                            
                             // 结算信息
                             HStack {
-                                Text("competition.record.settlement_rewards")
+                                Text("competition.team.basic_info")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
@@ -973,38 +1028,39 @@ struct RunningFreeTrainingRecordDetailView: View {
                             }
                             .padding(.top, 10)
                             
-                            HStack(spacing: 20) {
-                                HStack(spacing: 4) {
-                                    Image("experience_points")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 25)
-                                    Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
-                                Spacer()
-                                HStack(spacing: 4) {
-                                    Image("momentum")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 20)
-                                    Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
+                                    .padding(.top, 10)
                             }
-                            .foregroundStyle(Color.white)
                             
-                            HStack(spacing: 20) {
-                                Spacer()
-                                ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                            ScrollView(.horizontal) {
+                                HStack(spacing: 20) {
                                     HStack(spacing: 4) {
-                                        Image(ccasset.ccasset_type.iconName)
+                                        Image("experience_points")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 25)
-                                        Text("+\(ccasset.new_ccamount)")
+                                        Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
                                             .font(.system(.body, design: .rounded, weight: .bold))
-                                            .foregroundStyle(Color.white)
+                                    }
+                                    HStack(spacing: 4) {
+                                        Image("momentum")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20)
+                                        Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
+                                            .font(.system(.body, design: .rounded, weight: .bold))
+                                    }
+                                    ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                                        HStack(spacing: 4) {
+                                            Image(ccasset.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 25)
+                                            Text("+\(ccasset.new_ccamount)")
+                                                .font(.system(.body, design: .rounded, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        }
                                     }
                                 }
                             }
@@ -1074,6 +1130,15 @@ struct RunningFreeTrainingRecordDetailView: View {
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .font(.system(.body, design: .rounded, weight: .bold))
+                                        .foregroundStyle(Color.white)
+                                }
+                                HStack {
+                                    Text("competition.realtime.elev_gain")
+                                        .bold()
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    (Text(String(format: "%.0f ", shareMetrics.elevationGain)) + Text("distance.m"))
                                         .font(.system(.body, design: .rounded, weight: .bold))
                                         .foregroundStyle(Color.white)
                                 }

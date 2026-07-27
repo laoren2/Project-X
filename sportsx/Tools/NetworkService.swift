@@ -75,8 +75,11 @@ struct NetworkService {
         // request
         let urlString = (apiRequest.isInternal ? baseUrl_internal : baseUrl) + apiRequest.path
         guard let url = URL(string: urlString) else {
-            let toast = Toast(message: "无效的服务", duration: 2)
-            ToastManager.shared.show(toast: toast)
+            //print(urlString)
+            DispatchQueue.main.async {
+                let toast = Toast(message: "无效的服务", duration: 2)
+                ToastManager.shared.show(toast: toast)
+            }
             completion(.failure(.unknown))
             return
         }

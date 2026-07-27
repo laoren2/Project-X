@@ -816,7 +816,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
@@ -833,8 +833,8 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image you generate to your photo album.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image or processed video you generate to your photo album.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to access the photos or videos you select to update your profile and create workout video watermarks. Photos you do not select are never accessed.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -848,7 +848,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
 				PRODUCT_NAME = Movmov;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -872,7 +872,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
@@ -889,8 +889,8 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image you generate to your photo album.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image or processed video you generate to your photo album.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to access the photos or videos you select to update your profile and create workout video watermarks. Photos you do not select are never accessed.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -904,7 +904,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
 				PRODUCT_NAME = Movmov;
@@ -997,7 +997,7 @@
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
@@ -1014,7 +1014,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1037,7 +1037,7 @@
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
@@ -1054,7 +1054,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

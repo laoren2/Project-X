@@ -1545,7 +1545,7 @@ struct AboutUsView: View {
     let emailAdress: String = "contact@valbara.top"
     let vxAccount: String = "97784765"
     private let xProfileURL = URL(string: "https://x.com/passionkc26")!
-    private let tiktokProfileURL = URL(string: "www.tiktok.com/@movmov141")!
+    private let tiktokProfileURL = URL(string: "https://www.tiktok.com/@movmov141")!
     private let youtubeProfileURL = URL(string: "https://www.youtube.com/@movmov-qy1bl8ry1z")!
     private let instagramProfileURL = URL(string: "https://www.instagram.com/movmov55")!
     

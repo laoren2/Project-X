@@ -337,7 +337,7 @@ struct NearbyBuffGridsSectionView: View {
         ]
         if grid.condition_type == "weather" {
             let symbolName = WeatherConditionIcon.symbolName(for: grid.condition_params["match"]?.stringValue)
-            items.append(("weather", .systemSymbol(symbolName, width: 15, height: 15)))
+            items.append(("weather", .systemSymbol(symbolName, width: 18)))
         }
         return items
     }

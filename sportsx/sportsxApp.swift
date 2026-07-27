@@ -425,6 +425,7 @@ struct TestErrorView: View {
             Spacer()
             Text(LocalizedStringKey(message))
                 .foregroundStyle(Color.white)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
             Spacer()
         }

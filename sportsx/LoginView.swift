@@ -276,13 +276,11 @@ struct SmsLoginView: View {
         
         NetworkService.sendRequest(with: request, decodingType: SmsCodeResponse.self, showErrorToast: true) { result in
             switch result {
-            case .success(let data):
-                if let unwrappedData = data {
-                    DispatchQueue.main.async {
-                        alreadySendSMSCode = true
-                        // 开始倒计时60s，60s后可重新发送验证码
-                        startCodeTimer()
-                    }
+            case .success(_):
+                DispatchQueue.main.async {
+                    alreadySendSMSCode = true
+                    // 开始倒计时60s，60s后可重新发送验证码
+                    startCodeTimer()
                 }
             default:
                 break
@@ -633,7 +631,7 @@ struct LoginView: View {
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
             switch result {
-            case .success(let data):
+            case .success(_):
                 DispatchQueue.main.async {
                     alreadySendEmailCode = true
                     // 开始倒计时60s，60s后可重新发送验证码

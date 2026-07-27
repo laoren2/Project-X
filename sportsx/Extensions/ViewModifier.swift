@@ -981,13 +981,21 @@ struct RichTextGenerator {
                 }
             case .systemSymbol(let symbolName, let width, let height):
                 let attachment = NSTextAttachment()
-                let w = width ?? font.capHeight
-                let h = height ?? w
-                let configuration = UIImage.SymbolConfiguration(pointSize: h, weight: .regular)
+                
+                let maxWidth = width ?? font.capHeight
+                let maxHeight = height ?? maxWidth
+                let pointSize = min(maxWidth, maxHeight)
+                
+                let configuration = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .regular)
                 if let image = UIImage(systemName: symbolName, withConfiguration: configuration)?
                     .withTintColor(textColor, renderingMode: .alwaysOriginal) {
+                    let scale = min(maxWidth / image.size.width, maxHeight / image.size.height)
+                    let size = CGSize(
+                        width: image.size.width * scale,
+                        height: image.size.height * scale
+                    )
                     attachment.image = image
-                    attachment.bounds = CGRect(x: 0, y: font.descender, width: w, height: h)
+                    attachment.bounds = CGRect(x: 0, y: font.descender, width: size.width, height: size.height)
                     appended.append(NSAttributedString(attachment: attachment))
                 }
             }
