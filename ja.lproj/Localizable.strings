@@ -720,7 +720,6 @@
 "training.free.nearby.occupied.title" = "占領したグリッド";
 "training.free.nearby.occupied.description" = "あるグリッドへの訪問回数が1位になると、そのグリッドを占領します。ここには今シーズン、選択中の地域で占領しているグリッド数が表示されます。";
 "training.free.occupied.ranklist.title" = "占領グリッドランキング";
-"training.free.occupied.ranklist.me" = "自分の順位";
 "training.free.occupied.ranklist.count" = "占領グリッド";
 "training.free.occupied.ranklist.count %lld" = "%lld グリッドを占領";
 "training.free.occupied.ranklist.empty" = "占領済みグリッドはまだありません";
@@ -1261,6 +1260,8 @@
 "iap.subscription.benefits.4" = "高度なルート編集機能";
 "iap.subscription.benefits.5" = "ワークアウト中の詳細統計データ";
 "iap.subscription.benefits.5.description" = "高度なデータには、リアルタイムのフィニッシャーランキング予測や自己ベストとの比較が含まれ、アリーナモードとコースモードの練習に対応しています。";
+"iap.subscription.benefits.6" = "高度な動画ウォーターマーク処理";
+"iap.subscription.benefits.6.description" = "より多くの書き出し形式、高度なデータ指標、ロゴウォーターマークの除去に対応しています。";
 "iap.subscription.benefits.1.description" = "カード対応のコース練習またはアリーナモードで、カードを1枚追加で持ち込めます。";
 "iap.subscription.benefits.4.description" = "コース編集で最大100個のポイントを追加できます。総合ランキングは人数制限なしで、男女ランキングも同時に解放されます。";
 "iap.subscription.action.purchase" = "今すぐ登録";
@@ -1392,7 +1393,7 @@
 "review.action.later" = "後で";
 "review.feedback.title" = "ご意見をお聞かせください";
 "review.feedback.message" = "改善できる点を教えていただけますか？";
-"review.action.feedback" = "フィードバック";
+"review.action.feedback" = "ご意見";
 
 // MARK: 新用户引导 guide
 "guide.action.skip" = "スキップ";
@@ -1425,6 +1426,7 @@
 
 // MARK: レース結果のプライバシー
 "user.setup.privacy_settings" = "プライバシー設定";
+"user.privacy.email_subscription" = "製品メールを購読";
 "user.privacy.record_visibility" = "ワークアウトの詳細";
 "user.privacy.record_visibility.description" = "データの公開範囲";
 "user.privacy.visibility.public" = "すべての人";
@@ -1446,7 +1448,7 @@
 "video_watermark.editor.title" = "ワークアウト動画ウォーターマーク";
 "video_watermark.action.select_video" = "写真から動画を選択";
 "video_watermark.action.overlay_to_video" = "動画にオーバーレイ";
-"video_watermark.import.hint" = "撮影時刻を読み取り、運動データと自動で同期します。元動画と有効区間はどちらも30秒〜1時間にしてください";
+"video_watermark.import.hint" = "30秒〜1時間の元動画を選択できます。撮影時刻は初期同期のみに使われ、透かし範囲は後から調整できます";
 "video_watermark.effective_range" = "運動データの有効区間";
 "video_watermark.metric.title" = "表示するデータ";
 "video_watermark.metric.route" = "ルート";
@@ -1459,6 +1461,12 @@
 "video_watermark.metric.logo" = "アプリロゴ";
 "video_watermark.format.title" = "動画形式";
 "video_watermark.format.effective %@" = "有効な動画：%@";
+"video_watermark.format.output_duration %@" = "フル出力：%@";
+"video_watermark.action.reselect" = "選び直す";
+"video_watermark.alignment.auto" = "撮影時刻で自動同期しました。ドラッグで微調整できます。";
+"video_watermark.alignment.manual" = "信頼できる撮影時刻がありません。動画の先頭から重ねています。ドラッグして調整してください。";
+"video_watermark.timeline.watermark" = "データ透かし";
+"video_watermark.timeline.original" = "元動画";
 "video_watermark.format.input" = "入力：";
 "video_watermark.format.output" = "出力：";
 "video_watermark.format.resolution.title" = "解像度";
@@ -1473,6 +1481,8 @@
 "video_watermark.action.retry" = "再試行";
 "video_watermark.action.delete" = "削除";
 "video_watermark.toast.queued" = "動画タスクをキューに追加しました";
+"video_watermark.task_created.title" = "動画タスクの進行状況";
+"video_watermark.task_created.message" = "プロフィール > 動画でタスクの進行状況を確認できます，タスクはバックグラウンドで継続できます。";
 "video_watermark.toast.saved" = "写真に保存しました";
 "video_watermark.error.invalid_format" = "この動画形式はサポートされていません";
 "video_watermark.error.invalid_duration" = "元動画の長さは30秒〜1時間にしてください";
@@ -1520,3 +1530,4 @@
 "video_watermark.import.validating" = "動画形式を分析中…";
 "video_watermark.import.aligning" = "運動データを自動で同期中…";
 "video_watermark.import.progress_hint" = "大きな動画や iCloud 上の動画は少し時間がかかる場合があります。";
+"video_watermark.preview.preparing" = "プレビューを準備中…";

@@ -213,27 +213,30 @@ struct BikeFreeTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
-                            Button(action: {
-                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
-                                videoWatermarkEditorStore = store
-                                appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
-                            }) {
-                                HStack {
-                                    Image("sport_camera")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 25)
-                                    Text("video_watermark.action.overlay_to_video")
-                                        .foregroundStyle(Color.white)
-                                        .font(.system(size: 18, weight: .medium))
+                            if viewModel.isMine {
+                                Button(action: {
+                                    let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
+                                    videoWatermarkEditorStore = store
+                                    appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
+                                }) {
+                                    HStack {
+                                        Image("sport_camera")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 25)
+                                        Text("video_watermark.action.overlay_to_video")
+                                            .foregroundStyle(Color.white)
+                                            .font(.system(size: 18, weight: .medium))
+                                    }
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.orange)
+                                    )
                                 }
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.orange)
-                                )
                             }
+                            
                             // 结算信息
                             HStack {
                                 Text("competition.team.basic_info")
@@ -242,11 +245,9 @@ struct BikeFreeTrainingRecordDetailView: View {
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
                             }
-                            .padding(.top, 10)
                             
                             if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
                                 WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
-                                    .padding(.top, 10)
                             }
                             
                             ScrollView(.horizontal) {
@@ -996,26 +997,28 @@ struct RunningFreeTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
-                            Button(action: {
-                                let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
-                                videoWatermarkEditorStore = store
-                                appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
-                            }) {
-                                HStack {
-                                    Image("sport_camera")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 25)
-                                    Text("video_watermark.action.overlay_to_video")
-                                        .foregroundStyle(Color.white)
-                                        .font(.system(size: 18, weight: .medium))
+                            if viewModel.isMine {
+                                Button(action: {
+                                    let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout)
+                                    videoWatermarkEditorStore = store
+                                    appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
+                                }) {
+                                    HStack {
+                                        Image("sport_camera")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 25)
+                                        Text("video_watermark.action.overlay_to_video")
+                                            .foregroundStyle(Color.white)
+                                            .font(.system(size: 18, weight: .medium))
+                                    }
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.orange)
+                                    )
                                 }
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.orange)
-                                )
                             }
                             
                             // 结算信息
@@ -1026,11 +1029,9 @@ struct RunningFreeTrainingRecordDetailView: View {
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
                             }
-                            .padding(.top, 10)
                             
                             if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
                                 WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
-                                    .padding(.top, 10)
                             }
                             
                             ScrollView(.horizontal) {

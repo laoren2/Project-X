@@ -96,10 +96,11 @@ class RunningCompetitionViewModel: ObservableObject {
     
     func fetchTracks(reset: Bool = true) {
         guard !events.isEmpty, let event = selectedEvent else { return }
-        guard !isTracksLoading else { return }
+        //guard !isTracksLoading else { return }
 
         if reset {
             tracks = []
+            selectedTrack = nil
             nextTrackCursor = nil
         }
 

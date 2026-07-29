@@ -64,9 +64,15 @@ struct RegionOccupiedGridRankListView: View {
                     .foregroundStyle(Color.clear)
             }
             
-            Text(regionName)
-                .font(.system(size: 15))
-                .foregroundStyle(Color.secondText)
+            HStack {
+                Image("location")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20)
+                Text(regionName)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.secondText)
+            }
 
             myRankCard
 
@@ -132,7 +138,7 @@ struct RegionOccupiedGridRankListView: View {
                 .frame(width: 46, height: 46)
                 .clipShape(Circle())
             VStack(alignment: .leading, spacing: 3) {
-                Text("training.free.occupied.ranklist.me")
+                Text("common.me")
                     .font(.subheadline)
                     .foregroundStyle(Color.secondText)
                 if me.rank == nil {

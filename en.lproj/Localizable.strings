@@ -720,7 +720,6 @@
 "training.free.nearby.occupied.title" = "Occupied Grids";
 "training.free.nearby.occupied.description" = "You occupy a grid when you have the most visits to it. This shows the number of grids you currently occupy in the selected region this season.";
 "training.free.occupied.ranklist.title" = "Occupied Grids Ranking";
-"training.free.occupied.ranklist.me" = "My ranking";
 "training.free.occupied.ranklist.count" = "Occupied grids";
 "training.free.occupied.ranklist.count %lld" = "%lld occupied grids";
 "training.free.occupied.ranklist.empty" = "No occupied grids yet";
@@ -1275,12 +1274,14 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.auto_renewable.on" = "enabled";
 "iap.subscription.auto_renewable.off" = "not enabled";
 "iap.subscription.benefits" = "Subscription benefits";
-"iap.subscription.benefits.1" = "additional equipment slots";
-"iap.subscription.benefits.2" = "abundant exclusive sign-in rewards";
-"iap.subscription.benefits.3" = "rapid motion data verification";
+"iap.subscription.benefits.1" = "Additional equipment slots";
+"iap.subscription.benefits.2" = "Abundant exclusive sign-in rewards";
+"iap.subscription.benefits.3" = "Rapid motion data verification";
 "iap.subscription.benefits.4" = "Advanced route edit features";
 "iap.subscription.benefits.5" = "Advanced Workout Statistics";
 "iap.subscription.benefits.5.description" = "Advanced data includes real-time finisher ranking predictions and comparisons with personal bests, supports both Arena and Route training mode.";
+"iap.subscription.benefits.6" = "Advanced Video Watermark Processing";
+"iap.subscription.benefits.6.description" = "Supports more export formats, advanced data metrics, and removal of the logo watermark.";
 "iap.subscription.benefits.1.description" = "Carry one extra card in card-enabled Route training or Arena modes.";
 "iap.subscription.benefits.4.description" = "Add up to 100 waypoints when editing a route; the overall leaderboard has no participant limit and both men's and women's rankings are unlocked.";
 "iap.subscription.action.purchase" = "Subscribe Now";
@@ -1409,10 +1410,10 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "review.invite.message" = "Rate us or leave a quick review — it really helps.";
 "review.action.rate" = "Quick Rate";
 "review.action.review" = "Write a Review";
-"review.action.later" = "Maybe Later";
+"review.action.later" = "Later";
 "review.feedback.title" = "We'd love your feedback";
 "review.feedback.message" = "Tell us what we could do better?";
-"review.action.feedback" = "Send Feedback";
+"review.action.feedback" = "Feedback";
 
 // MARK: 新用户引导 guide
 "guide.action.skip" = "Skip";
@@ -1445,6 +1446,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 
 // MARK: Race result privacy
 "user.setup.privacy_settings" = "Privacy Settings";
+"user.privacy.email_subscription" = "Subscribe to product emails";
 "user.privacy.record_visibility" = "Workout detail data";
 "user.privacy.record_visibility.description" = "Data visibility";
 "user.privacy.visibility.public" = "Everyone";
@@ -1466,7 +1468,7 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "video_watermark.editor.title" = "Workout Video Watermark";
 "video_watermark.action.select_video" = "Choose Video";
 "video_watermark.action.overlay_to_video" = "Overlay to Video";
-"video_watermark.import.hint" = "The recording time aligns your workout data automatically. Both the video and usable range must be 30 seconds to 1 hour.";
+"video_watermark.import.hint" = "Choose an original video from 30 seconds to 1 hour. Capture time is only used for initial alignment; you can adjust the watermark range afterwards.";
 "video_watermark.effective_range" = "Workout data range";
 "video_watermark.metric.title" = "Watermark data";
 "video_watermark.metric.route" = "Route";
@@ -1479,6 +1481,12 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "video_watermark.metric.logo" = "App Logo";
 "video_watermark.format.title" = "Video format";
 "video_watermark.format.effective %@" = "Usable video: %@";
+"video_watermark.format.output_duration %@" = "Full export: %@";
+"video_watermark.action.reselect" = "Reselect";
+"video_watermark.alignment.auto" = "Aligned using capture time. Drag to fine-tune.";
+"video_watermark.alignment.manual" = "No reliable capture time. Watermark starts at the video beginning; drag to adjust.";
+"video_watermark.timeline.watermark" = "Data watermark";
+"video_watermark.timeline.original" = "Original video";
 "video_watermark.format.input" = "Input:";
 "video_watermark.format.output" = "Output:";
 "video_watermark.format.resolution.title" = "Resolution";
@@ -1493,6 +1501,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "video_watermark.action.retry" = "Retry";
 "video_watermark.action.delete" = "Delete";
 "video_watermark.toast.queued" = "Video task added to the queue";
+"video_watermark.task_created.title" = "Track your video task";
+"video_watermark.task_created.message" = "You can view its progress in Profile > Videos, tasks can continue to run in the background.";
 "video_watermark.toast.saved" = "Saved to Photos";
 "video_watermark.error.invalid_format" = "This video format isn’t supported";
 "video_watermark.error.invalid_duration" = "Original video must be 30 seconds to 1 hour";
@@ -1540,3 +1550,4 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "video_watermark.import.validating" = "Analyzing video format…";
 "video_watermark.import.aligning" = "Aligning workout data…";
 "video_watermark.import.progress_hint" = "Large videos or videos stored in iCloud can take a little while.";
+"video_watermark.preview.preparing" = "Preparing preview…";

@@ -720,7 +720,6 @@
 "training.free.nearby.occupied.title" = "점령한 그리드";
 "training.free.nearby.occupied.description" = "특정 그리드의 방문 횟수가 1위가 되면 해당 그리드를 점령합니다. 여기에는 이번 시즌 선택한 지역에서 점령한 그리드 수가 표시됩니다.";
 "training.free.occupied.ranklist.title" = "점령 그리드 순위";
-"training.free.occupied.ranklist.me" = "내 순위";
 "training.free.occupied.ranklist.count" = "점령 그리드";
 "training.free.occupied.ranklist.count %lld" = "%lld개 그리드 점령";
 "training.free.occupied.ranklist.empty" = "아직 점령한 그리드가 없습니다";
@@ -1261,6 +1260,8 @@
 "iap.subscription.benefits.4" = "고급 경로 편집 기능";
 "iap.subscription.benefits.5" = "운동 중 고급 통계 데이터";
 "iap.subscription.benefits.5.description" = "고급 데이터에는 실시간 완주자 순위 예측 및 개인 최고 기록과의 비교 기능이 포함되어 있으며, 아레나 모드와 코스 훈련 모드를 모두 지원합니다.";
+"iap.subscription.benefits.6" = "고급 동영상 워터마크 처리";
+"iap.subscription.benefits.6.description" = "더 많은 내보내기 형식, 고급 데이터 지표 및 로고 워터마크 제거를 지원합니다.";
 "iap.subscription.benefits.1.description" = "카드 플레이를 지원하는 코스 훈련 또는 아레나 모드에서 카드를 한 장 더 사용할 수 있습니다.";
 "iap.subscription.benefits.4.description" = "코스 편집 시 최대 100개의 경로 지점을 추가할 수 있습니다. 전체 순위표는 인원 제한이 없으며 남녀 순위가 동시에 해제됩니다.";
 "iap.subscription.action.purchase" = "지금 구독";
@@ -1392,7 +1393,7 @@
 "review.action.later" = "나중에";
 "review.feedback.title" = "의견을 들려주세요";
 "review.feedback.message" = "어떤 점을 개선하면 좋을지 알려주시겠어요?";
-"review.action.feedback" = "피드백 보내기";
+"review.action.feedback" = "피드백";
 
 // MARK: 新用户引导 guide
 "guide.action.skip" = "건너뛰기";
@@ -1425,6 +1426,7 @@
 
 // MARK: 경기 결과 개인정보
 "user.setup.privacy_settings" = "개인정보 설정";
+"user.privacy.email_subscription" = "제품 이메일 구독";
 "user.privacy.record_visibility" = "운동 기록 상세";
 "user.privacy.record_visibility.description" = "데이터 공개 범위";
 "user.privacy.visibility.public" = "모두에게 공개";
@@ -1446,7 +1448,7 @@
 "video_watermark.editor.title" = "운동 동영상 워터마크";
 "video_watermark.action.select_video" = "앨범에서 동영상 선택";
 "video_watermark.action.overlay_to_video" = "동영상에 오버레이";
-"video_watermark.import.hint" = "촬영 시간을 읽어 운동 데이터와 자동으로 정렬합니다. 원본 동영상과 유효 구간은 모두 30초~1시간이어야 합니다";
+"video_watermark.import.hint" = "30초~1시간 길이의 원본 동영상을 선택할 수 있습니다. 촬영 시간은 초기 정렬에만 사용되며 워터마크 구간은 나중에 조정할 수 있습니다";
 "video_watermark.effective_range" = "운동 데이터 유효 구간";
 "video_watermark.metric.title" = "워터마크 데이터 선택";
 "video_watermark.metric.route" = "경로";
@@ -1459,6 +1461,12 @@
 "video_watermark.metric.logo" = "앱 로고";
 "video_watermark.format.title" = "동영상 형식";
 "video_watermark.format.effective %@" = "유효 동영상: %@";
+"video_watermark.format.output_duration %@" = "전체 내보내기: %@";
+"video_watermark.action.reselect" = "다시 선택";
+"video_watermark.alignment.auto" = "촬영 시간으로 자동 정렬했습니다. 드래그하여 미세 조정하세요.";
+"video_watermark.alignment.manual" = "신뢰할 수 있는 촬영 시간이 없습니다. 동영상 시작부터 워터마크를 적용했습니다. 드래그하여 조정하세요.";
+"video_watermark.timeline.watermark" = "데이터 워터마크";
+"video_watermark.timeline.original" = "원본 동영상";
 "video_watermark.format.input" = "입력:";
 "video_watermark.format.output" = "출력:";
 "video_watermark.format.resolution.title" = "해상도";
@@ -1473,6 +1481,8 @@
 "video_watermark.action.retry" = "재시도";
 "video_watermark.action.delete" = "삭제";
 "video_watermark.toast.queued" = "동영상 작업이 대기열에 추가되었습니다";
+"video_watermark.task_created.title" = "동영상 작업 진행 상황";
+"video_watermark.task_created.message" = "프로필 > 동영상에서 작업 진행 상황을 확인할 수 있습니다, 해당 작업은 백그라운드에서 계속 진행될 수 있습니다.";
 "video_watermark.toast.saved" = "사진에 저장되었습니다";
 "video_watermark.error.invalid_format" = "지원하지 않는 동영상 형식입니다";
 "video_watermark.error.invalid_duration" = "원본 동영상 길이는 30초~1시간이어야 합니다";
@@ -1520,3 +1530,4 @@
 "video_watermark.import.validating" = "동영상 형식 분석 중…";
 "video_watermark.import.aligning" = "운동 데이터를 자동으로 정렬하는 중…";
 "video_watermark.import.progress_hint" = "큰 동영상이나 iCloud에 저장된 동영상은 시간이 조금 걸릴 수 있습니다.";
+"video_watermark.preview.preparing" = "미리보기를 준비하는 중…";

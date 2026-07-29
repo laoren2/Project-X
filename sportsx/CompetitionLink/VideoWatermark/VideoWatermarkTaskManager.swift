@@ -45,7 +45,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
                 self?.fallbackBackgroundTaskExpired()
             }
         }
-        Logger.videoWatermark.notice_public("started fallback background time")
+        Logger.videoWatermark.debug_public("started fallback background time")
     }
 
     func applicationDidBecomeActive() {
@@ -108,7 +108,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
         if let importedSourceURL {
             let sourceByteCount = fileByteCount(importedSourceURL)
             let copyStartedAt = Date()
-            Logger.videoWatermark.notice_public("persisting fallback imported video: task=\(task.id.uuidString), bytes=\(sourceByteCount), source=\(importedSourceURL.lastPathComponent)")
+            Logger.videoWatermark.debug_public("persisting fallback imported video: task=\(task.id.uuidString), bytes=\(sourceByteCount), source=\(importedSourceURL.lastPathComponent)")
             persistenceMode = try await Task.detached(priority: .userInitiated) { () throws -> String in
                 let manager = FileManager.default
                 try manager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -124,7 +124,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
                 }
             }.value
             excludeFromBackup(destination)
-            Logger.videoWatermark.info_public("persisted fallback source in \(String(format: "%.2f", Date().timeIntervalSince(copyStartedAt)))s")
+            Logger.videoWatermark.debug_public("persisted fallback source in \(String(format: "%.2f", Date().timeIntervalSince(copyStartedAt)))s")
         } else {
             guard task.photoAssetReference != nil else { throw VideoWatermarkSourceError.missingReference }
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -132,7 +132,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         tasks.append(storedTask)
         persist(storedTask)
         markNewTaskAsUnseen(for: storedTask.userID)
-        Logger.videoWatermark.info_public("created task \(task.id.uuidString), status: \(storedTask.status.rawValue), persistence=\(persistenceMode)")
+        Logger.videoWatermark.notice_public("video watermark task created")
+        Logger.videoWatermark.debug_public("created task \(task.id.uuidString), status: \(storedTask.status.rawValue), persistence=\(persistenceMode)")
         startNextIfNeeded()
     }
 
@@ -147,7 +148,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
             return
         }
         guard activeTaskID == taskID else { return }
-        Logger.videoWatermark.notice_public("pause requested for task \(taskID.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark task pause requested")
+        Logger.videoWatermark.debug_public("pause requested for task \(taskID.uuidString)")
         pausingTaskIDs.insert(taskID)
         // 先切换 UI 状态并停止进度回调；实际编码循环会在下一次取消检查时清理输出并结束。
         update(taskID: taskID, status: .paused, progress: task.progress, failureMessage: nil)
@@ -171,7 +173,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         tasks[index].failureMessage = nil
         tasks[index].outputDeleted = false
         persist(tasks[index])
-        Logger.videoWatermark.notice_public("queued task \(taskID.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark task queued")
+        Logger.videoWatermark.debug_public("queued task \(taskID.uuidString)")
         startNextIfNeeded()
     }
 
@@ -207,7 +210,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
         }
         removeFile(sourceURL(for: task))
         if deleteTaskIfNoVideoResources(task) { return }
-        Logger.videoWatermark.notice_public("deleted source of task \(taskID.uuidString)")
+        Logger.videoWatermark.debug_public("deleted source of task \(taskID.uuidString)")
     }
 
     /// 成功任务删除成片后转失败，使用户可通过重试重新生成。
@@ -217,7 +220,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
         removeFile(thumbnailURL(for: task))
         if deleteTaskIfNoVideoResources(task) { return }
         update(taskID: taskID, status: .failed, progress: 0, failureMessage: "video_watermark.error.output_deleted", outputDeleted: true)
-        Logger.videoWatermark.notice_public("deleted output of task \(taskID.uuidString)")
+        Logger.videoWatermark.debug_public("deleted output of task \(taskID.uuidString)")
     }
 
     func deleteTask(id: UUID) {
@@ -241,7 +244,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
     func handleSystemExpiration(taskID: UUID) {
         guard activeTaskID == taskID else { return }
         let task = tasks.first(where: { $0.id == taskID })
-        Logger.videoWatermark.error_public("system expiration received by export manager: task=\(taskID.uuidString), status=\(task?.status.rawValue ?? "missing"), progress=\(String(format: "%.3f", task?.progress ?? -1)), appState=\(UIApplication.shared.applicationState.rawValue)")
+        Logger.videoWatermark.error_public("video watermark task expired")
+        Logger.videoWatermark.debug_public("system expiration received by export manager: task=\(taskID.uuidString), status=\(task?.status.rawValue ?? "missing"), progress=\(String(format: "%.3f", task?.progress ?? -1)), appState=\(UIApplication.shared.applicationState.rawValue)")
         pausingTaskIDs.insert(taskID)
         exportCancellation?.cancel()
         exportTask?.cancel()
@@ -265,7 +269,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         if VideoWatermarkBackgroundCoordinator.shared.submit(taskID: next.id) {
             return
         }
-        Logger.videoWatermark.warning_public("continued task could not start immediately; falling back to foreground-only export: \(next.id.uuidString)")
+        Logger.videoWatermark.warning_public("video watermark background task unavailable; using foreground export")
+        Logger.videoWatermark.debug_public("continued task could not start immediately; falling back to foreground-only export: \(next.id.uuidString)")
         beginExport(next)
     }
 
@@ -274,7 +279,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         let source = sourceURL(for: task)
         let output = outputURL(for: task)
         removeFile(output)
-        Logger.videoWatermark.notice_public("start processing task \(task.id.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark task started")
+        Logger.videoWatermark.debug_public("start processing task \(task.id.uuidString)")
         if UIApplication.shared.applicationState == .background {
             applicationDidEnterBackground()
         }
@@ -289,7 +295,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
                     try await self.materializePhotoAsset(reference, to: source, taskID: task.id)
                     try Task.checkCancellation()
                     let inspection = try await VideoWatermarkMediaAnalyzer.inspectInBackground(url: source)
-                    let refreshedMedia = try VideoWatermarkMediaAnalyzer.makeMediaInfo(inspection: inspection, workout: task.workout)
+                    let refreshedMedia = VideoWatermarkMediaAnalyzer.makeMediaInfo(inspection: inspection)
                     await MainActor.run {
                         VideoWatermarkTaskManager.shared.updateMedia(taskID: task.id, media: refreshedMedia)
                         VideoWatermarkTaskManager.shared.update(taskID: task.id, status: .processing, progress: 0.2, failureMessage: nil, stage: .generating)
@@ -330,7 +336,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         exportCancellation = nil
         endFallbackBackgroundTask()
         VideoWatermarkBackgroundCoordinator.shared.complete(taskID: taskID, success: true)
-        Logger.videoWatermark.notice_public("finished export task \(taskID.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark task completed")
+        Logger.videoWatermark.debug_public("finished export task \(taskID.uuidString)")
         startNextIfNeeded()
     }
 
@@ -347,7 +354,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         exportCancellation = nil
         endFallbackBackgroundTask()
         VideoWatermarkBackgroundCoordinator.shared.complete(taskID: taskID, success: false)
-        Logger.videoWatermark.notice_public("paused export task \(taskID.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark task paused")
+        Logger.videoWatermark.debug_public("paused export task \(taskID.uuidString)")
         startNextIfNeeded()
     }
 
@@ -373,7 +381,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
         exportCancellation = nil
         endFallbackBackgroundTask()
         VideoWatermarkBackgroundCoordinator.shared.complete(taskID: taskID, success: false)
-        Logger.videoWatermark.error_public("export task \(taskID.uuidString) failed: \(error.localizedDescription)")
+        Logger.videoWatermark.error_public("video watermark task failed")
+        Logger.videoWatermark.debug_public("export task \(taskID.uuidString) failed: \(error.localizedDescription)")
         startNextIfNeeded()
     }
 
@@ -437,7 +446,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
                     self?.updateProgress(taskID: taskID, progress: min(max(value, 0), 1) * 0.2, stage: .downloadingSource)
                 }
             }
-            Logger.videoWatermark.notice_public("materializing selected photo asset: task=\(taskID.uuidString), file=\(resource.originalFilename)")
+            Logger.videoWatermark.debug_public("materializing selected photo asset: task=\(taskID.uuidString), file=\(resource.originalFilename)")
 
             try await withTaskCancellationHandler(operation: {
                 try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -463,7 +472,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
             try Task.checkCancellation()
             try fileManager.moveItem(at: partial, to: destination)
             excludeFromBackup(destination)
-            Logger.videoWatermark.notice_public("materialized selected photo asset: task=\(taskID.uuidString), bytes=\(fileByteCount(destination))")
+            Logger.videoWatermark.debug_public("materialized selected photo asset: task=\(taskID.uuidString), bytes=\(fileByteCount(destination))")
         } catch is CancellationError {
             removeFile(partial)
             removeFile(destination)
@@ -505,7 +514,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
             try encoder.encode(task).write(to: manifestURL(for: task), options: .atomic)
             excludeFromBackup(manifestURL(for: task))
         } catch {
-            Logger.videoWatermark.error_public("persist task \(task.id.uuidString) failed: \(error.localizedDescription)")
+            Logger.videoWatermark.error_public("video watermark task persistence failed")
+            Logger.videoWatermark.debug_public("persist task \(task.id.uuidString) failed: \(error.localizedDescription)")
         }
     }
 
@@ -529,7 +539,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
                 if task.status.isTerminal,
                    !fileManager.fileExists(atPath: source.path),
                    !fileManager.fileExists(atPath: output.path) {
-                    Logger.videoWatermark.notice_public("removed recovered empty terminal task \(task.id.uuidString)")
+                    Logger.videoWatermark.debug_public("removed recovered empty terminal task \(task.id.uuidString)")
                     removeFile(directory)
                     return nil
                 }
@@ -537,7 +547,7 @@ final class VideoWatermarkTaskManager: ObservableObject {
                     task.status = .paused
                     task.progress = 0
                     task.updatedAt = Date()
-                    Logger.videoWatermark.notice_public("recovered interrupted task \(task.id.uuidString)")
+                    Logger.videoWatermark.debug_public("recovered interrupted task \(task.id.uuidString)")
                 }
                 return task
             }
@@ -550,14 +560,15 @@ final class VideoWatermarkTaskManager: ObservableObject {
         guard allowActive || task.status != .processing else { return }
         removeFile(taskDirectory(for: task))
         tasks.removeAll { $0.id == task.id }
-        Logger.videoWatermark.notice_public("deleted task \(task.id.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark task deleted")
+        Logger.videoWatermark.debug_public("deleted task \(task.id.uuidString)")
     }
 
     /// 当原片和成片都不存在时，保留 manifest 已无意义；删除整个任务以免留下空任务卡片。
     private func deleteTaskIfNoVideoResources(_ task: VideoWatermarkTask) -> Bool {
         guard !fileManager.fileExists(atPath: sourceURL(for: task).path),
               !fileManager.fileExists(atPath: outputURL(for: task).path) else { return false }
-        Logger.videoWatermark.notice_public("all video resources removed; cleaning task \(task.id.uuidString)")
+        Logger.videoWatermark.debug_public("all video resources removed; cleaning task \(task.id.uuidString)")
         deleteTask(task, allowActive: false)
         return true
     }
@@ -565,7 +576,10 @@ final class VideoWatermarkTaskManager: ObservableObject {
     private func removeFile(_ url: URL) {
         guard fileManager.fileExists(atPath: url.path) else { return }
         do { try fileManager.removeItem(at: url) }
-        catch { Logger.videoWatermark.error_public("remove \(url.lastPathComponent) failed: \(error.localizedDescription)") }
+        catch {
+            Logger.videoWatermark.error_public("video watermark resource removal failed")
+            Logger.videoWatermark.debug_public("remove \(url.lastPathComponent) failed: \(error.localizedDescription)")
+        }
     }
 
     private func fileByteCount(_ url: URL) -> Int64 {
@@ -581,7 +595,8 @@ final class VideoWatermarkTaskManager: ObservableObject {
 
     private func fallbackBackgroundTaskExpired() {
         guard let taskID = activeTaskID else { return }
-        Logger.videoWatermark.notice_public("fallback background time expired for \(taskID.uuidString)")
+        Logger.videoWatermark.warning_public("video watermark background time expired")
+        Logger.videoWatermark.debug_public("fallback background time expired for \(taskID.uuidString)")
         pausingTaskIDs.insert(taskID)
         exportCancellation?.cancel()
         exportTask?.cancel()

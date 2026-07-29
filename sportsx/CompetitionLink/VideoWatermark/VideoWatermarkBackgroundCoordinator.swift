@@ -44,11 +44,12 @@ final class VideoWatermarkBackgroundCoordinator {
                 }
             }
             guard registered else {
-                Logger.videoWatermark.error_public("register continued task \(taskID.uuidString) rejected")
+                Logger.videoWatermark.error_public("video watermark background task registration failed")
+                Logger.videoWatermark.debug_public("register continued task \(taskID.uuidString) rejected")
                 return false
             }
             registeredTaskIDs.insert(taskID)
-            Logger.videoWatermark.notice_public("registered continued task \(taskID.uuidString)")
+            Logger.videoWatermark.debug_public("registered continued task \(taskID.uuidString)")
         }
         let request = BGContinuedProcessingTaskRequest(
             identifier: identifier,
@@ -63,11 +64,12 @@ final class VideoWatermarkBackgroundCoordinator {
         taskGPURequested[taskID] = gpuSupported
         do {
             try BGTaskScheduler.shared.submit(request)
-            Logger.videoWatermark.notice_public("submitted continued task \(taskID.uuidString): strategy=fail, gpuRequested=\(gpuSupported), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName)")
+            Logger.videoWatermark.debug_public("submitted continued task \(taskID.uuidString): strategy=fail, gpuRequested=\(gpuSupported), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName)")
             return true
         } catch {
             taskGPURequested.removeValue(forKey: taskID)
-            Logger.videoWatermark.error_public("submit continued task \(taskID.uuidString) failed: \(error.localizedDescription), strategy=fail, gpuSupported=\(gpuSupported), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName)")
+            Logger.videoWatermark.error_public("video watermark background task submission failed")
+            Logger.videoWatermark.debug_public("submit continued task \(taskID.uuidString) failed: \(error.localizedDescription), strategy=fail, gpuSupported=\(gpuSupported), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName)")
             return false
         }
     }
@@ -77,7 +79,8 @@ final class VideoWatermarkBackgroundCoordinator {
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.identifier(for: taskID))
         taskGPURequested.removeValue(forKey: taskID)
         taskStartedAt.removeValue(forKey: taskID)
-        Logger.videoWatermark.notice_public("cancelled scheduled continued task: \(taskID.uuidString)")
+        Logger.videoWatermark.notice_public("video watermark background task cancelled")
+        Logger.videoWatermark.debug_public("cancelled scheduled continued task: \(taskID.uuidString)")
     }
 
     @available(iOS 26.0, *)
@@ -86,7 +89,8 @@ final class VideoWatermarkBackgroundCoordinator {
         taskStartedAt[taskID] = Date()
         systemTask.progress.totalUnitCount = 1_000
         systemTask.progress.completedUnitCount = 0
-        Logger.videoWatermark.notice_public("continued task began: \(taskID.uuidString), gpuRequested=\(taskGPURequested[taskID] ?? false), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName)")
+        Logger.videoWatermark.notice_public("video watermark background task started")
+        Logger.videoWatermark.debug_public("continued task began: \(taskID.uuidString), gpuRequested=\(taskGPURequested[taskID] ?? false), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName)")
         systemTask.expirationHandler = { [weak self] in
             Task { @MainActor in
                 self?.expire(taskID: taskID)
@@ -104,7 +108,8 @@ final class VideoWatermarkBackgroundCoordinator {
         guard #available(iOS 26.0, *), let task = continuedTasks.removeValue(forKey: taskID) as? BGContinuedProcessingTask else { return }
         let runtime = Date().timeIntervalSince(taskStartedAt.removeValue(forKey: taskID) ?? Date())
         let gpuRequested = taskGPURequested.removeValue(forKey: taskID) ?? false
-        Logger.videoWatermark.notice_public("continued task completed: \(taskID.uuidString), success=\(success), runtime=\(String(format: "%.2f", runtime))s, progress=\(task.progress.completedUnitCount)/\(task.progress.totalUnitCount), gpuRequested=\(gpuRequested)")
+        Logger.videoWatermark.notice_public("video watermark background task completed")
+        Logger.videoWatermark.debug_public("continued task completed: \(taskID.uuidString), success=\(success), runtime=\(String(format: "%.2f", runtime))s, progress=\(task.progress.completedUnitCount)/\(task.progress.totalUnitCount), gpuRequested=\(gpuRequested)")
         task.setTaskCompleted(success: success)
     }
 
@@ -112,7 +117,8 @@ final class VideoWatermarkBackgroundCoordinator {
     private func expire(taskID: UUID) {
         guard let task = continuedTasks[taskID] as? BGContinuedProcessingTask else { return }
         let runtime = Date().timeIntervalSince(taskStartedAt[taskID] ?? Date())
-        Logger.videoWatermark.error_public("continued task expired by system: \(taskID.uuidString), runtime=\(String(format: "%.2f", runtime))s, progress=\(task.progress.completedUnitCount)/\(task.progress.totalUnitCount), gpuRequested=\(taskGPURequested[taskID] ?? false), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName). iOS does not expose a more specific expiration reason.")
+        Logger.videoWatermark.error_public("video watermark background task expired")
+        Logger.videoWatermark.debug_public("continued task expired by system: \(taskID.uuidString), runtime=\(String(format: "%.2f", runtime))s, progress=\(task.progress.completedUnitCount)/\(task.progress.totalUnitCount), gpuRequested=\(taskGPURequested[taskID] ?? false), appState=\(Self.appStateName), lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled), thermal=\(Self.thermalStateName). iOS does not expose a more specific expiration reason.")
         complete(taskID: taskID, success: false)
         VideoWatermarkTaskManager.shared.handleSystemExpiration(taskID: taskID)
     }

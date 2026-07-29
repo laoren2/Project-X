@@ -107,7 +107,6 @@ struct BikeFreeTrainingView: View {
                                 .frame(height: 250)
                                 .foregroundStyle(Color.gray.opacity(0.5))
                                 .cornerRadius(12)
-                                .padding(.top, 20)
                             Capsule()
                                 .foregroundStyle(Color.gray.opacity(0.5))
                                 .frame(height: 25)
@@ -121,7 +120,6 @@ struct BikeFreeTrainingView: View {
                                             RoundedRectangle(cornerRadius: 12, style: .circular)
                                                 .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                         )
-                                        .padding(.top, 20)
                                     Rectangle()
                                         .fill(Color.clear)
                                         .contentShape(Rectangle())
@@ -146,7 +144,6 @@ struct BikeFreeTrainingView: View {
                                         .frame(height: 250)
                                         .foregroundStyle(Color.gray.opacity(0.5))
                                         .cornerRadius(12)
-                                        .padding(.top, 20)
                                     Text("error.region")
                                         .foregroundStyle(Color.white)
                                 }

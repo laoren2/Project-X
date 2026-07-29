@@ -720,7 +720,6 @@
 "training.free.nearby.occupied.title" = "已占领网格";
 "training.free.nearby.occupied.description" = "当你在某个网格内的访问次数排名第一时，即占领该网格。这里显示你当前赛季在所选区域内已占领的网格数量。";
 "training.free.occupied.ranklist.title" = "已占领网格排行榜";
-"training.free.occupied.ranklist.me" = "我的排名";
 "training.free.occupied.ranklist.count" = "占领网格";
 "training.free.occupied.ranklist.count %lld" = "已占领 %lld 个网格";
 "training.free.occupied.ranklist.empty" = "暂时还没有已占领网格";
@@ -1281,6 +1280,8 @@
 "iap.subscription.benefits.4" = "高级的路线编辑功能";
 "iap.subscription.benefits.5" = "高级的运动数据分析";
 "iap.subscription.benefits.5.description" = "高级数据包括实时的完赛排名预测和与个人最佳记录的对比，支持竞技场和路线训练模式。";
+"iap.subscription.benefits.6" = "高级的视频水印处理";
+"iap.subscription.benefits.6.description" = "支持更多的导出格式、高级数据指标以及 Logo 水印的去除。";
 "iap.subscription.benefits.1.description" = "在支持卡牌玩法的路线训练或竞技场模式中，可额外多携带一张卡牌。";
 "iap.subscription.benefits.4.description" = "路线编辑中最多可添加 100 个路径点；总排行榜不限人数，并同时解锁男女榜单。";
 "iap.subscription.action.purchase" = "立即订阅";
@@ -1409,10 +1410,10 @@
 "review.invite.message" = "给我们评分或写个评价吧，对我们帮助很大。";
 "review.action.rate" = "快速评分";
 "review.action.review" = "写评价";
-"review.action.later" = "以后再说";
+"review.action.later" = "以后";
 "review.feedback.title" = "想听听你的意见";
 "review.feedback.message" = "能告诉我们哪里可以做得更好吗？";
-"review.action.feedback" = "去反馈";
+"review.action.feedback" = "反馈";
 
 // MARK: 新用户引导 guide
 "guide.action.skip" = "跳过";
@@ -1445,6 +1446,7 @@
 
 // MARK: 比赛结果隐私
 "user.setup.privacy_settings" = "隐私设置";
+"user.privacy.email_subscription" = "订阅产品邮件";
 "user.privacy.record_visibility" = "运动记录详情";
 "user.privacy.record_visibility.description" = "数据可见性";
 "user.privacy.visibility.public" = "所有人可见";
@@ -1466,7 +1468,7 @@
 "video_watermark.editor.title" = "运动视频水印";
 "video_watermark.action.select_video" = "从相册选择视频";
 "video_watermark.action.overlay_to_video" = "叠加到视频";
-"video_watermark.import.hint" = "将自动读取拍摄时间并与本次运动数据对齐。原视频和有效区间均需为 30 秒至 1 小时";
+"video_watermark.import.hint" = "支持 30 秒至 1 小时的原始视频。拍摄时间仅用于自动对齐，之后可手动调整水印区间";
 "video_watermark.effective_range" = "运动数据有效区间";
 "video_watermark.metric.title" = "选择水印数据";
 "video_watermark.metric.route" = "轨迹";
@@ -1479,6 +1481,12 @@
 "video_watermark.metric.logo" = "应用标识";
 "video_watermark.format.title" = "视频格式";
 "video_watermark.format.effective %@" = "有效视频：%@";
+"video_watermark.format.output_duration %@" = "完整导出：%@";
+"video_watermark.action.reselect" = "重新选择";
+"video_watermark.alignment.auto" = "已按拍摄时间自动对齐，可拖动微调";
+"video_watermark.alignment.manual" = "未检测到可靠拍摄时间，已从视频开头叠加；可拖动调整";
+"video_watermark.timeline.watermark" = "数据水印";
+"video_watermark.timeline.original" = "原始视频";
 "video_watermark.format.input" = "输入：";
 "video_watermark.format.output" = "输出：";
 "video_watermark.format.resolution.title" = "清晰度";
@@ -1493,6 +1501,8 @@
 "video_watermark.action.retry" = "重试";
 "video_watermark.action.delete" = "删除";
 "video_watermark.toast.queued" = "视频任务已加入处理队列";
+"video_watermark.task_created.title" = "查看视频任务进度";
+"video_watermark.task_created.message" = "你可以在 个人主页 > 视频 中查看任务进度，任务可在后台持续进行。";
 "video_watermark.toast.saved" = "已保存到系统相册";
 "video_watermark.error.invalid_format" = "不支持该视频格式";
 "video_watermark.error.invalid_duration" = "原视频时长需为 30 秒至 1 小时";
@@ -1540,3 +1550,4 @@
 "video_watermark.import.validating" = "正在分析视频格式…";
 "video_watermark.import.aligning" = "正在自动对齐运动数据…";
 "video_watermark.import.progress_hint" = "视频较大或存储在 iCloud 时可能需要一些时间";
+"video_watermark.preview.preparing" = "正在准备预览…";

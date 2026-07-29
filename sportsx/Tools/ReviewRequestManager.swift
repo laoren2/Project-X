@@ -81,14 +81,19 @@ final class ReviewRequestManager {
 
     // 第一步：体验问句（喜欢 / 一般），不出现伪造星级
     private func presentSentimentPrompt() {
-        consumeQuota()
         PopupWindowManager.shared.presentPopup(
             title: "review.sentiment.title",
             bottomButtons: [
-                PopupButton(action: { self.presentFeedbackInvite() }) {
+                PopupButton(action: {
+                    self.consumeQuota()
+                    self.presentFeedbackInvite()
+                }) {
                     self.sentimentButtonLabel("review.sentiment.dislike", icon: "heart_broken", background: Color.gray.opacity(0.3))
                 },
-                PopupButton(action: { self.presentRateOrReviewInvite() }) {
+                PopupButton(action: {
+                    self.consumeQuota()
+                    self.presentRateOrReviewInvite()
+                }) {
                     self.sentimentButtonLabel("review.sentiment.like", icon: "heart", background: Color.pink.opacity(0.25))
                 }
             ]
@@ -118,8 +123,30 @@ final class ReviewRequestManager {
             title: "review.invite.title",
             message: "review.invite.message",
             bottomButtons: [
-                .confirm("review.action.rate") { self.requestNativeReview() },
-                .confirm("review.action.review") { self.openWriteReview() }
+                PopupButton(action: { self.requestNativeReview() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "hand.point.up.left")
+                        Text("review.action.rate")
+                    }
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(Color.white)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 20)
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(10)
+                },
+                PopupButton(action: { self.openWriteReview() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "highlighter")
+                        Text("review.action.review")
+                    }
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(Color.white)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 20)
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(10)
+                }
             ]
         )
     }

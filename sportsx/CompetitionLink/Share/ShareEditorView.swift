@@ -282,7 +282,7 @@ struct ShareEditorView: View {
     @State private var mapSnapshot: MKMapSnapshotter.Snapshot?   // 缓存地图快照，换轨迹色时重绘
     @State private var backgroundMode: ShareBackgroundMode = .photo
     @State private var isGeneratingMap = false
-    @State private var mapDarkMode = false                  // 地图浅色/深色风格
+    @State private var mapDarkMode = true                  // 地图浅色/深色风格
     @State private var selectedItem: PhotosPickerItem?
     @State private var showPicker = false
     @State private var selected: ShareElementKind?

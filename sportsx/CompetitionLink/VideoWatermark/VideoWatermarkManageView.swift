@@ -223,7 +223,8 @@ private struct VideoWatermarkTaskCard: View {
                 }
                 ToastManager.shared.show(toast: Toast(message: "video_watermark.toast.saved"))
             } catch {
-                Logger.videoWatermark.error_public("save result to photos failed: \(error.localizedDescription)")
+                Logger.videoWatermark.error_public("save result to photos failed")
+                Logger.videoWatermark.debug_public("save result to photos failed: \(error.localizedDescription)")
                 ToastManager.shared.show(toast: Toast(message: "video_watermark.error.save_failed"))
             }
         }

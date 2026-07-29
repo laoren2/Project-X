@@ -261,7 +261,16 @@ struct RecordPrivacySetUpView: View {
                     .padding(.top, 10)
 
                 VStack(spacing: 0) {
-                    SetUpItemView(icon: "eye", title: "user.privacy.record_visibility", showChevron: false, showDivider: false) {
+                    SetUpItemView(icon: "envelope", title: "user.privacy.email_subscription", showChevron: false) {
+                    } trailingView: {
+                        Toggle("", isOn: Binding(
+                            get: { userManager.user.isEmailSubscribed },
+                            set: { updateEmailSubscription($0) }
+                        ))
+                        .labelsHidden()
+                    }
+
+                    SetUpItemView(icon: "lock.shield", title: "user.privacy.record_visibility", showChevron: false, showDivider: false) {
                     } trailingView: {
                         CapsuleScrollSelector(
                             options: RecordVisibility.allCases,
@@ -294,6 +303,21 @@ struct RecordPrivacySetUpView: View {
             guard case .success(let response) = result, let value = response else { return }
             DispatchQueue.main.async {
                 userManager.user.recordVisibility = value
+            }
+        }
+    }
+
+    private func updateEmailSubscription(_ enable: Bool) {
+        guard var components = URLComponents(string: "/user/update_email_subscription") else { return }
+        components.queryItems = [URLQueryItem(name: "enable", value: enable ? "true" : "false")]
+        guard let path = components.string else { return }
+
+        let request = APIRequest(path: path, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: false, showErrorToast: true) { result in
+            guard case .success(let response) = result, let value = response else { return }
+            DispatchQueue.main.async {
+                userManager.user.isEmailSubscribed = value
+                UserDefaults.standard.set(value, forKey: "user.isEmailSubscribed")
             }
         }
     }

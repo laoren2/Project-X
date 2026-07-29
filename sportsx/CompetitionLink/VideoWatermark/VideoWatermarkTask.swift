@@ -230,15 +230,33 @@ struct VideoWatermarkMediaInfo: Codable {
     let height: Int
     let nominalFrameRate: Double
     let duration: TimeInterval
-    let creationTime: TimeInterval
-    let effectiveVideoStart: TimeInterval
-    let effectiveDuration: TimeInterval
+    /// 仅用于导入时尝试自动对齐。部分运动相机导出的视频不会保留可靠的该元数据。
+    let creationTime: TimeInterval?
     let hasAudio: Bool
     let sourceByteCount: Int64
     let isHDR: Bool
 
-    var effectiveVideoEnd: TimeInterval { effectiveVideoStart + effectiveDuration }
     var supportsHDR: Bool { isHDR }
+}
+
+/// 水印片段在原视频时间轴和运动数据时间轴之间的一对一映射。
+/// 原视频始终完整导出；只有落在该片段内的帧会绘制水印。
+struct VideoWatermarkOverlayRange: Codable, Equatable {
+    var videoStart: TimeInterval
+    var workoutStart: TimeInterval
+    var duration: TimeInterval
+
+    var videoEnd: TimeInterval { videoStart + duration }
+    var workoutEnd: TimeInterval { workoutStart + duration }
+
+    func contains(videoTime: TimeInterval) -> Bool {
+        videoTime >= videoStart && videoTime <= videoEnd
+    }
+
+    func workoutTime(for videoTime: TimeInterval) -> TimeInterval? {
+        guard contains(videoTime: videoTime) else { return nil }
+        return workoutStart + (videoTime - videoStart)
+    }
 }
 
 struct VideoWatermarkTask: Codable, Identifiable {
@@ -257,6 +275,7 @@ struct VideoWatermarkTask: Codable, Identifiable {
     /// nil 兼容已存在的本地视频任务；新任务始终写入数组（可为空）。
     let paceTimeline: [VideoWatermarkPaceFrame]?
     var media: VideoWatermarkMediaInfo
+    var overlayRange: VideoWatermarkOverlayRange
     /// nil 表示 PhotosPicker 无法解析 PHAsset，原片已在 App 沙盒内。
     let photoAssetReference: VideoWatermarkPhotoAssetReference?
     let outputFormat: VideoWatermarkOutputFormat
@@ -265,7 +284,7 @@ struct VideoWatermarkTask: Codable, Identifiable {
     var outputByteCount: Int64?
     var outputDeleted: Bool
 
-    init(userID: String, workout: VideoWatermarkWorkoutSnapshot, paceSnapshot: VideoWatermarkPaceSnapshot?, paceTimeline: [VideoWatermarkPaceFrame], media: VideoWatermarkMediaInfo, photoAssetReference: VideoWatermarkPhotoAssetReference? = nil, outputFormat: VideoWatermarkOutputFormat, selectedMetrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout]) {
+    init(userID: String, workout: VideoWatermarkWorkoutSnapshot, paceSnapshot: VideoWatermarkPaceSnapshot?, paceTimeline: [VideoWatermarkPaceFrame], media: VideoWatermarkMediaInfo, overlayRange: VideoWatermarkOverlayRange, photoAssetReference: VideoWatermarkPhotoAssetReference? = nil, outputFormat: VideoWatermarkOutputFormat, selectedMetrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout]) {
         self.id = UUID()
         self.userID = userID
         self.createdAt = Date()
@@ -279,6 +298,7 @@ struct VideoWatermarkTask: Codable, Identifiable {
         self.paceSnapshot = paceSnapshot
         self.paceTimeline = paceTimeline
         self.media = media
+        self.overlayRange = overlayRange
         self.photoAssetReference = photoAssetReference
         self.outputFormat = outputFormat
         self.selectedMetrics = selectedMetrics

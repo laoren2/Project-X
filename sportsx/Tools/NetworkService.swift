@@ -90,6 +90,9 @@ struct NetworkService {
         
         // Headers
         var allHeaders = apiRequest.headers ?? [:]
+        if allHeaders["Accept-Language"] == nil {
+            allHeaders["Accept-Language"] = Locale.preferredLanguages.first ?? "en"
+        }
         if apiRequest.requiresAuth || apiRequest.isInternal {
             if let token = KeychainHelper.standard.token {
                 allHeaders["Authorization"] = "Bearer \(token)"

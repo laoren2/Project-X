@@ -8,6 +8,7 @@
 import SwiftUI
 import StoreKit
 import PhotosUI
+import UIKit
 
 
 struct SubscriptionDetailView: View {
@@ -134,7 +135,7 @@ struct SubscriptionDetailView: View {
                                         Image(systemName: "info.circle")
                                             .foregroundStyle(Color.secondText)
                                             .font(.system(size: 15))
-                                            .offset(x: 16, y: -12)
+                                            .offset(x: 18, y: -16)
                                             .exclusiveTouchTapGesture {
                                                 PopupWindowManager.shared.presentPopup(
                                                     message: "iap.subscription.benefits.1.description",
@@ -162,7 +163,7 @@ struct SubscriptionDetailView: View {
                                         Image(systemName: "info.circle")
                                             .foregroundStyle(Color.secondText)
                                             .font(.system(size: 15))
-                                            .offset(x: 16, y: -12)
+                                            .offset(x: 18, y: -16)
                                             .exclusiveTouchTapGesture {
                                                 PopupWindowManager.shared.presentPopup(
                                                     message: "iap.subscription.benefits.4.description",
@@ -182,7 +183,7 @@ struct SubscriptionDetailView: View {
                                         Image(systemName: "info.circle")
                                             .foregroundStyle(Color.secondText)
                                             .font(.system(size: 15))
-                                            .offset(x: 16, y: -12)
+                                            .offset(x: 18, y: -16)
                                             .exclusiveTouchTapGesture {
                                                 PopupWindowManager.shared.presentPopup(
                                                     message: "iap.subscription.benefits.5.description",
@@ -191,6 +192,28 @@ struct SubscriptionDetailView: View {
                                             }
                                     }
                                     Text("iap.subscription.benefits.5")
+                                }
+                                Divider()
+                                HStack(spacing: 20) {
+                                    ZStack {
+                                        Image("vip_benefit_video")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 30)
+                                        Image(systemName: "info.circle")
+                                            .foregroundStyle(Color.secondText)
+                                            .font(.system(size: 15))
+                                            .offset(x: 18, y: -16)
+                                            .exclusiveTouchTapGesture {
+                                                PopupWindowManager.shared.presentPopup(
+                                                    message: "iap.subscription.benefits.6.description",
+                                                    bottomButtons: [.confirm()]
+                                                )
+                                            }
+                                    }
+                                    Text("iap.subscription.benefits.6")
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
                                 }
                                 Divider()
                                 HStack(spacing: 20) {

@@ -11,22 +11,33 @@ enum VideoWatermarkOverlayRenderer {
     private struct MetricPresentation {
         let value: String
         let unit: String
-        let icon: String
+        let icon: String?
+        let iconColor: UIColor
+
+        init(value: String, unit: String, icon: String? = nil, iconColor: UIColor = .white) {
+            self.value = value
+            self.unit = unit
+            self.icon = icon
+            self.iconColor = iconColor
+        }
     }
 
     /// 编辑态使用真实当前数据计算的内容固有尺寸。数值水印不再保留固定右侧空白。
-    static func previewContentSize(for metric: VideoWatermarkMetric, workoutPoints: [VideoWatermarkMotionPoint], videoTime: TimeInterval, mediaCreationTime: TimeInterval) -> CGSize {
-        intrinsicContentSize(for: metric, motion: previewMotion(workoutPoints: workoutPoints, videoTime: videoTime, mediaCreationTime: mediaCreationTime))
+    static func previewContentSize(for metric: VideoWatermarkMetric, workoutPoints: [VideoWatermarkMotionPoint], paceTimeline: [VideoWatermarkPaceFrame] = [], workoutTime: TimeInterval) -> CGSize {
+        let motion = previewMotion(workoutPoints: workoutPoints, workoutTime: workoutTime)
+        return intrinsicContentSize(for: metric, motion: motion, paceFrame: paceFrame(in: paceTimeline, at: motion.timestamp))
     }
 
     /// 以有效视频覆盖的运动数据找出文字水印可能出现的最大尺寸。
     /// 它只用于滑杆上限和拖拽边界，编辑态虚线框仍使用 `previewContentSize` 的真实当前尺寸。
-    static func maximumPreviewContentSize(for metric: VideoWatermarkMetric, workoutPoints: [VideoWatermarkMotionPoint], videoTime: TimeInterval, videoDuration: TimeInterval, mediaCreationTime: TimeInterval) -> CGSize {
-        let start = mediaCreationTime + videoTime
-        let end = start + max(videoDuration, 0)
+    static func maximumPreviewContentSize(for metric: VideoWatermarkMetric, workoutPoints: [VideoWatermarkMotionPoint], paceTimeline: [VideoWatermarkPaceFrame] = [], workoutStart: TimeInterval, duration: TimeInterval) -> CGSize {
+        let start = workoutStart
+        let end = start + max(duration, 0)
         var motions = workoutPoints.filter { $0.timestamp >= start && $0.timestamp <= end }
-        motions.append(previewMotion(workoutPoints: workoutPoints, videoTime: videoTime, mediaCreationTime: mediaCreationTime))
-        let sizes = motions.map { intrinsicContentSize(for: metric, motion: $0) }
+        motions.append(previewMotion(workoutPoints: workoutPoints, workoutTime: workoutStart))
+        let sizes = motions.map { motion in
+            intrinsicContentSize(for: metric, motion: motion, paceFrame: paceFrame(in: paceTimeline, at: motion.timestamp))
+        }
         return sizes.reduce(.zero) { largest, size in
             CGSize(width: max(largest.width, size.width), height: max(largest.height, size.height))
         }
@@ -40,13 +51,13 @@ enum VideoWatermarkOverlayRenderer {
         return image(metrics: task.selectedMetrics, layouts: task.layouts, motion: motion, routePoints: task.workout.points, paceTimeline: task.paceTimeline ?? [], size: size, drawingScale: drawingScale)
     }
 
-    /// 编辑器与导出共用同一绘制路径。预览使用真实轨迹与当前有效视频时刻的数据；
+    /// 编辑器与导出共用同一绘制路径。预览使用真实轨迹与当前水印片段的数据；
     /// `designSize` 保留视频像素坐标比例，避免小画布把水印放大到和成片不一致的尺寸。
-    static func previewImage(metrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout], workoutPoints: [VideoWatermarkMotionPoint], paceTimeline: [VideoWatermarkPaceFrame] = [], videoTime: TimeInterval, mediaCreationTime: TimeInterval, size: CGSize, designSize: CGSize) -> CGImage? {
+    static func previewImage(metrics: Set<VideoWatermarkMetric>, layouts: [VideoWatermarkMetric: VideoWatermarkLayout], workoutPoints: [VideoWatermarkMotionPoint], paceTimeline: [VideoWatermarkPaceFrame] = [], workoutTime: TimeInterval, size: CGSize, designSize: CGSize) -> CGImage? {
         guard size.width > 0, size.height > 0, designSize.width > 0, designSize.height > 0 else { return nil }
         let fallbackPoints = fallbackMotionPoints
         let routePoints = workoutPoints.count > 1 ? workoutPoints : fallbackPoints
-        let motion = previewMotion(workoutPoints: workoutPoints, videoTime: videoTime, mediaCreationTime: mediaCreationTime)
+        let motion = previewMotion(workoutPoints: workoutPoints, workoutTime: workoutTime)
         // 以 2x 位图绘制再按点尺寸展示，文本与 SF Symbol 会保持锐利，不会被 SwiftUI 二次放大变形。
         let pixelScale: CGFloat = 2
         let pixelSize = CGSize(width: size.width * pixelScale, height: size.height * pixelScale)
@@ -78,39 +89,63 @@ enum VideoWatermarkOverlayRenderer {
         let layoutScale = CGFloat(layout.scale)
         guard layoutScale.isFinite, layoutScale > 0 else { return }
         let scale = layoutScale * drawingScale
-        let intrinsicSize = intrinsicContentSize(for: metric, motion: motion)
+        let intrinsicSize = intrinsicContentSize(for: metric, motion: motion, paceFrame: paceFrame)
         let rect = rect(centerX: layout.x, centerY: layout.y, width: intrinsicSize.width * scale, height: intrinsicSize.height * scale, size: size)
         switch metric {
         case .route:
             drawRoute(points: routePoints, currentTimestamp: motion.timestamp, rect: rect, scale: scale, in: context)
         case .speed, .altitude, .heartRate:
             guard let presentation = metricPresentation(for: metric, motion: motion) else { return }
-            drawMetric(presentation, rect: rect, scale: scale)
+            drawMetric(presentation, rect: rect, scale: scale, in: context)
         case .predictedRank, .pbTime, .pbDistance:
             guard let presentation = pacePresentation(for: metric, frame: paceFrame) else { return }
-            drawMetric(presentation, rect: rect, scale: scale)
+            drawMetric(presentation, rect: rect, scale: scale, in: context)
         case .logo:
             drawLogo(in: rect, scale: scale)
         }
     }
 
-    private static func drawMetric(_ presentation: MetricPresentation, rect: CGRect, scale: CGFloat) {
-        let iconSize = iconSize(for: presentation.icon, scale: scale)
-        if let image = UIImage(systemName: presentation.icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 23 * scale, weight: .semibold)) {
-            image.withTintColor(.white, renderingMode: .alwaysOriginal)
-                .draw(in: CGRect(x: rect.minX, y: rect.midY - iconSize.height / 2, width: iconSize.width, height: iconSize.height))
+    private static func drawMetric(_ presentation: MetricPresentation, rect: CGRect, scale: CGFloat, in context: CGContext) {
+        let iconFrameSize = presentation.icon.map { iconSize(for: $0, scale: scale) } ?? CGSize.zero
+        if let icon = presentation.icon {
+            let iconRect = CGRect(x: rect.minX, y: rect.midY - iconFrameSize.height / 2, width: iconFrameSize.width, height: iconFrameSize.height)
+            drawSymbol(icon, color: presentation.iconColor, in: iconRect, scale: scale, context: context)
         }
         let valueAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedDigitSystemFont(ofSize: 26 * scale, weight: .bold),
             .foregroundColor: UIColor.white
         ]
-        let valueOrigin = CGPoint(x: rect.minX + iconSize.width + 8 * scale, y: rect.midY - 16 * scale)
+        let iconSpacing: CGFloat = presentation.icon == nil ? 0 : 8 * scale
+        let valueOrigin = CGPoint(x: rect.minX + iconFrameSize.width + iconSpacing, y: rect.midY - 16 * scale)
         let valueWidth = (presentation.value as NSString).size(withAttributes: valueAttributes).width
         (presentation.value as NSString).draw(at: valueOrigin, withAttributes: valueAttributes)
-        (presentation.unit as NSString).draw(at: CGPoint(x: valueOrigin.x + valueWidth + 6 * scale, y: rect.midY - 11 * scale), withAttributes: [
-            .font: UIFont.systemFont(ofSize: 18 * scale, weight: .semibold),
-            .foregroundColor: UIColor.white
-        ])
+        if !presentation.unit.isEmpty {
+            (presentation.unit as NSString).draw(at: CGPoint(x: valueOrigin.x + valueWidth + 6 * scale, y: rect.midY - 11 * scale), withAttributes: [
+                .font: UIFont.systemFont(ofSize: 18 * scale, weight: .semibold),
+                .foregroundColor: UIColor.white
+            ])
+        }
+    }
+
+    /// 以 SF Symbol 的 alpha mask 直接填色，避免透明图标的黑色 RGB 在 Core Image 合成或预览缩放时泄漏为细黑边。
+    private static func drawSymbol(_ name: String, color: UIColor, in rect: CGRect, scale: CGFloat, context: CGContext?) {
+        guard let image = UIImage(
+            systemName: name,
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 23 * scale, weight: .semibold)
+        ), let cgImage = image.cgImage, let context else {
+            return
+        }
+        guard !rect.isEmpty else { return }
+        context.saveGState()
+        defer { context.restoreGState() }
+        // `clip(to:mask:)` 按 Core Graphics 的 y-up 图像坐标解释 mask；UIKit 绘图上下文为 y-down，
+        // 因此需围绕图标矩形翻转一次，避免所有 SF Symbol 上下颠倒。
+        context.translateBy(x: 0, y: rect.minY + rect.maxY)
+        context.scaleBy(x: 1, y: -1)
+        context.interpolationQuality = .high
+        context.clip(to: rect, mask: cgImage)
+        context.setFillColor(color.cgColor)
+        context.fill(rect)
     }
 
     private static func drawLogo(in rect: CGRect, scale: CGFloat) {
@@ -129,8 +164,8 @@ enum VideoWatermarkOverlayRenderer {
         VideoWatermarkMotionPoint(lat: 31.238, lon: 121.478, speed: 5.0, altitude: 322, heartRate: 143, timestamp: 10)
     ]
 
-    private static func previewMotion(workoutPoints: [VideoWatermarkMotionPoint], videoTime: TimeInterval, mediaCreationTime: TimeInterval) -> VideoWatermarkMotionPoint {
-        motionPoint(in: workoutPoints, at: mediaCreationTime + videoTime)
+    private static func previewMotion(workoutPoints: [VideoWatermarkMotionPoint], workoutTime: TimeInterval) -> VideoWatermarkMotionPoint {
+        motionPoint(in: workoutPoints, at: workoutTime)
             ?? (workoutPoints.isEmpty ? nil : workoutPoints[workoutPoints.count / 2])
             ?? fallbackMotionPoints[1]
     }
@@ -142,8 +177,9 @@ enum VideoWatermarkOverlayRenderer {
         case .altitude:
             return MetricPresentation(value: String(format: "%.0f", motion.altitude), unit: "m", icon: "triangle.fill")
         case .heartRate:
-            guard let heartRate = motion.heartRate else { return nil }
-            return MetricPresentation(value: String(format: "%.0f", heartRate), unit: "bpm", icon: "heart.fill")
+            // 无采样值不能用前后有效值填充，避免将错误心率写入视频。
+            let value = motion.heartRate.map { String(format: "%.0f", $0) } ?? "-"
+            return MetricPresentation(value: value, unit: "bpm", icon: "heart.fill")
         case .route, .predictedRank, .pbTime, .pbDistance, .logo:
             return nil
         }
@@ -154,38 +190,57 @@ enum VideoWatermarkOverlayRenderer {
         switch metric {
         case .predictedRank:
             guard let rank = frame.rank, frame.total > 0 else { return nil }
-            return MetricPresentation(value: "#\(rank) / \(frame.total)", unit: "RANK", icon: "list.number")
+            return MetricPresentation(value: "#\(rank) / \(frame.total)", unit: "")
         case .pbTime:
             guard let delta = frame.deltaTime else { return nil }
-            return MetricPresentation(value: "\(delta >= 0 ? "+" : "−")\(TimeDisplay.formattedTime(abs(delta)))", unit: "PB", icon: "clock.arrow.circlepath")
+            let ahead = delta >= 0
+            return MetricPresentation(
+                value: String(format: "%.0f", abs(delta)),
+                unit: "s",
+                icon: ahead ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill",
+                iconColor: ahead ? .green : .red
+            )
         case .pbDistance:
             guard let delta = frame.deltaDistance else { return nil }
-            return MetricPresentation(value: String(format: "%@%.0f", delta >= 0 ? "+" : "−", abs(delta)), unit: "PB m", icon: "ruler")
+            let ahead = delta >= 0
+            return MetricPresentation(
+                value: String(format: "%.0f", abs(delta)),
+                unit: "m",
+                icon: ahead ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill",
+                iconColor: ahead ? .green : .red
+            )
         default:
             return nil
         }
     }
 
-    private static func intrinsicContentSize(for metric: VideoWatermarkMetric, motion: VideoWatermarkMotionPoint) -> CGSize {
+    private static func intrinsicContentSize(for metric: VideoWatermarkMetric, motion: VideoWatermarkMotionPoint, paceFrame: VideoWatermarkPaceFrame? = nil) -> CGSize {
         switch metric {
         case .route:
             return CGSize(width: 150, height: 116)
         case .predictedRank, .pbTime, .pbDistance:
-            return CGSize(width: 215, height: 32)
+            guard let presentation = pacePresentation(for: metric, frame: paceFrame) else { return .zero }
+            return metricContentSize(for: presentation)
         case .logo:
             return CGSize(width: 180, height: 30)
         case .speed, .altitude, .heartRate:
             guard let presentation = metricPresentation(for: metric, motion: motion) else { return .zero }
-            let valueFont = UIFont.monospacedDigitSystemFont(ofSize: 26, weight: .bold)
-            let unitFont = UIFont.systemFont(ofSize: 18, weight: .semibold)
-            let valueWidth = (presentation.value as NSString).size(withAttributes: [.font: valueFont]).width
-            let unitWidth = (presentation.unit as NSString).size(withAttributes: [.font: unitFont]).width
-            let icon = iconSize(for: presentation.icon, scale: 1)
-            return CGSize(
-                width: ceil(icon.width + 8 + valueWidth + 6 + unitWidth),
-                height: ceil(max(icon.height, valueFont.lineHeight, unitFont.lineHeight))
-            )
+            return metricContentSize(for: presentation)
         }
+    }
+
+    private static func metricContentSize(for presentation: MetricPresentation) -> CGSize {
+        let valueFont = UIFont.monospacedDigitSystemFont(ofSize: 26, weight: .bold)
+        let unitFont = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        let valueWidth = (presentation.value as NSString).size(withAttributes: [.font: valueFont]).width
+        let unitWidth = (presentation.unit as NSString).size(withAttributes: [.font: unitFont]).width
+        let unitSpacing: CGFloat = presentation.unit.isEmpty ? 0 : 6
+        let icon = presentation.icon.map { iconSize(for: $0, scale: 1) } ?? CGSize.zero
+        let iconSpacing: CGFloat = presentation.icon == nil ? 0 : 8
+        return CGSize(
+            width: ceil(icon.width + iconSpacing + valueWidth + unitSpacing + unitWidth),
+            height: ceil(max(icon.height, valueFont.lineHeight, unitFont.lineHeight))
+        )
     }
 
     private static func iconSize(for icon: String, scale: CGFloat) -> CGSize {
@@ -236,7 +291,8 @@ enum VideoWatermarkOverlayRenderer {
     }
 
     private static func motionPoint(for task: VideoWatermarkTask, videoTime: TimeInterval) -> VideoWatermarkMotionPoint? {
-        motionPoint(in: task.workout.points, at: task.media.creationTime + videoTime)
+        guard let workoutTime = task.overlayRange.workoutTime(for: videoTime) else { return nil }
+        return motionPoint(in: task.workout.points, at: workoutTime)
     }
 
     private static func motionPoint(in points: [VideoWatermarkMotionPoint], at target: TimeInterval) -> VideoWatermarkMotionPoint? {

@@ -720,7 +720,6 @@
 "training.free.nearby.occupied.title" = "Grilles occupées";
 "training.free.nearby.occupied.description" = "Vous occupez une grille lorsque vous y comptez le plus de visites. Ceci indique le nombre de grilles que vous occupez dans la région sélectionnée cette saison.";
 "training.free.occupied.ranklist.title" = "Classement des grilles occupées";
-"training.free.occupied.ranklist.me" = "Mon classement";
 "training.free.occupied.ranklist.count" = "Grilles occupées";
 "training.free.occupied.ranklist.count %lld" = "%lld grilles occupées";
 "training.free.occupied.ranklist.empty" = "Aucune grille occupée pour le moment";
@@ -1281,6 +1280,8 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "iap.subscription.benefits.4" = "fonctions avancées d'édition de parcours";
 "iap.subscription.benefits.5" = "Statistiques avancées pendant l'entraînement";
 "iap.subscription.benefits.5.description" = "Les données avancées incluent des prédictions en temps réel du classement des coureurs et des comparaisons avec leurs meilleurs résultats personnels, et prennent en charge les modes d'entraînement en Arène et Parcours.";
+"iap.subscription.benefits.6" = "Traitement avancé des filigranes vidéo";
+"iap.subscription.benefits.6.description" = "Prend en charge davantage de formats d'export, des indicateurs de données avancés et la suppression du filigrane du logo.";
 "iap.subscription.benefits.1.description" = "Emportez une carte supplémentaire dans les modes Parcours ou Arène compatibles avec les cartes.";
 "iap.subscription.benefits.4.description" = "Ajoutez jusqu'à 100 points lors de l'édition d'un parcours ; le classement général est sans limite de participants et les classements hommes et femmes sont débloqués simultanément.";
 "iap.subscription.action.purchase" = "S'abonner";
@@ -1412,7 +1413,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "review.action.later" = "Plus tard";
 "review.feedback.title" = "Votre avis nous intéresse";
 "review.feedback.message" = "Dites-nous ce que nous pourrions améliorer ?";
-"review.action.feedback" = "Envoyer un retour";
+"review.action.feedback" = "Commentaires";
 
 // MARK: 新用户引导 guide
 "guide.action.skip" = "Passer";
@@ -1445,6 +1446,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 
 // MARK: Confidentialité des résultats
 "user.setup.privacy_settings" = "Paramètres de confidentialité";
+"user.privacy.email_subscription" = "S’abonner aux e-mails produit";
 "user.privacy.record_visibility" = "Détails de l’activité";
 "user.privacy.record_visibility.description" = "Visibilité des données";
 "user.privacy.visibility.public" = "Tout le monde";
@@ -1466,7 +1468,7 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "video_watermark.editor.title" = "Filigrane vidéo d’entraînement";
 "video_watermark.action.select_video" = "Choisir une vidéo";
 "video_watermark.action.overlay_to_video" = "Ajouter une incrustation à la vidéo";
-"video_watermark.import.hint" = "L’heure d’enregistrement aligne automatiquement les données d’activité. La vidéo et la plage utilisable doivent durer de 30 secondes à 1 heure.";
+"video_watermark.import.hint" = "Choisissez une vidéo originale de 30 secondes à 1 heure. L’heure de capture sert seulement à l’alignement initial ; vous pourrez ajuster la plage du filigrane.";
 "video_watermark.effective_range" = "Plage de données d’activité";
 "video_watermark.metric.title" = "Données du filigrane";
 "video_watermark.metric.route" = "Parcours";
@@ -1479,6 +1481,12 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "video_watermark.metric.logo" = "Logo de l’app";
 "video_watermark.format.title" = "Format vidéo";
 "video_watermark.format.effective %@" = "Vidéo utilisable : %@";
+"video_watermark.format.output_duration %@" = "Export complet : %@";
+"video_watermark.action.reselect" = "Choisir à nouveau";
+"video_watermark.alignment.auto" = "Aligné selon l’heure de capture. Faites glisser pour ajuster.";
+"video_watermark.alignment.manual" = "Aucune heure de capture fiable. Le filigrane commence au début de la vidéo ; faites glisser pour l’ajuster.";
+"video_watermark.timeline.watermark" = "Filigrane de données";
+"video_watermark.timeline.original" = "Vidéo originale";
 "video_watermark.format.input" = "Entrée :";
 "video_watermark.format.output" = "Sortie :";
 "video_watermark.format.resolution.title" = "Résolution";
@@ -1493,6 +1501,8 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "video_watermark.action.retry" = "Réessayer";
 "video_watermark.action.delete" = "Supprimer";
 "video_watermark.toast.queued" = "Tâche vidéo ajoutée à la file";
+"video_watermark.task_created.title" = "Suivez votre tâche vidéo";
+"video_watermark.task_created.message" = "Vous pouvez voir sa progression dans Profil > Vidéos, La tâche peut se poursuivre en arrière-plan.";
 "video_watermark.toast.saved" = "Enregistré dans Photos";
 "video_watermark.error.invalid_format" = "Ce format vidéo n’est pas pris en charge";
 "video_watermark.error.invalid_duration" = "La vidéo originale doit durer de 30 secondes à 1 heure";
@@ -1540,3 +1550,4 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 "video_watermark.import.validating" = "Analyse du format vidéo…";
 "video_watermark.import.aligning" = "Alignement des données d’activité…";
 "video_watermark.import.progress_hint" = "Les vidéos volumineuses ou stockées dans iCloud peuvent prendre un peu de temps.";
+"video_watermark.preview.preparing" = "Préparation de l’aperçu…";

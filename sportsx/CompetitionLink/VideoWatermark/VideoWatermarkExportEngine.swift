@@ -226,16 +226,19 @@ enum VideoWatermarkExportEngine {
             throw VideoWatermarkExportError.unsupportedHDR
         }
         let sourceFrameRate = task.media.nominalFrameRate > 0 ? task.media.nominalFrameRate : preparation.nominalFrameRate
-        let timeRange = CMTimeRange(start: CMTime(seconds: task.media.effectiveVideoStart, preferredTimescale: 600), duration: CMTime(seconds: task.media.effectiveDuration, preferredTimescale: 600))
+        let sourceDuration = max(preparation.assetDuration.seconds, 0)
+        guard sourceDuration > 0 else { throw VideoWatermarkExportError.unableToRead }
+        // 不再裁剪原片：只在 overlayRange 覆盖的帧叠加水印，音视频均保留完整时长。
+        let timeRange = CMTimeRange(start: .zero, duration: CMTime(seconds: sourceDuration, preferredTimescale: 600))
         let exportStartedAt = Date()
-        Logger.videoWatermark.notice_public("watermark export prepared: task=\(task.id.uuidString), source=\(sourceURL.lastPathComponent), sourceSize=\(Int(sourceSize.width))x\(Int(sourceSize.height)), outputSize=\(Int(outputSize.width))x\(Int(outputSize.height)), sourceFrameRate=\(String(format: "%.0f", sourceFrameRate)), outputFrameRate=\(frameRate), timeRangeStart=\(String(format: "%.3f", task.media.effectiveVideoStart)), duration=\(String(format: "%.3f", task.media.effectiveDuration)), metrics=\(task.selectedMetrics.map(\.rawValue).sorted().joined(separator: ","))")
+        Logger.videoWatermark.debug_public("watermark export prepared: task=\(task.id.uuidString), source=\(sourceURL.lastPathComponent), sourceSize=\(Int(sourceSize.width))x\(Int(sourceSize.height)), outputSize=\(Int(outputSize.width))x\(Int(outputSize.height)), sourceFrameRate=\(String(format: "%.0f", sourceFrameRate)), outputFrameRate=\(frameRate), duration=\(String(format: "%.3f", sourceDuration)), overlayVideo=\(String(format: "%.3f", task.overlayRange.videoStart))...\(String(format: "%.3f", task.overlayRange.videoEnd)), overlayWorkout=\(String(format: "%.3f", task.overlayRange.workoutStart))...\(String(format: "%.3f", task.overlayRange.workoutEnd)), metrics=\(task.selectedMetrics.map(\.rawValue).sorted().joined(separator: ","))")
 
         let reader = try AVAssetReader(asset: asset)
         reader.timeRange = timeRange
         let videoComposition = makeVideoComposition(track: videoTrack, preferredTransform: preparation.preferredTransform, sourceSize: sourceSize, renderSize: outputSize, frameRate: frameRate, duration: preparation.assetDuration, dynamicRange: outputFormat.dynamicRange)
         let pixelFormat = isHDROutput ? kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange : kCVPixelFormatType_32BGRA
         let sdrColorSpace = CGColorSpace(name: CGColorSpace.itur_709)
-        Logger.videoWatermark.notice_public("watermark export color pipeline: task=\(task.id.uuidString), sourceHDR=\(preparation.isHDR), outputRange=\(outputFormat.dynamicRange.rawValue), readerPixelFormat=\(pixelFormat), targetColorSpace=\(isHDROutput ? "source HDR" : "Rec.709 SDR")")
+        Logger.videoWatermark.debug_public("watermark export color pipeline: task=\(task.id.uuidString), sourceHDR=\(preparation.isHDR), outputRange=\(outputFormat.dynamicRange.rawValue), readerPixelFormat=\(pixelFormat), targetColorSpace=\(isHDROutput ? "source HDR" : "Rec.709 SDR")")
         let videoOutput = AVAssetReaderVideoCompositionOutput(videoTracks: [videoTrack], videoSettings: [
             kCVPixelBufferPixelFormatTypeKey as String: pixelFormat
         ])
@@ -284,13 +287,13 @@ enum VideoWatermarkExportEngine {
         }
 
         let readerStarted = reader.startReading()
-        Logger.videoWatermark.notice_public("watermark export reader start: task=\(task.id.uuidString), started=\(readerStarted), status=\(reader.status.rawValue), error=\(reader.error?.localizedDescription ?? "none")")
+        Logger.videoWatermark.debug_public("watermark export reader start: task=\(task.id.uuidString), started=\(readerStarted), status=\(reader.status.rawValue), error=\(reader.error?.localizedDescription ?? "none")")
         guard readerStarted else { throw reader.error ?? VideoWatermarkExportError.unableToRead }
         let writerStarted = writer.startWriting()
-        Logger.videoWatermark.notice_public("watermark export writer start: task=\(task.id.uuidString), started=\(writerStarted), status=\(writer.status.rawValue), error=\(writer.error?.localizedDescription ?? "none")")
+        Logger.videoWatermark.debug_public("watermark export writer start: task=\(task.id.uuidString), started=\(writerStarted), status=\(writer.status.rawValue), error=\(writer.error?.localizedDescription ?? "none")")
         guard writerStarted else { throw writer.error ?? VideoWatermarkExportError.unableToWrite }
         writer.startSession(atSourceTime: timeRange.start)
-        Logger.videoWatermark.notice_public("watermark export writer session started: task=\(task.id.uuidString), sourceTime=\(String(format: "%.3f", timeRange.start.seconds))")
+        Logger.videoWatermark.debug_public("watermark export writer session started: task=\(task.id.uuidString), sourceTime=\(String(format: "%.3f", timeRange.start.seconds))")
         let ciContext = CIContext(options: [.cacheIntermediates: false])
         let producerGroup = DispatchGroup()
         let videoProducerQueue = DispatchQueue(label: "com.valbara.sporreer.videoWatermark.videoProducer", qos: .userInitiated)
@@ -313,23 +316,23 @@ enum VideoWatermarkExportEngine {
         var audioSampleCount = 0
         var audioFirstPresentationTime: Double?
         var audioLastPresentationTime: Double?
-        Logger.videoWatermark.notice_public("watermark export overlay cache enabled: task=\(task.id.uuidString), renderRate=\(Int(watermarkRenderRate))fps")
+        Logger.videoWatermark.debug_public("watermark export overlay cache enabled: task=\(task.id.uuidString), renderRate=\(Int(watermarkRenderRate))fps")
         func finishVideoProducer(_ error: Error? = nil) {
             guard videoProducerState.finish(error: error) else { return }
             videoInput.markAsFinished()
-            Logger.videoWatermark.notice_public("watermark export video producer finished: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), error=\(error?.localizedDescription ?? "none"), writerStatus=\(writer.status.rawValue), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
+            Logger.videoWatermark.debug_public("watermark export video producer finished: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), error=\(error?.localizedDescription ?? "none"), writerStatus=\(writer.status.rawValue), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
             producerGroup.leave()
         }
 
         func finishAudioProducer(_ error: Error? = nil) {
             guard audioProducerState.finish(error: error) else { return }
             audioInput?.markAsFinished()
-            Logger.videoWatermark.notice_public("watermark export audio producer finished: task=\(task.id.uuidString), samples=\(audioState.result?.sampleCount ?? 0), error=\(error?.localizedDescription ?? "none"), writerStatus=\(writer.status.rawValue), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
+            Logger.videoWatermark.debug_public("watermark export audio producer finished: task=\(task.id.uuidString), samples=\(audioState.result?.sampleCount ?? 0), error=\(error?.localizedDescription ?? "none"), writerStatus=\(writer.status.rawValue), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
             producerGroup.leave()
         }
 
         producerGroup.enter()
-        Logger.videoWatermark.notice_public("watermark export video producer scheduled: task=\(task.id.uuidString)")
+        Logger.videoWatermark.debug_public("watermark export video producer scheduled: task=\(task.id.uuidString)")
         videoInput.requestMediaDataWhenReady(on: videoProducerQueue) {
             do {
                 while videoInput.isReadyForMoreMediaData {
@@ -343,10 +346,10 @@ enum VideoWatermarkExportEngine {
                         let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
                         if firstPresentationTime == nil {
                             firstPresentationTime = presentationTime
-                            Logger.videoWatermark.debug_public("watermark export first frame: task=\(task.id.uuidString), presentationTime=\(String(format: "%.3f", presentationTime.seconds)), expectedSourceOffset=\(String(format: "%.3f", task.media.effectiveVideoStart))")
+                            Logger.videoWatermark.debug_public("watermark export first frame: task=\(task.id.uuidString), presentationTime=\(String(format: "%.3f", presentationTime.seconds))")
                         }
                         let relativeVideoTime = max(presentationTime.seconds - (firstPresentationTime?.seconds ?? presentationTime.seconds), 0)
-                        let sourceVideoTime = task.media.effectiveVideoStart + relativeVideoTime
+                        let sourceVideoTime = max(presentationTime.seconds, 0)
                         guard let pool = adaptor.pixelBufferPool else { throw VideoWatermarkExportError.unableToCreatePixelBuffer }
                         var destinationBuffer: CVPixelBuffer?
                         guard CVPixelBufferPoolCreatePixelBuffer(nil, pool, &destinationBuffer) == kCVReturnSuccess,
@@ -370,7 +373,8 @@ enum VideoWatermarkExportEngine {
                         } else {
                             skippedWatermarkFrameCount += 1
                             if skippedWatermarkFrameCount == 1 {
-                                Logger.videoWatermark.warning_public("watermark export skipped a frame without matching motion: task=\(task.id.uuidString), sourceVideoTime=\(String(format: "%.3f", sourceVideoTime)), workoutRange=\(String(format: "%.3f", task.workout.startTime ?? -1))...\(String(format: "%.3f", task.workout.endTime ?? -1))")
+                                Logger.videoWatermark.warning_public("watermark export skipped a frame without matching motion")
+                                Logger.videoWatermark.debug_public("watermark export skipped a frame without matching motion: task=\(task.id.uuidString), sourceVideoTime=\(String(format: "%.3f", sourceVideoTime)), workoutRange=\(String(format: "%.3f", task.workout.startTime ?? -1))...\(String(format: "%.3f", task.workout.endTime ?? -1))")
                             }
                             composite = baseImage
                         }
@@ -384,7 +388,7 @@ enum VideoWatermarkExportEngine {
                         guard adaptor.append(destinationBuffer, withPresentationTime: presentationTime) else { throw writer.error ?? VideoWatermarkExportError.appendFailed }
                         processedFrameCount += 1
                         producerActivity.recordVideoFrame()
-                        onProgress(relativeVideoTime / max(task.media.effectiveDuration, 0.001))
+                        onProgress(relativeVideoTime / max(sourceDuration, 0.001))
                         if processedFrameCount.isMultiple(of: 300) {
                             ciContext.clearCaches()
                             Logger.videoWatermark.debug_public("watermark export checkpoint: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), generatedOverlays=\(generatedOverlayCount), videoElapsed=\(String(format: "%.2f", relativeVideoTime))s, wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
@@ -398,7 +402,7 @@ enum VideoWatermarkExportEngine {
 
         if let audioOutput, let audioInput {
             producerGroup.enter()
-            Logger.videoWatermark.notice_public("watermark export audio producer scheduled: task=\(task.id.uuidString)")
+            Logger.videoWatermark.debug_public("watermark export audio producer scheduled: task=\(task.id.uuidString)")
             audioInput.requestMediaDataWhenReady(on: audioProducerQueue) {
                 do {
                     while audioInput.isReadyForMoreMediaData {
@@ -411,7 +415,7 @@ enum VideoWatermarkExportEngine {
                                 wallElapsed: Date().timeIntervalSince(audioStartedAt)
                             )
                             audioState.complete(with: result)
-                            Logger.videoWatermark.notice_public("watermark export audio reached end: task=\(task.id.uuidString), samples=\(audioSampleCount), lastPTS=\(formatOptionalTime(audioLastPresentationTime)), wallElapsed=\(String(format: "%.2f", result.wallElapsed))s; marking audio input finished now")
+                            Logger.videoWatermark.debug_public("watermark export audio reached end: task=\(task.id.uuidString), samples=\(audioSampleCount), lastPTS=\(formatOptionalTime(audioLastPresentationTime)), wallElapsed=\(String(format: "%.2f", result.wallElapsed))s; marking audio input finished now")
                             finishAudioProducer()
                             return
                         }
@@ -430,12 +434,13 @@ enum VideoWatermarkExportEngine {
                     }
                 } catch {
                     audioState.fail(with: error)
-                    Logger.videoWatermark.error_public("watermark export audio producer failed: task=\(task.id.uuidString), error=\(error.localizedDescription), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none")")
+                    Logger.videoWatermark.error_public("watermark export audio producer failed")
+                    Logger.videoWatermark.debug_public("watermark export audio producer failed: task=\(task.id.uuidString), error=\(error.localizedDescription), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none")")
                     finishAudioProducer(error)
                 }
             }
         } else {
-            Logger.videoWatermark.notice_public("watermark export has no audio pipeline: task=\(task.id.uuidString), audioTrack=\(audioTrack != nil)")
+            Logger.videoWatermark.debug_public("watermark export has no audio pipeline: task=\(task.id.uuidString), audioTrack=\(audioTrack != nil)")
         }
 
         try waitForMediaProducers(
@@ -457,19 +462,21 @@ enum VideoWatermarkExportEngine {
 
         if let videoError = videoProducerState.error { throw videoError }
         if let audioError = audioProducerState.error ?? audioState.error { throw audioError }
-        Logger.videoWatermark.notice_public("watermark export media producers completed: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), audioSamples=\(audioState.result?.sampleCount ?? 0), readerStatus=\(reader.status.rawValue), writerStatus=\(writer.status.rawValue), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
+        Logger.videoWatermark.debug_public("watermark export media producers completed: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), audioSamples=\(audioState.result?.sampleCount ?? 0), readerStatus=\(reader.status.rawValue), writerStatus=\(writer.status.rawValue), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
         try cancellation.checkCancellation()
         if reader.status == .failed { throw reader.error ?? VideoWatermarkExportError.unableToRead }
         guard watermarkFrameCount > 0 else {
-            Logger.videoWatermark.error_public("watermark export rendered no overlay frames: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), skippedFrames=\(skippedWatermarkFrameCount)")
+            Logger.videoWatermark.error_public("watermark export rendered no overlay frames")
+            Logger.videoWatermark.debug_public("watermark export rendered no overlay frames: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), skippedFrames=\(skippedWatermarkFrameCount)")
             throw VideoWatermarkExportError.noWatermarkRendered
         }
-        Logger.videoWatermark.notice_public("watermark export inputs were marked finished by producers: task=\(task.id.uuidString), hasAudioInput=\(audioInput != nil), writerStatus=\(writer.status.rawValue), readerStatus=\(reader.status.rawValue)")
+        Logger.videoWatermark.debug_public("watermark export inputs were marked finished by producers: task=\(task.id.uuidString), hasAudioInput=\(audioInput != nil), writerStatus=\(writer.status.rawValue), readerStatus=\(reader.status.rawValue)")
         try finish(writer: writer, taskID: task.id)
-        Logger.videoWatermark.notice_public("watermark export writer finish returned: task=\(task.id.uuidString), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none"), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
+        Logger.videoWatermark.debug_public("watermark export writer finish returned: task=\(task.id.uuidString), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none"), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
         if writer.status != .completed { throw writer.error ?? VideoWatermarkExportError.unableToWrite }
         let count = (try? outputURL.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init) ?? 0
-        Logger.videoWatermark.notice_public("watermark export completed: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), overlayFrames=\(watermarkFrameCount), generatedOverlays=\(generatedOverlayCount), skippedFrames=\(skippedWatermarkFrameCount), outputBytes=\(count), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
+        Logger.videoWatermark.notice_public("watermark export completed")
+        Logger.videoWatermark.debug_public("watermark export completed: task=\(task.id.uuidString), processedFrames=\(processedFrameCount), overlayFrames=\(watermarkFrameCount), generatedOverlays=\(generatedOverlayCount), skippedFrames=\(skippedWatermarkFrameCount), outputBytes=\(count), wallElapsed=\(String(format: "%.2f", Date().timeIntervalSince(exportStartedAt)))s")
         return VideoWatermarkExportResult(outputByteCount: count)
     }
 
@@ -484,7 +491,7 @@ enum VideoWatermarkExportEngine {
         var lastLoggedAt = startedAt
         while group.wait(timeout: .now() + 0.25) == .timedOut {
             if cancellation.isCancelled {
-                Logger.videoWatermark.notice_public("watermark export cancellation closing media producers: task=\(taskID.uuidString), waitElapsed=\(String(format: "%.2f", Date().timeIntervalSince(startedAt)))s, readerStatus=\(reader.status.rawValue), writerStatus=\(writer.status.rawValue)")
+                Logger.videoWatermark.debug_public("watermark export cancellation closing media producers: task=\(taskID.uuidString), waitElapsed=\(String(format: "%.2f", Date().timeIntervalSince(startedAt)))s, readerStatus=\(reader.status.rawValue), writerStatus=\(writer.status.rawValue)")
                 cancelProducers()
                 group.wait()
                 throw CancellationError()
@@ -494,7 +501,8 @@ enum VideoWatermarkExportEngine {
             let idleElapsed = now.timeIntervalSince(snapshot.lastActivityAt)
             if idleElapsed >= 5, now.timeIntervalSince(lastLoggedAt) >= 5 {
                 lastLoggedAt = now
-                Logger.videoWatermark.warning_public("watermark export media producers idle: task=\(taskID.uuidString), idleElapsed=\(String(format: "%.2f", idleElapsed))s, videoFrames=\(snapshot.videoFrameCount), audioSamples=\(snapshot.audioSampleCount), readerStatus=\(reader.status.rawValue), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none")")
+                Logger.videoWatermark.warning_public("watermark export media producers idle")
+                Logger.videoWatermark.debug_public("watermark export media producers idle: task=\(taskID.uuidString), idleElapsed=\(String(format: "%.2f", idleElapsed))s, videoFrames=\(snapshot.videoFrameCount), audioSamples=\(snapshot.audioSampleCount), readerStatus=\(reader.status.rawValue), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none")")
             }
         }
     }
@@ -502,13 +510,14 @@ enum VideoWatermarkExportEngine {
     private static func finish(writer: AVAssetWriter, taskID: UUID) throws {
         let startedAt = Date()
         let semaphore = DispatchSemaphore(value: 0)
-        Logger.videoWatermark.notice_public("watermark export writer finish requested: task=\(taskID.uuidString), writerStatus=\(writer.status.rawValue)")
+        Logger.videoWatermark.debug_public("watermark export writer finish requested: task=\(taskID.uuidString), writerStatus=\(writer.status.rawValue)")
         writer.finishWriting {
-            Logger.videoWatermark.notice_public("watermark export writer finish callback: task=\(taskID.uuidString), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none"), waitElapsed=\(String(format: "%.2f", Date().timeIntervalSince(startedAt)))s")
+            Logger.videoWatermark.debug_public("watermark export writer finish callback: task=\(taskID.uuidString), writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none"), waitElapsed=\(String(format: "%.2f", Date().timeIntervalSince(startedAt)))s")
             semaphore.signal()
         }
         while semaphore.wait(timeout: .now() + 5) == .timedOut {
-            Logger.videoWatermark.warning_public("watermark export still waiting for writer finish: task=\(taskID.uuidString), waitElapsed=\(String(format: "%.2f", Date().timeIntervalSince(startedAt)))s, writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none")")
+            Logger.videoWatermark.warning_public("watermark export still waiting for writer finish")
+            Logger.videoWatermark.debug_public("watermark export still waiting for writer finish: task=\(taskID.uuidString), waitElapsed=\(String(format: "%.2f", Date().timeIntervalSince(startedAt)))s, writerStatus=\(writer.status.rawValue), writerError=\(writer.error?.localizedDescription ?? "none")")
         }
     }
 

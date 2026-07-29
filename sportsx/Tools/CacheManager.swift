@@ -72,12 +72,22 @@ class CacheManager {
     func directorySize(at url: URL) -> Int64 {
         var size: Int64 = 0
         let fileManager = FileManager.default
-        if let files = try? fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: [.fileSizeKey], options: .skipsHiddenFiles) {
-            for file in files {
-                if let fileSize = try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize {
-                    size += Int64(fileSize)
-                }
+        let keys: Set<URLResourceKey> = [.isRegularFileKey, .fileSizeKey]
+        guard let enumerator = fileManager.enumerator(
+            at: url,
+            includingPropertiesForKeys: Array(keys),
+            options: .skipsHiddenFiles
+        ) else {
+            return 0
+        }
+
+        for case let fileURL as URL in enumerator {
+            guard let values = try? fileURL.resourceValues(forKeys: keys),
+                  values.isRegularFile == true,
+                  let fileSize = values.fileSize else {
+                continue
             }
+            size += Int64(fileSize)
         }
         return size
     }
