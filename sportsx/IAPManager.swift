@@ -31,10 +31,12 @@ class IAPManager: ObservableObject {
     
     let subscriptionProductIDs: [String] = [
         "com.valbara.sporreer.subscription.1m.auto",
-        "com.valbara.sporreer.subscription.3m.auto",
+        //"com.valbara.sporreer.subscription.3m.auto",
         "com.valbara.sporreer.subscription.6m.auto",
         "com.valbara.sporreer.subscription.1y.auto"
     ]
+
+    let monthlySubscriptionProductID = "com.valbara.sporreer.subscription.1m.auto"
     
     let couponImages: [String: String] = [
         "com.valbara.sporreer.coupon.10": "10_coupons",
@@ -104,6 +106,15 @@ class IAPManager: ObservableObject {
         } catch {
             print("点券信息加载失败")
         }
+    }
+
+    func isEligibleForMonthlyIntroductoryOffer() async -> Bool {
+        guard let monthlyProduct = subscriptionProducts.first(where: { $0.id == monthlySubscriptionProductID }),
+              let subscription = monthlyProduct.subscription,
+              subscription.introductoryOffer != nil else {
+            return false
+        }
+        return await subscription.isEligibleForIntroOffer
     }
     
     // 查询点券商店信息

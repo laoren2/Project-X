@@ -2117,6 +2117,290 @@ private extension View {
     }
 }
 
-#Preview() {
-    PreviewRealtimeRankView()
+// HUD的8s演示视频，绿色背景用于后期抠图
+#if DEBUG
+struct HUDPreview: View {
+    private let duration: TimeInterval = 8
+    @State private var startDate = Date()
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: false)) { timeline in
+            let progress = min(max(timeline.date.timeIntervalSince(startDate) / duration, 0), 1)
+
+            GeometryReader { proxy in
+                ZStack(alignment: .topTrailing) {
+                    // 单一纯色，录屏后可直接作为色键背景处理。
+                    Color(red: 0, green: 1, blue: 0)
+
+                    ExplorationHUDMap(progress: progress)
+                        .frame(width: min(proxy.size.width * 0.36, 156),
+                               height: min(proxy.size.width * 0.36, 156))
+                        .padding(.top, proxy.safeAreaInsets.top + 16)
+                        .padding(.trailing, 18)
+
+                    ExplorationRewardToast(progress: progress)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .padding(.bottom, max(proxy.size.height * 0.19, 110))
+                }
+                .ignoresSafeArea()
+            }
+        }
+        .onAppear {
+            startDate = Date()
+        }
+    }
 }
+
+private struct ExplorationHUDMap: View {
+    let progress: Double
+
+    private let orange = Color(red: 1.0, green: 0.47, blue: 0.08)
+
+    var body: some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.78))
+                    .overlay {
+                        Circle()
+                            .stroke(Color.white.opacity(0.95), lineWidth: 1.5)
+                    }
+                    .shadow(color: .black.opacity(0.16), radius: 12, y: 6)
+
+                ZStack {
+                    ExplorationGridContent(progress: progress, orange: orange)
+                        // 使用更大的画布，网格在旋转和平移时始终覆盖整个 HUD。
+                        .frame(width: side * ExplorationMapMotion.canvasScale,
+                               height: side * ExplorationMapMotion.canvasScale)
+                        .rotationEffect(.degrees(ExplorationMapMotion.rotation(for: progress)))
+                        .offset(ExplorationMapMotion.mapOffset(for: progress, side: side))
+                }
+                .frame(width: side, height: side)
+                .clipShape(Circle())
+
+                // 用户位置始终固定于 HUD 中心；只有网格与奖励在下方移动。
+                Circle()
+                    .fill(.white)
+                    .frame(width: side * 0.105, height: side * 0.105)
+                    .overlay {
+                        Circle()
+                            .stroke(Color.blue, lineWidth: 2)
+                    }
+                    .shadow(color: .black.opacity(0.22), radius: 3, y: 1)
+            }
+        }
+    }
+
+}
+
+private struct ExplorationGridCell: Hashable {
+    let column: Int
+    let row: Int
+}
+
+// 所有视觉状态都基于这一套运动方程计算，避免网格点亮与奖励反馈脱节。
+private enum ExplorationMapMotion {
+    static let columns = 14
+    static let canvasScale: CGFloat = 3.2
+    static let rewardCell = ExplorationGridCell(column: 6, row: 7)
+
+    static let rewardTriggerProgress: Double = {
+        let sampleCount = 720
+        for index in 0...sampleCount {
+            let progress = Double(index) / Double(sampleCount)
+            if cell(at: progress) == rewardCell {
+                return progress
+            }
+        }
+        return 0.62
+    }()
+
+    static func rotation(for progress: Double) -> Double {
+        -10 + 24 * progress
+    }
+
+    static func mapOffset(for progress: Double, side: CGFloat) -> CGSize {
+        let ratio = mapOffsetRatio(for: progress)
+        return CGSize(width: ratio.width * side, height: ratio.height * side)
+    }
+
+    static func visitedCells(upTo progress: Double) -> Set<ExplorationGridCell> {
+        let sampleCount = max(1, Int(ceil(progress * 480)))
+        return Set((0...sampleCount).compactMap { index in
+            let sampleProgress = progress * Double(index) / Double(sampleCount)
+            return cell(at: sampleProgress)
+        })
+    }
+
+    static func cell(at progress: Double) -> ExplorationGridCell? {
+        let offset = mapOffsetRatio(for: progress)
+        let inverseRotation = -rotation(for: progress) * .pi / 180
+        let sourceX = -offset.width
+        let sourceY = -offset.height
+        let gridX = sourceX * cos(inverseRotation) - sourceY * sin(inverseRotation)
+        let gridY = sourceX * sin(inverseRotation) + sourceY * cos(inverseRotation)
+
+        let cellSize = canvasScale / CGFloat(columns)
+        let column = Int(floor((gridX + canvasScale / 2) / cellSize))
+        let row = Int(floor((gridY + canvasScale / 2) / cellSize))
+
+        guard (0..<columns).contains(column), (0..<columns).contains(row) else {
+            return nil
+        }
+
+        return ExplorationGridCell(column: column, row: row)
+    }
+
+    private static func mapOffsetRatio(for progress: Double) -> CGSize {
+        let clampedProgress = min(max(progress, 0), 1)
+        // 线性匀速：左下 → 右上。
+        return CGSize(width: -0.55 + 1.10 * clampedProgress,
+                      height: 0.55 - 1.10 * clampedProgress)
+    }
+}
+
+private struct ExplorationGridContent: View {
+    let progress: Double
+    let orange: Color
+
+    private let columns = ExplorationMapMotion.columns
+    private let rewards = [
+        ExplorationReward(iconName: "red_stone", cell: ExplorationMapMotion.rewardCell),
+        ExplorationReward(iconName: "coin", cell: ExplorationGridCell(column: 3, row: 10)),
+        ExplorationReward(iconName: "voucher", cell: ExplorationGridCell(column: 10, row: 3))
+    ]
+
+    var body: some View {
+        GeometryReader { proxy in
+            let cell = proxy.size.width / CGFloat(columns)
+            let visitedCells = ExplorationMapMotion.visitedCells(upTo: progress)
+
+            ZStack(alignment: .topLeading) {
+                ForEach(0..<columns, id: \.self) { row in
+                    ForEach(0..<columns, id: \.self) { column in
+                        let gridCell = ExplorationGridCell(column: column, row: row)
+                        if visitedCells.contains(gridCell) {
+                            RoundedRectangle(cornerRadius: cell * 0.13, style: .continuous)
+                                .fill(orange.opacity(0.94))
+                                .frame(width: cell - 2, height: cell - 2)
+                                .offset(x: CGFloat(column) * cell + 1,
+                                        y: CGFloat(row) * cell + 1)
+                        }
+                    }
+                }
+
+                ExplorationGridLines(columns: columns)
+                    .stroke(Color(red: 0.08, green: 0.16, blue: 0.28).opacity(0.60), lineWidth: 1)
+
+                ForEach(rewards) { reward in
+                    rewardIcon(reward, cell: cell, visitedCells: visitedCells)
+                }
+            }
+            .drawingGroup()
+        }
+    }
+
+    private func rewardIcon(_ reward: ExplorationReward, cell: CGFloat, visitedCells: Set<ExplorationGridCell>) -> some View {
+        let hasBeenCollected = visitedCells.contains(reward.cell)
+
+        return Image(reward.iconName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: cell * 0.6)
+            .frame(width: cell, height: cell)
+            .offset(x: CGFloat(reward.cell.column) * cell, y: CGFloat(reward.cell.row) * cell)
+            .opacity(hasBeenCollected ? 0.26 : 1)
+            .scaleEffect(hasBeenCollected ? 0.72 : 1.0)
+    }
+
+}
+
+private struct ExplorationReward: Identifiable {
+    let iconName: String
+    let cell: ExplorationGridCell
+
+    var id: ExplorationGridCell { cell }
+}
+
+private struct ExplorationGridLines: Shape {
+    let columns: Int
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let step = rect.width / CGFloat(columns)
+
+        for index in 0...columns {
+            let position = CGFloat(index) * step
+            path.move(to: CGPoint(x: position, y: 0))
+            path.addLine(to: CGPoint(x: position, y: rect.height))
+            path.move(to: CGPoint(x: 0, y: position))
+            path.addLine(to: CGPoint(x: rect.width, y: position))
+        }
+
+        return path
+    }
+}
+
+private struct ExplorationRewardToast: View {
+    let progress: Double
+
+    private let orange = Color(red: 1.0, green: 0.47, blue: 0.08)
+
+    var body: some View {
+        let visibility = toastVisibility(for: progress)
+
+        HStack(spacing: 10) {
+            Image("red_stone")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 25)
+            Text("+ 20")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(Color(red: 0.07, green: 0.12, blue: 0.20))
+        }
+        .padding(.horizontal, 22)
+        .padding(.vertical, 14)
+        .background {
+            Capsule(style: .continuous)
+                .fill(Color.white.opacity(0.82))
+                .overlay {
+                    Capsule(style: .continuous)
+                        .stroke(orange.opacity(0.85), lineWidth: 1.5)
+                }
+                .shadow(color: .black.opacity(0.18), radius: 14, y: 7)
+        }
+        .opacity(visibility)
+        .scaleEffect(0.88 + 0.12 * visibility)
+        .offset(y: 24 * (1 - visibility))
+        .accessibilityHidden(true)
+    }
+
+    private func toastVisibility(for progress: Double) -> Double {
+        let elapsed = progress - ExplorationMapMotion.rewardTriggerProgress
+
+        switch elapsed {
+        case ..<0:
+            return 0
+        case 0..<0.06:
+            return smoothstep(elapsed / 0.06)
+        case 0.06..<0.19:
+            return 1
+        case 0.19..<0.26:
+            return 1 - smoothstep((elapsed - 0.19) / 0.07)
+        default:
+            return 0
+        }
+    }
+}
+
+private func smoothstep(_ value: Double) -> Double {
+    let clamped = min(max(value, 0), 1)
+    return clamped * clamped * (3 - 2 * clamped)
+}
+
+#Preview {
+    HUDPreview()
+}
+#endif

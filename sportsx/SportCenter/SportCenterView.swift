@@ -81,7 +81,7 @@ struct SportCenterView: View {
                                 Image("location")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 20, height: 20)
+                                    .frame(width: 18, height: 18)
                                 Text(locationManager.regionName ?? "error.unknown")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundColor(.white)

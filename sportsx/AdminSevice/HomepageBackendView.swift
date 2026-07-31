@@ -16,6 +16,9 @@ struct HomepageBackendView: View {
     @State private var announcement_hans: String = ""
     @State private var announcement_hant: String = ""
     @State private var announcement_ko: String = ""
+    @State private var announcement_ja: String = ""
+    @State private var announcement_fr: String = ""
+    
     @State private var image_url: String = ""
     @State private var web_url: String = ""
     @State private var is_displayed: Bool = false
@@ -33,6 +36,12 @@ struct HomepageBackendView: View {
     @State var adImage_ko: UIImage? = nil
     @State var showImagePicker_ko: Bool = false
     @State var selectedImageItem_ko: PhotosPickerItem?
+    @State var adImage_ja: UIImage? = nil
+    @State var showImagePicker_ja: Bool = false
+    @State var selectedImageItem_ja: PhotosPickerItem?
+    @State var adImage_fr: UIImage? = nil
+    @State var showImagePicker_fr: Bool = false
+    @State var selectedImageItem_fr: PhotosPickerItem?
     
     var body: some View {
         VStack {
@@ -96,11 +105,27 @@ struct HomepageBackendView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.gray.opacity(0.3))
                             )
+                        Text("更新公告ja")
+                        TextEditor(text: $announcement_ja)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
+                        Text("更新公告fr")
+                        TextEditor(text: $announcement_fr)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
                         Button("更新") {
                             updateAnnouncement()
                         }
-                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty) ? Color.gray : Color.green)
-                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty)
+                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty || announcement_ja.isEmpty || announcement_fr.isEmpty) ? Color.gray : Color.green)
+                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty || announcement_ja.isEmpty || announcement_fr.isEmpty)
                     }
                     VStack(spacing: 20) {
                         Text("管理轮播广告页")
@@ -124,6 +149,16 @@ struct HomepageBackendView: View {
                                 showImagePicker_ko = true
                             }
                         }
+                        GroupBox("图片 ja") {
+                            imagePickerView(image: adImage_ja) {
+                                showImagePicker_ja = true
+                            }
+                        }
+                        GroupBox("图片 fr") {
+                            imagePickerView(image: adImage_fr) {
+                                showImagePicker_fr = true
+                            }
+                        }
                         Section {
                             TextField("web_url", text: $web_url)
                                 .background(.gray.opacity(0.1))
@@ -135,7 +170,7 @@ struct HomepageBackendView: View {
                             Button("添加Ad") {
                                 createBannerAds()
                             }
-                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil || adImage_ko == nil)
+                            .disabled(adImage_en == nil || adImage_hans == nil || adImage_hant == nil || adImage_ko == nil || adImage_ja == nil || adImage_fr == nil)
                         }
                     }
                 }
@@ -149,6 +184,8 @@ struct HomepageBackendView: View {
         .photosPicker(isPresented: $showImagePicker_hant, selection: $selectedImageItem_hant, matching: .images)
         .photosPicker(isPresented: $showImagePicker_en, selection: $selectedImageItem_en, matching: .images)
         .photosPicker(isPresented: $showImagePicker_ko, selection: $selectedImageItem_ko, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_ja, selection: $selectedImageItem_ja, matching: .images)
+        .photosPicker(isPresented: $showImagePicker_fr, selection: $selectedImageItem_fr, matching: .images)
         .onValueChange(of: selectedImageItem_hans) { _, newState in
             Task {
                 if let data = try? await newState?.loadTransferable(type: Data.self),
@@ -186,6 +223,26 @@ struct HomepageBackendView: View {
                     adImage_ko = uiImage
                 } else {
                     adImage_ko = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_ja) { _, newState in
+            Task {
+                if let data = try? await newState?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_ja = uiImage
+                } else {
+                    adImage_ja = nil
+                }
+            }
+        }
+        .onValueChange(of: selectedImageItem_fr) { _, newState in
+            Task {
+                if let data = try? await newState?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    adImage_fr = uiImage
+                } else {
+                    adImage_fr = nil
                 }
             }
         }
@@ -231,6 +288,8 @@ struct HomepageBackendView: View {
         if !announcement_hant.isEmpty { announcement_i18n["zh-Hant"] = announcement_hant }
         if !announcement_en.isEmpty { announcement_i18n["en"] = announcement_en }
         if !announcement_ko.isEmpty { announcement_i18n["ko"] = announcement_ko }
+        if !announcement_ja.isEmpty { announcement_i18n["ja"] = announcement_ja }
+        if !announcement_fr.isEmpty { announcement_i18n["fr"] = announcement_fr }
         
         let body: [String: Any] = [
             "content": announcement_i18n
@@ -270,7 +329,9 @@ struct HomepageBackendView: View {
             ("image_hans", adImage_hans, "ad_hans.jpg"),
             ("image_hant", adImage_hant, "ad_hant.jpg"),
             ("image_en", adImage_en, "ad_en.jpg"),
-            ("image_ko", adImage_en, "ad_ko.jpg")
+            ("image_ko", adImage_en, "ad_ko.jpg"),
+            ("image_ja", adImage_ja, "ad_ja.jpg"),
+            ("image_fr", adImage_fr, "ad_fr.jpg")
         ]
         for (name, image, filename) in images {
             if let unwrappedImage = image, let imageData = ImageTool.compressImage(unwrappedImage, maxSizeKB: 300) {
@@ -286,7 +347,7 @@ struct HomepageBackendView: View {
         
         let request = APIRequest(path: "/homepage/create_banner_ad", method: .post, headers: headers, body: body, isInternal: true)
         
-        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true) { _ in }
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showSuccessToast: true, showErrorToast: true, timeout: 30) { _ in }
     }
     
     func queryBannerAds() {

@@ -11,6 +11,7 @@ class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: BikeFreeTrainingRecordDetailInfo?
     @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+    @Published var accessDenied = false
 
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [BikeFreeTrainingPathPoint] = []
@@ -34,7 +35,7 @@ class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
 
         let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
 
-        NetworkService.sendRequest(with: request, decodingType: BikeFreeTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: BikeFreeTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: false) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -46,7 +47,12 @@ class BikeFreeTrainingRecordDetailViewModel: ObservableObject {
                         self.samplePath = BikePathPointTool.computeFreeTrainingSamplePoints(pathData: self.pathData)
                     }
                 }
-            default: break
+            case .failure(let error):
+                if case .businessError(code: 3004, message: _) = error {
+                    DispatchQueue.main.async {
+                        self.accessDenied = true
+                    }
+                }
             }
         }
     }
@@ -60,11 +66,14 @@ struct TrainingSettlementsInfo {
 
 struct BikeFreeTrainingRecordDetailInfo {
     let duration: Double            // 原始成绩
+    let endTime: String
     let settlements: TrainingSettlementsInfo            // 结算数据
     let buffInfos: [BikeGridBuffSnapshot]
+    let weather: WorkoutWeather?
     
     init(from detail: BikeFreeTrainingRecordDetailResponse) {
         self.duration = detail.duration
+        self.endTime = detail.end_time
         var xp: Int = 0
         var state_value: Int = 0
         var temp_assets: [CCUpdateResponse] = []
@@ -92,12 +101,14 @@ struct BikeFreeTrainingRecordDetailInfo {
                     gridX: gridX,
                     gridY: gridY,
                     conditionType: conditionType,
+                    conditionParams: buffJson["condition_params"] ?? .object([:]),
                     rewardType: rewardType
                 )
                 tempBuffInfos.append(info)
             }
         }
         self.buffInfos = tempBuffInfos
+        self.weather = detail.weather
     }
 }
 
@@ -106,15 +117,18 @@ struct BikeGridBuffSnapshot: Identifiable {
     let gridX: Int
     let gridY: Int
     let conditionType: BikeGridConditionType
+    let conditionParams: JSONValue
     let rewardType: CCAssetType
 }
 
 struct BikeFreeTrainingRecordDetailResponse: Codable {
     let owner_user_id: String               // 记录归属者业务 ID
     let duration: Double                    // 训练时间
+    let end_time: String
     let path: [BikeFreeTrainingPathPoint]   // 训练路径记录
     let settlements: JSONValue              // 训练结算
     let triggered_buffs: [JSONValue]        // buff 快照
+    let weather: WorkoutWeather?
 }
 
 struct BikeFreeTrainingSamplePathPoint {
@@ -133,6 +147,7 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
     let recordID: String
     @Published var recordDetailInfo: RunningFreeTrainingRecordDetailInfo?
     @Published var ownerUserID: String = ""     // 记录归属者业务 ID（由服务端返回）
+    @Published var accessDenied = false
 
     @Published var basePath: [PathPoint] = []
     @Published var pathData: [RunningFreeTrainingPathPoint] = []
@@ -156,7 +171,7 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
 
         let request = APIRequest(path: urlPath, method: .get, optionalAuth: true)
 
-        NetworkService.sendRequest(with: request, decodingType: RunningFreeTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+        NetworkService.sendRequest(with: request, decodingType: RunningFreeTrainingRecordDetailResponse.self, showLoadingToast: true, showErrorToast: false) { result in
             switch result {
             case .success(let data):
                 if let unwrappedData = data {
@@ -168,7 +183,12 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
                         self.samplePath = RunningPathPointTool.computeFreeTrainingSamplePoints(pathData: self.pathData)
                     }
                 }
-            default: break
+            case .failure(let error):
+                if case .businessError(code: 3004, message: _) = error {
+                    DispatchQueue.main.async {
+                        self.accessDenied = true
+                    }
+                }
             }
         }
     }
@@ -176,11 +196,14 @@ class RunningFreeTrainingRecordDetailViewModel: ObservableObject {
 
 struct RunningFreeTrainingRecordDetailInfo {
     let duration: Double            // 原始成绩
+    let endTime: String
     let settlements: TrainingSettlementsInfo            // 结算数据
     let buffInfos: [RunningGridBuffSnapshot]
+    let weather: WorkoutWeather?
     
     init(from detail: RunningFreeTrainingRecordDetailResponse) {
         self.duration = detail.duration
+        self.endTime = detail.end_time
         var xp: Int = 0
         var state_value: Int = 0
         var temp_assets: [CCUpdateResponse] = []
@@ -208,12 +231,14 @@ struct RunningFreeTrainingRecordDetailInfo {
                     gridX: gridX,
                     gridY: gridY,
                     conditionType: conditionType,
+                    conditionParams: buffJson["condition_params"] ?? .object([:]),
                     rewardType: rewardType
                 )
                 tempBuffInfos.append(info)
             }
         }
         self.buffInfos = tempBuffInfos
+        self.weather = detail.weather
     }
 }
 
@@ -222,15 +247,18 @@ struct RunningGridBuffSnapshot: Identifiable {
     let gridX: Int
     let gridY: Int
     let conditionType: RunningGridConditionType
+    let conditionParams: JSONValue
     let rewardType: CCAssetType
 }
 
 struct RunningFreeTrainingRecordDetailResponse: Codable {
     let owner_user_id: String                   // 记录归属者业务 ID
     let duration: Double                        // 训练时间
+    let end_time: String
     let path: [RunningFreeTrainingPathPoint]    // 训练路径记录
     let settlements: JSONValue                  // 训练结算
     let triggered_buffs: [JSONValue]            // buff 快照
+    let weather: WorkoutWeather?
 }
 
 struct RunningFreeTrainingSamplePathPoint {

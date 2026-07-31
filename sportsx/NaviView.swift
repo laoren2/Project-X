@@ -239,6 +239,11 @@ struct RealNaviView: View {
             }
             .ignoresSafeArea(edges: .bottom)
             .onValueChange(of: scenePhase) { oldPhase, newPhase  in
+                if newPhase == .background {
+                    VideoWatermarkTaskManager.shared.applicationDidEnterBackground()
+                } else if newPhase == .active {
+                    VideoWatermarkTaskManager.shared.applicationDidBecomeActive()
+                }
                 switch (oldPhase, newPhase) {
                 case (_, .active):
                     if isAppLaunching {
@@ -301,6 +306,8 @@ struct RealNaviView: View {
                     UserIntroEditView()
                 case .sportSetUpView:
                     SportSetUpView()
+                case .recordPrivacySetUpView:
+                    RecordPrivacySetUpView()
                 case .identityAuthView:
                     IdentityAuthView()
                 case .userSetUpAccountView:
@@ -309,6 +316,8 @@ struct RealNaviView: View {
                     PhoneBindView()
                 case .appleBindView:
                     AppleBindView()
+                case .googleBindView:
+                    GoogleBindView()
                 case .bikeRankingListView(let id, let gender, let isHistory):
                     BikeRankingListView(trackID: id, gender: gender, isHistory: isHistory)
                 case .bikeScoreRankingView(let name, let id, let gender):
@@ -377,6 +386,10 @@ struct RealNaviView: View {
                     BikeTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
                 case .runningTrainingMapView(let centerLat, let centerLng, let spanLat, let spanLng):
                     RunningTrainingMapView(centerLat: centerLat, centerLng: centerLng, spanLat: spanLat, spanLng: spanLng)
+                case .bikeRegionOccupiedGridRankListView(let regionID):
+                    RegionOccupiedGridRankListView(sport: .Bike, regionID: regionID)
+                case .runningRegionOccupiedGridRankListView(let regionID):
+                    RegionOccupiedGridRankListView(sport: .Running, regionID: regionID)
                 case .bikeRouteCreateView:
                     BikeRouteCreateView()
                 case .runningRouteCreateView:
@@ -408,6 +421,16 @@ struct RealNaviView: View {
                     RunningRouteRankListView(routeID: id, isPremium: isPremium)
                 case .pendingUploadListView(let category, let sport):
                     PendingUploadListView(category: category, sport: sport)
+                case .videoWatermarkManageView:
+                    VideoWatermarkManageView()
+                case .videoWatermarkResourceView:
+                    VideoWatermarkResourceView()
+                case .videoWatermarkEditorView(let storeID):
+                    if let store = NavigationStoreManager.shared.resolve(storeID, as: VideoWatermarkEditorStore.self) {
+                        VideoWatermarkEditorView(workout: store.workout, paceSnapshotPath: store.paceSnapshotPath)
+                    } else {
+                        EmptyView()
+                    }
 #if DEBUG
                 case .adminPanelView:
                     AdminPanelView()

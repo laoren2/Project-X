@@ -37,6 +37,8 @@ struct MailboxBackendView: View {
     @State private var content_en: String = ""
     
     @State private var attachments: String = ""
+    @State private var emailCampaignID: String = ""
+    @State private var emailCampaignSummary: String = ""
     
     let mail_types = [
         MailType.NOTIFICATION,
@@ -152,6 +154,36 @@ struct MailboxBackendView: View {
                             .disabled(user2_id.isEmpty || title_en.isEmpty || title_hans.isEmpty || title_hant.isEmpty)
                         }
                     }
+                    VStack(spacing: 12) {
+                        Text("产品邮件群发（视频水印功能）")
+                        Text("创建活动后会生成收件人快照；点击开始发送后由服务端定时任务每分钟发送一批。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        TextField("campaign_id", text: $emailCampaignID)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .background(.gray.opacity(0.1))
+                        HStack {
+                            Button("创建视频水印宣传活动") {
+                                createVideoWatermarkCampaign()
+                            }
+                            Button("开始发送") {
+                                startEmailCampaign()
+                            }
+                            .disabled(emailCampaignID.isEmpty)
+                            Button("查询进度") {
+                                queryEmailCampaign()
+                            }
+                            .disabled(emailCampaignID.isEmpty)
+                        }
+                        if !emailCampaignSummary.isEmpty {
+                            Text(emailCampaignSummary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
                 }
             }
         }
@@ -210,4 +242,54 @@ struct MailboxBackendView: View {
         
         NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showSuccessToast: true, showErrorToast: true) { _ in }
     }
+
+    func createVideoWatermarkCampaign() {
+        let request = APIRequest(path: "/email_campaign/create_video_watermark_feature", method: .post, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmailCampaignDTO.self, showSuccessToast: true, showErrorToast: true) { result in
+            guard case .success(let data) = result, let campaign = data else { return }
+            DispatchQueue.main.async {
+                applyEmailCampaign(campaign)
+            }
+        }
+    }
+
+    func startEmailCampaign() {
+        guard var components = URLComponents(string: "/email_campaign/start") else { return }
+        components.queryItems = [URLQueryItem(name: "campaign_id", value: emailCampaignID)]
+        guard let path = components.string else { return }
+        let request = APIRequest(path: path, method: .post, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmailCampaignDTO.self, showSuccessToast: true, showErrorToast: true) { result in
+            guard case .success(let data) = result, let campaign = data else { return }
+            DispatchQueue.main.async {
+                applyEmailCampaign(campaign)
+            }
+        }
+    }
+
+    func queryEmailCampaign() {
+        guard var components = URLComponents(string: "/email_campaign/query") else { return }
+        components.queryItems = [URLQueryItem(name: "campaign_id", value: emailCampaignID)]
+        guard let path = components.string else { return }
+        let request = APIRequest(path: path, method: .get, isInternal: true)
+        NetworkService.sendRequest(with: request, decodingType: EmailCampaignDTO.self, showErrorToast: true) { result in
+            guard case .success(let data) = result, let campaign = data else { return }
+            DispatchQueue.main.async {
+                applyEmailCampaign(campaign)
+            }
+        }
+    }
+
+    func applyEmailCampaign(_ campaign: EmailCampaignDTO) {
+        emailCampaignID = campaign.campaign_id
+        emailCampaignSummary = "状态：\(campaign.status)｜收件人：\(campaign.total_count)｜已发送：\(campaign.sent_count)｜失败：\(campaign.failed_count)｜已跳过：\(campaign.skipped_count)"
+    }
+}
+
+struct EmailCampaignDTO: Codable {
+    let campaign_id: String
+    let status: String
+    let total_count: Int
+    let sent_count: Int
+    let failed_count: Int
+    let skipped_count: Int
 }

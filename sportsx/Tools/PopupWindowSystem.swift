@@ -143,7 +143,7 @@ struct PopupContainerView: View {
                     // "不再显示"模块，用于控制某些场景下一次是否继续弹出
                     if popup.doNotShowAgainKey != nil {
                         HStack(spacing: 4) {
-                            Image(systemName: popup.doNotShowAgain ? "checkmark.circle" : "circle")
+                            Image(systemName: popup.doNotShowAgain ? "checkmark.circle.fill" : "circle")
                                 .font(.footnote)
                                 .foregroundStyle(popup.doNotShowAgain ? Color.orange : Color.secondText)
                                 .onTapGesture {

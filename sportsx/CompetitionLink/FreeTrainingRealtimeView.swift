@@ -13,6 +13,7 @@ struct FreeTrainingRealtimeView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var dataFusionManager = DataFusionManager.shared
     @ObservedObject var locationManager = LocationManager.shared
+    @ObservedObject private var weatherStore = WeatherStore.shared
     //@State var isReverse: Bool = false
     @State private var chevronDirection: Bool = true
     @State private var chevronDirection2: Bool = true
@@ -191,20 +192,25 @@ struct FreeTrainingRealtimeView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
                     }
-                    HStack(alignment: .top, spacing: 5) {
-                        Text("GPS")
-                            .foregroundStyle(Color.white)
-                        HStack(alignment: .bottom, spacing: 2) {
-                            ForEach(0..<4) { index in
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(index < locationManager.signalStrength.bars ? locationManager.signalStrength.color : Color.white.opacity(0.3))
-                                    .frame(width: 6, height: CGFloat(6 + index * 4))
+                    HStack(spacing: 8) {
+                        HStack(alignment: .center, spacing: 5) {
+                            Text("GPS")
+                                .foregroundStyle(Color.white)
+                            HStack(alignment: .bottom, spacing: 2) {
+                                ForEach(0..<4) { index in
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(index < locationManager.signalStrength.bars ? locationManager.signalStrength.color : Color.white.opacity(0.3))
+                                        .frame(width: 6, height: CGFloat(6 + index * 4))
+                                }
                             }
                         }
+                        .padding(.horizontal, 8)
+                        .frame(height: 32)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                        CurrentWeatherChip(location: appState.competitionManager.userLocation)
                     }
-                    .padding(6)
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .padding(.horizontal)
                 
@@ -376,6 +382,12 @@ struct FreeTrainingRealtimeView: View {
         }
         .ignoresSafeArea(edges: .bottom)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            weatherStore.refreshIfNeeded(for: appState.competitionManager.userLocation ?? locationManager.getLocation())
+        }
+        .onReceive(appState.competitionManager.$userLocation.compactMap { $0 }) { location in
+            weatherStore.refreshIfNeeded(for: location)
+        }
         .enableSwipeBackGesture(false)
         .alert(isPresented: $appState.competitionManager.showAlert) {
             Alert(
@@ -493,15 +505,11 @@ private struct NearbyGridGuideCardView: View {
     @ObservedObject private var locationManager = LocationManager.shared
 
     // condition_type 字符串 → 右上角角标图标，按运动解码到各自的条件枚举
-    private var conditionBadgeName: String? {
-        switch sport {
-        case .Bike:
-            return BikeGridConditionType(rawValue: grid.conditionType)?.badgeImageName
-        case .Running, .Default:
-            return RunningGridConditionType(rawValue: grid.conditionType)?.badgeImageName
-        default:
-            return nil
-        }
+    private var conditionBadge: GridConditionBadge? {
+        GridConditionPresentation.badge(
+            conditionType: grid.conditionType,
+            conditionParams: grid.conditionParams
+        )
     }
 
     private var distanceText: String? {
@@ -518,10 +526,8 @@ private struct NearbyGridGuideCardView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20)
-                if let badge = conditionBadgeName {
-                    Image(badge)
-                        .resizable()
-                        .scaledToFit()
+                if let badge = conditionBadge {
+                    GridConditionBadgeImage(badge: badge)
                         .frame(width: 15)
                         .offset(x: 4, y: -4)
                 }
@@ -540,11 +546,7 @@ private struct NearbyGridGuideCardView: View {
             // description
             RichTextLabel(
                 templateKey: grid.description,
-                items:
-                    [
-                        ("reward", .image(grid.reward.iconName, width: 20)),
-                        ("reward", .text(" * \(grid.count)"))
-                    ],
+                items: richTextItems,
                 font: .systemFont(ofSize: 15)
             )
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -568,5 +570,17 @@ private struct NearbyGridGuideCardView: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.white.opacity(0.3))
         )
+    }
+
+    private var richTextItems: [(String, RichTextItem)] {
+        var items: [(String, RichTextItem)] = [
+            ("reward", .image(grid.reward.iconName, width: 20)),
+            ("reward", .text(" * \(grid.count)"))
+        ]
+        if grid.conditionType == "weather" {
+            let symbolName = WeatherConditionIcon.symbolName(for: grid.conditionParams["match"]?.stringValue)
+            items.append(("weather", .systemSymbol(symbolName, width: 18)))
+        }
+        return items
     }
 }

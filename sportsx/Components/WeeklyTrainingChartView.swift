@@ -89,7 +89,8 @@ struct WeeklyTrainingChartView: View {
                             .frame(width: 16, height: 16)
                     } else {
                         Circle()
-                            .fill(userManager.backgroundColor.softenColor(blendWithWhiteRatio: 0.1))
+                            //.fill(userManager.backgroundColor.softenColor(blendWithWhiteRatio: 0.1))
+                            .fill(Color.clear)
                             .frame(width: 12, height: 12)
                             .overlay(Circle().stroke(lineColor, lineWidth: 2))
                     }

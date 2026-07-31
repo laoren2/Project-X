@@ -1645,11 +1645,31 @@ class CompetitionManager: NSObject, ObservableObject, CLLocationManagerDelegate 
         guard now.timeIntervalSince(lastPaceUpdate) >= 1.0 else { return }
         lastPaceUpdate = now
 
-        let d = estimator.project(coord)
+        let routePoints: [RoutePointRealtime]?
+        switch sportFeature {
+        case .bikeRace: routePoints = currentBikeRecord?.routePoints
+        case .runningRace: routePoints = currentRunningRecord?.routePoints
+        case .bikeRouteTraining: routePoints = currentBikeRoute?.routePoints
+        case .runningRouteTraining: routePoints = currentRunningRoute?.routePoints
+        default: routePoints = nil
+        }
+        // nextCheckPointIndex 指向下一个待经过点，之前的 miss 已在同一状态机中确认。
+        let completedCheckpointIndex = max(0, (nextCheckPointIndex ?? 1) - 1)
+        let checkpointPenalty = (routePoints ?? []).prefix(completedCheckpointIndex + 1).reduce(0.0) { total, point in
+            guard case .checkpoint(let checkpoint) = point, checkpoint.isMiss else { return total }
+            return total + Double(checkpoint.penalty ?? 0)
+        }
+        let sport: SportName = (sportFeature == .runningRace || sportFeature == .runningRouteTraining) ? .Running : .Bike
+        let d = estimator.project(
+            coord,
+            completedCheckpointIndex: completedCheckpointIndex,
+            timestamp: now.timeIntervalSince1970,
+            sport: sport
+        )
         let elapsed = dataFusionManager.elapsedTime
-        // 有效用时估计：原始用时 - 已累计的卡牌奖励时间（v1 暂忽略熟悉度/训练状态/罚时，仅预测用途）
+        // 与结算/水印一致：已确认 skip 的检查点罚时立即进入有效用时。
         let cardBonus = matchContext.bonusEachCards.reduce(0.0) { $0 + $1.bonus_time }
-        let tEff = max(0, elapsed - cardBonus)
+        let tEff = max(0, elapsed - cardBonus + checkpointPenalty)
 
         let rankResult = estimator.projectedRank(effectiveTime: tEff, currentDistance: d)
         var deltaT: Double? = nil
@@ -3318,7 +3338,8 @@ struct NearbyGrid: Identifiable {
     let reward: CCAssetType      // reward_type 映射；取 iconName 显示图标
     let count: Int
     let description: String      // buff 描述模板（含 {reward} 占位），sheet 卡片展示
-    let conditionType: String    // "distance" / "speed" / "none"，映射右上角条件角标
+    let conditionType: String    // "distance" / "speed" / "weather" / "none"
+    let conditionParams: JSONValue
 
     init(from dto: NearbyGridDTO) {
         self.gridX = dto.grid_x
@@ -3329,6 +3350,7 @@ struct NearbyGrid: Identifiable {
         self.count = dto.reward_count
         self.description = dto.description
         self.conditionType = dto.condition_type
+        self.conditionParams = dto.condition_params
     }
 }
 
@@ -3344,6 +3366,7 @@ struct NearbyGridDTO: Codable {
     let center_lon: Double
     let description: String
     let condition_type: String
+    let condition_params: JSONValue
     let reward_type: String
     let reward_count: Int
 }

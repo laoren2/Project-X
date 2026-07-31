@@ -243,6 +243,7 @@ class UserManager: ObservableObject {
         defaults.set(user.nickname, forKey: "user.nickname")
         defaults.set(user.phoneNumber, forKey: "user.phoneNumber")
         defaults.set(user.apple_email, forKey: "user.appleEmail")
+        defaults.set(user.google_email, forKey: "user.googleEmail")
         defaults.set(user.email, forKey: "user.email")
         defaults.set(user.avatarImageURL, forKey: "user.avatarImageURL")
         defaults.set(user.backgroundImageURL, forKey: "user.backgroundImageURL")
@@ -263,6 +264,7 @@ class UserManager: ObservableObject {
         defaults.set(user.defaultSport.rawValue, forKey: "user.defaultSport")
         defaults.set(user.globalDefaultSport.rawValue, forKey: "user.globalDefaultSport")
         defaults.set(user.autoPause, forKey: "user.autoPause")
+        defaults.set(user.isEmailSubscribed, forKey: "user.isEmailSubscribed")
         defaults.set(user.isVip, forKey: "user.isVip")
     }
     
@@ -275,12 +277,14 @@ class UserManager: ObservableObject {
         let defaultSport = sportRaw.flatMap { SportName(rawValue: $0) }
         let globalDefaultSport = globalSportRaw.flatMap { SportName(rawValue: $0) }
         let autoPause = defaults.object(forKey: "user.autoPause") == nil ? true : defaults.bool(forKey: "user.autoPause")
+        let isEmailSubscribed = defaults.object(forKey: "user.isEmailSubscribed") == nil ? true : defaults.bool(forKey: "user.isEmailSubscribed")
         user = User(
             userID: defaults.string(forKey: "user.userID") ?? "未知",
             appleIAPToken: defaults.string(forKey: "user.appleIAPToken") ?? "未知",
             nickname: defaults.string(forKey: "user.nickname") ?? "未登录",
             phoneNumber: defaults.string(forKey: "user.phoneNumber"),
             apple_email: defaults.string(forKey: "user.appleEmail"),
+            google_email: defaults.string(forKey: "user.googleEmail"),
             email: defaults.string(forKey: "user.email"),
             avatarImageURL: defaults.string(forKey: "user.avatarImageURL") ?? "",
             backgroundImageURL: defaults.string(forKey: "user.backgroundImageURL") ?? "",
@@ -298,6 +302,7 @@ class UserManager: ObservableObject {
             defaultSport: defaultSport ?? .Bike,
             globalDefaultSport: globalDefaultSport ?? .Bike,
             autoPause: autoPause,
+            isEmailSubscribed: isEmailSubscribed,
             isVip: defaults.bool(forKey: "user.isVip")
         )
         
@@ -330,6 +335,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.nickname")
         defaults.removeObject(forKey: "user.phoneNumber")
         defaults.removeObject(forKey: "user.appleEmail")
+        defaults.removeObject(forKey: "user.googleEmail")
         defaults.removeObject(forKey: "user.email")
         defaults.removeObject(forKey: "user.avatarImageURL")
         defaults.removeObject(forKey: "user.backgroundImageURL")
@@ -347,6 +353,7 @@ class UserManager: ObservableObject {
         defaults.removeObject(forKey: "user.defaultSport")
         defaults.removeObject(forKey: "user.globalDefaultSport")
         defaults.removeObject(forKey: "user.autoPause")
+        defaults.removeObject(forKey: "user.isEmailSubscribed")
         defaults.removeObject(forKey: "user.isVip")
         
         defaults.removeObject(forKey: "followedCount")
@@ -631,6 +638,20 @@ enum UserRelationshipStatus: String, Codable {
     }
 }
 
+enum RecordVisibility: String, Codable, CaseIterable {
+    case `public`
+    case followers
+    case friends
+
+    var displayName: String {
+        switch self {
+        case .public: return "user.privacy.visibility.public"
+        case .followers: return "user.privacy.visibility.followers"
+        case .friends: return "user.privacy.visibility.friends"
+        }
+    }
+}
+
 struct RelationInfoResponse: Codable {
     let follower: Int
     let followed: Int
@@ -643,6 +664,7 @@ struct UserDTO: Codable {
     let nickname: String                // 昵称
     let phone_number: String?           // 手机号
     let apple_email: String?            // apple账号
+    let google_email: String?           // Google 账号
     let email: String?                  // 邮箱
     let avatar_image_url: String        // 头像url
     let background_image_url: String    // 封面url
@@ -662,6 +684,8 @@ struct UserDTO: Codable {
     let default_sport: SportName      // 外部主页默认展示的运动（他人查看时）
     let global_default_sport: SportName  // 全局默认运动：每次启动 app 时商店/运动中心/仓库/local profile 的初始展示运动
     let auto_pause: Bool              // free training 自动暂停开关
+    let is_email_subscribed: Bool     // 是否订阅产品宣传/通知邮件
+    let record_visibility: RecordVisibility
     let status: UserStatus              // 用户账号状态
     let is_vip: Bool
 }
@@ -673,6 +697,7 @@ struct User: Identifiable, Codable, Hashable {
     var nickname: String            // 昵称
     var phoneNumber: String?        // 手机号
     var apple_email: String?        // Apple 账号
+    var google_email: String?       // Google 账号
     var email: String?              // 邮箱
     var avatarImageURL: String      // 头像url
     var backgroundImageURL: String  // 封面url
@@ -694,6 +719,9 @@ struct User: Identifiable, Codable, Hashable {
     var defaultSport: SportName     // 外部主页默认展示的运动（他人查看时）
     var globalDefaultSport: SportName  // 全局默认运动：启动时商店/运动中心/仓库/local profile 的初始展示运动
     var autoPause: Bool             // free training 自动暂停开关
+    var isEmailSubscribed: Bool     // 是否订阅产品宣传/通知邮件
+    // 可选以兼容旧版本写入的本地用户缓存；缺失时按历史默认值 public 处理。
+    var recordVisibility: RecordVisibility?
     let status: UserStatus
     var isVip: Bool
 
@@ -703,6 +731,7 @@ struct User: Identifiable, Codable, Hashable {
         nickname: String = "未知",
         phoneNumber: String? = nil,
         apple_email: String? = nil,
+        google_email: String? = nil,
         email: String? = nil,
         avatarImageURL: String = "",
         backgroundImageURL: String = "",
@@ -720,6 +749,8 @@ struct User: Identifiable, Codable, Hashable {
         defaultSport: SportName = .Bike,
         globalDefaultSport: SportName = .Bike,
         autoPause: Bool = true,
+        isEmailSubscribed: Bool = true,
+        recordVisibility: RecordVisibility? = .public,
         status: UserStatus = .normal,
         isVip: Bool = false
     ) {
@@ -728,6 +759,7 @@ struct User: Identifiable, Codable, Hashable {
         self.nickname = nickname
         self.phoneNumber = phoneNumber
         self.apple_email = apple_email
+        self.google_email = google_email
         self.email = email
         self.avatarImageURL = avatarImageURL
         self.backgroundImageURL = backgroundImageURL
@@ -745,6 +777,8 @@ struct User: Identifiable, Codable, Hashable {
         self.defaultSport = defaultSport
         self.globalDefaultSport = globalDefaultSport
         self.autoPause = autoPause
+        self.isEmailSubscribed = isEmailSubscribed
+        self.recordVisibility = recordVisibility
         self.status = status
         self.isVip = isVip
     }
@@ -755,6 +789,7 @@ struct User: Identifiable, Codable, Hashable {
         self.nickname = dto.nickname
         self.phoneNumber = dto.phone_number
         self.apple_email = dto.apple_email
+        self.google_email = dto.google_email
         self.email = dto.email
         self.avatarImageURL = dto.avatar_image_url
         self.backgroundImageURL = dto.background_image_url
@@ -772,6 +807,8 @@ struct User: Identifiable, Codable, Hashable {
         self.defaultSport = dto.default_sport
         self.globalDefaultSport = dto.global_default_sport
         self.autoPause = dto.auto_pause
+        self.isEmailSubscribed = dto.is_email_subscribed
+        self.recordVisibility = dto.record_visibility
         self.status = dto.status
         self.isVip = dto.is_vip
     }

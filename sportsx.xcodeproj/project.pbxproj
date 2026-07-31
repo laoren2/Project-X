@@ -23,6 +23,8 @@
 		A966BA042E14B99D009BF4CB /* ShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A966BA032E14B995009BF4CB /* ShopView.swift */; };
 		A969A7E22EDDCB07005070A2 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A969A7E12EDDCB07005070A2 /* StoreKit.framework */; };
 		A969A8B12EDF0210005070A2 /* IAPManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A969A8B02EDF0206005070A2 /* IAPManager.swift */; };
+		A97598A0300EAA53005060D0 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A975989F300EAA53005060D0 /* GoogleSignIn */; };
+		A97598A2300EAA53005060D0 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A97598A1300EAA53005060D0 /* GoogleSignInSwift */; };
 		A984DCDB2D10820D005EF835 /* CompetitionWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A984DCDA2D1081F2005EF835 /* CompetitionWidget.swift */; };
 		A99A6AE62C9CB01900FAC86D /* test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99A6AE52C9CB01900FAC86D /* test.swift */; };
 		A99D9A982C4B028D004F72BF /* NaviView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99D9A972C4B028D004F72BF /* NaviView.swift */; };
@@ -91,7 +93,7 @@
 
 /* Begin PBXFileReference section */
 		A90618982D6EFF0B0050B872 /* resources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = resources.bundle; sourceTree = "<group>"; };
-		A911DB9F2C47024D0033D809 /* sportsx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sportsx.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A911DB9F2C47024D0033D809 /* Movmov.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Movmov.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A911DBA22C47024D0033D809 /* sportsxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sportsxApp.swift; sourceTree = "<group>"; };
 		A911DBA62C47024E0033D809 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A911DBA92C47024E0033D809 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -156,7 +158,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A97598A2300EAA53005060D0 /* GoogleSignInSwift in Frameworks */,
 				A969A7E22EDDCB07005070A2 /* StoreKit.framework in Frameworks */,
+				A97598A0300EAA53005060D0 /* GoogleSignIn in Frameworks */,
 				A9B919DF2E675A53001DB7A6 /* ZIPFoundation in Frameworks */,
 				A9BC7C482FFFAC9E00A87941 /* Lottie in Frameworks */,
 			);
@@ -218,7 +222,7 @@
 		A911DBA02C47024D0033D809 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A911DB9F2C47024D0033D809 /* sportsx.app */,
+				A911DB9F2C47024D0033D809 /* Movmov.app */,
 				A911DBAF2C47024E0033D809 /* sportsxTests.xctest */,
 				A911DBB92C47024E0033D809 /* sportsxUITests.xctest */,
 				A9B9A52B2D2BFDE700B357C2 /* sportsx_Watch Watch App.app */,
@@ -330,8 +334,12 @@
 				A9E269EF2D873003002C2033 /* CompetitionLink */,
 			);
 			name = sportsx;
+			packageProductDependencies = (
+				A975989F300EAA53005060D0 /* GoogleSignIn */,
+				A97598A1300EAA53005060D0 /* GoogleSignInSwift */,
+			);
 			productName = sportsx;
-			productReference = A911DB9F2C47024D0033D809 /* sportsx.app */;
+			productReference = A911DB9F2C47024D0033D809 /* Movmov.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A911DBAE2C47024E0033D809 /* sportsxTests */ = {
@@ -489,6 +497,7 @@
 			packageReferences = (
 				A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 				A9BC7C462FFFAC9E00A87941 /* XCRemoteSwiftPackageReference "lottie-spm" */,
+				A975989E300EAA53005060D0 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			productRefGroup = A911DBA02C47024D0033D809 /* Products */;
 			projectDirPath = "";
@@ -711,6 +720,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_PREVIEWS = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -728,6 +738,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GOOGLE_IOS_CLIENT_ID = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -775,6 +786,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -804,12 +816,15 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				GOOGLE_IOS_CLIENT_ID = "347622537254-8c74tos12p34mvr5rrv892vske8qk4p6.apps.googleusercontent.com";
+				GOOGLE_REVERSED_IOS_CLIENT_ID = "com.googleusercontent.apps.347622537254-8c74tos12p34mvr5rrv892vske8qk4p6";
+				GOOGLE_SERVER_CLIENT_ID = "347622537254-viao06g146lf4vqkp0bpadj6pa3tpc0h.apps.googleusercontent.com";
 				INFOPLIST_FILE = sportsx/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Movmov;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -818,8 +833,8 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image you generate to your photo album.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image or processed video you generate to your photo album.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to access the photos or videos you select to update your profile and create workout video watermarks. Photos you do not select are never accessed.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -833,11 +848,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Movmov;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = sporreer_iOS_Development;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = movmov_iOS_dev;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -857,12 +872,15 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = A6GB95MUY4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				GOOGLE_IOS_CLIENT_ID = "347622537254-8c74tos12p34mvr5rrv892vske8qk4p6.apps.googleusercontent.com";
+				GOOGLE_REVERSED_IOS_CLIENT_ID = "com.googleusercontent.apps.347622537254-8c74tos12p34mvr5rrv892vske8qk4p6";
+				GOOGLE_SERVER_CLIENT_ID = "347622537254-viao06g146lf4vqkp0bpadj6pa3tpc0h.apps.googleusercontent.com";
 				INFOPLIST_FILE = sportsx/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Movmov;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -871,8 +889,8 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This is used to continuously record data such as trajectory and distance during background exercise and match it with the corresponding race track. Background location is only used when the race is running in the background.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Used to display information about nearby races and tracks that are available to participate in.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Used to read data from the device's motion sensors to record and analyze your athletic performance.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image you generate to your photo album.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "It is used to access your local photo album to update your personal information, but will not access photos that you did not select.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Used to save the workout share image or processed video you generate to your photo album.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to access the photos or videos you select to update your profile and create workout video watermarks. Photos you do not select are never accessed.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -886,12 +904,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Movmov;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = sporreer_iOS_Distribution;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = movmov_iOS_distribution;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -979,7 +997,7 @@
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
@@ -996,7 +1014,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1019,7 +1037,7 @@
 				CODE_SIGN_ENTITLEMENTS = "sportsx_Watch Watch App/sportsx_Watch Watch App.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 32;
+				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_ASSET_PATHS = "\"sportsx_Watch Watch App/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=watchos*]" = A6GB95MUY4;
@@ -1036,7 +1054,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.valbara.sporreer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1193,6 +1211,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A975989E300EAA53005060D0 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.2.0;
+			};
+		};
 		A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
@@ -1212,6 +1238,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A975989F300EAA53005060D0 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A975989E300EAA53005060D0 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		A97598A1300EAA53005060D0 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A975989E300EAA53005060D0 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		A9B919DE2E675A53001DB7A6 /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A9B919DD2E675A53001DB7A6 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;

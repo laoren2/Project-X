@@ -30,7 +30,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A911DB9E2C47024D0033D809"
-               BuildableName = "sportsx.app"
+               BuildableName = "Movmov.app"
                BlueprintName = "sportsx"
                ReferencedContainer = "container:sportsx.xcodeproj">
             </BuildableReference>

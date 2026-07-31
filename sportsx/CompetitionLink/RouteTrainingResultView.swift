@@ -17,9 +17,17 @@ struct BikeRouteTrainingRecordDetailView: View {
     @State var isPowerDetail: Bool = false
     @State var isPedalCadenceDetail: Bool = false
     @State private var showShareEditor: Bool = false
+    @State private var videoWatermarkEditorStore: VideoWatermarkEditorStore?
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg)
+        ShareMetrics.make(sport: .Bike, basePath: viewModel.basePath, avgCadence: pedalCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
+    }
+
+    private var videoWatermarkWorkout: VideoWatermarkWorkoutSnapshot {
+        VideoWatermarkWorkoutSnapshot(
+            recordID: viewModel.recordID, sport: .Bike, kind: .routeTraining, basePath: viewModel.basePath,
+            pacePoints: viewModel.pathData.map { VideoWatermarkPacePoint(timestamp: $0.base.timestamp, cumulativeCardBonus: $0.card_bonus.reduce(0) { $0 + $1.bonus_time }) }
+        )
     }
     
     let formHeight: CGFloat = 80
@@ -187,48 +195,71 @@ struct BikeRouteTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            if viewModel.isMine {
+                                Button(action: {
+                                    let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout, paceSnapshotPath: "/training/bike/video_watermark_pace_snapshot")
+                                    videoWatermarkEditorStore = store
+                                    appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
+                                }) {
+                                    HStack {
+                                        Image("sport_camera")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 25)
+                                        Text("video_watermark.action.overlay_to_video")
+                                            .foregroundStyle(Color.white)
+                                            .font(.system(size: 18, weight: .medium))
+                                    }
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.orange)
+                                    )
+                                }
+                            }
+                            
                             // 结算信息
                             HStack {
-                                Text("competition.record.settlement_rewards")
+                                Text("competition.team.basic_info")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
                             }
-                            .padding(.top, 10)
                             
-                            HStack(spacing: 20) {
-                                HStack(spacing: 4) {
-                                    Image("experience_points")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 25)
-                                    Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
-                                Spacer()
-                                HStack(spacing: 4) {
-                                    Image("momentum")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 20)
-                                    Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
                             }
-                            .foregroundStyle(Color.white)
                             
-                            HStack(spacing: 20) {
-                                Spacer()
-                                ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                            ScrollView(.horizontal) {
+                                HStack(spacing: 20) {
                                     HStack(spacing: 4) {
-                                        Image(ccasset.ccasset_type.iconName)
+                                        Image("experience_points")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 25)
-                                        Text("+\(ccasset.new_ccamount)")
+                                        Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
                                             .font(.system(.body, design: .rounded, weight: .bold))
-                                            .foregroundStyle(Color.white)
+                                    }
+                                    HStack(spacing: 4) {
+                                        Image("momentum")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20)
+                                        Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
+                                            .font(.system(.body, design: .rounded, weight: .bold))
+                                    }
+                                    ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                                        HStack(spacing: 4) {
+                                            Image(ccasset.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 25)
+                                            Text("+\(ccasset.new_ccamount)")
+                                                .font(.system(.body, design: .rounded, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        }
                                     }
                                 }
                             }
@@ -252,6 +283,14 @@ struct BikeRouteTrainingRecordDetailView: View {
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .foregroundStyle(Color.white)
+                                }
+                                .font(.system(.body, design: .rounded, weight: .bold))
+                                HStack {
+                                    Text("competition.realtime.elev_gain")
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    (Text(String(format: "%.0f ", shareMetrics.elevationGain)) + Text("distance.m"))
                                         .foregroundStyle(Color.white)
                                 }
                                 .font(.system(.body, design: .rounded, weight: .bold))
@@ -725,11 +764,17 @@ struct BikeRouteTrainingRecordDetailView: View {
                                     .cornerRadius(12)
                                 }
                             }
+                            if detailInfo.weather != nil {
+                                WeatherDataAttribution()
+                                    .padding(.bottom, 0)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 80)
                     }
                 }
+            } else if viewModel.accessDenied {
+                RecordAccessDeniedView()
             } else {
                 VStack {
                     Spacer()
@@ -780,9 +825,17 @@ struct RunningRouteTrainingRecordDetailView: View {
     @State var isStepCadenceDetail: Bool = false
     @State var isPowerDetail: Bool = false
     @State private var showShareEditor: Bool = false
+    @State private var videoWatermarkEditorStore: VideoWatermarkEditorStore?
 
     private var shareMetrics: ShareMetrics {
-        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg)
+        ShareMetrics.make(sport: .Running, basePath: viewModel.basePath, avgCadence: stepCadenceAvg, weather: viewModel.recordDetailInfo?.weather)
+    }
+
+    private var videoWatermarkWorkout: VideoWatermarkWorkoutSnapshot {
+        VideoWatermarkWorkoutSnapshot(
+            recordID: viewModel.recordID, sport: .Running, kind: .routeTraining, basePath: viewModel.basePath,
+            pacePoints: viewModel.pathData.map { VideoWatermarkPacePoint(timestamp: $0.base.timestamp, cumulativeCardBonus: $0.card_bonus.reduce(0) { $0 + $1.bonus_time }) }
+        )
     }
     
     let formHeight: CGFloat = 80
@@ -950,48 +1003,71 @@ struct RunningRouteTrainingRecordDetailView: View {
                     .padding(.horizontal)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 20) {
+                            if viewModel.isMine {
+                                Button(action: {
+                                    let store = VideoWatermarkEditorStore(workout: videoWatermarkWorkout, paceSnapshotPath: "/training/running/video_watermark_pace_snapshot")
+                                    videoWatermarkEditorStore = store
+                                    appState.navigationManager.append(.videoWatermarkEditorView(storeID: NavigationStoreManager.shared.register(store)))
+                                }) {
+                                    HStack {
+                                        Image("sport_camera")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 25)
+                                        Text("video_watermark.action.overlay_to_video")
+                                            .foregroundStyle(Color.white)
+                                            .font(.system(size: 18, weight: .medium))
+                                    }
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.orange)
+                                    )
+                                }
+                            }
+                            
                             // 结算信息
                             HStack {
-                                Text("competition.record.settlement_rewards")
+                                Text("competition.team.basic_info")
                                     .font(.title2)
                                     .bold()
                                     .foregroundStyle(Color.secondText)
                                 Spacer()
                             }
-                            .padding(.top, 10)
                             
-                            HStack(spacing: 20) {
-                                HStack(spacing: 4) {
-                                    Image("experience_points")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 25)
-                                    Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
-                                Spacer()
-                                HStack(spacing: 4) {
-                                    Image("momentum")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 20)
-                                    Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
-                                        .font(.system(.body, design: .rounded, weight: .bold))
-                                }
+                            if let weather = detailInfo.weather, let endTimestamp = viewModel.basePath.last?.timestamp {
+                                WorkoutWeatherSummaryRow(endTimeISO: detailInfo.endTime, fallbackTimestamp: endTimestamp, weather: weather)
                             }
-                            .foregroundStyle(Color.white)
                             
-                            HStack(spacing: 20) {
-                                Spacer()
-                                ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                            ScrollView(.horizontal) {
+                                HStack(spacing: 20) {
                                     HStack(spacing: 4) {
-                                        Image(ccasset.ccasset_type.iconName)
+                                        Image("experience_points")
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: 25)
-                                        Text("+\(ccasset.new_ccamount)")
+                                        Text(detailInfo.settlements.xp >= 0 ? "+\(detailInfo.settlements.xp)" : "\(detailInfo.settlements.xp)")
                                             .font(.system(.body, design: .rounded, weight: .bold))
-                                            .foregroundStyle(Color.white)
+                                    }
+                                    HStack(spacing: 4) {
+                                        Image("momentum")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20)
+                                        Text(detailInfo.settlements.state_value >= 0 ? "+\(detailInfo.settlements.state_value)" : "\(detailInfo.settlements.state_value)")
+                                            .font(.system(.body, design: .rounded, weight: .bold))
+                                    }
+                                    ForEach(detailInfo.settlements.cc_rewards) { ccasset in
+                                        HStack(spacing: 4) {
+                                            Image(ccasset.ccasset_type.iconName)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 25)
+                                            Text("+\(ccasset.new_ccamount)")
+                                                .font(.system(.body, design: .rounded, weight: .bold))
+                                                .foregroundStyle(Color.white)
+                                        }
                                     }
                                 }
                             }
@@ -1015,6 +1091,14 @@ struct RunningRouteTrainingRecordDetailView: View {
                                         .foregroundStyle(Color.secondText)
                                     Spacer()
                                     (Text(String(format: "%.2f ", total_distance / 1000.0)) + Text("distance.km"))
+                                        .foregroundStyle(Color.white)
+                                }
+                                .font(.system(.body, design: .rounded, weight: .bold))
+                                HStack {
+                                    Text("competition.realtime.elev_gain")
+                                        .foregroundStyle(Color.secondText)
+                                    Spacer()
+                                    (Text(String(format: "%.0f ", shareMetrics.elevationGain)) + Text("distance.m"))
                                         .foregroundStyle(Color.white)
                                 }
                                 .font(.system(.body, design: .rounded, weight: .bold))
@@ -1488,11 +1572,17 @@ struct RunningRouteTrainingRecordDetailView: View {
                                     .cornerRadius(12)
                                 }
                             }
+                            if detailInfo.weather != nil {
+                                WeatherDataAttribution()
+                                    .padding(.bottom, 0)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 80)
                     }
                 }
+            } else if viewModel.accessDenied {
+                RecordAccessDeniedView()
             } else {
                 VStack {
                     Spacer()

@@ -884,6 +884,7 @@ struct LocalMainUserView: View {
     @ObservedObject var viewModel: LocalUserViewModel
     @ObservedObject private var userManager = UserManager.shared
     @ObservedObject private var dailyTaskManager = DailyTaskManager.shared
+    @ObservedObject private var videoWatermarkTaskManager = VideoWatermarkTaskManager.shared
     
     @State private var selectedTab = 0
     @State private var toolbarTop: CGFloat = 0
@@ -1172,9 +1173,34 @@ struct LocalMainUserView: View {
                                     GlobalConfig.shared.refreshMailStatus = false
                                 }
                             }
+
+                            // 视频水印任务管理（仅本人的 LocalMainUserView 展示）
+                            VStack(spacing: 6) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image("sport_camera2")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 28)
+                                    if videoWatermarkTaskManager.hasUnseenNewTask(for: userManager.user.userID) {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 10, height: 10)
+                                            .offset(x: 5, y: -5)
+                                    }
+                                }
+                                .frame(height: 28)
+                                Text("user.page.features.video_manage")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .opacity(opacityFor(offset: toolbarTop))
+                            .exclusiveTouchTapGesture {
+                                appState.navigationManager.append(.videoWatermarkManageView)
+                            }
                             
                             // 预留三个空位，保证总共5个位置
-                            ForEach(0..<2) { _ in
+                            ForEach(0..<1) { _ in
                                 Spacer()
                                     .frame(maxWidth: .infinity)
                             }

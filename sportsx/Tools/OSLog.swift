@@ -12,6 +12,7 @@ extension Logger {
     private static var subsystem = Bundle.main.bundleIdentifier!
 
     static let competition = Logger(subsystem: subsystem, category: "competition")
+    static let videoWatermark = Logger(subsystem: subsystem, category: "video_watermark")
     
     func info_public(_ message: String) {
         info("\(message, privacy: .public)")
@@ -21,8 +22,12 @@ extension Logger {
         notice("\(message, privacy: .public)")
     }
     
-    func debug_public(_ message: String) {
-        debug("\(message, privacy: .public)")
+    /// 调试信息在 Release 中完全不求值，避免插值、格式化和隐私数据进入正式日志。
+    func debug_public(_ message: @autoclosure () -> String) {
+        #if DEBUG
+        let resolvedMessage = message()
+        debug("\(resolvedMessage, privacy: .public)")
+        #endif
     }
     
     func warning_public(_ message: String) {

@@ -70,22 +70,29 @@ struct NetworkService {
         showSuccessToast: Bool = false,
         showErrorToast: Bool = false,
         customErrorToast: ((APIError) -> Toast?)? = nil,
+        timeout: Double = 10.0,
         completion: @escaping (Result<T?, APIError>) -> Void
     ) {
         // request
         let urlString = (apiRequest.isInternal ? baseUrl_internal : baseUrl) + apiRequest.path
         guard let url = URL(string: urlString) else {
-            let toast = Toast(message: "无效的服务", duration: 2)
-            ToastManager.shared.show(toast: toast)
+            //print(urlString)
+            DispatchQueue.main.async {
+                let toast = Toast(message: "无效的服务", duration: 2)
+                ToastManager.shared.show(toast: toast)
+            }
             completion(.failure(.unknown))
             return
         }
         
-        var request = URLRequest(url: url, timeoutInterval: 10)
+        var request = URLRequest(url: url, timeoutInterval: timeout)
         request.httpMethod = apiRequest.method.rawValue
         
         // Headers
         var allHeaders = apiRequest.headers ?? [:]
+        if allHeaders["Accept-Language"] == nil {
+            allHeaders["Accept-Language"] = Locale.preferredLanguages.first ?? "en"
+        }
         if apiRequest.requiresAuth || apiRequest.isInternal {
             if let token = KeychainHelper.standard.token {
                 allHeaders["Authorization"] = "Bearer \(token)"

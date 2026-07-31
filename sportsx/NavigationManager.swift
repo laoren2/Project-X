@@ -34,9 +34,11 @@ enum AppRoute: Hashable {
     case identityAuthView
     case userSetUpAccountView
     case sportSetUpView
+    case recordPrivacySetUpView
     case smsLoginView
     case phoneBindView
     case appleBindView
+    case googleBindView
     case bikeRankingListView(trackID: String, gender: Gender, isHistory: Bool = false)
     case bikeScoreRankingView(seasonName: String, seasonID: String, gender: Gender)
     case bikeTeamCreateView(trackID: String, competitionDate: Date)
@@ -71,6 +73,8 @@ enum AppRoute: Hashable {
     case runningFreeTrainingRecordDetailView(recordID: String)
     case bikeTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
     case runningTrainingMapView(centerLat: Double, centerLng: Double, spanLat: Double, spanLng: Double)
+    case bikeRegionOccupiedGridRankListView(regionID: String)
+    case runningRegionOccupiedGridRankListView(regionID: String)
     case bikeRouteCreateView
     case runningRouteCreateView
     case bikeRouteEditView(route: BikeRouteManageItem)
@@ -84,6 +88,9 @@ enum AppRoute: Hashable {
     case bikeRouteRankListView(routeID: String, isPremium: Bool)
     case runningRouteRankListView(routeID: String, isPremium: Bool)
     case pendingUploadListView(category: PendingUploadCategory, sport: SportName)
+    case videoWatermarkManageView
+    case videoWatermarkResourceView
+    case videoWatermarkEditorView(storeID: UUID)
 #if DEBUG
     case adminPanelView
     case seasonBackendView
@@ -143,6 +150,8 @@ enum AppRoute: Hashable {
             return "userIntroEditView"
         case .sportSetUpView:
             return "sportSetUpView"
+        case .recordPrivacySetUpView:
+            return "recordPrivacySetUpView"
         case .identityAuthView:
             return "identityAuthView"
         case .userSetUpAccountView:
@@ -151,6 +160,8 @@ enum AppRoute: Hashable {
             return "phoneBindView"
         case .appleBindView:
             return "appleBindView"
+        case .googleBindView:
+            return "googleBindView"
         case .bikeRankingListView:
             return "bikeRankingListView"
         case .bikeScoreRankingView:
@@ -221,6 +232,10 @@ enum AppRoute: Hashable {
             return "bikeTrainingMapView"
         case .runningTrainingMapView:
             return "runningTrainingMapView"
+        case .bikeRegionOccupiedGridRankListView:
+            return "bikeRegionOccupiedGridRankListView"
+        case .runningRegionOccupiedGridRankListView:
+            return "runningRegionOccupiedGridRankListView"
         case .bikeRouteCreateView:
             return "bikeRouteCreateView"
         case .runningRouteCreateView:
@@ -247,6 +262,12 @@ enum AppRoute: Hashable {
             return "runningRouteRankListView"
         case .pendingUploadListView:
             return "pendingUploadListView"
+        case .videoWatermarkManageView:
+            return "videoWatermarkManageView"
+        case .videoWatermarkResourceView:
+            return "videoWatermarkResourceView"
+        case .videoWatermarkEditorView:
+            return "videoWatermarkEditorView"
 #if DEBUG
         case .adminPanelView:
             return "adminPanelView"

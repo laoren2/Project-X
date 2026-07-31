@@ -93,7 +93,13 @@ struct RunningFreeTrainingView: View {
                         }
 
                         // 附近 buff 网格列表 + 已占领网格数
-                        NearbyBuffGridsSectionView(sport: .Running, refreshToken: nearbyRefreshToken)
+                        NearbyBuffGridsSectionView(
+                            sport: .Running,
+                            refreshToken: nearbyRefreshToken,
+                            onOpenOccupiedRankList: { regionID in
+                                appState.navigationManager.append(.runningRegionOccupiedGridRankListView(regionID: regionID))
+                            }
+                        )
 
                         // Map 视图显示当前的 region 完整轮廓，不可交互
                         if isExplorationLoading {
@@ -101,7 +107,6 @@ struct RunningFreeTrainingView: View {
                                 .frame(height: 250)
                                 .foregroundStyle(Color.gray.opacity(0.5))
                                 .cornerRadius(12)
-                                .padding(.top, 20)
                             Capsule()
                                 .foregroundStyle(Color.gray.opacity(0.5))
                                 .frame(height: 25)
@@ -115,7 +120,6 @@ struct RunningFreeTrainingView: View {
                                             RoundedRectangle(cornerRadius: 12, style: .circular)
                                                 .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                         )
-                                        .padding(.top, 20)
                                     Rectangle()
                                         .fill(Color.clear)
                                         .contentShape(Rectangle())
@@ -140,7 +144,6 @@ struct RunningFreeTrainingView: View {
                                         .frame(height: 250)
                                         .foregroundStyle(Color.gray.opacity(0.5))
                                         .cornerRadius(12)
-                                        .padding(.top, 20)
                                     Text("error.region")
                                         .foregroundStyle(Color.white)
                                 }
@@ -349,6 +352,8 @@ struct RunningFreeTrainingView: View {
 
 struct RunningTrainingMapView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
+    @ObservedObject private var locationManager = LocationManager.shared
+    @ObservedObject private var weatherStore = WeatherStore.shared
     let centerLat: Double
     let centerLng: Double
     let spanLat: Double
@@ -375,19 +380,23 @@ struct RunningTrainingMapView: View {
             .ignoresSafeArea(.all)
         }
         .overlay(alignment: .top) {
-            HStack {
-                Button(action: {
-                    navigationManager.removeLast()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 30))
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.white)
-                        .padding(10)
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
+            ZStack(alignment: .top)  {
+                HStack {
+                    Button(action: {
+                        navigationManager.removeLast()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 25))
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                    Spacer()
+                    CurrentWeatherChip(location: locationManager.getLocation(), style: .mapOverlay)
                 }
-                Spacer()
+
                 Image("running")
                     .resizable()
                     .scaledToFit()
@@ -396,13 +405,6 @@ struct RunningTrainingMapView: View {
                     .padding(.vertical, 10)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(10)
-                Spacer()
-                // 占位，保持布局对称
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 30))
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.clear)
-                    .padding(10)
             }
             .padding(.horizontal, 10)
             .padding(.top, 10)
@@ -482,6 +484,9 @@ struct RunningTrainingMapView: View {
             .padding(.trailing, 10)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onFirstAppear {
+            weatherStore.refreshIfNeeded(for: locationManager.getLocation())
+        }
         .sheet(isPresented: $showSheet, onDismiss: {
             selectedGrid = nil
             showGrids = true
@@ -497,6 +502,25 @@ struct RunningTrainingMapView: View {
 
 struct RunningGridBuffCardView: View {
     let grid: RunningGridDetailInfoCard
+
+    private var conditionBadge: GridConditionBadge? {
+        GridConditionPresentation.badge(
+            conditionType: grid.conditionType.rawValue,
+            conditionParams: grid.conditionParams
+        )
+    }
+
+    private var richTextItems: [(String, RichTextItem)] {
+        var items: [(String, RichTextItem)] = [
+            ("reward", .image(grid.rewardType?.iconName ?? "coin", width: 20)),
+            ("reward", .text(" * \(grid.rewardCount)"))
+        ]
+        if grid.conditionType == .weather {
+            let symbolName = WeatherConditionIcon.symbolName(for: grid.conditionParams["match"]?.stringValue)
+            items.append(("weather", .systemSymbol(symbolName, width: 18)))
+        }
+        return items
+    }
     
     var body: some View {
         if let ccasset = grid.rewardType {
@@ -507,16 +531,8 @@ struct RunningGridBuffCardView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 20)
-                    if grid.conditionType == .distance {
-                        Image("buff_condition_distance")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 15)
-                            .offset(x: 4, y: -4)
-                    } else if grid.conditionType == .speed {
-                        Image("buff_condition_speed")
-                            .resizable()
-                            .scaledToFit()
+                    if let conditionBadge {
+                        GridConditionBadgeImage(badge: conditionBadge)
                             .frame(width: 15)
                             .offset(x: 4, y: -4)
                     }
@@ -537,11 +553,7 @@ struct RunningGridBuffCardView: View {
                 // description
                 RichTextLabel(
                     templateKey: grid.description,
-                    items:
-                        [
-                            ("reward", .image(ccasset.iconName, width: 20)),
-                            ("reward", .text(" * \(grid.rewardCount)"))
-                        ],
+                    items: richTextItems,
                     font: .systemFont(ofSize: 15)
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -867,6 +879,7 @@ class RunningGridBuffAnnotation: NSObject, MKAnnotation {
 
     let rewardType: CCAssetType
     let conditionType: RunningGridConditionType
+    let conditionParams: JSONValue
 
     init(
         coordinate: CLLocationCoordinate2D,
@@ -874,7 +887,8 @@ class RunningGridBuffAnnotation: NSObject, MKAnnotation {
         gridY: Int,
         level: Int,
         rewardType: CCAssetType,
-        conditionType: RunningGridConditionType
+        conditionType: RunningGridConditionType,
+        conditionParams: JSONValue
     ) {
         self.coordinate = coordinate
         self.gridX = gridX
@@ -882,6 +896,7 @@ class RunningGridBuffAnnotation: NSObject, MKAnnotation {
         self.level = level
         self.rewardType = rewardType
         self.conditionType = conditionType
+        self.conditionParams = conditionParams
     }
 }
 
@@ -927,7 +942,7 @@ final class RunningGridBuffAnnotationView: MKAnnotationView {
         iconImageView.layer.shadowOffset = .zero
         iconImageView.layer.masksToBounds = false
 
-        badgeImageView.frame = CGRect(x: 22, y: 4, width: 10, height: 10)
+        badgeImageView.frame = CGRect(x: 22, y: 4, width: 12, height: 12)
         badgeImageView.contentMode = .scaleAspectFit
 
         addSubview(container)
@@ -942,16 +957,12 @@ final class RunningGridBuffAnnotationView: MKAnnotationView {
         
         iconImageView.image = UIImage(named: annotation.rewardType.iconName)
 
-        switch annotation.conditionType {
-        case .distance:
-            badgeImageView.isHidden = false
-            badgeImageView.image = UIImage(named: "buff_condition_distance")
-        case .speed:
-            badgeImageView.isHidden = false
-            badgeImageView.image = UIImage(named: "buff_condition_speed")
-        case .none:
-            badgeImageView.isHidden = true
-        }
+        let badge = GridConditionPresentation.badge(
+            conditionType: annotation.conditionType.rawValue,
+            conditionParams: annotation.conditionParams
+        )
+        badgeImageView.isHidden = badge == nil
+        badgeImageView.image = badge?.uiImage
     }
 }
 
@@ -1341,7 +1352,8 @@ struct TileBasedGridsRunningMapView: UIViewRepresentable {
                         gridY: buff.grid_y,
                         level: tile.level,
                         rewardType: ccassetType,
-                        conditionType: buff.condition_type
+                        conditionType: buff.condition_type,
+                        conditionParams: buff.condition_params
                     )
                     //print("addAnnotation \(buff.grid_x) \(buff.grid_y)")
                     mapView.addAnnotation(annotation)
@@ -1434,6 +1446,7 @@ class RunningFreeTrainingViewModel: ObservableObject {
 enum RunningGridConditionType: String, Codable {
     case distance = "distance"
     case speed = "speed"
+    case weather = "weather"
     case none = "none"
 
     /// 右上角条件角标图标（不同运动可在各自枚举中定义不同条件→角标映射）
@@ -1441,7 +1454,7 @@ enum RunningGridConditionType: String, Codable {
         switch self {
         case .distance: return "buff_condition_distance"
         case .speed: return "buff_condition_speed"
-        case .none: return nil
+        case .weather, .none: return nil
         }
     }
 }
@@ -1451,6 +1464,7 @@ struct RunningGridBuffPreview: Codable {
     let grid_y: Int
     let effect_type: GridEffectType
     let condition_type: RunningGridConditionType
+    let condition_params: JSONValue
     let reward_type: String
 }
 

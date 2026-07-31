@@ -30,7 +30,7 @@ struct UserSetUpView: View {
                 }
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
-                
+
                 Spacer()
                 
                 Text("action.setup")
@@ -57,6 +57,10 @@ struct UserSetUpView: View {
                         
                         SetUpItemView(icon: "sportscourt", title: "user.setup.sport_settings") {
                             NavigationManager.shared.append(.sportSetUpView)
+                        }
+
+                        SetUpItemView(icon: "lock.shield", title: "user.setup.privacy_settings") {
+                            NavigationManager.shared.append(.recordPrivacySetUpView)
                         }
                         
                         SetUpItemView(icon: "vip_icon", title: "user.setup.vip_center", isSysIcon: false) {
@@ -138,7 +142,7 @@ struct UserSetUpView: View {
                         )
                     }
                     .cornerRadius(20)
-                    
+
                     VStack {
                         HStack(spacing: 6) {
                             Spacer()
@@ -212,6 +216,121 @@ struct UserSetUpView: View {
                 isCleaning = false
                 let toast = Toast(message: success ? "user.setup.toast.clean_cache.success" : "user.setup.toast.clean_cache.failed")
                 ToastManager.shared.show(toast: toast)
+            }
+        }
+    }
+}
+
+struct RecordPrivacySetUpView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject private var userManager = UserManager.shared
+
+    private var recordVisibility: RecordVisibility {
+        userManager.user.recordVisibility ?? .public
+    }
+
+    var body: some View {
+        VStack {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+
+                Spacer()
+
+                Text("user.setup.privacy_settings")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.clear)
+            }
+            .padding(.horizontal)
+
+            ScrollView {
+                VStack {
+                    Text("user.privacy.record_visibility.description")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.secondText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 10)
+
+                    VStack(spacing: 0) {
+                        SetUpItemView(icon: "lock.shield", title: "user.privacy.record_visibility", showChevron: false, showDivider: false) {
+                        } trailingView: {
+                            CapsuleScrollSelector(
+                                options: RecordVisibility.allCases,
+                                selection: Binding(get: { recordVisibility }, set: { _ in }),
+                                titleKey: { $0.displayName },
+                                expandedWidth: 260,
+                                backgroundColor: Color.secondBackground,
+                                onSelect: updateRecordVisibility
+                            )
+                        }
+                    }
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+
+                    Text("user.privacy.email_subscription.description")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.secondText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 20)
+
+                    VStack(spacing: 0) {
+                        SetUpItemView(icon: "envelope", title: "user.privacy.email_subscription", showChevron: false, showDivider: false) {
+                        } trailingView: {
+                            Toggle("", isOn: Binding(
+                                get: { userManager.user.isEmailSubscribed },
+                                set: { updateEmailSubscription($0) }
+                            ))
+                            .labelsHidden()
+                        }
+                    }
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+
+                    Spacer()
+                }
+            }
+        }
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+    }
+
+    private func updateRecordVisibility(_ visibility: RecordVisibility) {
+        guard var components = URLComponents(string: "/user/update_record_visibility") else { return }
+        components.queryItems = [URLQueryItem(name: "visibility", value: visibility.rawValue)]
+        guard let path = components.string else { return }
+
+        let request = APIRequest(path: path, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: RecordVisibility.self, showLoadingToast: false, showErrorToast: true) { result in
+            guard case .success(let response) = result, let value = response else { return }
+            DispatchQueue.main.async {
+                userManager.user.recordVisibility = value
+            }
+        }
+    }
+
+    private func updateEmailSubscription(_ enable: Bool) {
+        guard var components = URLComponents(string: "/user/update_email_subscription") else { return }
+        components.queryItems = [URLQueryItem(name: "enable", value: enable ? "true" : "false")]
+        guard let path = components.string else { return }
+
+        let request = APIRequest(path: path, method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: Bool.self, showLoadingToast: false, showErrorToast: true) { result in
+            guard case .success(let response) = result, let value = response else { return }
+            DispatchQueue.main.async {
+                userManager.user.isEmailSubscribed = value
+                UserDefaults.standard.set(value, forKey: "user.isEmailSubscribed")
             }
         }
     }
@@ -424,6 +543,21 @@ struct UserSetUpAccountView: View {
                             }
                         }
                     }
+                    SetUpItemView(icon: "google_icon", title: "user.setup.google_account", isSysIcon: false) {
+                        appState.navigationManager.append(.googleBindView)
+                    } trailingView: {
+                        if userManager.user.google_email != nil {
+                            Text("user.setup.phone.status.has_bind")
+                                .foregroundStyle(Color.secondText)
+                        } else {
+                            HStack(alignment: .bottom, spacing: 2) {
+                                Image(systemName: "exclamationmark.circle")
+                                    .foregroundStyle(Color.pink)
+                                Text("user.setup.phone.status.no_bind")
+                                    .foregroundStyle(Color.secondText)
+                            }
+                        }
+                    }
                     SetUpItemView(icon: "envelope.fill", title: "user.page.features.email_box", showDivider: false) {
                         appState.navigationManager.append(.emailBindView)
                     } trailingView: {
@@ -472,6 +606,7 @@ struct UserSetUpAccountView: View {
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
     }
+
 }
 
 struct PhoneBindView: View {
@@ -806,6 +941,75 @@ struct AppleBindView: View {
                     ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
                 }
             default: break
+            }
+        }
+    }
+}
+
+struct GoogleBindView: View {
+    @EnvironmentObject var appState: AppState
+    @ObservedObject private var userManager = UserManager.shared
+
+    var body: some View {
+        VStack(spacing: 20) {
+            HStack {
+                CommonIconButton(icon: "chevron.left") {
+                    appState.navigationManager.removeLast()
+                }
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+
+                Spacer()
+
+                Text("user.setup.google_account")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                Button(action: {}) {
+                    Image(systemName: "chevron.left").foregroundColor(.clear)
+                }
+            }
+            .padding(.horizontal)
+
+            Spacer()
+            if let email = userManager.user.google_email {
+                Text("user.setup.google.bind_info \(email.maskedEmail())")
+                    .foregroundStyle(.white)
+                    .padding(.horizontal)
+                Button(action: unbindGoogle) {
+                    Text("user.setup.action.phone.unbind")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                        .padding(.top, 10)
+                }
+            } else {
+                GoogleRoundSignInButton {
+                    GoogleSignInCoordinator.shared.startBinding()
+                }
+                .accessibilityLabel("user.setup.action.google.bind")
+            }
+            Spacer()
+        }
+        .padding(.horizontal)
+        .background(Color.defaultBackground)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBackGesture()
+    }
+
+    private func unbindGoogle() {
+        let request = APIRequest(path: "/user/account/unbind_google", method: .post, requiresAuth: true)
+        NetworkService.sendRequest(with: request, decodingType: EmptyResponse.self, showLoadingToast: true, showErrorToast: true) { result in
+            guard case .success = result else { return }
+            DispatchQueue.main.async {
+                UserManager.shared.user.google_email = nil
+                UserManager.shared.saveUserInfoToCache()
+                ToastManager.shared.show(toast: Toast(message: "user.page.unbind_device.result.success"))
             }
         }
     }
@@ -1373,10 +1577,14 @@ struct FeedbackView: View {
 
 struct AboutUsView: View {
     @ObservedObject var navigationManager = NavigationManager.shared
+    @Environment(\.openURL) private var openURL
     
-    let XAccount: String = "Passionkc26"
     let emailAdress: String = "contact@valbara.top"
     let vxAccount: String = "97784765"
+    private let xProfileURL = URL(string: "https://x.com/passionkc26")!
+    private let tiktokProfileURL = URL(string: "https://www.tiktok.com/@movmov141")!
+    private let youtubeProfileURL = URL(string: "https://www.youtube.com/@movmov-qy1bl8ry1z")!
+    private let instagramProfileURL = URL(string: "https://www.instagram.com/movmov55")!
     
     var body: some View {
         VStack {
@@ -1429,19 +1637,6 @@ struct AboutUsView: View {
                             Spacer()
                         }
                         VStack(spacing: 0) {
-                            SetUpItemView(icon: "X_icon", title: "X(Twitter)", showChevron: false, isSysIcon: false) {
-                                UIPasteboard.general.string = emailAdress
-                                let toast = Toast(message: "toast.copied", duration: 2)
-                                ToastManager.shared.show(toast: toast)
-                            } trailingView: {
-                                HStack(spacing: 4) {
-                                    Text(XAccount)
-                                    Image(systemName: "doc.on.doc")
-                                }
-                                .foregroundStyle(Color.thirdText)
-                                .font(.subheadline)
-                            }
-                            
                             SetUpItemView(icon: "envelope", title: "user.setup.contact_us.email", showChevron: false) {
                                 UIPasteboard.general.string = emailAdress
                                 let toast = Toast(message: "toast.copied", duration: 2)
@@ -1455,7 +1650,7 @@ struct AboutUsView: View {
                                 .font(.subheadline)
                             }
                             
-                            SetUpItemView(icon: "wechat", title: "user.setup.contact_us.wx", showChevron: false, showDivider: false, isSysIcon: false) {
+                            SetUpItemView(icon: "wechat", title: "user.setup.contact_us.wx", showChevron: false, isSysIcon: false) {
                                 UIPasteboard.general.string = vxAccount
                                 let toast = Toast(message: "toast.copied", duration: 2)
                                 ToastManager.shared.show(toast: toast)
@@ -1466,6 +1661,22 @@ struct AboutUsView: View {
                                 }
                                 .foregroundStyle(Color.thirdText)
                                 .font(.subheadline)
+                            }
+                            
+                            SetUpItemView(icon: "X_icon", title: "X(Twitter)", showChevron: true, isSysIcon: false) {
+                                openURL(xProfileURL)
+                            }
+                            
+                            SetUpItemView(icon: "tiktok_icon", title: "Tiktok", showChevron: true, isSysIcon: false) {
+                                openURL(tiktokProfileURL)
+                            }
+
+                            SetUpItemView(icon: "youtube_icon", title: "Youtube", showChevron: true, isSysIcon: false) {
+                                openURL(youtubeProfileURL)
+                            }
+
+                            SetUpItemView(icon: "instagram_icon", title: "Instagram", showChevron: true, showDivider: false, isSysIcon: false) {
+                                openURL(instagramProfileURL)
                             }
                         }
                         .cornerRadius(20)
@@ -1478,6 +1689,15 @@ struct AboutUsView: View {
         .background(Color.defaultBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBackGesture()
+    }
+
+    private func socialProfileLabel(_ account: String) -> some View {
+        HStack(spacing: 4) {
+            Text(account)
+            Image(systemName: "arrow.up.right.square")
+        }
+        .foregroundStyle(Color.thirdText)
+        .font(.subheadline)
     }
 }
 

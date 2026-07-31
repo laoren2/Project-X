@@ -976,7 +976,8 @@ struct BikeTrainingRealtimeMapView: UIViewRepresentable {
                         gridY: buff.grid_y,
                         level: tile.level,
                         rewardType: ccassetType,
-                        conditionType: buff.condition_type
+                        conditionType: buff.condition_type,
+                        conditionParams: buff.condition_params
                     )
                     mapView.addAnnotation(annotation)
                 }
@@ -1542,7 +1543,8 @@ struct RunningTrainingRealtimeMapView: UIViewRepresentable {
                         gridY: buff.grid_y,
                         level: tile.level,
                         rewardType: ccassetType,
-                        conditionType: buff.condition_type
+                        conditionType: buff.condition_type,
+                        conditionParams: buff.condition_params
                     )
                     mapView.addAnnotation(annotation)
                 }

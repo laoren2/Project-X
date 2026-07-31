@@ -8,6 +8,61 @@
 
 import Foundation
 import CoreLocation
+import SwiftUI
+
+/// 服务端冻结的运动结束天气快照；旧记录可为 nil。
+struct WorkoutWeather: Codable, Equatable {
+    let condition: String
+    let temperature_c: Double
+
+    var symbolName: String {
+        WeatherConditionIcon.symbolName(for: condition, fallback: "cloud.fill")
+    }
+}
+
+struct WorkoutWeatherSummaryRow: View {
+    let endTimeISO: String?
+    let fallbackTimestamp: TimeInterval
+    let weather: WorkoutWeather
+
+    private var endTimeText: String {
+        let formatter = ISO8601DateFormatter()
+        let endTime = endTimeISO.flatMap { formatter.date(from: $0) }
+            ?? Date(timeIntervalSince1970: fallbackTimestamp)
+        return endTime
+            .formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private var conditionText: String {
+        let key = "weather.condition.\(weather.condition)"
+        let localized = NSLocalizedString(key, comment: "")
+        return localized == key
+            ? NSLocalizedString("weather.condition.unknown", comment: "")
+            : localized
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: weather.symbolName)
+            Text(conditionText)
+            Text(String(format: "%.1f°C", weather.temperature_c))
+            Spacer()
+            Text(endTimeText)
+        }
+        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+        .foregroundStyle(Color.secondText)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct WeatherDataAttribution: View {
+    var body: some View {
+        Text("Weather data by OpenWeather")
+            .font(.caption2)
+            .foregroundStyle(Color.thirdText)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+}
 
 // 可叠加到分享图上的元素类型（logo 之外的指标元素用户可自选添加）
 enum ShareElementKind: String, CaseIterable, Identifiable {
@@ -18,6 +73,7 @@ enum ShareElementKind: String, CaseIterable, Identifiable {
     case heartRate      // 平均心率
     case elevationGain  // 累计海拔爬升
     case cadence        // 骑行踏频 / 跑步步频（标签按运动自适应）
+    case weather        // 结束天气与温度
     case logo           // App Logo（Movmov）
 
     var id: String { rawValue }
@@ -32,6 +88,7 @@ enum ShareElementKind: String, CaseIterable, Identifiable {
         case .heartRate:     return "share.element.heart_rate"
         case .elevationGain: return "share.element.elevation_gain"
         case .cadence:       return "share.element.pedal_cadence"   // 默认踏频，UI 层按运动覆盖为步频
+        case .weather:       return "share.element.weather"
         case .logo:          return "share.element.logo"
         }
     }
@@ -45,6 +102,7 @@ enum ShareElementKind: String, CaseIterable, Identifiable {
         case .heartRate:     return "heart.fill"
         case .elevationGain: return "arrowtriangle.up.fill"
         case .cadence:       return "pedalCadence"
+        case .weather:       return "cloud.sun.fill"
         case .logo:          return "single_app_icon"
         }
     }
@@ -61,6 +119,7 @@ struct ShareMetrics {
     let avgHeartRate: Double?                   // 平均心率（bpm），无则不可添加
     let elevationGain: Double                   // 累计爬升（米）
     let avgCadence: Double?                     // 骑行=平均踏频(rpm) / 跑步=平均步频(spm)，无则不可添加
+    let weather: WorkoutWeather?
 
     /// 展平后的全部坐标（地图取景、可用性判断等不关心分段处用）
     var coordinates: [CLLocationCoordinate2D] { coordinateSegments.flatMap { $0 } }
@@ -93,6 +152,7 @@ struct ShareMetrics {
 
     // 踏频 / 步频（按运动自适应标签与单位）
     var hasCadence: Bool { avgCadence != nil }
+    var hasWeather: Bool { weather != nil }
     var cadenceText: String {
         guard let c = avgCadence else { return "--" }
         return "\(Int(c.rounded()))"
@@ -105,7 +165,7 @@ struct ShareMetrics {
 
 extension ShareMetrics {
     /// 从基础轨迹点构建通用指标
-    static func make(sport: SportName, basePath: [PathPoint], avgCadence: Double? = nil) -> ShareMetrics {
+    static func make(sport: SportName, basePath: [PathPoint], avgCadence: Double? = nil, weather: WorkoutWeather? = nil) -> ShareMetrics {
         // 按 segment 分组：相邻点 segment 不同即开启新段（暂停缺口），绘制时各段独立不连线。
         var segments: [[CLLocationCoordinate2D]] = []
         var prevSegment: Int? = nil
@@ -146,7 +206,8 @@ extension ShareMetrics {
             avgSpeedKmh: avgSpeedKmh,
             avgHeartRate: avgHR,
             elevationGain: gain,
-            avgCadence: avgCadence
+            avgCadence: avgCadence,
+            weather: weather
         )
     }
 }
