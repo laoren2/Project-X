@@ -1446,7 +1446,8 @@ Vous pouvez désactiver l'accès aux données à tout moment dans « App Apple S
 
 // MARK: Confidentialité des résultats
 "user.setup.privacy_settings" = "Paramètres de confidentialité";
-"user.privacy.email_subscription" = "S’abonner aux e-mails produit";
+"user.privacy.email_subscription" = "S’abonner e-mails";
+"user.privacy.email_subscription.description" = "Recevez par e-mail les mises à jour des fonctionnalités et les notifications du produit.";
 "user.privacy.record_visibility" = "Détails de l’activité";
 "user.privacy.record_visibility.description" = "Visibilité des données";
 "user.privacy.visibility.public" = "Tout le monde";

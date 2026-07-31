@@ -16,6 +16,9 @@ struct HomepageBackendView: View {
     @State private var announcement_hans: String = ""
     @State private var announcement_hant: String = ""
     @State private var announcement_ko: String = ""
+    @State private var announcement_ja: String = ""
+    @State private var announcement_fr: String = ""
+    
     @State private var image_url: String = ""
     @State private var web_url: String = ""
     @State private var is_displayed: Bool = false
@@ -102,11 +105,27 @@ struct HomepageBackendView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.gray.opacity(0.3))
                             )
+                        Text("更新公告ja")
+                        TextEditor(text: $announcement_ja)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
+                        Text("更新公告fr")
+                        TextEditor(text: $announcement_fr)
+                            .frame(minHeight: 100)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3))
+                            )
                         Button("更新") {
                             updateAnnouncement()
                         }
-                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty) ? Color.gray : Color.green)
-                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty)
+                        .foregroundStyle((announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty || announcement_ja.isEmpty || announcement_fr.isEmpty) ? Color.gray : Color.green)
+                        .disabled(announcement_hans.isEmpty || announcement_hant.isEmpty || announcement_en.isEmpty || announcement_ko.isEmpty || announcement_ja.isEmpty || announcement_fr.isEmpty)
                     }
                     VStack(spacing: 20) {
                         Text("管理轮播广告页")
@@ -269,6 +288,8 @@ struct HomepageBackendView: View {
         if !announcement_hant.isEmpty { announcement_i18n["zh-Hant"] = announcement_hant }
         if !announcement_en.isEmpty { announcement_i18n["en"] = announcement_en }
         if !announcement_ko.isEmpty { announcement_i18n["ko"] = announcement_ko }
+        if !announcement_ja.isEmpty { announcement_i18n["ja"] = announcement_ja }
+        if !announcement_fr.isEmpty { announcement_i18n["fr"] = announcement_fr }
         
         let body: [String: Any] = [
             "content": announcement_i18n

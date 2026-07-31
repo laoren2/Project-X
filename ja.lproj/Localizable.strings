@@ -1427,6 +1427,7 @@
 // MARK: レース結果のプライバシー
 "user.setup.privacy_settings" = "プライバシー設定";
 "user.privacy.email_subscription" = "製品メールを購読";
+"user.privacy.email_subscription.description" = "製品機能の更新やお知らせをメールで受け取ります。";
 "user.privacy.record_visibility" = "ワークアウトの詳細";
 "user.privacy.record_visibility.description" = "データの公開範囲";
 "user.privacy.visibility.public" = "すべての人";

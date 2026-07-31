@@ -29,26 +29,31 @@ struct PaceBaselineResponse: Codable {
 
 
 final class RoutePaceEstimator {
-    private let vertices: [CLLocationCoordinate2D]   // route 折线顶点
-    private let cumS: [Double]                       // 各顶点累计弧长（米）
+    private let checkpoints: [CheckpointRealtime]    // 有序检查点，定义 route 的规范拓扑
+    private let cumS: [Double]                       // 各检查点累计规范弧长（米）
     let routeLength: Double                           // 路线总长
     private let sortedFinishTimes: [Double]          // 升序完赛成绩
     private let pbProfile: SplitProfile?
-    private var dPrev: Double = 0                     // 上一刻里程（单调前进）
+    private var activeCheckpointIndex = 0             // 当前已确认到达的检查点
+    private var segmentProgress = 0.0                 // 当前段内单调进度 [0, 1]
+    private var lastProjectionTimestamp: TimeInterval?
 
     var hasPB: Bool { pbProfile != nil }
     var leaderboardCount: Int { sortedFinishTimes.count }
 
     init?(routePoints: [RoutePointRealtime], finishTimes: [Double], pbProfile: SplitProfile?) {
-        let verts = RoutePaceEstimator.extractVertices(routePoints)
-        guard verts.count >= 2 else { return nil }
-        self.vertices = verts
+        let points = routePoints.compactMap { point -> CheckpointRealtime? in
+            if case .checkpoint(let checkpoint) = point { return checkpoint }
+            return nil
+        }
+        guard points.count >= 2 else { return nil }
+        self.checkpoints = points
 
         var s: [Double] = [0]
-        for i in 1..<verts.count {
+        for i in 1..<points.count {
             s.append(s[i - 1] + GeographyTool.haversineDistance(
-                lat1: verts[i - 1].latitude, lon1: verts[i - 1].longitude,
-                lat2: verts[i].latitude, lon2: verts[i].longitude))
+                lat1: points[i - 1].lat, lon1: points[i - 1].lng,
+                lat2: points[i].lat, lon2: points[i].lng))
         }
         self.cumS = s
         self.routeLength = s.last ?? 0
@@ -58,53 +63,43 @@ final class RoutePaceEstimator {
         self.pbProfile = pbProfile
     }
 
-    // 从 routePoints 取出有序折线顶点（checkpoint + segment 点），去重相邻重复点
-    static func extractVertices(_ routePoints: [RoutePointRealtime]) -> [CLLocationCoordinate2D] {
-        var out: [CLLocationCoordinate2D] = []
-        for rp in routePoints {
-            switch rp {
-            case .checkpoint(let cp):
-                out.append(CLLocationCoordinate2D(latitude: cp.lat, longitude: cp.lng))
-            case .segment(let seg):
-                out.append(contentsOf: seg.points)
-            }
+    /// 投影只在当前检查点段内进行。阶段只能由实时检查点状态或回放事件推进，
+    /// 因此环线/折返时不会被吸附到地理上接近的未来段。
+    func project(
+        _ coord: CLLocationCoordinate2D,
+        completedCheckpointIndex: Int? = nil,
+        timestamp: TimeInterval? = nil,
+        sport: SportName? = nil
+    ) -> Double {
+        if let completedCheckpointIndex, completedCheckpointIndex > activeCheckpointIndex {
+            activeCheckpointIndex = min(completedCheckpointIndex, checkpoints.count - 1)
+            segmentProgress = 0
         }
-        var deduped: [CLLocationCoordinate2D] = []
-        for v in out {
-            if let last = deduped.last, last.latitude == v.latitude, last.longitude == v.longitude { continue }
-            deduped.append(v)
-        }
-        return deduped
-    }
+        guard activeCheckpointIndex < checkpoints.count - 1 else { return routeLength }
 
-    // 把坐标投到折线垂距最近的段，返回沿路弧长（米）。单调前进窗口，处理来回绕。
-    func project(_ coord: CLLocationCoordinate2D, back: Double = 30, ahead: Double = 500) -> Double {
-        let lo = dPrev - back
-        let hi = dPrev + ahead
+        let start = checkpoints[activeCheckpointIndex]
+        let end = checkpoints[activeCheckpointIndex + 1]
         let mPerDegLat = 111320.0
         let mPerDegLon = 111320.0 * cos(coord.latitude * .pi / 180)
-        var bestPerp = Double.greatestFiniteMagnitude
-        var bestArc = dPrev
-        for k in 0..<(vertices.count - 1) {
-            let sa = cumS[k], sb = cumS[k + 1]
-            if sb < lo || sa > hi { continue }
-            // 以当前坐标为原点的局部平面（米）
-            let ax = (vertices[k].longitude - coord.longitude) * mPerDegLon
-            let ay = (vertices[k].latitude - coord.latitude) * mPerDegLat
-            let bx = (vertices[k + 1].longitude - coord.longitude) * mPerDegLon
-            let by = (vertices[k + 1].latitude - coord.latitude) * mPerDegLat
-            let dx = bx - ax, dy = by - ay
-            let seg2 = dx * dx + dy * dy
-            let t = seg2 <= 1e-9 ? 0 : max(0, min(1, (-ax * dx - ay * dy) / seg2))
-            let px = ax + t * dx, py = ay + t * dy
-            let perp = (px * px + py * py).squareRoot()
-            if perp < bestPerp {
-                bestPerp = perp
-                bestArc = sa + t * (sb - sa)
-            }
+        let ax = (start.lng - coord.longitude) * mPerDegLon
+        let ay = (start.lat - coord.latitude) * mPerDegLat
+        let bx = (end.lng - coord.longitude) * mPerDegLon
+        let by = (end.lat - coord.latitude) * mPerDegLat
+        let dx = bx - ax, dy = by - ay
+        let segmentSquared = dx * dx + dy * dy
+        var projected = segmentSquared <= 1e-9 ? 0 : max(0, min(1, (-ax * dx - ay * dy) / segmentSquared))
+
+        // 仅用于抑制单个漂移点把本段进度突然推到很后面；真实到达下一个检查点时
+        // 会通过 completedCheckpointIndex 精确越段，不受此限速影响。
+        if let timestamp, let previousTimestamp = lastProjectionTimestamp, timestamp > previousTimestamp {
+            let maxSpeed = sport == .Running ? 10.0 : 25.0
+            let segmentLength = max(cumS[activeCheckpointIndex + 1] - cumS[activeCheckpointIndex], 1)
+            let allowedAdvance = max(30.0, maxSpeed * (timestamp - previousTimestamp)) / segmentLength
+            projected = min(projected, segmentProgress + allowedAdvance)
         }
-        dPrev = max(bestArc, dPrev)
-        return dPrev
+        segmentProgress = max(segmentProgress, projected)
+        lastProjectionTimestamp = timestamp ?? lastProjectionTimestamp
+        return cumS[activeCheckpointIndex] + segmentProgress * (cumS[activeCheckpointIndex + 1] - cumS[activeCheckpointIndex])
     }
 
     // f(d)：PB 在里程 d 处的有效用时
@@ -145,6 +140,16 @@ final class RoutePaceEstimator {
         while lo < hi {
             let mid = (lo + hi) / 2
             if sortedFinishTimes[mid] < proj { lo = mid + 1 } else { hi = mid }
+        }
+        return (lo + 1, sortedFinishTimes.count + 1)
+    }
+
+    /// 完赛后以真实有效成绩直接排名，不能再使用进行中的距离外推。
+    func finalRank(effectiveTime: Double) -> (rank: Int, total: Int) {
+        var lo = 0, hi = sortedFinishTimes.count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            if sortedFinishTimes[mid] < effectiveTime { lo = mid + 1 } else { hi = mid }
         }
         return (lo + 1, sortedFinishTimes.count + 1)
     }

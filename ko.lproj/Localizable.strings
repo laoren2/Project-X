@@ -1427,6 +1427,7 @@
 // MARK: 경기 결과 개인정보
 "user.setup.privacy_settings" = "개인정보 설정";
 "user.privacy.email_subscription" = "제품 이메일 구독";
+"user.privacy.email_subscription.description" = "제품 기능 업데이트 및 알림을 이메일로 받아볼 수 있습니다.";
 "user.privacy.record_visibility" = "운동 기록 상세";
 "user.privacy.record_visibility.description" = "데이터 공개 범위";
 "user.privacy.visibility.public" = "모두에게 공개";

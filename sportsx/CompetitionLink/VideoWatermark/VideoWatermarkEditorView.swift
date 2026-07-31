@@ -355,7 +355,6 @@ struct VideoWatermarkEditorView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.bottom, 10)
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 18) {
@@ -402,12 +401,9 @@ struct VideoWatermarkEditorView: View {
         .onValueChange(of: previewVideoTime) { _, time in
             previewFrameProvider.requestFrame(at: time)
         }
-        .onAppear {
+        .onFirstAppear {
             if !workout.hasHeartRate { selectedMetrics.remove(.heartRate) }
             loadPaceSnapshot()
-        }
-        .onDisappear {
-            previewFrameProvider.cancel()
         }
     }
 
@@ -568,7 +564,7 @@ struct VideoWatermarkEditorView: View {
                             Text(LocalizedStringKey(metric.titleKey))
                                 .font(.system(size: 13, weight: .medium))
                             if islocked {
-                                Image("vip_icon")
+                                Image(metric == .logo ? "vip_icon" : "vip_icon_on")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(height: 15)
@@ -1790,17 +1786,21 @@ enum VideoWatermarkMediaAnalyzer {
     let routeData: JSONValue = .object([
         "steps": .array([
             .object([
-                "kind": .string("segment"),
-                "width": .number(5),
-                "points": .array(path.map { .array([.number($0.lat), .number($0.lon)]) })
+                "kind": .string("checkpoint"), "lat": .number(path.first!.lat), "lng": .number(path.first!.lon), "radius": .number(20)
+            ]),
+            .object([
+                "kind": .string("checkpoint"), "lat": .number(path.last!.lat), "lng": .number(path.last!.lon), "radius": .number(20)
             ])
         ])
     ])
     let paceSnapshot = VideoWatermarkPaceSnapshot(
-        version: 1,
+        version: 2,
         finish_times: [420, 448, 472, 501, 540, 585, 630, 690, 750, 830, 920, 1_020],
         pb_profile: SplitProfile(L: 820, N: 4, splits: [-45, 118, 238, 362, 486]),
-        route_data: routeData
+        route_data: routeData,
+        final_duration_seconds: 486,
+        original_duration_seconds: 120,
+        checkpoint_events: []
     )
     let previewImage = UIGraphicsImageRenderer(size: CGSize(width: 1_920, height: 1_080)).image { context in
         UIColor(red: 0.08, green: 0.16, blue: 0.22, alpha: 1).setFill()

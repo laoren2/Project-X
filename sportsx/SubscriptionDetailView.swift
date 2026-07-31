@@ -331,6 +331,7 @@ struct SubscriptionDetailView: View {
             if let unwrappedData = data {
                 DispatchQueue.main.async {
                     isSubscribed = unwrappedData.is_active
+                    userManager.user.isVip = unwrappedData.is_active
                     if let autoStatus = unwrappedData.auto_renew, let start = unwrappedData.started_at, let end = unwrappedData.expired_at {
                         autoRenew = autoStatus
                         startDate = ISO8601DateFormatter().date(from: start)
@@ -339,7 +340,7 @@ struct SubscriptionDetailView: View {
                 }
                 // 更新 isVip & original_transaction_id
                 if enforce {
-                    await UserManager.shared.fetchMeInfo()
+                    await userManager.fetchMeInfo()
                 }
             }
         default: break
@@ -428,7 +429,7 @@ extension SubscriptionDetailView {
                         }
                     }
                     // 更新用户的订阅状态 & original_transaction_id
-                    await UserManager.shared.fetchMeInfo()
+                    await userManager.fetchMeInfo()
                 }
                 DispatchQueue.main.async {
                     ToastManager.shared.finish()

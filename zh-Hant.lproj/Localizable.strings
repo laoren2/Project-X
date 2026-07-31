@@ -1447,6 +1447,7 @@
 // MARK: 比賽結果隱私
 "user.setup.privacy_settings" = "隱私設定";
 "user.privacy.email_subscription" = "訂閱產品郵件";
+"user.privacy.email_subscription.description" = "訂閱後，你將收到產品功能更新和訊息通知郵件。";
 "user.privacy.record_visibility" = "運動數據詳情";
 "user.privacy.record_visibility.description" = "數據可見性";
 "user.privacy.visibility.public" = "所有人可見";

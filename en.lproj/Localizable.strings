@@ -1278,9 +1278,9 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 "iap.subscription.benefits.2" = "Abundant exclusive sign-in rewards";
 "iap.subscription.benefits.3" = "Rapid motion data verification";
 "iap.subscription.benefits.4" = "Advanced route edit features";
-"iap.subscription.benefits.5" = "Advanced Workout Statistics";
+"iap.subscription.benefits.5" = "Advanced workout statistics";
 "iap.subscription.benefits.5.description" = "Advanced data includes real-time finisher ranking predictions and comparisons with personal bests, supports both Arena and Route training mode.";
-"iap.subscription.benefits.6" = "Advanced Video Watermark Processing";
+"iap.subscription.benefits.6" = "Advanced video watermark processing";
 "iap.subscription.benefits.6.description" = "Supports more export formats, advanced data metrics, and removal of the logo watermark.";
 "iap.subscription.benefits.1.description" = "Carry one extra card in card-enabled Route training or Arena modes.";
 "iap.subscription.benefits.4.description" = "Add up to 100 waypoints when editing a route; the overall leaderboard has no participant limit and both men's and women's rankings are unlocked.";
@@ -1446,7 +1446,8 @@ You can turn off data access at any time in 「Apple Health App」-「Share」-�
 
 // MARK: Race result privacy
 "user.setup.privacy_settings" = "Privacy Settings";
-"user.privacy.email_subscription" = "Subscribe to product emails";
+"user.privacy.email_subscription" = "Subscribe emails";
+"user.privacy.email_subscription.description" = "Receive emails about product feature updates and notifications.";
 "user.privacy.record_visibility" = "Workout detail data";
 "user.privacy.record_visibility.description" = "Data visibility";
 "user.privacy.visibility.public" = "Everyone";

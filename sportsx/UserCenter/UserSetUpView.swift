@@ -142,7 +142,7 @@ struct UserSetUpView: View {
                         )
                     }
                     .cornerRadius(20)
-                    
+
                     VStack {
                         HStack(spacing: 6) {
                             Spacer()
@@ -253,39 +253,52 @@ struct RecordPrivacySetUpView: View {
             .padding(.horizontal)
 
             ScrollView {
-                Text("user.privacy.record_visibility.description")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.secondText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 28)
-                    .padding(.top, 10)
+                VStack {
+                    Text("user.privacy.record_visibility.description")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.secondText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 10)
 
-                VStack(spacing: 0) {
-                    SetUpItemView(icon: "envelope", title: "user.privacy.email_subscription", showChevron: false) {
-                    } trailingView: {
-                        Toggle("", isOn: Binding(
-                            get: { userManager.user.isEmailSubscribed },
-                            set: { updateEmailSubscription($0) }
-                        ))
-                        .labelsHidden()
+                    VStack(spacing: 0) {
+                        SetUpItemView(icon: "lock.shield", title: "user.privacy.record_visibility", showChevron: false, showDivider: false) {
+                        } trailingView: {
+                            CapsuleScrollSelector(
+                                options: RecordVisibility.allCases,
+                                selection: Binding(get: { recordVisibility }, set: { _ in }),
+                                titleKey: { $0.displayName },
+                                expandedWidth: 260,
+                                backgroundColor: Color.secondBackground,
+                                onSelect: updateRecordVisibility
+                            )
+                        }
                     }
+                    .cornerRadius(20)
+                    .padding(.horizontal)
 
-                    SetUpItemView(icon: "lock.shield", title: "user.privacy.record_visibility", showChevron: false, showDivider: false) {
-                    } trailingView: {
-                        CapsuleScrollSelector(
-                            options: RecordVisibility.allCases,
-                            selection: Binding(get: { recordVisibility }, set: { _ in }),
-                            titleKey: { $0.displayName },
-                            expandedWidth: 260,
-                            backgroundColor: Color.secondBackground,
-                            onSelect: updateRecordVisibility
-                        )
+                    Text("user.privacy.email_subscription.description")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.secondText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 20)
+
+                    VStack(spacing: 0) {
+                        SetUpItemView(icon: "envelope", title: "user.privacy.email_subscription", showChevron: false, showDivider: false) {
+                        } trailingView: {
+                            Toggle("", isOn: Binding(
+                                get: { userManager.user.isEmailSubscribed },
+                                set: { updateEmailSubscription($0) }
+                            ))
+                            .labelsHidden()
+                        }
                     }
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+
+                    Spacer()
                 }
-                .cornerRadius(20)
-                .padding(.horizontal)
-
-                Spacer()
             }
         }
         .background(Color.defaultBackground)

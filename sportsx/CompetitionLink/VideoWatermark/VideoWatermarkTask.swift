@@ -171,12 +171,24 @@ struct VideoWatermarkPacePoint: Codable {
     let cumulativeCardBonus: Double
 }
 
+/// 由服务端结算状态机冻结；skip 罚时在抵达后续 checkpoint 的时刻生效。
+struct VideoWatermarkCheckpointPaceEvent: Codable {
+    let timestamp: TimeInterval
+    let checkpoint_index: Int
+    let missed_checkpoint_indices: [Int]
+    let penalty_delta: Double
+    let cumulative_penalty: Double
+}
+
 /// 服务端在完赛、更新本次榜单之前冻结的基线。字段与 PaceSnapshotResponse 对齐。
 struct VideoWatermarkPaceSnapshot: Codable {
     let version: Int
     let finish_times: [Double]
     let pb_profile: SplitProfile?
     let route_data: JSONValue
+    let final_duration_seconds: Double?
+    let original_duration_seconds: Double?
+    let checkpoint_events: [VideoWatermarkCheckpointPaceEvent]
 }
 
 /// 创建任务时预计算并持久化，确保导出和重试不会重新查询或因算法状态改变而漂移。
